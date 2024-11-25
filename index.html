@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  <title>Pixel Fortress</title>
+  <meta name="description" content="A pixelated game that uniquely merges the strategic depth of Tower Defense with the addictive simplicity of Clicker styles."
+  <meta name="author" content="Dorian Bayart"
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <style>
+    /* Font is dynamically loaded by JS */
+    /* @import url('https://fonts.googleapis.com/css2?family=Jacquarda+Bastarda+9&display=swap'); */
+
+    :root {
+      --font-base: "Jacquarda-Bastarda-9", fantasy, monospace, system-ui, sans-serif;
+    }
+
+    * {
+      user-select: none;
+      transition: opacity 750ms ease-in-out;
+    }
+
+    .font-to-load {
+      opacity: 0;
+    }
+
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100dvh;
+      background: linear-gradient(0deg, forestGreen, #1a1a1a);
+      background-size: 100% 125%;
+      font-family: var(--font-base);
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: auto;
+      width: 100dvw;
+    }
+
+    #backCanvas {
+      z-index: 5;
+    }
+
+    #mainCanvas {
+      z-index: 8;
+    }
+
+    #uiCanvas {
+      z-index: 10;
+      cursor: none;
+    }
+
+    #stats {
+      z-index: 100;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      font-family: monospace;
+    }
+
+    h1 {
+      position: absolute;
+      top: 25dvh;
+      left: 50dvw;
+      transform: translate(-50%, -50%);
+      width: max-content;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      font-family: var(--font-base);
+      font-size: xxx-large;
+      font-weight: 400;
+      color: gold;
+      /* text-shadow: 3px 5px 4px #000000; */
+      text-shadow: 0 0 5px forestgreen, 0 0 10px forestgreen, 0 0 15px forestgreen, 0 0 20px forestgreen, 0 0 25px forestgreen;
+    }
+
+    #progressBar {
+      position: relative;
+      top: 50dvh;
+      left: 50dvw;
+      transform: translate(-50%, -50%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #progressBar label {
+      font-family: var(--font-base);
+      font-size: x-large;
+      color: gold;
+      /* text-shadow: 3px 4px 4px #000000; */
+      text-shadow: 0 0 5px forestgreen, 0 0 10px forestgreen, 0 0 15px forestgreen, 0 0 20px forestgreen, 0 0 25px forestgreen;
+    }
+
+    #progressBar progress {
+      width: max(20dvw, 180px);
+    }
+
+    button {
+      z-index: 105;
+      position: absolute;
+      bottom: 0;
+      right: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <h1 id="gameName" class="font-to-load">Pixel Fortress<br/>_</h1>
+  <div id="progressBar">
+    <label for="progressBar" class="font-to-load">Loading ...</label>
+    <progress name="progressBar" class="font-to-load"></progress>
+  </div>
+
+  <canvas id="backCanvas" width="100" height="100"></canvas>
+  <canvas id="mainCanvas" width="100" height="100"></canvas>
+  <canvas id="uiCanvas" width="100" height="100"></canvas>
+  <div id="stats"></div>
+  <button id="debugButton">DEBUG</button>
+
+  <script>
+    const font = new FontFace('Jacquarda-Bastarda-9', `url('https://fonts.gstatic.com/s/jacquardabastarda9/v4/f0Xp0fWr_8t6WFtKQJfOhaC0hcZ1HYAMAYwE3zFdJ2HZ.woff2')`)
+    console.log('Loading font: ' + font.family)
+    setTimeout(() => {
+      font.load().then(
+        (fontLoaded) => {
+          console.log('Font loaded !')
+          document.fonts.add(font)
+          console.log('Display elements ...')
+          document.querySelectorAll('.font-to-load').forEach((element, i) => setTimeout(() => element.classList.remove('font-to-load'), i*400 + 200))
+        },
+        (err) => {
+          console.error('Font cannot be loaded', err)
+        }
+      )
+    }, 100)
+
+
+    // (async () => {
+    //   // The the splashscreen font and display elements
+    //   const font = new FontFace('Jacquarda-Bastarda-9', `url('https://fonts.gstatic.com/s/jacquardabastarda9/v4/f0Xp0fWr_8t6WFtKQJfOhaC0hcZ1HYAMAYwE3zFdJ2HZ.woff2')`)
+    //   console.log('Loading font: ' + font.family)
+    //   await font.load()
+    //   document.fonts.add(font)
+    //   document.querySelectorAll('.font-to-load').forEach((element, i) => setTimeout(() => element.classList.remove('font-to-load'), i*400 + 200))
+    // })()
+  </script>
+
+  <script defer src="utils.js"></script>
+  <script defer src="pathfinding.js"></script>
+  <script defer src="mouse.js"></script>
+  <script defer src="tileset.js"></script>
+</body>
+
+</html>
