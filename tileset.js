@@ -239,7 +239,7 @@ const gameLoop = () => {
  // UI
   if(mouse.clicked) {
     mouse.clicked = false
-    if(map[mouse.x][mouse.y].weight < 10) {
+    if(map[mouse.x] && map[mouse.x][mouse.y]?.weight < 10) {
       units.push(new Unit(mouse.x, mouse.y))
     }
   }
