@@ -5,12 +5,12 @@
 /****************/
 let DEBUG = false
 
-const SPRITE_SIZE = 16
+const SPRITE_SIZE = 16, UNIT_SPRITE_SIZE = 32
 const MAP_WIDTH = (globalThis.innerWidth > globalThis.innerHeight ? globalThis.innerWidth / SPRITE_SIZE : globalThis.innerHeight / SPRITE_SIZE) / 2 | 0
 const MAP_HEIGHT = MAP_WIDTH * globalThis.innerHeight / globalThis.innerWidth | 0
 const MAX_WEIGHT = 99999999
 
-const MAX_SPEED = (globalThis.innerWidth > globalThis.innerHeight ? MAP_HEIGHT : MAP_WIDTH) / 3 | 0
+const MAX_SPEED = (globalThis.innerWidth > globalThis.innerHeight ? MAP_HEIGHT : MAP_WIDTH) / 5 | 0
 
 // Canvas
 const backCanvas = document.getElementById('backCanvas')
@@ -39,7 +39,8 @@ let canvasHeight = 0
 const desiredAspectRatio = MAP_WIDTH / MAP_HEIGHT
 let dpr = globalThis.devicePixelRatio || 1
 
-let sprites, elapsed = elapsedBack = elapsedUI = -5000, fps = new Array(50).fill(100)
+let sprites, unitsSprites
+let elapsed = elapsedBack = elapsedUI = -5000, fps = new Array(50).fill(100)
 let isDrawBackRequested = true
 
 let spriteCoords_Start = { x: 21, y: 5 }
@@ -65,13 +66,15 @@ class Unit {
     this.y = (y ?? MAP_HEIGHT-1) * SPRITE_SIZE
     this.currentNode = { x: this.x/SPRITE_SIZE, y: this.y/SPRITE_SIZE }
     this.nextNode = { x: this.x/SPRITE_SIZE, y: this.y/SPRITE_SIZE }
-    this.sprite = offscreenSprite(sprite ?? sprites[spriteCoords_Start.x][spriteCoords_Start.y], SPRITE_SIZE)
+    this.spriteName = 'character-base'
+    this.spriteTimer = 0
+    this.sprite = offscreenSprite(sprite ?? unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
     this.path = this.pathToNearestEnemy()
     this.lastMoveUpdate = 0
     this.lastPathUpdate = 0
     this.goal = null
     this.life = 1
-    this.speed = 4 + (this.x + this.y + elapsed) % MAX_SPEED | 0
+    this.speed = 2 + (this.x + this.y + elapsed) % MAX_SPEED | 0
   }
 
   update(delay) {
@@ -119,13 +122,46 @@ class Unit {
   }
 
   move(delay) {
-    this.x += (this.nextNode.x * SPRITE_SIZE - this.x) / 2 * this.speed * (delay/1000)
-    this.y += (this.nextNode.y * SPRITE_SIZE - this.y) / 2 * this.speed * (delay/1000)
+    const devX = (this.nextNode.x * SPRITE_SIZE - this.x) / 2 * this.speed * (delay/1000)
+    const devY = (this.nextNode.y * SPRITE_SIZE - this.y) / 2 * this.speed * (delay/1000)
+    this.x += devX
+    this.y += devY
+
+    const type = devX*devX + devY*devY > this.speed * (delay/1500) ? 'walk' : 'static'
+
+    this.sprite = this.updateSprite(type, devX, devY, delay)
 
     if(Math.hypot(this.nextNode.x*SPRITE_SIZE - this.x, this.nextNode.y*SPRITE_SIZE - this.y) < SPRITE_SIZE/3) {
+      // we finally are on nextNode now
       this.currentNode.x = this.nextNode.x
       this.currentNode.y = this.nextNode.y
     }
+  }
+
+  updateSprite(type, devX, devY, delay) {
+    this.spriteTimer += delay
+    if(this.spriteTimer >= 800) this.spriteTimer -= 800
+    const spriteVar = `_${this.spriteTimer / 400 | 0}`
+    const speedCoef = 1.4 * this.speed * (delay/1000)
+    if(Math.abs(devX) < speedCoef && devY > 0) {
+      return offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName][type][spriteVar].s.x][unitsSpritesDescription[this.spriteName][type][spriteVar].s.y], UNIT_SPRITE_SIZE, `${this.spriteName}${type}${spriteVar}s`)
+    } else if(devX >= speedCoef && devY >= speedCoef) {
+      return offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName][type][spriteVar].se.x][unitsSpritesDescription[this.spriteName][type][spriteVar].se.y], UNIT_SPRITE_SIZE, `${this.spriteName}${type}${spriteVar}se`)
+    } else if(devX >= speedCoef && Math.abs(devY) <= speedCoef) {
+      return offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName][type][spriteVar].e.x][unitsSpritesDescription[this.spriteName][type][spriteVar].e.y], UNIT_SPRITE_SIZE, `${this.spriteName}${type}${spriteVar}e`)
+    } else if(devX > speedCoef && devY < -speedCoef) {
+      return offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName][type][spriteVar].ne.x][unitsSpritesDescription[this.spriteName][type][spriteVar].ne.y], UNIT_SPRITE_SIZE, `${this.spriteName}${type}${spriteVar}ne`)
+    } else if(Math.abs(devX) <= speedCoef && devY < -speedCoef) {
+      return offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName][type][spriteVar].n.x][unitsSpritesDescription[this.spriteName][type][spriteVar].n.y], UNIT_SPRITE_SIZE, `${this.spriteName}${type}${spriteVar}n`)
+    } else if(devX <= -speedCoef && devY <= -speedCoef) {
+      return offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName][type][spriteVar].nw.x][unitsSpritesDescription[this.spriteName][type][spriteVar].nw.y], UNIT_SPRITE_SIZE, `${this.spriteName}${type}${spriteVar}nw`)
+    } else if(devX <= -speedCoef && Math.abs(devY) <= speedCoef) {
+      return offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName][type][spriteVar].w.x][unitsSpritesDescription[this.spriteName][type][spriteVar].w.y], UNIT_SPRITE_SIZE, `${this.spriteName}${type}${spriteVar}w`)
+    } else if(devX <= -speedCoef && devY >= speedCoef) {
+      return offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName][type][spriteVar].sw.x][unitsSpritesDescription[this.spriteName][type][spriteVar].sw.y], UNIT_SPRITE_SIZE, `${this.spriteName}${type}${spriteVar}sw`)
+    }
+
+    return this.sprite
   }
 }
 
@@ -167,7 +203,7 @@ const drawMain = async () => {
   offCtx1.clearRect(0, 0, mainCanvas.width, mainCanvas.height)
   units.forEach((unit, i) => {
     // Display the unit
-    offCtx1.drawImage(unit.sprite, Math.round(unit.x), Math.round(unit.y))
+    offCtx1.drawImage(unit.sprite, Math.round(unit.x - UNIT_SPRITE_SIZE/4), Math.round(unit.y - UNIT_SPRITE_SIZE/4))
   })
   mainCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height)
   mainCtx.drawImage(offCanvas1, 0, 0, mainCanvas.width, mainCanvas.height)
@@ -285,6 +321,16 @@ onload = async (e) => {
   await onresize()
 
   sprites = await loadAndSplitImage('./assets/punyworld-overworld-tileset.png', SPRITE_SIZE)
+
+  unitsSpritesDescription = await (await fetch('./assets/units/spriteDescription.json')).json()
+  unitsSprites = {}
+  let spritesToLoad = ['character-base']
+  for(let sprite of spritesToLoad) {
+    unitsSprites[sprite] = await loadAndSplitImage(unitsSpritesDescription[sprite]['relativeToRoot'], UNIT_SPRITE_SIZE)
+  }
+
+
+  // mouse = new Mouse()
 
   initMouseEvents(uiCanvas, SPRITE_SIZE)
 

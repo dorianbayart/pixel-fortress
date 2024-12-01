@@ -41,8 +41,8 @@ const loadAndSplitImage = (url, spriteSize) => {
 }
 
 const offscreenSprites = new Map()
-const offscreenSprite = (sprite, spriteSize) => {
-  const hash = arrayToHash(sprite.data)
+const offscreenSprite = (sprite, spriteSize, id) => {
+  const hash = id ?? arrayToHash(sprite.data)
 
   if (!offscreenSprites.has(hash)) {
     const canvas = new OffscreenCanvas(spriteSize, spriteSize)
