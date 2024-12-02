@@ -56,23 +56,21 @@ const initMouseEvents = async (uiCanvas, spriteSize) => {
   })
 
   canvas.addEventListener('wheel', (e) => {
-      storePosition(e)
-      const oldScale = mouse.scaleFactor
-      if(e.wheelDelta > 0) {
-        // Zoom out
-        mouse.scaleFactor += 0.025
-      } else if (e.wheelDelta < 0) {
-        // Zoom in
-        mouse.scaleFactor -= 0.025
-      }
+    storePosition(e)
+    const oldScale = mouse.scaleFactor;
+    if(e.wheelDelta > 0) {
+      // Zoom out
+      mouse.scaleFactor += 0.025
+    } else if (e.wheelDelta < 0) {
+      // Zoom in
+      mouse.scaleFactor -= 0.025
+    }
 
-      
-
-
-      mouse.scaleFactor = Math.max(ZOOM.MIN, Math.min(ZOOM.MAX, mouse.scaleFactor))
-      //mouse.offsetX = (mouse.xPixels - mouse.offsetX) * (1 - mouse.scaleFactor / oldScale) + mouse.offsetX;
-      //mouse.offsetY = (mouse.yPixels - mouse.offsetY) * (1 - mouse.scaleFactor / oldScale) + mouse.offsetY;
-      mouse.zoomChanged = true
+    mouse.scaleFactor = Math.max(ZOOM.MIN, Math.min(ZOOM.MAX, mouse.scaleFactor));
+    mouse.offsetX = mouse.xPixels - (mouse.xPixels - mouse.offsetX) * (mouse.scaleFactor / oldScale);
+    mouse.offsetY = mouse.yPixels - (mouse.yPixels - mouse.offsetY) * (mouse.scaleFactor / oldScale);
+    
+    mouse.zoomChanged = true;
   })
 
   canvas.addEventListener('mousemove', (e) => {

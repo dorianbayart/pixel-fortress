@@ -363,25 +363,7 @@ const updateZoom = () => {
     uiCtx.setTransform(mouse.scaleFactor, 0, 0, mouse.scaleFactor, mouse.offsetX, mouse.offsetY)
     offCtx1.setTransform(mouse.scaleFactor, 0, 0, mouse.scaleFactor, mouse.offsetX, mouse.offsetY)
     offCtx2.setTransform(mouse.scaleFactor, 0, 0, mouse.scaleFactor, mouse.offsetX, mouse.offsetY)
-    // mainCtx.translate(mouse.offsetX, mouse.offsetY)
-    // mainCtx.scale(scale, scale)
-    // mainCtx.translate(-mouse.offsetX, -mouse.offsetY)
-  
-    // backCtx.translate(mouse.offsetX, mouse.offsetY)
-    // backCtx.scale(scale, scale)
-    // backCtx.translate(-mouse.offsetX, -mouse.offsetY)
-  
-    // uiCtx.translate(mouse.offsetX, mouse.offsetY)
-    // uiCtx.scale(scale, scale)
-    // uiCtx.translate(-mouse.offsetX, -mouse.offsetY)
-    
-    // offCtx1.translate(mouse.offsetX, mouse.offsetY)
-    // offCtx1.scale(scale, scale)
-    // offCtx1.translate(-mouse.offsetX, -mouse.offsetY)
-  
-    // offCtx2.translate(mouse.offsetX, mouse.offsetY)
-    // offCtx2.scale(scale, scale)
-    // offCtx2.translate(-mouse.offsetX, -mouse.offsetY)
+
   }
   
   isDrawBackRequested = true
