@@ -1,14 +1,19 @@
 'use strict'
 
 const mouse = {
+  xPixels: 0,
+  yPixels: 0,
   x: null,
   y: null,
   isDragging: false,
   isPinching: false,
+  needUpdate: false,
+  offsetX: 0,
+  offsetY: 0,
   prevDistance: 0, // distance between fingers
   scaleFactor: 1,
   sprite: null,
-  needUpdate: false
+  zoomChanged: false,
 }
 
 const initMouseEvents = async (uiCanvas, spriteSize) => {
@@ -16,16 +21,16 @@ const initMouseEvents = async (uiCanvas, spriteSize) => {
   const canvas = uiCanvas
 
   mouse.sprite = offscreenSprite(sprites[spriteCoords_Mouse.x][spriteCoords_Mouse.y], SPRITE_SIZE)
+  mouse.offsetX = 0
+  mouse.offsetY = 0
 
   const storePosition = (e) => {
     const rect = canvas.getBoundingClientRect() // Get canvas position and size
-    const posX = (e.clientX - rect.left)*(canvas.width/parseInt(canvas.style.width.split('px')[0]))/SPRITE_SIZE | 0
-    const posY = (e.clientY - rect.top)*(canvas.height/parseInt(canvas.style.height.split('px')[0]))/SPRITE_SIZE | 0
-    if(posX !== mouse.x || posY !== mouse.y) {
-      mouse.x = posX
-      mouse.y = posY
-      mouse.needUpdate = true
-    }
+    mouse.xPixels = (e.clientX - rect.left) * (canvas.width/parseInt(canvas.style.width.split('px')[0]) / mouse.scaleFactor) | 0
+    mouse.yPixels = (e.clientY - rect.top) * (canvas.height/parseInt(canvas.style.height.split('px')[0]) / mouse.scaleFactor) | 0
+    mouse.x = mouse.xPixels / SPRITE_SIZE / mouse.scaleFactor | 0
+    mouse.y = mouse.yPixels / SPRITE_SIZE / mouse.scaleFactor | 0
+    mouse.needUpdate = true
   }
 
   const distanceBetweenTouches = (touch1, touch2) => {
@@ -35,18 +40,56 @@ const initMouseEvents = async (uiCanvas, spriteSize) => {
   }
 
   canvas.addEventListener('mousedown', (e) => {
-    mouse.isDragging = true
-    storePosition(e)
+    if(e.which === 1) { // left clic
+      mouse.isDragging = true
+      storePosition(e)
+      console.log(e)
+    }
   })
 
   canvas.addEventListener('mouseup', (e) => {
-    mouse.isDragging = false
-    mouse.clicked = true
-    storePosition(e)
+    if(e.which === 1) { // left clic
+      mouse.isDragging = false
+      mouse.clicked = true
+      storePosition(e)
+    }
+  })
+
+  canvas.addEventListener('wheel', (e) => {
+      storePosition(e)
+      const oldScale = mouse.scaleFactor
+      if(e.wheelDelta > 0) {
+        // Zoom out
+        mouse.scaleFactor += 0.025
+      } else if (e.wheelDelta < 0) {
+        // Zoom in
+        mouse.scaleFactor -= 0.025
+      }
+
+      
+
+
+      mouse.scaleFactor = Math.max(ZOOM.MIN, Math.min(ZOOM.MAX, mouse.scaleFactor))
+      //mouse.offsetX = (mouse.xPixels - mouse.offsetX) * (1 - mouse.scaleFactor / oldScale) + mouse.offsetX;
+      //mouse.offsetY = (mouse.yPixels - mouse.offsetY) * (1 - mouse.scaleFactor / oldScale) + mouse.offsetY;
+      mouse.zoomChanged = true
   })
 
   canvas.addEventListener('mousemove', (e) => {
-    throttle(storePosition, 10)(e)
+    
+    if(mouse.isDragging) {
+      const rect = canvas.getBoundingClientRect()
+      const xPixels = (e.clientX - rect.left) * (canvas.width/parseInt(canvas.style.width.split('px')[0]) / mouse.scaleFactor) | 0
+      const yPixels = (e.clientY - rect.top) * (canvas.height/parseInt(canvas.style.height.split('px')[0]) / mouse.scaleFactor) | 0
+      mouse.offsetX += mouse.xPixels - xPixels
+      mouse.offsetY += mouse.yPixels - yPixels
+      mouse.zoomChanged = true
+      storePosition(e)
+    } else {
+      throttle(storePosition, 15)(e)
+    }
+
+    
   })
 
   canvas.addEventListener('touchstart', (e) => {

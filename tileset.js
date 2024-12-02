@@ -27,6 +27,13 @@ const offCtx1 = offCanvas1.getContext('2d')
 const offCanvas2 = document.createElement('canvas')
 const offCtx2 = offCanvas2.getContext('2d')
 
+const ZOOM = {
+  FACTOR: 1.1,
+  MAX: 1.4,
+  MIN: 1,
+  current: 1
+}
+
 // Worker
 //const worker = new Worker("worker.js")
 //const canvasWorker = backCanvas.transferControlToOffscreen()
@@ -251,10 +258,22 @@ const drawBack = async () => {
 }
 
 const ui = async () => {
+  // Draw a sprite following mouse position
   offCtx1.clearRect(0, 0, uiCanvas.width, uiCanvas.height)
   offCtx1.drawImage(mouse.sprite, mouse.x * SPRITE_SIZE, mouse.y * SPRITE_SIZE)
   uiCtx.clearRect(0, 0, uiCanvas.width, uiCanvas.height)
   uiCtx.drawImage(offCanvas1, 0, 0, uiCanvas.width, uiCanvas.height)
+
+  // Draw the real mouse cursor
+  uiCtx.beginPath() // Draw a mouse cursor
+  uiCtx.moveTo(mouse.xPixels - 4 + 0.5, mouse.yPixels + 0.5)
+  uiCtx.lineTo(mouse.xPixels + 4 + 0.5, mouse.yPixels + 0.5)
+  uiCtx.moveTo(mouse.xPixels + 0.5, mouse.yPixels - 4 + 0.5)
+  uiCtx.lineTo(mouse.xPixels + 0.5, mouse.yPixels + 4 + 0.5)
+  uiCtx.lineWidth = 1
+  uiCtx.strokeStyle = 'purple'
+  uiCtx.stroke()
+
 
   if(DEBUG) {
     document.getElementById('stats').innerHTML = null
@@ -278,7 +297,7 @@ const gameLoop = () => {
 
 
   // Back Map
-  if(isDrawBackRequested && now - elapsedBack > 500) {
+  if(isDrawBackRequested && now - elapsedBack > 50) {
     isDrawBackRequested = false
     elapsedBack = now
     drawBack()
@@ -292,6 +311,10 @@ const gameLoop = () => {
     if(map[mouse.x] && map[mouse.x][mouse.y]?.weight < 10) {
       units.push(new Unit(mouse.x, mouse.y))
     }
+  }
+
+  if(mouse.zoomChanged) {
+    updateZoom()
   }
 
   if(mouse.needUpdate || (DEBUG && now - elapsedUI > 500)) {
@@ -322,6 +345,50 @@ const gameLoop = () => {
   requestAnimationFrame(gameLoop)
 }
 
+const updateZoom = () => {
+  let scale = 1 + mouse.scaleFactor - ZOOM.current
+
+  if(mouse.scaleFactor === ZOOM.MIN) {
+    mainCtx.resetTransform()
+    backCtx.resetTransform()
+    uiCtx.resetTransform()
+    offCtx1.resetTransform()
+    offCtx2.resetTransform()
+
+    // mouse.offsetX = 0
+    // mouse.offsetY = 0
+  } else {
+    mainCtx.setTransform(mouse.scaleFactor, 0, 0, mouse.scaleFactor, mouse.offsetX, mouse.offsetY)
+    backCtx.setTransform(mouse.scaleFactor, 0, 0, mouse.scaleFactor, mouse.offsetX, mouse.offsetY)
+    uiCtx.setTransform(mouse.scaleFactor, 0, 0, mouse.scaleFactor, mouse.offsetX, mouse.offsetY)
+    offCtx1.setTransform(mouse.scaleFactor, 0, 0, mouse.scaleFactor, mouse.offsetX, mouse.offsetY)
+    offCtx2.setTransform(mouse.scaleFactor, 0, 0, mouse.scaleFactor, mouse.offsetX, mouse.offsetY)
+    // mainCtx.translate(mouse.offsetX, mouse.offsetY)
+    // mainCtx.scale(scale, scale)
+    // mainCtx.translate(-mouse.offsetX, -mouse.offsetY)
+  
+    // backCtx.translate(mouse.offsetX, mouse.offsetY)
+    // backCtx.scale(scale, scale)
+    // backCtx.translate(-mouse.offsetX, -mouse.offsetY)
+  
+    // uiCtx.translate(mouse.offsetX, mouse.offsetY)
+    // uiCtx.scale(scale, scale)
+    // uiCtx.translate(-mouse.offsetX, -mouse.offsetY)
+    
+    // offCtx1.translate(mouse.offsetX, mouse.offsetY)
+    // offCtx1.scale(scale, scale)
+    // offCtx1.translate(-mouse.offsetX, -mouse.offsetY)
+  
+    // offCtx2.translate(mouse.offsetX, mouse.offsetY)
+    // offCtx2.scale(scale, scale)
+    // offCtx2.translate(-mouse.offsetX, -mouse.offsetY)
+  }
+  
+  isDrawBackRequested = true
+  mouse.zoomChanged = false
+  ZOOM.current = mouse.scaleFactor
+  console.log(scale, mouse.scaleFactor)
+}
 
 document.getElementById('debugButton').addEventListener('click', () => {
   DEBUG = !DEBUG
@@ -343,8 +410,6 @@ onload = async (e) => {
     unitsSprites[sprite] = await loadAndSplitImage(unitsSpritesDescription[sprite]['relativeToRoot'], UNIT_SPRITE_SIZE)
   }
 
-
-  // mouse = new Mouse()
 
   initMouseEvents(uiCanvas, SPRITE_SIZE)
 
@@ -403,4 +468,4 @@ onresize = onrotate = async () => {
 
   // fix key events not received on itch.io when game loads in full screen
   window.focus()
-};
+}
