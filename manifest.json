@@ -1,41 +1,46 @@
 {
-    "name": "Pixel Fortress",
-    "short_name": "Pixel Fortress",
-    "description": "A 2D pixel-based strategy game that uniquely merges the depth of Tower Defense with the addictive simplicity of Clicker styles.",
-    "start_url": "index.html",
-    "display": "fullscreen",
     "background_color": "#114611",
-    "theme_color": "#228b22",
-    "icons": [
-        {
-            "src": "favicon.ico",
-            "sizes": "16x16",
-            "type": "image/x-icon",
-            "purpose": "any maskable"
-        },
-        {
-            "src": "favicon.ico",
-            "sizes": "32x32",
-            "type": "image/x-icon",
-            "purpose": "any maskable"
-        },
-        {
-            "src": "favicon.ico",
-            "sizes": "192x192",
-            "type": "image/png",
-            "purpose": "any maskable"
-        },
-        {
-            "src": "favicon.ico",
-            "sizes": "512x512",
-            "type": "image/png",
-            "purpose": "any maskable"
-        }
-    ],
     "categories": [
         "games",
         "strategy",
         "tower-defense",
         "pixel-art"
-    ]
+    ],
+    "description": "A 2D pixel-based strategy game that uniquely merges the depth of Tower Defense with the addictive simplicity of Clicker styles.",
+    "display": "fullscreen",
+    "icons": [
+        {
+            "sizes": "16x16",
+            "src": "assets/base_16.png",
+            "type": "image/png"
+        },
+        {
+            "sizes": "24x24",
+            "src": "assets/base_24.png",
+            "type": "image/x-icon"
+        },
+        {
+            "sizes": "192x192",
+            "src": "assets/base_192_hqx.png",
+            "type": "image/png"
+        }
+    ],
+    "name": "Pixel Fortress",
+    "screenshots": [
+        {
+            "form_factor": "narrow",
+            "sizes": "1000x1800",
+            "src": "assets/logo_portrait.svg",
+            "type": "image/svg+xml"
+        },
+        {
+            "form_factor": "wide",
+            "sizes": "1000x300",
+            "src": "assets/logo_banner.svg",
+            "type": "image/svg+xml"
+        }
+    ],
+    "short_name": "Pixel Fortress",
+    "start_url": "index.html",
+    "theme_color": "#228b22"
 }
