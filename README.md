@@ -2,12 +2,12 @@
 
 # <img src="favicon.ico" alt="Favicon" width="26" height="26"> Pixel Fortress
 
-A 2D pixel-based strategy game.
+A 2D pixel-based strategy game that uniquely merges the depth of Tower Defense with the addictive simplicity of Clicker styles.
 
 [Play live](https://dorianbayart.github.io/sandbox/games/pixel-fortress/)
 
 
-## Features
+## ✨ Features
 
 * **Strategic Gameplay:** Build up your Fortress to produce units and defend your fortress against enemies.
 * **Dynamic Map:** Explore huge randomly generated maps with various terrains and obstacles.
@@ -15,7 +15,7 @@ A 2D pixel-based strategy game.
 * **Zoom:** Use the mouse wheel to zoom in and out for a detailed view of the battlefield.
 * **Pathfinding:** Units intelligently navigate the map to reach their destinations.
 
-## Game Modes
+## 🎮 Game Modes
 
 **Single-player (vs AI):** Currently, the game can be played against an AI opponent. This mode allows you to practice and familiarize yourself with the game mechanics, through campaigns, and predefined or randomly generated maps.
 
@@ -23,50 +23,49 @@ A 2D pixel-based strategy game.
 Stay tuned for updates! 
 
 
-## Technologies Used
+## 💻 Technologies Used
 
 * **HTML/2D Canvas:** Provides the structure and visuals of the game.
 * **JavaScript:** Handles game logic, rendering, and player interactions.
-* **(Potentially) Web Workers:** May be used for background tasks to enhance performance.
+* _Potentially_ **Web Workers:** May be used for background tasks to enhance performance.
 
 
-## Game Mechanics (Brief Overview)
+## 🕹️ Game Mechanics (Brief Overview)
 
-* Unit Management
-In Pixel Fortress, you build structures that automatically produce units. These units operate independently, with some dedicated to resource gathering (food, wood, gold, stone, whatever) and others focused on combat against enemy units and structures. You don't directly control individual units; instead, you manage your resource production and building placement to optimize your unit's effectiveness. The AI opponent uses the same automated unit management system.
+* **Unit Management**  
+In Pixel Fortress, you build structures that automatically produce units. These units operate independently, with some dedicated to resource gathering (food, wood, gold, stone, whatever) and others focused on combat against enemy units and structures. You don't directly control individual units; instead, you manage your resource production and building placement to optimize your unit's effectiveness.  
+The AI opponent uses the same automated unit management system.
 
-* **Mouse Handling:**  Use the mouse to constuct buildings to defend your Fortress.
-* **Sprite Management:** Efficiently manage and render sprites for units and other game elements.
-* **Zoom:** Zoom in and out of the map using the mouse wheel.
-* **Attack:** Units automatically attack nearby enemies within their range or navigate to engage them.
+* **Attack**  
+Units automatically attack nearby enemies within their range or navigate to engage them.
 
 
-## Getting Started
+## 🚀 Getting Started
 
-### Prerequisites
+### ✅ Prerequisites
 
 * A modern web browser (such as Chrome)
 
-### Installation
+### 💾 Installation
 
 1. Clone the repository: `git clone https://github.com/dorianbayart/sandbox.git`
 2. Navigate to the project directory: `cd pixel-fortress`
 
-### Running the Game
+### ▶️ Running the Game
 
 1. Open the `index.html` file in your web browser.
 2. Enjoy!
 
-### Troubleshooting
+### ⚠️ Troubleshooting
 
-* **Game Doesn't Load:** Ensure you have cloned the repository correctly.
+* **Game Doesn't Load:** Ensure you have properly cloned the repository.
 * **Performance Issues:** Try closing other browser tabs or applications to free up system resources.
-* **Unexpected Behavior:** If you encounter bugs or glitches, please report them on the project's issue tracker.
+* **Unexpected Behavior:** If you encounter bugs or glitches, please report them on the project's issue tracker. Please remember it is still a work in progress.
 
 
-## Roadmap
+## 🎯 Roadmap
 
-Here's a look at the planned features and improvements for Pixel Fortress:
+Here's a look at the planned features and improvements:
 
 1. **Enhanced AI:** Improve the AI opponent's decision-making and strategic capabilities.
 2. **Multiplayer Support:** Implement online multiplayer functionality for player-versus-player battles.
@@ -77,16 +76,15 @@ Here's a look at the planned features and improvements for Pixel Fortress:
 7. **Improved Graphics and Animations:** Enhance the visual fidelity of the game with better sprites and animations.
 8. **Sound Effects and Music:** Integrate sound effects and music to create a more immersive experience.
 9. **User Interface Enhancements:** Improve the user interface for better clarity and usability.
-10. **Modding Support:** Explore the possibility of adding modding support for community-created content.
-
-These are just some of the ideas I have in mind, and I am open to suggestions and feedback from the community. 
+   
+These are just some of the ideas I have in mind, and I am open to suggestions and feedback. 
 Stay tuned for updates as I continue to develop and expand Pixel Fortress!
 
 A detailed roadmap can be found here: [ROADMAP.md](ROADMAP.md)
 
 
 
-## License
+## 📜 License
 
 This project is licensed under the **Creative Commons Non-Commercial 4.0 International License**.
 
@@ -102,3 +100,8 @@ Under the following terms:
 * **No Additional Restrictions** — You may not apply legal terms or technological measures that legally restrict others from doing anything the license permits.
 
 **Full License Text:** [https://creativecommons.org/licenses/by-nc/4.0/](https://creativecommons.org/licenses/by-nc/4.0/)
+
+
+## #️⃣ Keywords
+
+pixel, fortress, game, strategy, tower defense, TD, clicker, pixel art, 2D, HTML5, JavaScript, canvas, web, browser, open source, sandbox, dungeon, monsters, waves, upgrades, skills, achievements, resource management, base building, survival
