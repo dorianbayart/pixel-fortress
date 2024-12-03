@@ -400,7 +400,6 @@ onload = async (e) => {
   }
 
   const mouseModule = await import('mouse')
-  initMouseEvents(uiCanvas, SPRITE_SIZE)
   mouse = new mouseModule.Mouse()
   mouse.initMouse(uiCanvas, SPRITE_SIZE)
   mouse.sprite = offscreenSprite(sprites[spriteCoords_Mouse.x][spriteCoords_Mouse.y], SPRITE_SIZE)
