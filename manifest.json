@@ -1,0 +1,17 @@
+{
+    "name": "Pixel Fortress",
+    "short_name": "Pixel Fortress",
+    "description": "A 2D pixel-based strategy game that uniquely merges the depth of Tower Defense with the addictive simplicity of Clicker styles.",
+    "start_url": "index.html",
+    "display": "fullscreen",
+    "background_color": "#114611",
+    "theme_color": "#228b22",
+    "icons": [
+      {
+        "src": "favicon.ico",
+        "sizes": "16x16",
+        "type": "image/ico"
+      }
+    ],
+    "categories": ["games", "strategy", "tower-defense", "pixel-art"]
+  }

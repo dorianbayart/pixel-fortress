@@ -53,7 +53,7 @@
       padding: 0;
       overflow: hidden;
       height: 100dvh;
-      background: linear-gradient(0deg, forestGreen, #1a1a1a);
+      background: linear-gradient(0deg, forestgreen, #1a1a1a);
       background-size: 100% 125%;
       font-family: var(--font-base);
     }
@@ -135,6 +135,12 @@
       right: 0;
     }
   </style>
+
+  <script defer src="js/utils.js"></script>
+  <script defer src="js/pathfinding.js"></script>
+  <script defer src="js/mouse.js"></script>
+  <script defer src="js/tileset.js"></script>
+  <script defer src="js/worker.js"></script>
 </head>
 
 <body>
@@ -166,22 +172,7 @@
         }
       )
     }, 100)
-
-
-    // (async () => {
-    //   // The the splashscreen font and display elements
-    //   const font = new FontFace('Jacquarda-Bastarda-9', `url('https://fonts.gstatic.com/s/jacquardabastarda9/v4/f0Xp0fWr_8t6WFtKQJfOhaC0hcZ1HYAMAYwE3zFdJ2HZ.woff2')`)
-    //   console.log('Loading font: ' + font.family)
-    //   await font.load()
-    //   document.fonts.add(font)
-    //   document.querySelectorAll('.font-to-load').forEach((element, i) => setTimeout(() => element.classList.remove('font-to-load'), i*400 + 200))
-    // })()
   </script>
-
-  <script defer src="utils.js"></script>
-  <script defer src="pathfinding.js"></script>
-  <script defer src="mouse.js"></script>
-  <script defer src="tileset.js"></script>
 </body>
 
 </html>
