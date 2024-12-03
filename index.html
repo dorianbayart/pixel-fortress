@@ -136,11 +136,19 @@
     }
   </style>
 
-  <script defer src="js/utils.js"></script>
-  <script defer src="js/pathfinding.js"></script>
-  <script defer src="js/mouse.js"></script>
-  <script defer src="js/tileset.js"></script>
-  <script defer src="js/worker.js"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "maps": "./js/maps.js",
+        "mouse": "./js/mouse.js",
+        "pathfinding": "./js/pathfinding.js",
+        "utils": "./js/utils.js",
+        "worker": "./js/worker.js"
+      }
+    }
+  </script>
+
+  <script type="module" src="js/tileset.js"></script>
 </head>
 
 <body>

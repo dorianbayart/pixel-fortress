@@ -1,3 +1,5 @@
+export { arrayToHash, loadAndSplitImage, offscreenSprite, throttle }
+
 'use strict'
 
 const throttle = (func, wait = 100) => {

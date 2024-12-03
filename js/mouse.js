@@ -1,129 +1,144 @@
+export { Mouse }
+
 'use strict'
 
-const mouse = {
-  xPixels: 0,
-  yPixels: 0,
-  x: null,
-  y: null,
-  isDragging: false,
-  isPinching: false,
-  needUpdate: false,
-  offsetX: 0,
-  offsetY: 0,
-  prevDistance: 0, // distance between fingers
-  scaleFactor: 1,
-  sprite: null,
-  zoomChanged: false,
+import { throttle } from 'utils'
+
+
+const ZOOM = {
+  FACTOR: 1.1,
+  MAX: 1.4,
+  MIN: 1,
+  current: 1
 }
 
-const initMouseEvents = async (uiCanvas, spriteSize) => {
-  const SPRITE_SIZE = spriteSize
-  const canvas = uiCanvas
-
-  mouse.sprite = offscreenSprite(sprites[spriteCoords_Mouse.x][spriteCoords_Mouse.y], SPRITE_SIZE)
-  mouse.offsetX = 0
-  mouse.offsetY = 0
-
-  const storePosition = (e) => {
-    const rect = canvas.getBoundingClientRect() // Get canvas position and size
-    mouse.xPixels = (e.clientX - rect.left) * (canvas.width/parseInt(canvas.style.width.split('px')[0]) / mouse.scaleFactor) | 0
-    mouse.yPixels = (e.clientY - rect.top) * (canvas.height/parseInt(canvas.style.height.split('px')[0]) / mouse.scaleFactor) | 0
-    mouse.x = mouse.xPixels / SPRITE_SIZE / mouse.scaleFactor | 0
-    mouse.y = mouse.yPixels / SPRITE_SIZE / mouse.scaleFactor | 0
-    mouse.needUpdate = true
+class Mouse {
+  constructor(xPixels = 0, yPixels = 0) {
+    this.xPixels = xPixels
+    this.yPixels = yPixels
+    this.x = null
+    this.y = null
+    this.canvas = null
+    this.isDragging = false
+    this.isPinching = false
+    this.needUpdate = false
+    this.offsetX = 0
+    this.offsetY = 0
+    this.prevDistance = 0 // distance between fingers
+    this.scaleFactor = 1
+    this.sprite = null
+    this.zoomChanged = false
   }
 
-  const distanceBetweenTouches = (touch1, touch2) => {
-    const dx = touch1.clientX - touch2.clientX;
-    const dy = touch1.clientY - touch2.clientY;
-    return Math.sqrt(dx * dx + dy * dy);
+  needUpdate() {
+    if (this.needUpdate) {
+      this.needUpdate = false
+      return true
+    }
+    return false
   }
 
-  canvas.addEventListener('mousedown', (e) => {
-    if(e.which === 1) { // left clic
-      mouse.isDragging = true
-      storePosition(e)
-      console.log(e)
+  async initMouse(uiCanvas, spriteSize) {
+    const SPRITE_SIZE = spriteSize
+    const canvas = uiCanvas
+    this.canvas = canvas
+  
+    const storePosition = (e) => {
+      const rect = canvas.getBoundingClientRect() // Get canvas position and size
+      this.xPixels = (e.clientX - rect.left) * (canvas.width/parseInt(canvas.style.width.split('px')[0]) / this.scaleFactor) | 0
+      this.yPixels = (e.clientY - rect.top) * (canvas.height/parseInt(canvas.style.height.split('px')[0]) / this.scaleFactor) | 0
+      this.x = this.xPixels / SPRITE_SIZE / this.scaleFactor | 0
+      this.y = this.yPixels / SPRITE_SIZE / this.scaleFactor | 0
+      this.needUpdate = true      
     }
-  })
-
-  canvas.addEventListener('mouseup', (e) => {
-    if(e.which === 1) { // left clic
-      mouse.isDragging = false
-      mouse.clicked = true
-      storePosition(e)
-    }
-  })
-
-  canvas.addEventListener('wheel', (e) => {
-    storePosition(e)
-    const oldScale = mouse.scaleFactor;
-    if(e.wheelDelta > 0) {
-      // Zoom out
-      mouse.scaleFactor += 0.025
-    } else if (e.wheelDelta < 0) {
-      // Zoom in
-      mouse.scaleFactor -= 0.025
+  
+    const distanceBetweenTouches = (touch1, touch2) => {
+      const dx = touch1.clientX - touch2.clientX
+      const dy = touch1.clientY - touch2.clientY
+      return Math.sqrt(dx * dx + dy * dy)
     }
 
-    mouse.scaleFactor = Math.max(ZOOM.MIN, Math.min(ZOOM.MAX, mouse.scaleFactor));
-    mouse.offsetX = mouse.xPixels - (mouse.xPixels - mouse.offsetX) * (mouse.scaleFactor / oldScale);
-    mouse.offsetY = mouse.yPixels - (mouse.yPixels - mouse.offsetY) * (mouse.scaleFactor / oldScale);
-    
-    mouse.zoomChanged = true;
-  })
+    canvas.addEventListener('mousedown', (e) => {
+        if (e.which === 1) { // left clic
+            this.isDragging = true
+            storePosition(e)
+        }
+    })
 
-  canvas.addEventListener('mousemove', (e) => {
-    
-    if(mouse.isDragging) {
-      const rect = canvas.getBoundingClientRect()
-      const xPixels = (e.clientX - rect.left) * (canvas.width/parseInt(canvas.style.width.split('px')[0]) / mouse.scaleFactor) | 0
-      const yPixels = (e.clientY - rect.top) * (canvas.height/parseInt(canvas.style.height.split('px')[0]) / mouse.scaleFactor) | 0
-      mouse.offsetX += mouse.xPixels - xPixels
-      mouse.offsetY += mouse.yPixels - yPixels
-      mouse.zoomChanged = true
-      storePosition(e)
-    } else {
-      throttle(storePosition, 15)(e)
-    }
+    canvas.addEventListener('mouseup', (e) => {
+        if (e.which === 1) { // left clic
+            this.isDragging = false
+            this.clicked = true
+            storePosition(e)
+        }
+    })
 
-    
-  })
+    canvas.addEventListener('wheel', (e) => {
+        storePosition(e)
+        const oldScale = this.scaleFactor
+        if (e.wheelDelta > 0) {
+            // Zoom out
+            this.scaleFactor += 0.025
+        } else if (e.wheelDelta < 0) {
+            // Zoom in
+            this.scaleFactor -= 0.025
+        }
 
-  canvas.addEventListener('touchstart', (e) => {
-    if (e.touches.length === 1) { // Single finger touch
-      mouse.isDragging = true
-      storePosition(e.touches[0])
-    } else if (e.touches.length === 2) { // Two fingers
-      mouse.isPinching = true
-      mouse.prevDistance = distanceBetweenTouches(e.touches[0], e.touches[1])
-    }
-  })
+        this.scaleFactor = Math.max(ZOOM.MIN, Math.min(ZOOM.MAX, this.scaleFactor))
+        this.offsetX = this.xPixels - (this.xPixels - this.offsetX) * (this.scaleFactor / oldScale)
+        this.offsetY = this.yPixels - (this.yPixels - this.offsetY) * (this.scaleFactor / oldScale)
 
-  canvas.addEventListener('touchmove', (e) => {
-    if (e.touches.length === 1) { // Single finger move
-      mouse.isDragging = true
-      storePosition(e.touches[0])
-    } else if (e.touches.length === 2 && mouse.isPinching) {
-      const currentDistance = distanceBetweenTouches(e.touches[0], e.touches[1])
-      const scaleChange = currentDistance / mouse.prevDistance
-      mouse.prevDistance = currentDistance
+        this.zoomChanged = true
+    })
 
-      // Apply zoom
-      mouse.scaleFactor *= scaleChange
-    }
-    e.preventDefault() // Prevent scrolling
-  })
+    canvas.addEventListener('mousemove', (e) => {
+        if (this.isDragging) {
+            const rect = canvas.getBoundingClientRect()
+            const xPixels = (e.clientX - rect.left) * (canvas.width / parseInt(canvas.style.width.split('px')[0]) / this.scaleFactor) | 0
+            const yPixels = (e.clientY - rect.top) * (canvas.height / parseInt(canvas.style.height.split('px')[0]) / this.scaleFactor) | 0
+            this.offsetX += this.xPixels - xPixels
+            this.offsetY += this.yPixels - yPixels
+            this.zoomChanged = true
+            storePosition(e)
+        }
+        throttle(storePosition, 15)(e)
+    })
 
-  canvas.addEventListener('touchend', (e) => {
-    if (e.touches.length < 2) { // If ending with less than two fingers, stop pinching
-      mouse.isPinching = false
-    }
-    mouse.isDragging = false
-    storePosition(e.changedTouches[0])
-  })
+    canvas.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1) { // Single finger touch
+            this.isDragging = true
+            storePosition(e.touches[0])
+        } else if (e.touches.length === 2) { // Two fingers
+            this.isPinching = true
+            this.prevDistance = distanceBetweenTouches(e.touches[0], e.touches[1])
+        }
+    })
 
-  canvas.addEventListener('contextmenu', (e) => {
-    e.preventDefault() // Prevent right-click menu
-  })
+    canvas.addEventListener('touchmove', (e) => {
+        if (e.touches.length === 1) { // Single finger move
+            this.isDragging = true
+            storePosition(e.touches[0])
+        } else if (e.touches.length === 2 && this.isPinching) {
+            const currentDistance = distanceBetweenTouches(e.touches[0], e.touches[1])
+            const scaleChange = currentDistance / this.prevDistance
+            this.prevDistance = currentDistance
+
+            // Apply zoom
+            this.scaleFactor *= scaleChange
+        }
+        e.preventDefault() // Prevent scrolling
+    })
+
+    canvas.addEventListener('touchend', (e) => {
+        if (e.touches.length < 2) { // If ending with less than two fingers, stop pinching
+            this.isPinching = false
+        }
+        this.isDragging = false
+        storePosition(e.changedTouches[0])
+    })
+
+    canvas.addEventListener('contextmenu', (e) => {
+        e.preventDefault() // Prevent right-click menu
+    })
+  }
 }

@@ -8,16 +8,17 @@ const CACHED_URLS = [
   'manifest.json',
   'sw.js',
   'favicon.ico',
-  'js/tileset.js',
+  'js/maps.js',
   'js/mouse.js',
   'js/pathfinding.js',
+  'js/tileset.js',
   'js/utils.js',
   'assets/logo.png',
   'assets/logo.svg',
   'assets/logo_banner.svg',
   'assets/punyworld-overworld-tileset.png',
+  'assets/spriteDescription.json',
   'assets/fonts/Jacquarda-Bastarda-9.woff2',
-  'assets/units/spriteDescription.json',
   'assets/units/Character-Base.png',
   'assets/units/Human-Soldier-Cyan.png',
   'assets/units/Human-Soldier-Red.png',
@@ -27,6 +28,7 @@ const CACHED_URLS = [
   'assets/units/Mage-Red.png',
 
 ]
+
 const self = this // For scope
 
 // Install Service Worker

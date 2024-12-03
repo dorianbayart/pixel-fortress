@@ -1,4 +1,10 @@
-'use script'
+'use strict'
+
+import { bestFirstSearch } from 'pathfinding'
+import { loadAndSplitImage, offscreenSprite } from 'utils'
+import { getTile, getTileSize } from 'maps'
+// import { getPlayer, setPlayer } from 'player'
+
 
 /****************/
 /*  DEBUG MODE  */
@@ -6,11 +12,11 @@
 let DEBUG = false
 
 const PI = Math.PI
+
 const SPRITE_SIZE = 16, UNIT_SPRITE_SIZE = 32
 const MAP_WIDTH = (globalThis.innerWidth > globalThis.innerHeight ? globalThis.innerWidth / SPRITE_SIZE : globalThis.innerHeight / SPRITE_SIZE) / 2 | 0
 const MAP_HEIGHT = MAP_WIDTH * globalThis.innerHeight / globalThis.innerWidth | 0
 const MAX_WEIGHT = 99999999
-
 const MAX_SPEED = (globalThis.innerWidth > globalThis.innerHeight ? MAP_HEIGHT : MAP_WIDTH) / SPRITE_SIZE / 4
 
 // Canvas
@@ -40,6 +46,8 @@ const ZOOM = {
 //worker.postMessage({ canvas: canvasWorker }, [canvasWorker])
 
 
+let mouse
+
 const map = new Array(MAP_WIDTH).fill(null).map(() => new Array(MAP_HEIGHT).fill(null))
 
 let canvasWidth = 0
@@ -47,8 +55,8 @@ let canvasHeight = 0
 const desiredAspectRatio = MAP_WIDTH / MAP_HEIGHT
 let dpr = globalThis.devicePixelRatio || 1
 
-let sprites, unitsSprites
-let elapsed = elapsedBack = elapsedUI = -5000, fps = new Array(50).fill(100)
+let sprites, unitsSprites, unitsSpritesDescription
+let elapsed = -5000, elapsedBack = -5000, elapsedUI = -5000, fps = new Array(50).fill(100)
 let isDrawBackRequested = true
 
 let spriteCoords_Start = { x: 21, y: 5 }
@@ -384,16 +392,18 @@ onload = async (e) => {
   await onresize()
 
   sprites = await loadAndSplitImage('./assets/punyworld-overworld-tileset.png', SPRITE_SIZE)
-
-  unitsSpritesDescription = await (await fetch('./assets/units/spriteDescription.json')).json()
+  unitsSpritesDescription = await (await fetch('./assets/spriteDescription.json')).json()
   unitsSprites = {}
-  let spritesToLoad = ['character-base']
+  let spritesToLoad = Object.keys(unitsSpritesDescription)
   for(let sprite of spritesToLoad) {
     unitsSprites[sprite] = await loadAndSplitImage(unitsSpritesDescription[sprite]['relativeToRoot'], UNIT_SPRITE_SIZE)
   }
 
-
+  const mouseModule = await import('mouse')
   initMouseEvents(uiCanvas, SPRITE_SIZE)
+  mouse = new mouseModule.Mouse()
+  mouse.initMouse(uiCanvas, SPRITE_SIZE)
+  mouse.sprite = offscreenSprite(sprites[spriteCoords_Mouse.x][spriteCoords_Mouse.y], SPRITE_SIZE)
 
   generateMap()
 
@@ -411,7 +421,7 @@ onload = async (e) => {
 
 
 
-onresize = onrotate = async () => {
+window.onrotate = window.onresize = async () => {
   // Calculate new dimensions while maintaining aspect ratio
   const screenWidth = globalThis.innerWidth || 800
   const screenHeight = globalThis.innerHeight || 800

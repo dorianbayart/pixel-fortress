@@ -1,3 +1,5 @@
+export { bestFirstSearch }
+
 'use strict'
 
 const bestFirstSearch = (map, startX, startY, endX, endY) => {
@@ -58,7 +60,6 @@ const bestFirstSearch = (map, startX, startY, endX, endY) => {
         path.unshift({ x: item.x, y: item.y, weight: map[item.x][item.y].weight })
       }
 
-      // console.log(path)
       return path
     }
 
