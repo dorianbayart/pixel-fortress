@@ -194,7 +194,7 @@ class Unit {
   }
 }
 
-const generateMap = () => {
+const generateMap = async () => {
   for (var x = 0; x < MAP_WIDTH; x++) {
     for (var y= 0; y < MAP_HEIGHT; y++) {
       const random = Math.random()
@@ -268,19 +268,20 @@ const drawBack = async () => {
 const ui = async () => {
   // Draw a sprite following mouse position
   offCtx1.clearRect(0, 0, uiCanvas.width, uiCanvas.height)
-  offCtx1.drawImage(mouse.sprite, mouse.x * SPRITE_SIZE, mouse.y * SPRITE_SIZE)
+  //offCtx1.drawImage(mouse.sprite, mouse.x * SPRITE_SIZE, mouse.y * SPRITE_SIZE)
+  offCtx1.drawImage(mouse.sprite, mouse.xPixels - 9/2, mouse.yPixels - 9/2)
   uiCtx.clearRect(0, 0, uiCanvas.width, uiCanvas.height)
   uiCtx.drawImage(offCanvas1, 0, 0, uiCanvas.width, uiCanvas.height)
 
   // Draw the real mouse cursor
-  uiCtx.beginPath() // Draw a mouse cursor
-  uiCtx.moveTo(mouse.xPixels - 4 + 0.5, mouse.yPixels + 0.5)
-  uiCtx.lineTo(mouse.xPixels + 4 + 0.5, mouse.yPixels + 0.5)
-  uiCtx.moveTo(mouse.xPixels + 0.5, mouse.yPixels - 4 + 0.5)
-  uiCtx.lineTo(mouse.xPixels + 0.5, mouse.yPixels + 4 + 0.5)
-  uiCtx.lineWidth = 1
-  uiCtx.strokeStyle = 'purple'
-  uiCtx.stroke()
+  // uiCtx.beginPath() // Draw a mouse cursor
+  // uiCtx.moveTo(mouse.xPixels - 4 + 0.5, mouse.yPixels + 0.5)
+  // uiCtx.lineTo(mouse.xPixels + 4 + 0.5, mouse.yPixels + 0.5)
+  // uiCtx.moveTo(mouse.xPixels + 0.5, mouse.yPixels - 4 + 0.5)
+  // uiCtx.lineTo(mouse.xPixels + 0.5, mouse.yPixels + 4 + 0.5)
+  // uiCtx.lineWidth = 1
+  // uiCtx.strokeStyle = 'purple'
+  // uiCtx.stroke()
 
 
   if(DEBUG) {
@@ -314,18 +315,18 @@ const gameLoop = () => {
 
 
  // UI
-  if(mouse.clicked) {
+  if(mouse?.clicked) {
     mouse.clicked = false
     if(map[mouse.x] && map[mouse.x][mouse.y]?.weight < 10) {
       units.push(new Unit(mouse.x, mouse.y))
     }
   }
 
-  if(mouse.zoomChanged) {
+  if(mouse?.zoomChanged) {
     updateZoom()
   }
 
-  if(mouse.needUpdate || (DEBUG && now - elapsedUI > 500)) {
+  if(mouse?.needUpdate || (DEBUG && now - elapsedUI > 500)) {
     ui()
     elapsedUI = now
   }
@@ -373,7 +374,6 @@ const updateZoom = () => {
     uiCtx.setTransform(mouse.scaleFactor, 0, 0, mouse.scaleFactor, mouse.offsetX, mouse.offsetY)
     offCtx1.setTransform(mouse.scaleFactor, 0, 0, mouse.scaleFactor, mouse.offsetX, mouse.offsetY)
     offCtx2.setTransform(mouse.scaleFactor, 0, 0, mouse.scaleFactor, mouse.offsetX, mouse.offsetY)
-
   }
   
   isDrawBackRequested = true
@@ -393,7 +393,12 @@ document.getElementById('debugButton').addEventListener('click', () => {
 onload = async (e) => {
   await onresize()
 
-  sprites = await loadAndSplitImage('./assets/punyworld-overworld-tileset.png', SPRITE_SIZE)
+  // Load all the stuff
+
+  loadAndSplitImage('./assets/punyworld-overworld-tileset.png', SPRITE_SIZE).then(s => {
+    sprites = s
+    generateMap()
+  })
   unitsSpritesDescription = await (await fetch('./assets/spriteDescription.json')).json()
   unitsSprites = {}
   let spritesToLoad = Object.keys(unitsSpritesDescription)
@@ -404,21 +409,19 @@ onload = async (e) => {
   const mouseModule = await import('mouse')
   mouse = new mouseModule.Mouse()
   mouse.initMouse(uiCanvas, SPRITE_SIZE)
-  mouse.sprite = offscreenSprite(sprites[spriteCoords_Mouse.x][spriteCoords_Mouse.y], SPRITE_SIZE)
-
-  generateMap()
+  
 
   // Smoothly remove the splashscreen and launch the game
   setTimeout(() => {
     document.getElementById('gameName').style.opacity = 0
     document.getElementById('progressBar').style.opacity = 0
-  }, 2500)
+  }, 1000)
   setTimeout(() => {
     gameLoop()
     document.getElementById('gameName').style.display = 'none'
     document.getElementById('progressBar').style.display = 'none'
     document.getElementById('debugButton').style.display = 'block'
-  }, 2500 + 850)
+  }, 1500)
 }
 
 

@@ -2,7 +2,7 @@ export { Mouse }
 
 'use strict'
 
-import { throttle } from 'utils'
+import { loadAndSplitImage, offscreenSprite, throttle } from 'utils'
 
 
 const ZOOM = {
@@ -42,6 +42,8 @@ class Mouse {
     const SPRITE_SIZE = spriteSize
     const canvas = uiCanvas
     this.canvas = canvas
+    const mouseSprite = (await loadAndSplitImage('assets/ui/crosshair.png', 9))[0][0]
+    this.sprite = offscreenSprite(mouseSprite, 9)
   
     const storePosition = (e) => {
       const rect = canvas.getBoundingClientRect() // Get canvas position and size
