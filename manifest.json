@@ -15,11 +15,6 @@
             "type": "image/png"
         },
         {
-            "sizes": "24x24",
-            "src": "assets/base_24.png",
-            "type": "image/x-icon"
-        },
-        {
             "sizes": "192x192",
             "src": "assets/base_192_hqx.png",
             "type": "image/png"
@@ -29,15 +24,23 @@
     "screenshots": [
         {
             "form_factor": "narrow",
+            "label": "Title banner - Portrait view",
             "sizes": "1000x1800",
             "src": "assets/logo_portrait.svg",
             "type": "image/svg+xml"
         },
         {
             "form_factor": "wide",
+            "label": "Title banner - Wide view",
             "sizes": "1000x300",
             "src": "assets/logo_banner.svg",
             "type": "image/svg+xml"
+        },
+        {
+            "label": "2D pixelated sprite",
+            "sizes": "192x192",
+            "src": "assets/base_192_pixelated.png",
+            "type": "image/png"
         }
     ],
     "short_name": "Pixel Fortress",
