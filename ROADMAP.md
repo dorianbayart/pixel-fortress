@@ -4,7 +4,7 @@
 
 - [x] **Game Initialization:** Game window creation, initial resource loading.
 - [x] **Map Generation:** A basic map is randomly generated.
-- [ ] **Load Sprites:** Load more sprites to display different kind of units and buildings. *(Planned)*
+- [ ] **Load Sprites:** Load more sprites to display different kind of units and buildings. *(In Progress)*
 - [ ] **Define Classes:** Define classes for units, buildings, towers, with their type, characteristics, etc. *(Planned)*
 - [ ] **Build Placement:** Allow players to strategically place buildings. *(Planned)*  
 Details: Buildings can produce different kind of units.
