@@ -1,10 +1,12 @@
 [![Pixel Fortress Logo](assets/logo_banner.svg)](https://dorianbayart.github.io/sandbox/games/pixel-fortress/) 
 
-# <img src="favicon.ico" alt="Favicon" width="26" height="26"> Pixel Fortress
+# <img src="assets/base_192_pixelated.png" alt="Favicon" width="auto" height="32"> Pixel Fortress
 
 A 2D pixel-based strategy game that uniquely merges the depth of Tower Defense with the addictive simplicity of Clicker styles.
 
-[Play live](https://dorianbayart.github.io/sandbox/games/pixel-fortress/)
+➡️ [Play live](https://dorianbayart.github.io/sandbox/games/pixel-fortress/)
+
+
 
 
 ## ✨ Features
@@ -49,7 +51,7 @@ Units automatically attack nearby enemies within their range or navigate to enga
 ### 💾 Installation
 
 1. Clone the repository: `git clone https://github.com/dorianbayart/sandbox.git`
-2. Navigate to the project directory: `cd pixel-fortress`
+2. Navigate to the project directory: `cd games/pixel-fortress`
 
 ### ▶️ Running the Game
 
