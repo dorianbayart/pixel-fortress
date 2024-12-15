@@ -1,23 +1,16 @@
 'use strict'
 
-import { bestFirstSearch } from 'pathfinding'
-import { loadAndSplitImage, offscreenSprite } from 'utils'
-import { getTile, getTileSize } from 'maps'
-// import { getPlayer, setPlayer } from 'player'
+
+//import { loadAndSplitImage, offscreenSprite } from 'utils'
+import { DEBUG, backDrawn, drawBack, isDrawBackRequested, toggleDebug } from 'globals'
+import { MAP_HEIGHT, MAP_WIDTH, MAX_WEIGHT } from 'maps'
+import { AIs, Player, PlayerType } from 'players'
+import { loadSprites, offscreenSprite, sprites, SPRITE_SIZE, UNIT_SPRITE_SIZE } from 'sprites'
 
 
-/****************/
-/*  DEBUG MODE  */
-/****************/
-let DEBUG = false
 
-const PI = Math.PI
 
-const SPRITE_SIZE = 16, UNIT_SPRITE_SIZE = 32
-const MAP_WIDTH = (globalThis.innerWidth > globalThis.innerHeight ? globalThis.innerWidth / SPRITE_SIZE * 1.25 : globalThis.innerHeight /1.5 / SPRITE_SIZE) / 2 | 0
-const MAP_HEIGHT = MAP_WIDTH * globalThis.innerHeight / globalThis.innerWidth | 0
-const MAX_WEIGHT = 99999999
-const MAX_SPEED = globalThis.innerHeight / 400
+
 
 // Canvas
 const backCanvas = document.getElementById('backCanvas')
@@ -55,144 +48,18 @@ let canvasHeight = 0
 const desiredAspectRatio = MAP_WIDTH / MAP_HEIGHT
 let dpr = globalThis.devicePixelRatio || 1
 
-let sprites, unitsSprites, unitsSpritesDescription
 let elapsed = -5000, elapsedBack = -5000, elapsedUI = -5000, fps = new Array(50).fill(100)
-let isDrawBackRequested = true
 
 let spriteCoords_Start = { x: 21, y: 5 }
 let spriteCoords_End = { x: 22, y: 4 }
 let spriteCoords_Path = { x: 22, y: 5 }
 let spriteCoords_Mouse = { x: 21, y: 4 }
 
-let units = []
+
 let enemies = []
-
-class Unit {
-  constructor(x, y, sprite) {
-    if(x >= 0) {
-      this.x = x
-    } else {
-      this.x = Math.random()*MAP_WIDTH | 0
-      while(map[this.x][MAP_HEIGHT-1].weight === MAX_WEIGHT) {
-        this.x = Math.random()*MAP_WIDTH | 0
-      }
-    }
-    this.x *= SPRITE_SIZE
-
-    this.y = (y ?? MAP_HEIGHT-1) * SPRITE_SIZE | 0
-    this.currentNode = { x: this.x/SPRITE_SIZE, y: this.y/SPRITE_SIZE }
-    this.nextNode = { x: this.x/SPRITE_SIZE, y: this.y/SPRITE_SIZE }
-    this.nextNextNode = { x: this.x/SPRITE_SIZE, y: this.y/SPRITE_SIZE }
-    this.spriteName = Object.keys(unitsSpritesDescription)[Math.random() * Object.keys(unitsSpritesDescription).length | 0]
-    this.spriteTimer = 0
-    this.sprite = offscreenSprite(sprite ?? unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
-    this.path = this.pathToNearestEnemy()
-    this.lastMoveUpdate = 0
-    this.lastPathUpdate = 0
-    this.goal = null
-    this.life = 1
-    this.speed = (MAX_SPEED * Math.random()) % (MAX_SPEED - 0.5) + 0.5
-  }
-
-  update(delay) {
-    const time = performance.now() | 0
-
-    // Update Path
-    if((this.currentNode.x === this.nextNode.x && this.currentNode.y === this.nextNode.y)) {
-      if(time - this.lastPathUpdate > 4000) {
-        this.lastPathUpdate = time
-
-        this.path = this.pathToNearestEnemy()
+let player
 
 
-      } else if(this.path?.length > 1) {
-          this.path.splice(0, 1)
-      }
-
-      if(!this.path || this.path.length === 1) {
-        this.life = 0
-        isDrawBackRequested = true
-        return
-      }
-
-      this.nextNode.x = this.path[1]?.x
-      this.nextNode.y = this.path[1]?.y
-
-      if(this.path[2]) {
-        this.nextNextNode.x = this.path[2]?.x
-        this.nextNextNode.y = this.path[2]?.y
-      } else {
-        this.nextNextNode.x = this.path[1]?.x
-        this.nextNextNode.y = this.path[1]?.y
-      }
-
-      isDrawBackRequested ||= DEBUG
-    }
-
-    this.lastMoveUpdate = time
-    this.move(Math.min(delay, 40))
-  }
-
-  pathToNearestEnemy() {
-    let path, pathLength = MAP_WIDTH * MAP_HEIGHT
-    enemies.forEach((enemy, i) => {
-      const temp = bestFirstSearch(map, this.currentNode.x, this.currentNode.y, enemy.x, enemy.y)
-      if(temp?.length < pathLength) {
-        path = temp
-        pathLength = path.length
-        this.goal = enemy
-      }
-    })
-    return path
-  }
-
-  move(delay) {
-    const devX = ((this.nextNode.x * SPRITE_SIZE - this.x) * 2 + (this.nextNextNode.x * SPRITE_SIZE - this.x)) / 3
-    const devY = ((this.nextNode.y * SPRITE_SIZE - this.y) * 2 + (this.nextNextNode.y * SPRITE_SIZE - this.y)) / 3
-    const theta = Math.atan2(devY, devX)
-    const vx = this.speed * (delay/1000) * Math.cos(theta)
-    const vy = this.speed * (delay/1000) * Math.sin(theta)
-    this.x += vx * (delay)
-    this.y += vy * (delay)
-
-    const type = Math.abs(vx) + Math.abs(vy) > this.speed * (delay/2000) ? 'walk' : 'static'
-
-    this.sprite = this.updateSprite(type, Math.atan2(-devY, devX), delay)
-
-    if(Math.hypot(devX, devY) < SPRITE_SIZE/3) {
-      // we finally are on nextNode now
-      this.currentNode.x = this.nextNode.x
-      this.currentNode.y = this.nextNode.y
-    }
-  }
-
-  updateSprite(type, theta, delay) {
-    this.spriteTimer += delay
-    if(this.spriteTimer >= 800) this.spriteTimer -= 800
-    const spriteVar = `_${this.spriteTimer / 400 | 0}`
-    const speedCoef = 1.4 * this.speed * (delay/1000)
-
-    if(theta > -7*PI/12 && theta < -5*PI/12) {
-      return offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName][type][spriteVar].s.x][unitsSpritesDescription[this.spriteName][type][spriteVar].s.y], UNIT_SPRITE_SIZE, `${this.spriteName}${type}${spriteVar}s`)
-    } else if(theta >= -5*PI/12 && theta < -PI/12) {
-      return offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName][type][spriteVar].se.x][unitsSpritesDescription[this.spriteName][type][spriteVar].se.y], UNIT_SPRITE_SIZE, `${this.spriteName}${type}${spriteVar}se`)
-    } else if(theta >= -PI/12 && theta < PI/12) {
-      return offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName][type][spriteVar].e.x][unitsSpritesDescription[this.spriteName][type][spriteVar].e.y], UNIT_SPRITE_SIZE, `${this.spriteName}${type}${spriteVar}e`)
-    } else if(theta >= PI/12 && theta < 5*PI/12) {
-      return offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName][type][spriteVar].ne.x][unitsSpritesDescription[this.spriteName][type][spriteVar].ne.y], UNIT_SPRITE_SIZE, `${this.spriteName}${type}${spriteVar}ne`)
-    } else if(theta >= 5*PI/12 && theta < 7*PI/12) {
-      return offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName][type][spriteVar].n.x][unitsSpritesDescription[this.spriteName][type][spriteVar].n.y], UNIT_SPRITE_SIZE, `${this.spriteName}${type}${spriteVar}n`)
-    } else if(theta >= 7*PI/12 && theta < 11*PI/12) {
-      return offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName][type][spriteVar].nw.x][unitsSpritesDescription[this.spriteName][type][spriteVar].nw.y], UNIT_SPRITE_SIZE, `${this.spriteName}${type}${spriteVar}nw`)
-    } else if(theta >= 11*PI/12 || theta < -11*PI/12) {
-      return offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName][type][spriteVar].w.x][unitsSpritesDescription[this.spriteName][type][spriteVar].w.y], UNIT_SPRITE_SIZE, `${this.spriteName}${type}${spriteVar}w`)
-    } else if(theta >= -11*PI/12 && theta < -7*PI/12) {
-      return offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName][type][spriteVar].sw.x][unitsSpritesDescription[this.spriteName][type][spriteVar].sw.y], UNIT_SPRITE_SIZE, `${this.spriteName}${type}${spriteVar}sw`)
-    }
-
-    return this.sprite
-  }
-}
 
 const generateMap = async () => {
   for (var x = 0; x < MAP_WIDTH; x++) {
@@ -230,7 +97,11 @@ const generateMap = async () => {
 
 const drawMain = async () => {
   offCtx1.clearRect(0, 0, mainCanvas.width, mainCanvas.height)
-  units.forEach((unit, i) => {
+  AIs.flatMap(ai => ai.getUnits()).forEach((unit) => {
+    // Display the unit
+    offCtx1.drawImage(unit.sprite, Math.round(unit.x - UNIT_SPRITE_SIZE/4), Math.round(unit.y - UNIT_SPRITE_SIZE/4 - 2))
+  })
+  player.getUnits().forEach((unit) => {
     // Display the unit
     offCtx1.drawImage(unit.sprite, Math.round(unit.x - UNIT_SPRITE_SIZE/4), Math.round(unit.y - UNIT_SPRITE_SIZE/4 - 2))
   })
@@ -239,7 +110,7 @@ const drawMain = async () => {
 }
 
 
-const drawBack = async () => {
+const drawBackground = async () => {
   offCtx1.clearRect(0, 0, mainCanvas.width, mainCanvas.height)
   offCtx2.clearRect(0, 0, mainCanvas.width, mainCanvas.height)
 
@@ -256,13 +127,15 @@ const drawBack = async () => {
 
   if(DEBUG) { // Display paths of the all units
     offCtx1.clearRect(0, 0, mainCanvas.width, mainCanvas.height)
-    units.forEach((unit, i) => {
+    player.getUnits().forEach((unit, i) => {
       for (var i = 1; i < (unit.path || []).length; i++) {
         offCtx1.drawImage(offscreenSprite(sprites[spriteCoords_Path.x][spriteCoords_Path.y], SPRITE_SIZE), unit.path[i].x * SPRITE_SIZE, unit.path[i].y * SPRITE_SIZE)
       }
     })
     backCtx.drawImage(offCanvas1, 0, 0, mainCanvas.width, mainCanvas.height)
   }
+
+  backDrawn()
 }
 
 const ui = async () => {
@@ -307,18 +180,18 @@ const gameLoop = () => {
 
   // Back Map
   if(isDrawBackRequested && now - elapsedBack > 50) {
-    isDrawBackRequested = false
     elapsedBack = now
-    drawBack()
+    drawBackground()
   }
 
 
 
- // UI
+  // UI
   if(mouse?.clicked) {
     mouse.clicked = false
     if(map[mouse.x] && map[mouse.x][mouse.y]?.weight < 10) {
-      units.push(new Unit(mouse.x, mouse.y))
+      console.log('addUnit:' + mouse.x + ':' + mouse.y, player)
+      player.addUnit(mouse.x, mouse.y, map)
     }
   }
 
@@ -339,19 +212,14 @@ const gameLoop = () => {
 
   // Game
   // Update units
-  for (var i = 0; i < units.length; i++) {
-    units[i].update(delay)
+  player.update(delay, map)
+  for (const ai of AIs) {
+    ai.update(delay, map)
   }
-  units = units.filter(unit => unit.life)
-
   
 
   drawMain()
 
-  // Create new units if needed
-  if(Math.random() > 0.9875 || units.length === 0) {
-    units.push(new Unit())
-  }
 
   requestAnimationFrame(gameLoop)
 }
@@ -376,15 +244,15 @@ const updateZoom = () => {
     offCtx2.setTransform(mouse.scaleFactor, 0, 0, mouse.scaleFactor, mouse.offsetX, mouse.offsetY)
   }
   
-  isDrawBackRequested = true
+  drawBack()
   mouse.zoomChanged = false
   ZOOM.current = mouse.scaleFactor
   console.log(scale, mouse.scaleFactor)
 }
 
 document.getElementById('debugButton').addEventListener('click', () => {
-  DEBUG = !DEBUG
-  isDrawBackRequested = true
+  toggleDebug()
+  drawBack()
 
   if(!DEBUG) document.getElementById('stats').innerHTML = null
 })
@@ -394,21 +262,16 @@ onload = async (e) => {
   await onresize()
 
   // Load all the stuff
+  await loadSprites()
 
-  loadAndSplitImage('./assets/punyworld-overworld-tileset.png', SPRITE_SIZE).then(s => {
-    sprites = s
-    generateMap()
-  })
-  unitsSpritesDescription = await (await fetch('./assets/spriteDescription.json')).json()
-  unitsSprites = {}
-  let spritesToLoad = Object.keys(unitsSpritesDescription)
-  for(let sprite of spritesToLoad) {
-    unitsSprites[sprite] = await loadAndSplitImage(unitsSpritesDescription[sprite]['relativeToRoot'], UNIT_SPRITE_SIZE)
-  }
+  generateMap()
 
   const mouseModule = await import('mouse')
   mouse = new mouseModule.Mouse()
   mouse.initMouse(uiCanvas, SPRITE_SIZE)
+
+  player = new Player(PlayerType.HUMAN)
+  new Player(PlayerType.AI)
   
 
   // Smoothly remove the splashscreen and launch the game
@@ -463,7 +326,7 @@ window.onrotate = window.onresize = async () => {
   // disable smoothing on image scaling
   mainCtx.imageSmoothingEnabled = backCtx.imageSmoothingEnabled = uiCtx.imageSmoothingEnabled = offCtx1.imageSmoothingEnabled = offCtx2.imageSmoothingEnabled = false
 
-  isDrawBackRequested = true
+  drawBack()
 
   // fix key events not received on itch.io when game loads in full screen
   window.focus()

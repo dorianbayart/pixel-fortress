@@ -2,7 +2,8 @@ export { Mouse }
 
 'use strict'
 
-import { loadAndSplitImage, offscreenSprite, throttle } from 'utils'
+import { loadAndSplitImage, offscreenSprite } from 'sprites'
+import { throttle } from 'utils'
 
 
 const ZOOM = {
