@@ -1,12 +1,12 @@
 'use strict'
 
 
-//import { loadAndSplitImage, offscreenSprite } from 'utils'
+
 import { DEBUG, backDrawn, drawBack, isDrawBackRequested, toggleDebug } from 'globals'
 import { MAP_HEIGHT, MAP_WIDTH, MAX_WEIGHT } from 'maps'
 import { AIs, Player, PlayerType } from 'players'
 import { loadSprites, offscreenSprite, sprites, SPRITE_SIZE, UNIT_SPRITE_SIZE } from 'sprites'
-
+import { PerlinNoise } from 'utils'
 
 
 
@@ -60,37 +60,86 @@ let player
 
 
 
+// const generateMap = async () => {
+//   for (var x = 0; x < MAP_WIDTH; x++) {
+//     for (var y= 0; y < MAP_HEIGHT; y++) {
+//       const random = Math.random()
+//       /*if(y === 0 && random > 0.85) {
+//         map[x][y] = { // End
+//           weight: -2,
+//           sprite: offscreenSprite(sprites[spriteCoords_End.x][spriteCoords_End.y], SPRITE_SIZE),
+//           back: offscreenSprite(sprites[Math.random()*3 | 0][Math.random()*3 | 0], SPRITE_SIZE)
+//         }
+//         enemies.push({x: x, y: y})
+//       } else */if(random > 0.25) {
+//         map[x][y] = { // Grass
+//           weight: 1,
+//           sprite: offscreenSprite(sprites[Math.random()*3 | 0][Math.random()*3 | 0], SPRITE_SIZE),
+//           back: null
+//         }
+//       } else if(random < 0.02) {
+//         map[x][y] = { // Rock
+//           weight: MAX_WEIGHT,
+//           sprite: offscreenSprite(sprites[Math.random()*2 | 0][26], SPRITE_SIZE),
+//           back: offscreenSprite(sprites[Math.random()*3 | 0][Math.random()*3 | 0], SPRITE_SIZE)
+//         }
+//       } else {
+//         map[x][y] = { // Tree + Grass
+//           weight: MAX_WEIGHT,
+//           sprite: offscreenSprite(sprites[Math.random()*2+2 | 0][Math.random()*2+26 | 0], SPRITE_SIZE),
+//           back: offscreenSprite(sprites[Math.random()*3 | 0][Math.random()*3 | 0], SPRITE_SIZE)
+//         }
+//       }
+//     }
+//   }
+// }
+
 const generateMap = async () => {
-  for (var x = 0; x < MAP_WIDTH; x++) {
-    for (var y= 0; y < MAP_HEIGHT; y++) {
-      const random = Math.random()
-      /*if(y === 0 && random > 0.85) {
-        map[x][y] = { // End
-          weight: -2,
-          sprite: offscreenSprite(sprites[spriteCoords_End.x][spriteCoords_End.y], SPRITE_SIZE),
-          back: offscreenSprite(sprites[Math.random()*3 | 0][Math.random()*3 | 0], SPRITE_SIZE)
-        }
-        enemies.push({x: x, y: y})
-      } else */if(random > 0.25) {
-        map[x][y] = { // Grass
-          weight: 1,
-          sprite: offscreenSprite(sprites[Math.random()*3 | 0][Math.random()*3 | 0], SPRITE_SIZE),
-          back: null
-        }
-      } else if(random < 0.02) {
-        map[x][y] = { // Rock
-          weight: MAX_WEIGHT,
-          sprite: offscreenSprite(sprites[Math.random()*2 | 0][26], SPRITE_SIZE),
-          back: offscreenSprite(sprites[Math.random()*3 | 0][Math.random()*3 | 0], SPRITE_SIZE)
-        }
-      } else {
-        map[x][y] = { // Tree + Grass
-          weight: MAX_WEIGHT,
-          sprite: offscreenSprite(sprites[Math.random()*2+2 | 0][Math.random()*2+26 | 0], SPRITE_SIZE),
-          back: offscreenSprite(sprites[Math.random()*3 | 0][Math.random()*3 | 0], SPRITE_SIZE)
-        }
+  const noise = new PerlinNoise(performance.now())
+  
+  // Terrain type parameters
+  const TERRAIN_TYPES = {
+      WATER: { weight: MAX_WEIGHT, spriteRange: { x: [0, 1], y: [26, 27] } },
+      ROCK: { weight: MAX_WEIGHT, spriteRange: { x: [0, 1], y: [26, 26] } },
+      TREE: { weight: MAX_WEIGHT, spriteRange: { x: [2, 3], y: [26, 27] } },
+      GRASS: { weight: 1, spriteRange: { x: [0, 2], y: [0, 2] } },
+      //END: { weight: -2, spriteRange: { x: [spriteCoords_End.x], y: [spriteCoords_End.y] } }
+  };
+
+  const NOISE_SCALE = 0.25;  // Controls terrain smoothness
+  const TERRAIN_THRESHOLD = {
+      WATER: 0.2,
+      ROCK: 0.125,
+      TREE: 0.4,
+      GRASS: 0.9
+  };
+
+  for (let x = 0; x < MAP_WIDTH; x++) {
+      for (let y = 0; y < MAP_HEIGHT; y++) {
+          const noiseValue = (noise.noise(x * NOISE_SCALE, y * NOISE_SCALE) + 1) / 2
+          
+          let terrainType = TERRAIN_TYPES.GRASS
+
+          //if (noiseValue < TERRAIN_THRESHOLD.WATER) terrainType = TERRAIN_TYPES.WATER
+          /*else*/ if (noiseValue < TERRAIN_THRESHOLD.ROCK) terrainType = TERRAIN_TYPES.ROCK
+          else if (noiseValue < TERRAIN_THRESHOLD.TREE) terrainType = TERRAIN_TYPES.TREE
+
+          // Randomize sprite within the terrain type's sprite range
+          const spriteX = Math.floor(Math.random() * 
+              (terrainType.spriteRange.x[1] - terrainType.spriteRange.x[0] + 1)) + 
+              terrainType.spriteRange.x[0]
+          const spriteY = Math.floor(Math.random() * 
+              (terrainType.spriteRange.y[1] - terrainType.spriteRange.y[0] + 1)) + 
+              terrainType.spriteRange.y[0]
+
+          map[x][y] = {
+              weight: terrainType.weight,
+              sprite: offscreenSprite(sprites[spriteX][spriteY], SPRITE_SIZE),
+              back: (terrainType !== TERRAIN_TYPES.GRASS) 
+                  ? offscreenSprite(sprites[Math.floor(Math.random() * 3)][Math.floor(Math.random() * 3)], SPRITE_SIZE) 
+                  : null
+          }
       }
-    }
   }
 }
 

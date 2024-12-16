@@ -51,10 +51,14 @@ class Unit {
       if(!this.path) {
         this.life -= delay / 4000
         this.goal = null
+        this.lastMoveUpdate = time
+        this.move(Math.min(delay, 40), map)
         return
       }
       if(this.path.length === 1) {
         this.life -= delay / 1000
+        this.lastMoveUpdate = time
+        this.move(Math.min(delay, 40), map)
         return
       }
 
@@ -99,7 +103,8 @@ class Unit {
     this.x += vx * (delay)
     this.y += vy * (delay)
 
-    const type = Math.abs(vx) + Math.abs(vy) > this.speed * (delay/2000) ? 'walk' : 'static'
+    let type = 'static'
+    if(this.goal && Math.abs(vx) + Math.abs(vy) > this.speed * (delay/2000)) type = 'walk'
 
     this.sprite = this.updateSprite(type, Math.atan2(-devY, devX), delay)
 
@@ -110,15 +115,15 @@ class Unit {
     }
   }
 
-  updateSprite(type, theta, delay) {
+  updateSprite(type, theta = -PI/2, delay) {
     this.spriteTimer += delay
     if(this.spriteTimer >= 800) this.spriteTimer -= 800
     const spriteVar = `_${this.spriteTimer / 400 | 0}`
     const speedCoef = 1.4 * this.speed * (delay/1000)
 
-    if(this.goal === null) {
-      return offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName]['static'][spriteVar].s.x][unitsSpritesDescription[this.spriteName]['static'][spriteVar].s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static${spriteVar}s`)
-    }
+    // if(this.goal === null) {
+    //   return offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName]['static'][spriteVar].s.x][unitsSpritesDescription[this.spriteName]['static'][spriteVar].s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static${spriteVar}s`)
+    // }
 
     if(theta > -7*PI/12 && theta < -5*PI/12) {
       return offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName][type][spriteVar].s.x][unitsSpritesDescription[this.spriteName][type][spriteVar].s.y], UNIT_SPRITE_SIZE, `${this.spriteName}${type}${spriteVar}s`)
