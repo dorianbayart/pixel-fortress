@@ -238,7 +238,7 @@ const gameLoop = () => {
   if(mouse?.clicked) {
     mouse.clicked = false
     if(map[mouse.x] && map[mouse.x][mouse.y]?.weight < 10) {
-      player.addUnit(mouse.x, mouse.y, map)
+      player.addWorker(mouse.x, mouse.y, map)
     }
   }
 

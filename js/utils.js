@@ -1,4 +1,4 @@
-export { arrayToHash, throttle, PerlinNoise }
+export { arrayToHash, distance, throttle, PerlinNoise }
 
 'use strict'
 
@@ -14,6 +14,10 @@ const throttle = (func, wait = 100) => {
     }
 }
 
+
+const distance = (a, b) => {
+  return Math.sqrt(Math.pow(b.x-a.x, 2) + Math.pow(b.y-a.y, 2))
+}
 
 
 // Calculate a very simplified hash from an array of string or integers
