@@ -44,7 +44,7 @@ class Player {
     const enemies = this.type === PlayerType.HUMAN ? AIs.flatMap(ai => ai.getUnits()) : player.getUnits()
     
     for (var i = 0; i < this.getUnits().length; i++) {
-      this.units[i].update(delay, enemies)
+      this.units[i].update(delay, map, enemies)
     }
     this.units = this.getUnits().filter(unit => unit.life > 0)
 

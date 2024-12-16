@@ -56,7 +56,6 @@ let spriteCoords_Path = { x: 22, y: 5 }
 let spriteCoords_Mouse = { x: 21, y: 4 }
 
 
-let enemies = []
 let player
 
 
@@ -65,14 +64,14 @@ const generateMap = async () => {
   for (var x = 0; x < MAP_WIDTH; x++) {
     for (var y= 0; y < MAP_HEIGHT; y++) {
       const random = Math.random()
-      if(y === 0 && random > 0.85) {
+      /*if(y === 0 && random > 0.85) {
         map[x][y] = { // End
           weight: -2,
           sprite: offscreenSprite(sprites[spriteCoords_End.x][spriteCoords_End.y], SPRITE_SIZE),
           back: offscreenSprite(sprites[Math.random()*3 | 0][Math.random()*3 | 0], SPRITE_SIZE)
         }
         enemies.push({x: x, y: y})
-      } else if(random > 0.25) {
+      } else */if(random > 0.25) {
         map[x][y] = { // Grass
           weight: 1,
           sprite: offscreenSprite(sprites[Math.random()*3 | 0][Math.random()*3 | 0], SPRITE_SIZE),
@@ -190,7 +189,6 @@ const gameLoop = () => {
   if(mouse?.clicked) {
     mouse.clicked = false
     if(map[mouse.x] && map[mouse.x][mouse.y]?.weight < 10) {
-      console.log('addUnit:' + mouse.x + ':' + mouse.y, player)
       player.addUnit(mouse.x, mouse.y, map)
     }
   }

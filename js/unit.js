@@ -35,21 +35,26 @@ class Unit {
   update(delay, map, enemies) {
     const time = performance.now() | 0
 
+    const updatePath = time - this.lastPathUpdate > (this.path?.length-1)*150 || 1000
+
     // Update Path
-    if((this.currentNode.x === this.nextNode.x && this.currentNode.y === this.nextNode.y)) {
-      if(time - this.lastPathUpdate > 4000) {
+    if((this.currentNode.x === this.nextNode.x && this.currentNode.y === this.nextNode.y) || updatePath) {
+      if(updatePath) {
         this.lastPathUpdate = time
 
         this.path = this.pathToNearestEnemy(map, enemies)
 
-
-      } else if(this.path?.length > 1) {
+      } else if(this.currentNode.x === this.nextNode.x && this.currentNode.y === this.nextNode.y && this.path?.length > 1) {
           this.path.splice(0, 1)
       }
 
-      if(!this.path || this.path.length === 1) {
-        // this.life = 0
-        // drawBack()
+      if(!this.path) {
+        this.life -= delay / 4000
+        this.goal = null
+        return
+      }
+      if(this.path.length === 1) {
+        this.life -= delay / 1000
         return
       }
 
@@ -68,13 +73,14 @@ class Unit {
     }
 
     this.lastMoveUpdate = time
-    this.move(Math.min(delay, 40))
+    this.move(Math.min(delay, 40), map)
   }
 
   pathToNearestEnemy(map, enemies = []) {
     let path, pathLength = MAP_WIDTH * MAP_HEIGHT
+    this.goal = null
     enemies.forEach((enemy) => {
-      const temp = bestFirstSearch(map, this.currentNode.x, this.currentNode.y, enemy.x, enemy.y)
+      const temp = bestFirstSearch(map, this.currentNode.x, this.currentNode.y, enemy.currentNode.x, enemy.currentNode.y)
       if(temp?.length < pathLength) {
         path = temp
         pathLength = path.length
@@ -84,12 +90,12 @@ class Unit {
     return path
   }
 
-  move(delay) {
+  move(delay, map) {
     const devX = ((this.nextNode.x * SPRITE_SIZE - this.x) * 2 + (this.nextNextNode.x * SPRITE_SIZE - this.x)) / 3
     const devY = ((this.nextNode.y * SPRITE_SIZE - this.y) * 2 + (this.nextNextNode.y * SPRITE_SIZE - this.y)) / 3
     const theta = Math.atan2(devY, devX)
-    const vx = this.speed * (delay/1000) * Math.cos(theta)
-    const vy = this.speed * (delay/1000) * Math.sin(theta)
+    const vx = this.speed * (delay/1000) * Math.cos(theta) / map[this.currentNode.x][this.currentNode.y].weight
+    const vy = this.speed * (delay/1000) * Math.sin(theta) / map[this.currentNode.x][this.currentNode.y].weight
     this.x += vx * (delay)
     this.y += vy * (delay)
 
@@ -109,6 +115,10 @@ class Unit {
     if(this.spriteTimer >= 800) this.spriteTimer -= 800
     const spriteVar = `_${this.spriteTimer / 400 | 0}`
     const speedCoef = 1.4 * this.speed * (delay/1000)
+
+    if(this.goal === null) {
+      return offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName]['static'][spriteVar].s.x][unitsSpritesDescription[this.spriteName]['static'][spriteVar].s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static${spriteVar}s`)
+    }
 
     if(theta > -7*PI/12 && theta < -5*PI/12) {
       return offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName][type][spriteVar].s.x][unitsSpritesDescription[this.spriteName][type][spriteVar].s.y], UNIT_SPRITE_SIZE, `${this.spriteName}${type}${spriteVar}s`)
