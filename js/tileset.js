@@ -109,8 +109,8 @@ const generateMap = async () => {
   const NOISE_SCALE = 0.25;  // Controls terrain smoothness
   const TERRAIN_THRESHOLD = {
       WATER: 0.2,
-      ROCK: 0.175,
-      TREE: 0.4,
+      ROCK: 0.4,
+      TREE: 0.39,
       GRASS: 0.9
   };
 
@@ -122,7 +122,7 @@ const generateMap = async () => {
 
           //if (noiseValue < TERRAIN_THRESHOLD.WATER) terrainType = TERRAIN_TYPES.WATER
           /*else*/ if (noiseValue < TERRAIN_THRESHOLD.ROCK) terrainType = TERRAIN_TYPES.ROCK
-          else if (noiseValue < TERRAIN_THRESHOLD.TREE) terrainType = TERRAIN_TYPES.TREE
+          if (noiseValue < TERRAIN_THRESHOLD.TREE) terrainType = TERRAIN_TYPES.TREE
 
           // Randomize sprite within the terrain type's sprite range
           const spriteX = Math.floor(Math.random() * 
