@@ -1,0 +1,17 @@
+{
+    "interesting_seeds": [
+        {
+            "name": "Roads",
+            "seed": 574
+        },
+        {
+            "name": "Paths",
+            "seed": 734
+        },
+        {
+            "name": "Complex",
+            "seed": 830
+        }
+    ],
+    "valid_seeds": [437, 458, 464, 627, 780, 993, 1224, 2529]
+}

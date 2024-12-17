@@ -109,7 +109,7 @@ const generateMap = async () => {
   const NOISE_SCALE = 0.25;  // Controls terrain smoothness
   const TERRAIN_THRESHOLD = {
       WATER: 0.2,
-      ROCK: 0.125,
+      ROCK: 0.175,
       TREE: 0.4,
       GRASS: 0.9
   };
@@ -194,16 +194,6 @@ const ui = async () => {
   uiCtx.clearRect(0, 0, uiCanvas.width, uiCanvas.height)
   uiCtx.drawImage(offCanvas1, 0, 0, uiCanvas.width, uiCanvas.height)
 
-  // Draw the real mouse cursor
-  // uiCtx.beginPath() // Draw a mouse cursor
-  // uiCtx.moveTo(mouse.xPixels - 4 + 0.5, mouse.yPixels + 0.5)
-  // uiCtx.lineTo(mouse.xPixels + 4 + 0.5, mouse.yPixels + 0.5)
-  // uiCtx.moveTo(mouse.xPixels + 0.5, mouse.yPixels - 4 + 0.5)
-  // uiCtx.lineTo(mouse.xPixels + 0.5, mouse.yPixels + 4 + 0.5)
-  // uiCtx.lineWidth = 1
-  // uiCtx.strokeStyle = 'purple'
-  // uiCtx.stroke()
-
 
   if(DEBUG) {
     document.getElementById('stats').innerHTML = null
@@ -221,7 +211,7 @@ const ui = async () => {
 const gameLoop = () => {
 
 
-  const now = performance.now() | 0
+  const now = performance.now()
   const delay = now - elapsed
   elapsed = now
 
@@ -267,8 +257,9 @@ const gameLoop = () => {
 
   drawMain()
 
-
+  
   requestAnimationFrame(gameLoop)
+  if(Math.random() > 0.975) console.log('Timing: ' + (performance.now() - elapsed) | 0 + 'ms')
 }
 
 const updateZoom = () => {
@@ -311,15 +302,17 @@ onload = async (e) => {
   // Load all the stuff
   await loadSprites()
 
-  generateMap()
+  
 
   const mouseModule = await import('mouse')
   mouse = new mouseModule.Mouse()
-  mouse.initMouse(uiCanvas, SPRITE_SIZE)
+  await mouse.initMouse(uiCanvas, SPRITE_SIZE)
 
   player = new Player(PlayerType.HUMAN)
   new Player(PlayerType.AI)
   
+
+  generateMap()
 
   // Smoothly remove the splashscreen and launch the game
   setTimeout(() => {

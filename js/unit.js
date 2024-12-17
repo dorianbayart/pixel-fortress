@@ -10,7 +10,6 @@ import { distance } from 'utils'
 
 
 
-const MAX_SPEED = MAP_HEIGHT * SPRITE_SIZE / 250
 const PI = Math.PI
 
 
@@ -27,10 +26,10 @@ class Unit {
     this.lastMoveUpdate = 0
     this.lastPathUpdate = 0
     this.goal = null
-    this.speed = (MAX_SPEED * Math.random()) % (MAX_SPEED - 0.5) + 0.5
     this.angle = -PI/2
     this.range = null
     this.life = null
+    this.speed = null
     this.spriteName = null
     this.sprite = null
   }
@@ -38,7 +37,7 @@ class Unit {
   update(delay, map, enemies) {
     const time = performance.now() | 0
 
-    const updatePath = time - this.lastPathUpdate > (this.path?.length-1)*225 || 1000
+    const updatePath = time - this.lastPathUpdate > (this.path?.length)*500 || 2500
 
     // Update Path
     if((this.currentNode.x === this.nextNode.x && this.currentNode.y === this.nextNode.y) || updatePath) {
@@ -59,7 +58,7 @@ class Unit {
       }
 
       if(!this.path) {
-        this.life -= delay / 4000
+        this.life -= delay / 400
         this.goal = null
         this.lastMoveUpdate = time
         this.move(Math.min(delay, 40), map)
@@ -176,6 +175,7 @@ class Worker extends Unit {
     this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
     this.life = 5
     this.range = 0.5 * SPRITE_SIZE
+    this.speed = SPRITE_SIZE / 8 | 0
   }
 }
 
@@ -186,6 +186,7 @@ class HumanSoldier extends Unit {
     this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
     this.life = 10
     this.range = 1 * SPRITE_SIZE
+    this.speed = SPRITE_SIZE / 8 | 0
   }
 }
 
@@ -196,6 +197,7 @@ class Mage extends Unit {
     this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
     this.life = 10
     this.range = 4 * SPRITE_SIZE
+    this.speed = SPRITE_SIZE / 10 | 0
   }
 }
 
@@ -206,6 +208,7 @@ class Soldier extends Unit {
     this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
     this.life = 10
     this.range = 1 * SPRITE_SIZE
+    this.speed = SPRITE_SIZE / 14 | 0
   }
 }
 
@@ -216,5 +219,6 @@ class Warrior extends Unit {
     this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
     this.life = 10
     this.range = 0.75 * SPRITE_SIZE
+    this.speed = SPRITE_SIZE / 18 | 0
   }
 }
