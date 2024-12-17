@@ -180,24 +180,6 @@
   <canvas id="uiCanvas" width="100" height="100"></canvas>
   <div id="stats"></div>
   <button id="debugButton">DEBUG</button>
-
-  <script>
-    const font = new FontFace('Jacquarda-Bastarda-9', `url('assets/fonts/Jacquarda-Bastarda-9.woff2')`)
-    console.log('Loading font: ' + font.family)
-    setTimeout(() => {
-      font.load().then(
-        (fontLoaded) => {
-          console.log('Font loaded !')
-          document.fonts.add(font)
-          console.log('Display elements ...')
-          document.querySelectorAll('.font-to-load').forEach((element, i) => setTimeout(() => element.classList.remove('font-to-load'), i * 400 + 200))
-        },
-        (err) => {
-          console.error('Font cannot be loaded', err)
-        }
-      )
-    }, 100)
-  </script>
 </body>
 
 </html>

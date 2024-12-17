@@ -4,6 +4,7 @@
 
 import { DEBUG, backDrawn, drawBack, isDrawBackRequested, toggleDebug } from 'globals'
 import { MAP_HEIGHT, MAP_WIDTH, MAX_WEIGHT } from 'maps'
+import { bestFirstSearch } from 'pathfinding'
 import { AIs, Player, PlayerType } from 'players'
 import { loadSprites, offscreenSprite, sprites, SPRITE_SIZE, UNIT_SPRITE_SIZE } from 'sprites'
 import { PerlinNoise } from 'utils'
@@ -109,8 +110,8 @@ const generateMap = async () => {
   const NOISE_SCALE = 0.25;  // Controls terrain smoothness
   const TERRAIN_THRESHOLD = {
       WATER: 0.2,
-      ROCK: 0.4,
-      TREE: 0.39,
+      ROCK: 0.45,
+      TREE: 0.44,
       GRASS: 0.9
   };
 
@@ -141,6 +142,21 @@ const generateMap = async () => {
           }
       }
   }
+}
+
+const isMapCorrect = () => {
+  let isValid = true
+  for (let i = 0; i < MAP_WIDTH; i++) {
+    if(map[i][MAP_HEIGHT-1].weight < MAX_WEIGHT) {
+      for (let j = 0; j < MAP_WIDTH; j++) {
+        if(map[j][0].weight < MAX_WEIGHT) {
+          isValid = bestFirstSearch(map, i, MAP_HEIGHT-1, j, 0)?.length > 0
+          if(isValid === false) return isValid
+        }
+      }
+    }
+  }
+  return isValid
 }
 
 const drawMain = async () => {
@@ -299,6 +315,18 @@ document.getElementById('debugButton').addEventListener('click', () => {
 onload = async (e) => {
   await onresize()
 
+  const font = new FontFace('Jacquarda-Bastarda-9', `url('assets/fonts/Jacquarda-Bastarda-9.woff2')`)
+  console.log('Loading font: ' + font.family)
+  const fontLoaded = await font.load()
+  console.log('Font loaded !')
+  document.fonts.add(font)
+  console.log('Display elements ...')
+  for (let i = 0; i < document.querySelectorAll('.font-to-load').length; i++) {
+    const element = document.querySelectorAll('.font-to-load')[i];
+    setTimeout(() => element.classList.remove('font-to-load'), i * 750 + 250)
+  }
+  //document.querySelectorAll('.font-to-load').forEach((element, i) => setTimeout(() => element.classList.remove('font-to-load'), i * 400 + 200))
+
   // Load all the stuff
   await loadSprites()
 
@@ -312,7 +340,10 @@ onload = async (e) => {
   new Player(PlayerType.AI)
   
 
-  generateMap()
+  do {
+    await generateMap()
+  } while(isMapCorrect() === false)
+  
 
   // Smoothly remove the splashscreen and launch the game
   setTimeout(() => {
