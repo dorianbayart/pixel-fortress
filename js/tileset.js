@@ -58,7 +58,7 @@ let spriteCoords_Mouse = { x: 21, y: 4 }
 
 
 let player
-
+let timings = new Array(50).fill(10), drawMainTimings = new Array(50).fill(10)
 
 
 // const generateMap = async () => {
@@ -160,6 +160,7 @@ const isMapCorrect = () => {
 }
 
 const drawMain = async () => {
+  const start = performance.now()
   offCtx1.clearRect(0, 0, mainCanvas.width, mainCanvas.height)
   AIs.flatMap(ai => ai.getUnits()).forEach((unit) => {
     // Display the unit
@@ -171,6 +172,10 @@ const drawMain = async () => {
   })
   mainCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height)
   mainCtx.drawImage(offCanvas1, 0, 0, mainCanvas.width, mainCanvas.height)
+
+  drawMainTimings.push((performance.now() - start) | 0)
+  drawMainTimings.shift()
+  if(Math.random() > 0.99) console.log(`DrawMainTiming: ${(drawMainTimings.reduce((res, curr) => res + curr, 0) / drawMainTimings.length).toFixed(1)}ms`)
 }
 
 
@@ -275,7 +280,9 @@ const gameLoop = () => {
 
   
   requestAnimationFrame(gameLoop)
-  if(Math.random() > 0.975) console.log('Timing: ' + (performance.now() - elapsed) | 0 + 'ms')
+  timings.push((performance.now() - elapsed) | 0)
+  timings.shift()
+  if(Math.random() > 0.99) console.log(`GameLoopTiming: ${(timings.reduce((res, curr) => res + curr, 0) / timings.length).toFixed(1)}ms`)
 }
 
 const updateZoom = () => {

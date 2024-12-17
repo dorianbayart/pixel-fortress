@@ -5,7 +5,8 @@ export { getTile, getTileSize, MAP_HEIGHT, MAP_WIDTH, MAX_WEIGHT }
 import { SPRITE_SIZE } from 'sprites'
 
 
-const MAP_WIDTH = (globalThis.innerWidth > globalThis.innerHeight ? globalThis.innerWidth / SPRITE_SIZE * 1.25 : globalThis.innerHeight /1.5 / SPRITE_SIZE) / 2 | 0
+//const MAP_WIDTH = (globalThis.innerWidth > globalThis.innerHeight ? globalThis.innerWidth / SPRITE_SIZE * 1.25 : globalThis.innerHeight /1.5 / SPRITE_SIZE) / 2 | 0
+const MAP_WIDTH = globalThis.innerWidth > globalThis.innerHeight ? 64 : 24
 const MAP_HEIGHT = MAP_WIDTH * globalThis.innerHeight / globalThis.innerWidth | 0
 const MAX_WEIGHT = 99999999
 
