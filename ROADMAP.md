@@ -5,13 +5,13 @@
 - [x] **Game Initialization:** Game window creation, initial resource loading.
 - [x] **Map Generation:** A basic map is randomly generated.
 - [ ] **Load Sprites:** Load more sprites to display different kind of units and buildings. *(In Progress)*
-- [ ] **Define Classes:** Define classes for units, buildings, towers, with their type, characteristics, etc. *(Planned)*
+- [ ] **Define Classes:** Define classes for units, buildings, towers, with their type, characteristics, etc. *(In Progress)*
 - [ ] **Build Placement:** Allow players to strategically place buildings. *(Planned)*  
 Details: Buildings can produce different kind of units.
 - [ ] **Unit Production:** Implement automated unit production from buildings. *(Planned)*  
 Details: Buildings generate worker units (gather resources) and combat units (attack).
-- [ ] **Enemy Spawning:** Generate enemies that move towards the player's base. *(Planned)*
-- [ ] **Combat:** Implement combat AI for units. *(Planned)*  
+- [ ] **Enemy Spawning:** Generate enemies that move towards the player's base. *(In Progress)*
+- [x] **Combat:** Implement combat AI for units.  
 Details: Combat units automatically engage and attack enemy units and buildings.
 - [ ] **Game Over Condition:** Handling game over scenarios (base health reaches zero). *(Not Planned)*
 - [ ] **AI Opponent:** Implement AI opponent with automated unit management. *(Not Planned)*  
