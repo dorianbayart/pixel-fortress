@@ -106,7 +106,7 @@ const generateMap = async () => {
     SAND: { type: 'SAND', weight: 1, spriteRange: { x: [3, 3], y: [3, 3] } },
   }
 
-  const NOISE_SCALE = 0.175; // Controls terrain smoothness
+  const NOISE_SCALE = 0.14; // Controls terrain smoothness
   const TERRAIN_THRESHOLD = {
     WATER: 0.33,
     ROCK: 0.34,
@@ -131,21 +131,9 @@ const generateMap = async () => {
         else if (noiseValue < TERRAIN_THRESHOLD.GRASS) terrainType = TERRAIN_TYPES.GRASS
         else if (noiseValue < TERRAIN_THRESHOLD.TREE) terrainType = TERRAIN_TYPES.TREE
 
-          // Randomize sprite within the terrain type's sprite range
-          // const spriteX = Math.floor(Math.random() * 
-          //     (terrainType.spriteRange.x[1] - terrainType.spriteRange.x[0] + 1)) + 
-          //     terrainType.spriteRange.x[0]
-          // const spriteY = Math.floor(Math.random() * 
-          //     (terrainType.spriteRange.y[1] - terrainType.spriteRange.y[0] + 1)) + 
-          //     terrainType.spriteRange.y[0]
-
           map[x][y] = {
               type: terrainType.type,
               weight: terrainType.weight,
-              // sprite: offscreenSprite(sprites[spriteX][spriteY], SPRITE_SIZE),
-              // back: (terrainType !== TERRAIN_TYPES.GRASS) 
-              //     ? offscreenSprite(sprites[Math.floor(Math.random() * 3)][Math.floor(Math.random() * 3)], SPRITE_SIZE) 
-              //     : null
           }
       }
   }
@@ -229,7 +217,7 @@ const assignSpritesOnMap = async () => {
 }
 
 const isMapCorrect = () => {
-  let isValid = true
+  let isValid = false
   for (let i = 0; i < MAP_WIDTH; i++) {
     if(map[i][MAP_HEIGHT-1].weight < MAX_WEIGHT) {
       for (let j = 0; j < MAP_WIDTH; j++) {
@@ -259,7 +247,7 @@ const drawMain = async () => {
 
   drawMainTimings.push((performance.now() - start) | 0)
   drawMainTimings.shift()
-  if(Math.random() > 0.99) console.log(`DrawMainTiming: ${(drawMainTimings.reduce((res, curr) => res + curr, 0) / drawMainTimings.length).toFixed(1)}ms`)
+  // if(Math.random() > 0.99) console.log(`DrawMainTiming: ${(drawMainTimings.reduce((res, curr) => res + curr, 0) / drawMainTimings.length).toFixed(1)}ms`)
 }
 
 
@@ -366,7 +354,7 @@ const gameLoop = () => {
   requestAnimationFrame(gameLoop)
   timings.push((performance.now() - elapsed) | 0)
   timings.shift()
-  if(Math.random() > 0.99) console.log(`GameLoopTiming: ${(timings.reduce((res, curr) => res + curr, 0) / timings.length).toFixed(1)}ms`)
+  // if(Math.random() > 0.99) console.log(`GameLoopTiming: ${(timings.reduce((res, curr) => res + curr, 0) / timings.length).toFixed(1)}ms`)
 }
 
 const updateZoom = () => {
@@ -412,11 +400,11 @@ onload = async (e) => {
   console.log('Font loaded !')
   document.fonts.add(font)
   console.log('Display elements ...')
-  for (let i = 0; i < document.querySelectorAll('.font-to-load').length; i++) {
-    const element = document.querySelectorAll('.font-to-load')[i];
-    setTimeout(() => element.classList.remove('font-to-load'), i * 750 + 250)
-  }
-  //document.querySelectorAll('.font-to-load').forEach((element, i) => setTimeout(() => element.classList.remove('font-to-load'), i * 400 + 200))
+  // for (let i = 0; i < document.querySelectorAll('.font-to-load').length; i++) {
+  //   const element = document.querySelectorAll('.font-to-load')[i];
+  //   element.classList.remove('font-to-load')
+  // }
+  document.querySelectorAll('.font-to-load').forEach((element) => element.classList.remove('font-to-load'))
 
   // Load all the stuff
   await loadSprites()

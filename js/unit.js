@@ -37,7 +37,7 @@ class Unit {
   update(delay, map, enemies) {
     const time = performance.now() | 0
 
-    const updatePath = time - this.lastPathUpdate > (this.path?.length)*750 || 2500
+    const updatePath = time - this.lastPathUpdate > Math.min((this.path?.length || 1)*750, 5000)
 
     // Update Path
     if((this.currentNode.x === this.nextNode.x && this.currentNode.y === this.nextNode.y) || updatePath) {
