@@ -209,15 +209,12 @@ function aStar(map, startX, startY, endX, endY) {
     const current = heapPop(openList)
 
     if (current.x === endX && current.y === endY) {
-      let path = [current]
+      let path = []
+      let node = current
 
-      while (path[0].x !== startX || path[0].y !== startY) {
-        for (let [_, node] of closedList) {
-          if (getHeuristic(node, path[0]) === 1) {
-            path.unshift({ x: node.x, y: node.y, weight: map[node.x][node.y].weight })
-            break
-          }
-        }
+      while (node) {
+        path.unshift({ x: node.x, y: node.y, weight: map[node.x][node.y].weight })
+        node = node.parent
       }
 
       return path
