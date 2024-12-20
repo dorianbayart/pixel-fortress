@@ -4,7 +4,7 @@ export { Unit, HumanSoldier, Mage, Soldier, Warrior, Worker }
 
 import { DEBUG, drawBack, isDrawBackRequested } from 'globals'
 import { MAP_HEIGHT, MAP_WIDTH, MAX_WEIGHT } from 'maps'
-import { bestFirstSearch } from 'pathfinding'
+import { searchPath } from 'pathfinding'
 import { offscreenSprite, unitsSprites, unitsSpritesDescription, SPRITE_SIZE, UNIT_SPRITE_SIZE } from 'sprites'
 import { distance } from 'utils'
 
@@ -96,7 +96,7 @@ class Unit {
     let path, pathLength = MAP_WIDTH * MAP_HEIGHT
     this.goal = null
     enemies.forEach((enemy) => {
-      const temp = bestFirstSearch(map, this.currentNode.x, this.currentNode.y, enemy.currentNode.x, enemy.currentNode.y)
+      const temp = searchPath(map, this.currentNode.x, this.currentNode.y, enemy.currentNode.x, enemy.currentNode.y)
       if(temp?.length < pathLength) {
         path = temp
         pathLength = path.length

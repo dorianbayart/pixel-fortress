@@ -4,7 +4,7 @@
 
 import { DEBUG, backDrawn, drawBack, isDrawBackRequested, toggleDebug } from 'globals'
 import { MAP_HEIGHT, MAP_WIDTH, MAX_WEIGHT } from 'maps'
-import { bestFirstSearch } from 'pathfinding'
+import { searchPath } from 'pathfinding'
 import { AIs, Player, PlayerType } from 'players'
 import { loadSprites, offscreenSprite, sprites, SPRITE_SIZE, UNIT_SPRITE_SIZE } from 'sprites'
 import { PerlinNoise } from 'utils'
@@ -222,7 +222,7 @@ const isMapCorrect = () => {
     if(map[i][MAP_HEIGHT-1].weight < MAX_WEIGHT) {
       for (let j = 0; j < MAP_WIDTH; j++) {
         if(map[j][0].weight < MAX_WEIGHT) {
-          isValid = bestFirstSearch(map, i, MAP_HEIGHT-1, j, 0)?.length > 0
+          isValid = searchPath(map, i, MAP_HEIGHT-1, j, 0)?.length > 0
           if(isValid === false) return isValid
         }
       }
