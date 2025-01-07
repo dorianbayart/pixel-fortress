@@ -390,7 +390,6 @@ document.getElementById('debugButton').addEventListener('click', () => {
   if(!DEBUG) document.getElementById('stats').innerHTML = null
 })
 
-
 document.getElementById('generated').addEventListener('click', () => {
   document.getElementById('homeMenu').style.opacity = 0
   setTimeout(() => {
@@ -400,6 +399,16 @@ document.getElementById('generated').addEventListener('click', () => {
   gameLoop()
 })
 
+window.addEventListener('keypress', (event) => {
+  event.preventDefault()
+  switch(event.key) {
+    case 'd':
+      toggleDebug()
+      drawBack()
+      if(!DEBUG) document.getElementById('stats').innerHTML = null
+      break
+  }
+})
 
 // the real "main" of the game
 onload = async (e) => {
