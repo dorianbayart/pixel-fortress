@@ -390,6 +390,17 @@ document.getElementById('debugButton').addEventListener('click', () => {
   if(!DEBUG) document.getElementById('stats').innerHTML = null
 })
 
+
+document.getElementById('generated').addEventListener('click', () => {
+  document.getElementById('homeMenu').style.opacity = 0
+  setTimeout(() => {
+    gameLoop()
+    document.getElementById('homeMenu').style.display = 'none'
+  }, 50)
+  gameLoop()
+})
+
+
 // the real "main" of the game
 onload = async (e) => {
   await onresize()
@@ -426,16 +437,16 @@ onload = async (e) => {
   assignSpritesOnMap()
 
   // Smoothly remove the splashscreen and launch the game
-  setTimeout(() => {
-    document.getElementById('gameName').style.opacity = 0
-    document.getElementById('progressBar').style.opacity = 0
-  }, 1000)
-  setTimeout(() => {
-    gameLoop()
-    document.getElementById('gameName').style.display = 'none'
-    document.getElementById('progressBar').style.display = 'none'
-    document.getElementById('debugButton').style.display = 'block'
-  }, 1500)
+  // setTimeout(() => {
+  //   document.getElementById('gameName').style.opacity = 0
+  //   document.getElementById('progressBar').style.opacity = 0
+  // }, 1000)
+  // setTimeout(() => {
+  //   gameLoop()
+  //   document.getElementById('gameName').style.display = 'none'
+  //   document.getElementById('progressBar').style.display = 'none'
+  //   document.getElementById('debugButton').style.display = 'block'
+  // }, 1500)
 }
 
 
