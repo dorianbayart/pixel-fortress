@@ -1,65 +1,121 @@
-export { canvases, drawBackground, drawMain, initCanvases, resizeCanvases, updateZoom }
-  
+export {
+    app,
+    containers, drawBackground, drawMain, initCanvases, loadTextureFromCanvas, resizeCanvases, updateZoom
+}
+
 'use strict'
-  
+
 import { DEBUG, backDrawn } from 'globals'
 import { MAP_HEIGHT, MAP_WIDTH } from 'maps'
+import * as PIXI from 'pixijs'
 import { SPRITE_SIZE, UNIT_SPRITE_SIZE, offscreenSprite, sprites } from 'sprites'
 import gameState from 'state'
-  
-// Canvas elements and contexts
-const canvases = {
-    backCanvas: null,
-    backCtx: null,
-    mainCanvas: null,
-    mainCtx: null,
-    uiCanvas: null,
-    uiCtx: null,
-    offCanvas1: null,
-    offCtx1: null,
-    offCanvas2: null,
-    offCtx2: null
+
+// Pixi.js Application
+let app = null
+
+// Texture cache for converted canvas elements
+const textureCache = new Map()
+
+// Containers for organizing display objects
+const containers = {
+  background: null,
+  terrain: null,
+  units: null,
+  ui: null,
+  debug: null
+}
+
+// Variables for resizing and scaling
+let canvasWidth = 0
+let canvasHeight = 0
+let dpr = 1
+const desiredAspectRatio = MAP_WIDTH / MAP_HEIGHT
+
+// Sprite coordinates for special tiles
+let spriteCoords_Start = { x: 21, y: 5 }
+let spriteCoords_End = { x: 22, y: 4 }
+let spriteCoords_Path = { x: 22, y: 5 }
+let spriteCoords_Mouse = { x: 21, y: 4 }
+
+// Performance tracking
+let drawMainTimings = new Array(50).fill(10)
+
+/**
+ * Convert an OffscreenCanvas to a PIXI.Texture
+ * @param {OffscreenCanvas} canvas - Canvas to convert
+ * @param {string} key - Cache key
+ * @returns {PIXI.Texture} The created texture
+ */
+function loadTextureFromCanvas(canvas, key) {
+  if (textureCache.has(key)) {
+    return textureCache.get(key)
   }
   
-  // Variables for resizing and scaling
-  let canvasWidth = 0
-  let canvasHeight = 0
-  let dpr = 1
-  const desiredAspectRatio = MAP_WIDTH / MAP_HEIGHT
+  // Create a Blob from the canvas
+  const blob = canvas.convertToBlob ? canvas.convertToBlob() : new Promise(resolve => canvas.toBlob(resolve))
   
-  // Sprite coordinates for special tiles
-  let spriteCoords_Start = { x: 21, y: 5 }
-  let spriteCoords_End = { x: 22, y: 4 }
-  let spriteCoords_Path = { x: 22, y: 5 }
-  let spriteCoords_Mouse = { x: 21, y: 4 }
+  // Create a URL from the Blob
+  const url = URL.createObjectURL(blob)
   
-  // Performance tracking
-  let drawMainTimings = new Array(50).fill(10)
+  // Load the texture from the URL
+  const texture = PIXI.Texture.from(url)
   
-  // Initialize canvas elements
-  function initCanvases() {
-    canvases.backCanvas = document.getElementById('backCanvas')
-    canvases.backCtx = canvases.backCanvas.getContext('2d')
-    canvases.mainCanvas = document.getElementById('mainCanvas')
-    canvases.mainCtx = canvases.mainCanvas.getContext('2d')
-    canvases.uiCanvas = document.getElementById('uiCanvas')
-    canvases.uiCtx = canvases.uiCanvas.getContext('2d')
+  // Store in cache
+  textureCache.set(key, texture)
+  
+  // Clean up the URL when the texture is loaded
+  texture.on('update', () => {
+    URL.revokeObjectURL(url)
+  });
+  
+  return texture
+}
+
+/**
+ * Initialize Pixi.js application and containers
+ */
+async function initCanvases() {
+    // Create Pixi Application
+    app = new PIXI.Application()
+    await app.init({
+        width: MAP_WIDTH * SPRITE_SIZE,
+        height: MAP_HEIGHT * SPRITE_SIZE,
+        // backgroundColor: 0x228b22, // Forestgreen background
+        backgroundAlpha: 0,
+        resolution: dpr,
+        antialias: false,
+        view: document.getElementById('backCanvas'),
+        // resizeTo: window
+      })
     
-    canvases.offCanvas1 = document.createElement('canvas')
-    canvases.offCtx1 = canvases.offCanvas1.getContext('2d')
-    canvases.offCanvas2 = document.createElement('canvas')
-    canvases.offCtx2 = canvases.offCanvas2.getContext('2d')
+    // Add the view to the document
+    document.getElementById('canvas').replaceWith(app.view)
+    app.view.id = 'canvas'
     
-    // Disable smoothing on all contexts
-    canvases.mainCtx.imageSmoothingEnabled = false
-    canvases.backCtx.imageSmoothingEnabled = false
-    canvases.uiCtx.imageSmoothingEnabled = false
-    canvases.offCtx1.imageSmoothingEnabled = false
-    canvases.offCtx2.imageSmoothingEnabled = false
+    // Set up containers for organizing content
+    containers.background = new PIXI.Container()
+    containers.terrain = new PIXI.Container()
+    containers.units = new PIXI.Container()
+    containers.ui = new PIXI.Container()
+    containers.debug = new PIXI.Container()
+    
+    // Add containers to stage in the correct order
+    app.stage.addChild(containers.background)
+    app.stage.addChild(containers.terrain)
+    app.stage.addChild(containers.debug)
+    app.stage.addChild(containers.units)
+    app.stage.addChild(containers.ui)
+    
+    // Set pixel scaling for crisp pixels
+    //PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST
+    console.log(app)
   }
-  
-  // Resize canvases on window resize
-  function resizeCanvases() {
+
+/**
+ * Resize the Pixi.js canvas to fit the window
+ */
+function resizeCanvases() {
     // Calculate new dimensions while maintaining aspect ratio
     const screenWidth = globalThis.innerWidth || 800
     const screenHeight = globalThis.innerHeight || 800
@@ -78,108 +134,126 @@ const canvases = {
     // Device Pixel Ratio (DPR)
     dpr = globalThis.devicePixelRatio || 1
     
-    // Set canvas dimensions
-    canvases.mainCanvas.width = canvases.backCanvas.width = canvases.uiCanvas.width = 
-      canvases.offCanvas1.width = canvases.offCanvas2.width = MAP_WIDTH * SPRITE_SIZE
-    
-    canvases.mainCanvas.height = canvases.backCanvas.height = canvases.uiCanvas.height = 
-      canvases.offCanvas1.height = canvases.offCanvas2.height = MAP_HEIGHT * SPRITE_SIZE
-  
-    // Set CSS dimensions
-    canvases.mainCanvas.style.width = canvases.backCanvas.style.width = canvases.uiCanvas.style.width = `${canvasWidth}px`
-    canvases.mainCanvas.style.height = canvases.backCanvas.style.height = canvases.uiCanvas.style.height = `${canvasHeight}px`
-  }
-  
-  // Draw all game elements
-  function drawMain(player, AIs) {
+    // Resize the renderer
+    app.renderer.resize(MAP_WIDTH * SPRITE_SIZE, MAP_HEIGHT * SPRITE_SIZE)
+
+    // Update the canvas style
+    app.view.style.width = `${canvasWidth}px`
+    app.view.style.height = `${canvasHeight}px`
+}
+
+/**
+ * Draw all game units
+ * @param {Object} player - Human player
+ * @param {Array} AIs - AI players
+ */
+function drawMain(player, AIs) {
     const start = performance.now()
     
-    canvases.offCtx1.clearRect(0, 0, canvases.mainCanvas.width, canvases.mainCanvas.height)
+    // Clear the units container
+    containers.units.removeChildren()
     
     // Draw AI units
     AIs.flatMap(ai => ai.getUnits()).forEach((unit) => {
-      canvases.offCtx1.drawImage(
-        unit.sprite, 
-        Math.round(unit.x - UNIT_SPRITE_SIZE/4), 
-        Math.round(unit.y - UNIT_SPRITE_SIZE/4 - 2)
-      )
+        const texture = PIXI.Texture.from(unit.sprite)
+        const sprite = new PIXI.Sprite(texture)
+        sprite.x = Math.round(unit.x - UNIT_SPRITE_SIZE/4)
+        sprite.y = Math.round(unit.y - UNIT_SPRITE_SIZE/4 - 2)
+        containers.units.addChild(sprite)
     })
     
     // Draw player units
     player.getUnits().forEach((unit) => {
-      canvases.offCtx1.drawImage(
-        unit.sprite, 
-        Math.round(unit.x - UNIT_SPRITE_SIZE/4), 
-        Math.round(unit.y - UNIT_SPRITE_SIZE/4 - 2)
-      )
+        const texture = PIXI.Texture.from(unit.sprite)
+        const sprite = new PIXI.Sprite(texture)
+        sprite.x = Math.round(unit.x - UNIT_SPRITE_SIZE/4)
+        sprite.y = Math.round(unit.y - UNIT_SPRITE_SIZE/4 - 2)
+        containers.units.addChild(sprite)
     })
-    
-    // Copy from offscreen canvas to main canvas
-    canvases.mainCtx.clearRect(0, 0, canvases.mainCanvas.width, canvases.mainCanvas.height)
-    canvases.mainCtx.drawImage(canvases.offCanvas1, 0, 0, canvases.mainCanvas.width, canvases.mainCanvas.height)
   
     // Track performance
     drawMainTimings.push((performance.now() - start) | 0)
     drawMainTimings.shift()
-  }
-  
-  // Draw the background terrain
-  function drawBackground(map) {
-    canvases.offCtx1.clearRect(0, 0, canvases.mainCanvas.width, canvases.mainCanvas.height)
-    canvases.offCtx2.clearRect(0, 0, canvases.mainCanvas.width, canvases.mainCanvas.height)
+}
+
+/**
+ * Draw the background terrain
+ * @param {Array} map - Game map
+ */
+function drawBackground(map) {
+    const start = performance.now()
+
+    // Clear the containers
+    containers.background.removeChildren()
+    containers.terrain.removeChildren()
+    containers.debug.removeChildren()
+
+    // Create a sprite batch for better performance
+    const backgroundBatch = new PIXI.Container()
+    const terrainBatch = new PIXI.Container()
   
     // Draw all map tiles
     for (let x = 0; x < MAP_WIDTH; x++) {
       for (let y = 0; y < MAP_HEIGHT; y++) {
-        if(map[x][y].back) {
-          canvases.offCtx2.drawImage(map[x][y].back, x * SPRITE_SIZE, y * SPRITE_SIZE)
+        // Draw background (grass under objects)
+        if (map[x][y].back) {
+            const backTexture = PIXI.Texture.from(map[x][y].back)
+            const backSprite = new PIXI.Sprite(backTexture)
+            backSprite.x = x * SPRITE_SIZE
+            backSprite.y = y * SPRITE_SIZE
+            backgroundBatch.addChild(backSprite)
         }
-        canvases.offCtx1.drawImage(map[x][y].sprite, x * SPRITE_SIZE, y * SPRITE_SIZE)
+        
+        // Draw terrain features
+        const terrainTexture = PIXI.Texture.from(map[x][y].sprite)
+        const terrainSprite = new PIXI.Sprite(terrainTexture)
+        terrainSprite.x = x * SPRITE_SIZE
+        terrainSprite.y = y * SPRITE_SIZE
+        terrainBatch.addChild(terrainSprite)
       }
     }
-  
-    // Copy from offscreen canvases to background canvas
-    canvases.backCtx.clearRect(0, 0, canvases.mainCanvas.width, canvases.mainCanvas.height)
-    canvases.backCtx.drawImage(canvases.offCanvas2, 0, 0, canvases.mainCanvas.width, canvases.mainCanvas.height)
-    canvases.backCtx.drawImage(canvases.offCanvas1, 0, 0, canvases.mainCanvas.width, canvases.mainCanvas.height)
-  
+
+    // Add batches to containers
+    containers.background.addChild(backgroundBatch)
+    containers.terrain.addChild(terrainBatch)
+
     // Debug: draw unit paths
     if (DEBUG()) {
-      canvases.offCtx1.clearRect(0, 0, canvases.mainCanvas.width, canvases.mainCanvas.height)
+        const debugBatch = new PIXI.Container()
       
       if (gameState.humanPlayer) {
         gameState.humanPlayer.getUnits().forEach((unit) => {
           for (var i = 1; i < (unit.path || []).length; i++) {
-            canvases.offCtx1.drawImage(
-              offscreenSprite(sprites[spriteCoords_Path.x][spriteCoords_Path.y], SPRITE_SIZE), 
-              unit.path[i].x * SPRITE_SIZE, 
-              unit.path[i].y * SPRITE_SIZE
-            )
+            const pathTexture = PIXI.Texture.from(offscreenSprite(sprites[spriteCoords_Path.x][spriteCoords_Path.y], SPRITE_SIZE))
+            const pathSprite = new PIXI.Sprite(pathTexture)
+            pathSprite.x = unit.path[i].x * SPRITE_SIZE
+            pathSprite.y = unit.path[i].y * SPRITE_SIZE
+            debugBatch.addChild(pathSprite)
           }
         })
       }
       
-      canvases.backCtx.drawImage(canvases.offCanvas1, 0, 0, canvases.mainCanvas.width, canvases.mainCanvas.height)
+      containers.debug.addChild(debugBatch)
+
+      // console.log(`Background rendering: ${performance.now() - start}ms`)
     }
-  
+    
     backDrawn()
-  }
-  
-  // Update zoom level and transform
-  function updateZoom(mouse) {
+}
+
+/**
+ * Update zoom level
+ * @param {Object} mouse - Mouse state
+ */
+function updateZoom(mouse) {
     if (mouse.scaleFactor === 1) {
-      // Reset all transforms
-      canvases.mainCtx.resetTransform()
-      canvases.backCtx.resetTransform()
-      canvases.uiCtx.resetTransform()
-      canvases.offCtx1.resetTransform()
-      canvases.offCtx2.resetTransform()
+        // Reset all transforms
+        app.stage.scale.set(1)
+        app.stage.position.set(0, 0)
     } else {
-      // Apply transforms with current scale and offset
-      canvases.mainCtx.setTransform(mouse.scaleFactor, 0, 0, mouse.scaleFactor, mouse.offsetX, mouse.offsetY)
-      canvases.backCtx.setTransform(mouse.scaleFactor, 0, 0, mouse.scaleFactor, mouse.offsetX, mouse.offsetY)
-      canvases.uiCtx.setTransform(mouse.scaleFactor, 0, 0, mouse.scaleFactor, mouse.offsetX, mouse.offsetY)
-      canvases.offCtx1.setTransform(mouse.scaleFactor, 0, 0, mouse.scaleFactor, mouse.offsetX, mouse.offsetY)
-      canvases.offCtx2.setTransform(mouse.scaleFactor, 0, 0, mouse.scaleFactor, mouse.offsetX, mouse.offsetY)
+        // Apply zoom with the mouse position as the center point
+        app.stage.scale.set(mouse.scaleFactor)
+        app.stage.position.x = mouse.offsetX
+        app.stage.position.y = mouse.offsetY
     }
-  }
+}

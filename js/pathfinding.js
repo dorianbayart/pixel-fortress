@@ -239,6 +239,6 @@ function aStar(map, startX, startY, endX, endY) {
     }
   }
 
-  console.log("No path found - time spent " + (performance.now() - startTime) + "ms")
+  // console.log("No path found - time spent " + (performance.now() - startTime) + "ms")
   return null
 }

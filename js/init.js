@@ -15,7 +15,7 @@ async function initializeGame() {
     gameState.gameStatus = 'menu'
     
     // Initialize canvases
-    initCanvases()
+    await initCanvases()
     
     // Perform initial resize
     await handleWindowResize()
@@ -29,7 +29,7 @@ async function initializeGame() {
     // Initialize mouse handling
     const mouseModule = await import('mouse')
     const mouseInstance = new mouseModule.Mouse()
-    await mouseInstance.initMouse(document.getElementById('uiCanvas'), SPRITE_SIZE)
+    await mouseInstance.initMouse(document.getElementById('canvas'), SPRITE_SIZE)
   
     // Initialize UI with mouse instance
     await initUI(mouseInstance)
