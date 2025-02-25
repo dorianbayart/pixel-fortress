@@ -120,8 +120,6 @@
       margin-bottom: 2rem;
     }
 
-    
-
     #progressBar {
       position: relative;
       top: 50dvh;
@@ -160,12 +158,16 @@
   <script type="importmap">
     {
       "imports": {
+        "game": "./js/game.js",
         "globals": "./js/globals.js",
+        "init": "./js/init.js",
         "maps": "./js/maps.js",
         "mouse": "./js/mouse.js",
         "pathfinding": "./js/pathfinding.js",
         "players": "./js/players.js",
+        "renderer": "./js/renderer.js",
         "sprites": "./js/sprites.js",
+        "ui": "./js/ui.js",
         "unit": "./js/unit.js",
         "utils": "./js/utils.js",
         "worker": "./js/worker.js"
@@ -173,7 +175,7 @@
     }
   </script>
 
-  <script type="module" src="js/tileset.js"></script>
+  <script type="module" src="js/index.js"></script>
 </head>
 
 <body>
