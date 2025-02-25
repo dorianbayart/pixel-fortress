@@ -5,9 +5,10 @@ export { canvases, drawBackground, drawMain, initCanvases, resizeCanvases, updat
 import { DEBUG, backDrawn } from 'globals'
 import { MAP_HEIGHT, MAP_WIDTH } from 'maps'
 import { SPRITE_SIZE, UNIT_SPRITE_SIZE, offscreenSprite, sprites } from 'sprites'
+import gameState from 'state'
   
 // Canvas elements and contexts
-  const canvases = {
+const canvases = {
     backCanvas: null,
     backCtx: null,
     mainCanvas: null,
@@ -143,11 +144,11 @@ import { SPRITE_SIZE, UNIT_SPRITE_SIZE, offscreenSprite, sprites } from 'sprites
     canvases.backCtx.drawImage(canvases.offCanvas1, 0, 0, canvases.mainCanvas.width, canvases.mainCanvas.height)
   
     // Debug: draw unit paths
-    if (DEBUG) {
+    if (DEBUG()) {
       canvases.offCtx1.clearRect(0, 0, canvases.mainCanvas.width, canvases.mainCanvas.height)
       
-      if (window.player) {
-        window.player.getUnits().forEach((unit) => {
+      if (gameState.humanPlayer) {
+        gameState.humanPlayer.getUnits().forEach((unit) => {
           for (var i = 1; i < (unit.path || []).length; i++) {
             canvases.offCtx1.drawImage(
               offscreenSprite(sprites[spriteCoords_Path.x][spriteCoords_Path.y], SPRITE_SIZE), 

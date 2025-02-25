@@ -2,13 +2,14 @@ export { DEBUG, backDrawn, drawBack, isDrawBackRequested, toggleDebug }
 
 'use strict'
 
+import gameState from 'state'
+
 /****************/
 /*  DEBUG MODE  */
 /****************/
-let DEBUG = false
-const toggleDebug = () => DEBUG = !DEBUG
+const DEBUG = () => gameState.debug
+const toggleDebug = () => gameState.toggleDebug()
 
-let isDrawBackRequested = true
-
-const drawBack = () => isDrawBackRequested = true
-const backDrawn = () => isDrawBackRequested = false
+const isDrawBackRequested = () => gameState.isDrawBackRequested
+const drawBack = () => gameState.drawBack()
+const backDrawn = () => gameState.backDrawn()

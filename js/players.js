@@ -1,28 +1,25 @@
-export { AIs, Player, PlayerType }
+export { Player, PlayerType }
 
 'use strict'
 
 import { MAP_HEIGHT, MAP_WIDTH, MAX_WEIGHT } from 'maps'
-import { Unit, HumanSoldier, Mage, Soldier, Warrior, Worker } from 'unit'
+import gameState from 'state'
+import { HumanSoldier, Worker } from 'unit'
 
 const PlayerType = {
   HUMAN: 'human',
   AI: 'ai'
 }
 
-let AIs = []
-let player
-
 class Player {
-
   constructor(type = PlayerType.HUMAN) {
     this.type = type
     this.units = new Array()
 
     if(this.isHuman()) {
-      player = this
+      gameState.humanPlayer = this
     } else {
-      AIs.push(this)
+      gameState.addAiPlayer(this)
     }
   }
 
@@ -48,24 +45,31 @@ class Player {
       this.addHumanSoldier(x, y, map)
     }
 
-    const enemies = this.isHuman() ? AIs.flatMap(ai => ai.getUnits()) : player.getUnits()
+    const enemies = this.isHuman() ? 
+      gameState.aiPlayers.flatMap(ai => ai.getUnits()) : 
+      gameState.humanPlayer.getUnits()
     
     for (var i = 0; i < this.getUnits().length; i++) {
       this.units[i].update(delay, map, enemies)
     }
     this.units = this.getUnits().filter(unit => unit.life > 0)
-
   }
 
   addWorker(x, y, map) {
-    const enemies = this.isHuman() ? AIs.flatMap(ai => ai.getUnits()) : player.getUnits()
+    const enemies = this.isHuman() ? 
+      gameState.aiPlayers.flatMap(ai => ai.getUnits()) : 
+      gameState.humanPlayer.getUnits()
+    
     this.units.push(
       new Worker(x, y, this.getColor(), map, enemies)
     )
   }
 
   addHumanSoldier(x, y, map) {
-    const enemies = this.isHuman() ? AIs.flatMap(ai => ai.getUnits()) : player.getUnits()
+    const enemies = this.isHuman() ? 
+      gameState.aiPlayers.flatMap(ai => ai.getUnits()) : 
+      gameState.humanPlayer.getUnits()
+    
     this.units.push(
       new HumanSoldier(x, y, this.getColor(), map, enemies)
     )

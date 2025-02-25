@@ -1,15 +1,11 @@
 'use strict'
 
-import { gameLoop } from 'game'
 import { initializeGame } from 'init'
+import gameState from 'state'
 
 // Attach event listener to start button
 document.getElementById('generated').addEventListener('click', () => {
-  document.getElementById('homeMenu').style.opacity = 0
-  setTimeout(() => {
-    document.getElementById('homeMenu').style.display = 'none'
-    gameLoop()
-  }, 750)
+  gameState.gameStatus = 'playing'
 })
 
 // Initialize on load
