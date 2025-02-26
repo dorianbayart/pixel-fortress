@@ -86,6 +86,12 @@ A detailed roadmap can be found here: [ROADMAP.md](ROADMAP.md)
 
 
 
+## 🙌 Credits
+
+* Very useful SVG icons: [Pixel Icon Library](https://github.com/hackernoon/pixel-icon-library)
+
+
+
 ## 📜 License
 
 This project is licensed under the **Creative Commons Non-Commercial 4.0 International License**.

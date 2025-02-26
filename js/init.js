@@ -4,6 +4,7 @@ export { handleWindowResize, initializeGame }
 
 import { gameLoop, initGame } from 'game'
 import { drawBack } from 'globals'
+import { initHomeMenu } from 'menu'
 import { initCanvases, resizeCanvases } from 'renderer'
 import { SPRITE_SIZE, loadSprites, sprites } from 'sprites'
 import gameState from 'state'
@@ -13,6 +14,9 @@ import { initUI } from 'ui'
 async function initializeGame() {
     // Set initial game state
     gameState.gameStatus = 'menu'
+
+    // Initialize home menu
+    await initHomeMenu()
     
     // Initialize canvases
     await initCanvases()

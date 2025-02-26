@@ -1,0 +1,183 @@
+/* Modal styles */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 100;
+  left: 0;
+  top: 0;
+  width: 100dvw;
+  height: 100dvh;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.7);
+  opacity: 0;
+  transition: opacity 750ms ease-in-out;
+}
+
+.modal.show {
+  display: block;
+  opacity: 1;
+}
+
+.modal-content {
+  background-color: #114611;
+  background: linear-gradient(0deg, #114611, #228b22);
+  margin: calc(5dvh - 2px) auto;
+  border: 2px solid var(--font-color);
+  border-radius: 8px;
+  width: min(90dvw, 640px);
+  box-shadow: 0 0 10px forestgreen, 0 0 20px forestgreen;
+  color: var(--font-color);
+  font-family: var(--font-base);
+  padding: 0;
+  max-height: 90dvh;
+  overflow-y: auto;
+  image-rendering: pixelated;
+}
+
+.modal-header {
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--font-color);
+  position: sticky;
+  text-align: center;
+  top: 0;
+  z-index: 1;
+  background-color: forestgreen;
+}
+
+.modal-header h2 {
+  margin: 0;
+  text-shadow: 0 0 5px forestgreen, 0 0 10px forestgreen;
+}
+
+.close {
+  color: var(--font-color);
+  float: right;
+  font-size: 28px;
+  height: 28px;
+  width: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  right: 20px;
+  top: 10px;
+}
+
+.close:hover,
+.close:focus {
+  color: white;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.modal-body {
+  padding: 20px;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.modal-footer {
+  padding: 10px 20px;
+  border-top: 1px solid var(--font-color);
+  text-align: center;
+}
+
+/* GitHub links styling */
+.github-links {
+  margin: 20px 0;
+}
+
+.github-links h3 {
+  margin-bottom: 10px;
+  text-shadow: 0 0 5px forestgreen;
+}
+
+.link-container {
+  margin: 15px 0;
+}
+
+.link-container a {
+  display: flex;
+  align-items: center;
+  color: var(--font-color);
+  text-decoration: none;
+  padding: 8px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  transition: background-color 0.3s;
+  width: fit-content;
+}
+
+.link-container a:hover {
+  background-color: rgba(0, 0, 0, 0.4);
+  text-decoration: underline;
+}
+
+.github-logo {
+  width: 24px;
+  height: 24px;
+  margin-right: 10px;
+  filter: invert(83%) sepia(53%) saturate(765%) hue-rotate(359deg) brightness(103%) contrast(105%);
+}
+
+/* Game description styling */
+.game-description {
+  margin: 10px 0;
+  font-size: 1.1rem;
+}
+
+/* Credits styling */
+.credits, .license {
+  margin: 20px 0;
+}
+
+.credits h3, .license h3 {
+  margin-bottom: 10px;
+  text-shadow: 0 0 5px forestgreen;
+}
+
+.credits p, .license p {
+  margin: 5px 0;
+}
+
+.version-info {
+  font-style: italic;
+  opacity: 0.8;
+  text-align: right;
+}
+
+/* Button styling */
+#closeAbout {
+  background-color: #228b22;
+  color: var(--font-color);
+  border: 1px solid var(--font-color);
+  padding: 8px 20px;
+  font-family: var(--font-base);
+  font-size: 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+#closeAbout:hover {
+  background-color: #1a6b1a;
+  box-shadow: 0 0 5px var(--font-color);
+}
+
+/* Add responsive adjustments */
+@media (max-width: 500px) {
+  .modal-content {
+    margin: 10dvh auto;
+    width: 90dvw;
+  }
+  
+  .modal-body {
+    font-size: 0.9rem;
+  }
+}
+
+/* License link styling */
+.license a {
+  color: var(--font-color);
+  text-decoration: underline;
+}

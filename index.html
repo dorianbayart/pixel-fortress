@@ -45,6 +45,7 @@
 
     :root {
       --font-base: "Jacquarda-Bastarda-9", fantasy, monospace, system-ui, sans-serif;
+      --font-color: gold;
     }
 
     * {
@@ -95,7 +96,7 @@
       padding: 0;
       font-family: var(--font-base);
       font-weight: 400;
-      color: gold;
+      color: var(--font-color);
       /* text-shadow: 3px 5px 4px #000000; */
       text-shadow: 0 0 5px forestgreen, 0 0 10px forestgreen, 0 0 15px forestgreen, 0 0 20px forestgreen, 0 0 25px forestgreen;
       display: flex;
@@ -153,6 +154,8 @@
     }
   </style>
 
+  <link rel="stylesheet" href="./css/modal.css">
+
   <script type="importmap">
     {
       "imports": {
@@ -160,6 +163,7 @@
         "globals": "./js/globals.js",
         "init": "./js/init.js",
         "maps": "./js/maps.js",
+        "menu": "./js/menu.js",
         "mouse": "./js/mouse.js",
         "pathfinding": "./js/pathfinding.js",
         "players": "./js/players.js",
@@ -200,3 +204,53 @@
 </body>
 
 </html>
+
+<!-- About section modal that appears when "About" is clicked -->
+<div id="aboutSection" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>About</h2>
+      <span class="close">&times;</span>
+    </div>
+    <div class="modal-body">
+      <div class="game-description">
+        <p>Pixel Fortress is a 2D pixel-based strategy game that uniquely merges the depth of Tower Defense with the addictive simplicity of Clicker styles.</p>
+      </div>
+      
+      <div class="version-info">
+        <p>Version 0.0.1 - Alpha</p>
+      </div>
+      
+      <div class="github-links">
+        <h3>Find the project on GitHub</h3>
+        <div class="link-container">
+          <a href="https://github.com/dorianbayart/sandbox/tree/main/games/pixel-fortress" target="_blank" rel="noopener noreferrer">
+            <img src="https://raw.githubusercontent.com/hackernoon/pixel-icon-library/refs/heads/main/icons/SVG/brands/github.svg" alt="GitHub Logo" class="github-logo">
+            <span>Game Repository</span>
+          </a>
+        </div>
+        <div class="link-container">
+          <a href="https://github.com/dorianbayart" target="_blank" rel="noopener noreferrer">
+            <img src="https://raw.githubusercontent.com/hackernoon/pixel-icon-library/refs/heads/main/icons/SVG/brands/github.svg" alt="GitHub Logo" class="github-logo">
+            <span>Developer Profile</span>
+          </a>
+        </div>
+      </div>
+      
+      <div class="credits">
+        <h3>Credits</h3>
+        <p>Developed by Dorian Bayart</p>
+        <p>Pixel art assets from various open source collections</p>
+        <p>Built with PixiJS, HTML5 and JavaScript</p>
+      </div>
+      
+      <div class="license">
+        <h3>License</h3>
+        <p>This project is licensed under the <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener noreferrer">Creative Commons Non-Commercial 4.0 International License</a>.</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button id="closeAbout">Close</button>
+    </div>
+  </div>
+</div>
