@@ -91,7 +91,3 @@ async function initializeGame() {
       return false
     }
   }
-  
-  // Set up window event handlers
-  window.onload = initializeGame
-  window.onrotate = window.onresize = handleWindowResize

@@ -1,12 +1,9 @@
 'use strict'
 
-import { initializeGame } from 'init'
-import gameState from 'state'
-
-// Attach event listener to start button
-document.getElementById('generated').addEventListener('click', () => {
-  gameState.gameStatus = 'playing'
-})
+import { handleWindowResize, initializeGame } from 'init'
 
 // Initialize on load
-window.onload = initializeGame
+window.addEventListener('load', initializeGame)
+
+// Set up window event handlers
+window.onrotate = window.onresize = handleWindowResize
