@@ -246,14 +246,35 @@ function drawBackground(map) {
  * @param {Object} mouse - Mouse state
  */
 function updateZoom(mouse) {
-    if (mouse.scaleFactor === 1) {
-        // Reset all transforms
-        app.stage.scale.set(1)
-        app.stage.position.set(0, 0)
-    } else {
-        // Apply zoom with the mouse position as the center point
-        app.stage.scale.set(mouse.scaleFactor)
-        app.stage.position.x = mouse.offsetX
-        app.stage.position.y = mouse.offsetY
-    }
-}
+    // Get current view transform
+    const viewTransform = mouse.getViewTransform();
+    
+    // Apply transformations to all containers that should be affected by zoom/pan
+    const containersToTransform = [
+      containers.background,
+      containers.terrain,
+      containers.units,
+      containers.debug
+    ];
+    
+    // Apply scale to each container
+    containersToTransform.forEach(container => {
+      // Reset transformations
+      //container.setTransform(0, 0, 1, 1, 0, 0, 0, 0, 0);
+      
+      // Apply new scale and position
+      container.scale.set(viewTransform.scale, viewTransform.scale);
+      
+      // Invert the translation caused by scale
+      const offsetX = -viewTransform.x * viewTransform.scale;
+      const offsetY = -viewTransform.y * viewTransform.scale;
+      
+      // Apply translation
+      container.position.set(offsetX, offsetY);
+    });
+    
+    // UI container shouldn't be affected by zoom/pan (for cursor and HUD)
+    // We could leave it as is, but if we want to scale UI elements differently:
+    // containers.ui.scale.set(1, 1);
+    // containers.ui.position.set(0, 0);
+  }

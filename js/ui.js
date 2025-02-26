@@ -134,19 +134,19 @@ import gameState from 'state'
     })
     
     // Handle mouse interactions with Pixi
-    app.view.addEventListener('pointermove', (e) => {
-      if (mouse) {
-        // Convert client coordinates to canvas coordinates
-        const rect = app.view.getBoundingClientRect()
-        const canvasX = e.clientX - rect.left
-        const canvasY = e.clientY - rect.top
+    // app.view.addEventListener('pointermove', (e) => {
+    //   if (mouse) {
+    //     // Convert client coordinates to canvas coordinates
+    //     const rect = app.view.getBoundingClientRect()
+    //     const canvasX = e.clientX - rect.left
+    //     const canvasY = e.clientY - rect.top
         
-        // Update mouse position
-        if (mouse.updatePosition) {
-          mouse.updatePosition(canvasX, canvasY)
-        }
-      }
-    })
+    //     // Update mouse position
+    //     if (mouse.updatePosition) {
+    //       mouse.updatePosition(canvasX, canvasY)
+    //     }
+    //   }
+    // })
   }
   
   /**
@@ -158,6 +158,7 @@ import gameState from 'state'
     // Handle mouse click to create units
     if (mouse?.clicked) {
       mouse.clicked = false
+      console.log('clicked', mouse.x, mouse.y, mouse.worldX, mouse.worldY)
       if (map[mouse.x] && map[mouse.x][mouse.y]?.weight < 10) {
         player.addWorker(mouse.x, mouse.y, map)
       }
@@ -168,12 +169,11 @@ import gameState from 'state'
       updateZoom(mouse)
       drawBack()
       mouse.zoomChanged = false
-      ZOOM.current = mouse.scaleFactor
     }
     
     // Update cursor position
     if (cursorSprite && mouse) {
-      cursorSprite.position.set(mouse.xPixels, mouse.yPixels)
+      cursorSprite.position.set(mouse.worldX - mouse.getViewTransform().x, mouse.worldY - mouse.getViewTransform().y)
     }
   }
   
@@ -185,7 +185,7 @@ import gameState from 'state'
     const now = performance.now()
   
     // Only update UI when necessary
-    if (mouse?.needUpdate || (DEBUG() && now - elapsedUI > 500)) {
+    if ((DEBUG() && now - elapsedUI > 200)) {
       drawUI(fps)
       elapsedUI = now
     }
@@ -196,15 +196,27 @@ import gameState from 'state'
    * @param {Array} fps - FPS history array
    */
   function drawUI(fps) {
+    // Update cursor position to screen coordinates
+    if (cursorSprite && mouse) {
+        //cursorSprite.position.set(mouse.worldX - mouse.getViewTransform().x, mouse.worldY - mouse.getViewTransform().y);
+        
+        // Ensure cursor is not affected by view transformations
+        // by keeping it in screen space
+        cursorSprite.scale.set(1, 1);
+    }
+    
     // Update debug stats text
     if (DEBUG()) {
       const currentFps = (1000 * fps.length / fps.reduce((res, curr) => res + curr, 0)).toFixed(1)
       const unitsCount = gameState.humanPlayer.getUnits().length
       const aiUnitsCount = gameState.aiPlayers.reduce((sum, ai) => sum + ai.getUnits().length, 0)
+      const viewTransform = mouse.getViewTransform()
       
       statsText.text = [
         `FPS: ${currentFps}`,
         `Mouse: ${mouse.x}x${mouse.y}${mouse.isDragging ? ' | clic' : ''}`,
+        `World: (${mouse.worldX.toFixed(0)}, ${mouse.worldY.toFixed(0)})`,
+        `Zoom: ${viewTransform.scale.toFixed(2)}x`,
         `Game Status: ${gameState.gameStatus}`,
         `Units: ${unitsCount} human, ${aiUnitsCount} AI`
       ].join('\n')
@@ -219,6 +231,14 @@ import gameState from 'state'
       div = document.createElement('div')
       div.innerHTML = `Mouse: ${mouse.x}x${mouse.y}${mouse.isDragging ? ' | clic' : ''}`
       document.getElementById('stats').appendChild(div)
+
+      div = document.createElement('div')
+      div.innerHTML = `World: (${mouse.worldX.toFixed(0)}, ${mouse.worldY.toFixed(0)})`
+      document.getElementById('stats').appendChild(div)
+
+      div = document.createElement('div')
+      div.innerHTML = `Zoom: ${viewTransform.scale.toFixed(2)}x`
+      document.getElementById('stats').appendChild(div)
       
       div = document.createElement('div')
       div.innerHTML = `Game Status: ${gameState.gameStatus}`
@@ -228,7 +248,4 @@ import gameState from 'state'
       div.innerHTML = `Units: ${unitsCount} human, ${aiUnitsCount} AI`
       document.getElementById('stats').appendChild(div)
     }
-  
-    // Reset mouse update flag
-    if (mouse) mouse.needUpdate = false
   }
