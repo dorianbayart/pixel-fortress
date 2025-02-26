@@ -1,13 +1,12 @@
 export {
-    handleMouseInteraction, initUI, mouse, setupEventListeners, updateUI
+  handleMouseInteraction, initUI, mouse, setupEventListeners, showDebugMessage, updateUI
 }
   
 'use strict'
   
-import { ZOOM } from 'game'
 import { DEBUG, drawBack, toggleDebug } from 'globals'
 import * as PIXI from 'pixijs'
-import { app, containers, updateZoom } from 'renderer'
+import { containers, updateZoom } from 'renderer'
 import gameState from 'state'
   
   // Mouse object (will be initialized in initUI)
@@ -121,6 +120,8 @@ import gameState from 'state'
     // Start game on "Random Map" click
     document.getElementById('generated').addEventListener('click', () => {
       gameState.gameStatus = 'playing'
+
+      showDebugMessage('New map generated !')
     })
   
     // Keyboard shortcuts
@@ -249,3 +250,20 @@ import gameState from 'state'
       document.getElementById('stats').appendChild(div)
     }
   }
+
+const showDebugMessage = async (message) => {
+  const debugElement = document.createElement('div')
+  debugElement.style.position = 'absolute'
+  debugElement.style.bottom = '40px'
+  debugElement.style.right = '40px'
+  debugElement.style.backgroundColor = 'rgba(0,0,0,0.7)'
+  debugElement.style.color = 'white'
+  debugElement.style.padding = '5px'
+  debugElement.style.zIndex = '1000'
+  debugElement.textContent = message
+  document.body.appendChild(debugElement)
+  
+  setTimeout(() => {
+      document.body.removeChild(debugElement)
+  }, 3000)
+}
