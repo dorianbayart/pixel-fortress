@@ -25,7 +25,6 @@ class Mouse {
       this.canvas = null
       this.isDragging = false
       this.isPinching = false
-      this.needUpdate = false
       this.clicked = false
       this.dragStartX = 0
       this.dragStartY = 0
@@ -42,14 +41,6 @@ class Mouse {
         x: 0,
         y: 0
       }
-    }
-  
-    needUpdateCheck() {
-      if (this.needUpdate) {
-        this.needUpdate = false
-        return true
-      }
-      return false
     }
   
     async initMouse(canvas, spriteSize) {
@@ -84,8 +75,6 @@ class Mouse {
         // Convert to grid coordinates
         this.x = Math.floor(this.worldX / SPRITE_SIZE / this.viewTransform.scale)
         this.y = Math.floor(this.worldY / SPRITE_SIZE / this.viewTransform.scale)
-        
-        this.needUpdate = true
       }
     
       const distanceBetweenTouches = (touch1, touch2) => {
