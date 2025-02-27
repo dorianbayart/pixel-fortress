@@ -85,13 +85,13 @@ async function initCanvases() {
         backgroundAlpha: 0,
         resolution: dpr,
         antialias: false,
-        view: document.getElementById('backCanvas'),
+        canvas: document.getElementById('canvas'),
         // resizeTo: window
       })
     
     // Add the view to the document
-    document.getElementById('canvas').replaceWith(app.view)
-    app.view.id = 'canvas'
+    document.getElementById('canvas').replaceWith(app.canvas)
+    app.canvas.id = 'canvas'
     
     // Set up containers for organizing content
     containers.background = new PIXI.Container()
@@ -138,8 +138,8 @@ function resizeCanvases() {
     app.renderer.resize(MAP_WIDTH * SPRITE_SIZE, MAP_HEIGHT * SPRITE_SIZE)
 
     // Update the canvas style
-    app.view.style.width = `${canvasWidth}px`
-    app.view.style.height = `${canvasHeight}px`
+    app.canvas.style.width = `${canvasWidth}px`
+    app.canvas.style.height = `${canvasHeight}px`
 }
 
 /**

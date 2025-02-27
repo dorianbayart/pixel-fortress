@@ -34,9 +34,10 @@ import gameState from 'state'
     }
     
     // Create debug stats text
-    statsText = new PIXI.Text('', {
+    statsText = new PIXI.Text({
+      text: '',
       fontFamily: 'monospace',
-      fontSize: 12,
+      fontSize: 10,
       fill: 0xffffff,
       stroke: 0x000000,
       strokeThickness: 2
@@ -81,7 +82,7 @@ import gameState from 'state'
       })
 
       // Clean up the URL when the texture is loaded
-      texture.baseTexture.once('loaded', () => {
+      texture.source.once('loaded', () => {
         URL.revokeObjectURL(url)
       })
       
@@ -98,7 +99,7 @@ import gameState from 'state'
             loadParser: 'loadTextures',
           })
           
-          texture.baseTexture.once('loaded', () => {
+          texture.source.once('loaded', () => {
             URL.revokeObjectURL(url)
           })
           
@@ -135,10 +136,10 @@ import gameState from 'state'
     })
     
     // Handle mouse interactions with Pixi
-    // app.view.addEventListener('pointermove', (e) => {
+    // app.canvas.addEventListener('pointermove', (e) => {
     //   if (mouse) {
     //     // Convert client coordinates to canvas coordinates
-    //     const rect = app.view.getBoundingClientRect()
+    //     const rect = app.canvas.getBoundingClientRect()
     //     const canvasX = e.clientX - rect.left
     //     const canvasY = e.clientY - rect.top
         

@@ -54,15 +54,15 @@ class Mouse {
       // Use this method to update mouse position from event handlers
       this.updatePosition = (clientX, clientY) => {
         // Get position relative to canvas
-        const rect = app.view.getBoundingClientRect()
+        const rect = app.canvas.getBoundingClientRect()
 
         // Screen coordinates
         this.xPixels = (clientX - rect.left)
         this.yPixels = (clientY - rect.top)
 
         // Calculate mouse position in screen pixels
-        const viewWidth = parseInt(app.view.style.width)
-        const viewHeight = parseInt(app.view.style.height)
+        const viewWidth = parseInt(app.canvas.style.width)
+        const viewHeight = parseInt(app.canvas.style.height)
 
         // Convert to normalized coordinates (0-1 across canvas)
         const normalizedX = this.xPixels / viewWidth
@@ -84,7 +84,7 @@ class Mouse {
       }
   
       // Setup event listeners for Pixi.js view
-      const pixiView = app.view;
+      const pixiView = app.canvas;
       
       pixiView.addEventListener('pointerdown', (e) => {
         if (e.button === 0) { // Primary button
