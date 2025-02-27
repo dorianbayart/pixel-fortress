@@ -71,7 +71,7 @@ class Mouse {
         // Convert to world coordinates based on current view
         this.worldX = ((normalizedX * app.renderer.width /*/ this.viewTransform.scale*/) + this.viewTransform.x)
         this.worldY = ((normalizedY * app.renderer.height /*/ this.viewTransform.scale*/) + this.viewTransform.y)
-        console.log(this.xPixels, viewWidth, normalizedX, app.renderer.width, this.viewTransform.x)
+        // console.log(this.xPixels, viewWidth, normalizedX, app.renderer.width, this.viewTransform.x)
         // Convert to grid coordinates
         this.x = Math.floor(this.worldX / SPRITE_SIZE / this.viewTransform.scale)
         this.y = Math.floor(this.worldY / SPRITE_SIZE / this.viewTransform.scale)
