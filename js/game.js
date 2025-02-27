@@ -180,7 +180,7 @@ const ZOOM = {
     elapsed = now
   
     // Background rendering
-    if(isDrawBackRequested() && now - elapsedBack > 50) {
+    if(isDrawBackRequested() && now - elapsedBack > 150) {
       elapsedBack = now
       drawBackground(gameState.map)
     }

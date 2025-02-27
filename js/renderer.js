@@ -60,6 +60,8 @@ function loadTextureFromCanvas(canvas, key) {
   
   // Load the texture from the URL
   const texture = PIXI.Texture.from(url)
+  texture.source.resolution = dpr
+  texture.source.scaleMode = PIXI.SCALE_MODES.NEAREST
   
   // Store in cache
   textureCache.set(key, texture)
@@ -76,70 +78,78 @@ function loadTextureFromCanvas(canvas, key) {
  * Initialize Pixi.js application and containers
  */
 async function initCanvases() {
-    // Create Pixi Application
-    app = new PIXI.Application()
-    await app.init({
-        width: MAP_WIDTH * SPRITE_SIZE,
-        height: MAP_HEIGHT * SPRITE_SIZE,
-        // backgroundColor: 0x228b22, // Forestgreen background
-        backgroundAlpha: 0,
-        resolution: dpr,
-        antialias: false,
-        canvas: document.getElementById('canvas'),
-        // resizeTo: window
-      })
-    
-    // Add the view to the document
-    document.getElementById('canvas').replaceWith(app.canvas)
-    app.canvas.id = 'canvas'
-    
-    // Set up containers for organizing content
-    containers.background = new PIXI.Container()
-    containers.terrain = new PIXI.Container()
-    containers.units = new PIXI.Container()
-    containers.ui = new PIXI.Container()
-    containers.debug = new PIXI.Container()
-    
-    // Add containers to stage in the correct order
-    app.stage.addChild(containers.background)
-    app.stage.addChild(containers.terrain)
-    app.stage.addChild(containers.debug)
-    app.stage.addChild(containers.units)
-    app.stage.addChild(containers.ui)
-    
-    // Set pixel scaling for crisp pixels
-    //PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST
-    console.log(app)
-  }
+  // Get DPR before initialization
+  dpr = window.devicePixelRatio || 1
+
+  // Create Pixi Application
+  app = new PIXI.Application()
+  await app.init({
+      width: MAP_WIDTH * SPRITE_SIZE,
+      height: MAP_HEIGHT * SPRITE_SIZE,
+      // backgroundColor: 0x228b22, // Forestgreen background
+      backgroundAlpha: 0,
+      resolution: dpr,
+      autoDensity: true, // This adjusts the CSS size automatically
+      antialias: false,
+      canvas: document.getElementById('canvas'),
+      // resizeTo: window
+    })
+
+  // Enable crisp pixel art rendering
+  // PIXI.settings.SCALE_MODE = 'nearest'
+  
+  // Add the view to the document
+  document.getElementById('canvas').replaceWith(app.canvas)
+  app.canvas.id = 'canvas'
+  
+  // Set up containers for organizing content
+  containers.background = new PIXI.Container()
+  containers.terrain = new PIXI.Container()
+  containers.units = new PIXI.Container()
+  containers.ui = new PIXI.Container()
+  containers.debug = new PIXI.Container()
+  
+  // Add containers to stage in the correct order
+  app.stage.addChild(containers.background)
+  app.stage.addChild(containers.terrain)
+  app.stage.addChild(containers.debug)
+  app.stage.addChild(containers.units)
+  app.stage.addChild(containers.ui)
+  
+  console.log(app)
+}
 
 /**
  * Resize the Pixi.js canvas to fit the window
  */
 function resizeCanvases() {
-    // Calculate new dimensions while maintaining aspect ratio
-    const screenWidth = globalThis.innerWidth || 800
-    const screenHeight = globalThis.innerHeight || 800
-    const screenAspectRatio = screenWidth / screenHeight
-  
-    if (screenAspectRatio > desiredAspectRatio) {
-      // Screen is wider than our aspect ratio, set height to match screen and calculate width
-      canvasHeight = screenHeight
-      canvasWidth = canvasHeight * desiredAspectRatio
-    } else {
-      // Screen is taller than our aspect ratio, set width to match screen and calculate height
-      canvasWidth = screenWidth
-      canvasHeight = canvasWidth / desiredAspectRatio
-    }
-  
-    // Device Pixel Ratio (DPR)
-    dpr = globalThis.devicePixelRatio || 1
-    
-    // Resize the renderer
-    app.renderer.resize(MAP_WIDTH * SPRITE_SIZE, MAP_HEIGHT * SPRITE_SIZE)
+  // Device Pixel Ratio (DPR)
+  dpr = globalThis.devicePixelRatio || 1
 
-    // Update the canvas style
-    app.canvas.style.width = `${canvasWidth}px`
-    app.canvas.style.height = `${canvasHeight}px`
+  // Calculate new dimensions while maintaining aspect ratio
+  const screenWidth = globalThis.innerWidth || 800
+  const screenHeight = globalThis.innerHeight || 800
+  const screenAspectRatio = screenWidth / screenHeight
+
+  if (screenAspectRatio > desiredAspectRatio) {
+    // Screen is wider than our aspect ratio, set height to match screen and calculate width
+    canvasHeight = screenHeight
+    canvasWidth = canvasHeight * desiredAspectRatio
+  } else {
+    // Screen is taller than our aspect ratio, set width to match screen and calculate height
+    canvasWidth = screenWidth
+    canvasHeight = canvasWidth / desiredAspectRatio
+  }
+
+  
+  app.renderer.resolution = dpr
+  
+  // Resize the renderer
+  app.renderer.resize(MAP_WIDTH * SPRITE_SIZE, MAP_HEIGHT * SPRITE_SIZE)
+
+  // Update the canvas style
+  app.canvas.style.width = `${canvasWidth}px`
+  app.canvas.style.height = `${canvasHeight}px`
 }
 
 /**
@@ -156,6 +166,7 @@ function drawMain(player, AIs) {
     // Draw AI units
     AIs.flatMap(ai => ai.getUnits()).forEach((unit) => {
         const texture = PIXI.Texture.from(unit.sprite)
+        texture.source.scaleMode = PIXI.SCALE_MODES.NEAREST
         const sprite = new PIXI.Sprite(texture)
         sprite.x = Math.round(unit.x - UNIT_SPRITE_SIZE/4)
         sprite.y = Math.round(unit.y - UNIT_SPRITE_SIZE/4 - 2)
@@ -165,6 +176,7 @@ function drawMain(player, AIs) {
     // Draw player units
     player.getUnits().forEach((unit) => {
         const texture = PIXI.Texture.from(unit.sprite)
+        texture.source.scaleMode = PIXI.SCALE_MODES.NEAREST
         const sprite = new PIXI.Sprite(texture)
         sprite.x = Math.round(unit.x - UNIT_SPRITE_SIZE/4)
         sprite.y = Math.round(unit.y - UNIT_SPRITE_SIZE/4 - 2)
@@ -198,6 +210,7 @@ function drawBackground(map) {
         // Draw background (grass under objects)
         if (map[x][y].back) {
             const backTexture = PIXI.Texture.from(map[x][y].back)
+            backTexture.source.scaleMode = PIXI.SCALE_MODES.NEAREST
             const backSprite = new PIXI.Sprite(backTexture)
             backSprite.x = x * SPRITE_SIZE
             backSprite.y = y * SPRITE_SIZE
@@ -206,6 +219,7 @@ function drawBackground(map) {
         
         // Draw terrain features
         const terrainTexture = PIXI.Texture.from(map[x][y].sprite)
+        terrainTexture.source.scaleMode = PIXI.SCALE_MODES.NEAREST
         const terrainSprite = new PIXI.Sprite(terrainTexture)
         terrainSprite.x = x * SPRITE_SIZE
         terrainSprite.y = y * SPRITE_SIZE
@@ -225,6 +239,7 @@ function drawBackground(map) {
         gameState.humanPlayer.getUnits().forEach((unit) => {
           for (var i = 1; i < (unit.path || []).length; i++) {
             const pathTexture = PIXI.Texture.from(offscreenSprite(sprites[spriteCoords_Path.x][spriteCoords_Path.y], SPRITE_SIZE))
+            pathTexture.source.scaleMode = PIXI.SCALE_MODES.NEAREST
             const pathSprite = new PIXI.Sprite(pathTexture)
             pathSprite.x = unit.path[i].x * SPRITE_SIZE
             pathSprite.y = unit.path[i].y * SPRITE_SIZE
@@ -275,6 +290,6 @@ function updateZoom(mouse) {
     
     // UI container shouldn't be affected by zoom/pan (for cursor and HUD)
     // We could leave it as is, but if we want to scale UI elements differently:
-    // containers.ui.scale.set(1, 1);
-    // containers.ui.position.set(0, 0);
+    containers.ui.scale.set(1, 1);
+    containers.ui.position.set(0, 0);
   }

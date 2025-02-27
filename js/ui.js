@@ -37,7 +37,8 @@ import gameState from 'state'
     statsText = new PIXI.Text({
       text: '',
       fontFamily: 'monospace',
-      fontSize: 10,
+      fontSize: 14,
+      resolution: window.devicePixelRatio || 1,
       fill: 0xffffff,
       stroke: 0x000000,
       strokeThickness: 2
@@ -81,6 +82,8 @@ import gameState from 'state'
         loadParser: 'loadTextures',
       })
 
+      texture.source.scaleMode = PIXI.SCALE_MODES.NEAREST
+
       // Clean up the URL when the texture is loaded
       texture.source.once('loaded', () => {
         URL.revokeObjectURL(url)
@@ -98,6 +101,8 @@ import gameState from 'state'
             // format: 'png',
             loadParser: 'loadTextures',
           })
+          
+          texture.source.scaleMode = PIXI.SCALE_MODES.NEAREST
           
           texture.source.once('loaded', () => {
             URL.revokeObjectURL(url)
