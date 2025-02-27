@@ -11,6 +11,7 @@
   background-color: rgba(0, 0, 0, 0.7);
   opacity: 0;
   transition: opacity 750ms ease-in-out;
+  font-size: max(1.75dvh, 13px);
 }
 
 .modal.show {
@@ -30,8 +31,9 @@
   font-family: var(--font-base);
   padding: 0;
   max-height: 90dvh;
-  overflow-y: auto;
   image-rendering: pixelated;
+  display: flex;
+  flex-flow: column;
 }
 
 .modal-header {
@@ -72,8 +74,14 @@
 
 .modal-body {
   padding: 20px;
-  font-size: 1rem;
   line-height: 1.4;
+  font-family: system-ui, Roboto, 'Helvetica Neue', sans-serif;
+  font-weight: 175;
+  overflow-y: auto;
+}
+
+.modal-body h3 {
+  font-weight: 225;
 }
 
 .modal-footer {
@@ -123,7 +131,7 @@
 /* Game description styling */
 .game-description {
   margin: 10px 0;
-  font-size: 1.1rem;
+  font-size: 1.1em;
 }
 
 /* Credits styling */
@@ -162,18 +170,6 @@
 #closeAbout:hover {
   background-color: #1a6b1a;
   box-shadow: 0 0 5px var(--font-color);
-}
-
-/* Add responsive adjustments */
-@media (max-width: 500px) {
-  .modal-content {
-    margin: 10dvh auto;
-    width: 90dvw;
-  }
-  
-  .modal-body {
-    font-size: 0.9rem;
-  }
 }
 
 /* License link styling */
