@@ -83,6 +83,13 @@ class Unit {
   update(delay, map, enemies) {
     const time = performance.now() | 0
 
+    if(this.life <= 0) {
+      // Cleanup unit
+      this.path = null
+      this.sprite = null
+      return
+    }
+
     const updatePath = time - this.lastPathUpdate > Math.min((this.path?.length || 1)*400, 4000)
 
     // Update Path
@@ -167,12 +174,13 @@ class Unit {
     let path, pathLength = MAP_WIDTH * MAP_HEIGHT
     this.goal = null
     enemies.forEach((enemy) => {
-      const temp = searchPath(map, this.currentNode.x, this.currentNode.y, enemy.currentNode.x, enemy.currentNode.y)
+      let temp = searchPath(map, this.currentNode.x, this.currentNode.y, enemy.currentNode.x, enemy.currentNode.y)
       if(temp?.length < pathLength) {
         path = temp
         pathLength = path.length
         this.goal = enemy
       }
+      temp = null
     })
     return path
   }
