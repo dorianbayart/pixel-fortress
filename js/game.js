@@ -160,9 +160,9 @@ const ZOOM = {
   // Check if there's a valid path between top and bottom of map
   const isMapCorrect = () => {
     let isValid = false
-    for (let i = 0; i < MAP_WIDTH; i++) {
+    for (let i = 0; i < MAP_WIDTH; i += Math.max(1, MAP_WIDTH/15 | 0)) {
       if(gameState.map[i][MAP_HEIGHT-1].weight < MAX_WEIGHT) {
-        for (let j = 0; j < MAP_WIDTH; j++) {
+        for (let j = 0; j < MAP_WIDTH; j += Math.max(1, MAP_WIDTH/15 | 0)) {
           if(gameState.map[j][0].weight < MAX_WEIGHT) {
             isValid = searchPath(gameState.map, i, MAP_HEIGHT-1, j, 0)?.length > 0
             if(isValid === false) return isValid
