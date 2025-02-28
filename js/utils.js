@@ -1,6 +1,10 @@
-export { arrayToHash, distance, throttle, PerlinNoise }
+export { PerlinNoise, arrayToHash, distance, getCachedSprite, textureCache, throttle }
 
 'use strict'
+
+import { Sprite } from 'pixijs'
+
+const SCALE_MODE = 'nearest'
 
 const throttle = (func, wait = 100) => {
     let timeout
@@ -31,6 +35,46 @@ const arrayToHash = (array) => {
     // return array.join('').split('').reduce((hash, char) => {
     //     return char.charCodeAt(0) + (hash << 6) + (hash << 16) - hash
     // }, 0)
+}
+
+const textureCache = new Map()
+const spriteCache = new Map()
+
+/**
+ * Get or create a cached sprite for a texture
+ * @param {PIXI.Texture|OffscreenCanvas} source - Texture or canvas to use
+ * @param {string} key - Cache key
+ * @returns {PIXI.Sprite} Cached or new sprite
+ */
+function getCachedSprite(source, key) {
+    // Check if the sprite is already cached
+    if (key && spriteCache.has(key)) {
+        return spriteCache.get(key)
+    }
+
+    // If it's an OffscreenCanvas, convert it to a texture first
+    let texture;
+    if (source instanceof OffscreenCanvas) {
+        texture = loadTextureFromCanvas(source, key)
+    } else {
+        texture = source
+    }
+
+    texture.source.scaleMode = SCALE_MODE
+
+    // Create a new sprite
+    const sprite = new Sprite(texture)
+    sprite.sourceKey = texture.uid // Store the key for future reference
+
+    // Cache the sprite
+    spriteCache.set(sprite.sourceKey, sprite)
+
+
+    // if(Math.random() > 0.9975) {
+    //     console.log(`Sprite cache size: ${spriteCache.size}`)
+    // }
+
+    return sprite
 }
 
 class PerlinNoise {

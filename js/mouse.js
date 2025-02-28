@@ -49,7 +49,7 @@ class Mouse {
 
       // Load cursor sprite
       const mouseSprite = (await loadAndSplitImage('assets/ui/crosshair.png', 9))[0][0]
-      this.sprite = offscreenSprite(mouseSprite, 9)
+      this.sprite = offscreenSprite(mouseSprite, 9, 'cursor')
     
       // Use this method to update mouse position from event handlers
       this.updatePosition = (clientX, clientY) => {

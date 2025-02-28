@@ -48,6 +48,7 @@ class Unit {
    */
   constructor(x, y, color, map, enemies) {
     // Position and movement
+    this.uid = Math.random() * 1000000 | 0
     this.x = x * SPRITE_SIZE | 0
     this.y = y * SPRITE_SIZE | 0
     this.currentNode = { x: this.x/SPRITE_SIZE, y: this.y/SPRITE_SIZE }
@@ -139,7 +140,7 @@ class Unit {
         this.nextNextNode.y = this.path[1]?.y
       }
 
-      if(DEBUG) drawBack()
+      //if(DEBUG) drawBack()
     }
 
     this.lastMoveUpdate = time

@@ -1,6 +1,6 @@
 export {
-    app,
-    containers, drawBackground, drawMain, initCanvases, loadTextureFromCanvas, resizeCanvases, updateZoom
+  app,
+  containers, drawBackground, drawMain, initCanvases, loadTextureFromCanvas, resizeCanvases, updateZoom
 }
 
 'use strict'
@@ -8,14 +8,11 @@ export {
 import { DEBUG, backDrawn } from 'globals'
 import { MAP_HEIGHT, MAP_WIDTH } from 'maps'
 import * as PIXI from 'pixijs'
-import { SPRITE_SIZE, UNIT_SPRITE_SIZE, offscreenSprite, sprites } from 'sprites'
-import gameState from 'state'
+import { SPRITE_SIZE, UNIT_SPRITE_SIZE } from 'sprites'
+import { textureCache, getCachedSprite } from 'utils'
 
 // Pixi.js Application
 let app = null
-
-// Texture cache for converted canvas elements
-const textureCache = new Map()
 
 // Containers for organizing display objects
 const containers = {
@@ -159,29 +156,25 @@ function resizeCanvases() {
  */
 function drawMain(player, AIs) {
     const start = performance.now()
-    
+
+    const currentUnits = [...player.getUnits(), ...AIs.flatMap(ai => ai.getUnits())]
+
     // Clear the units container
     containers.units.removeChildren()
-    
-    // Draw AI units
-    AIs.flatMap(ai => ai.getUnits()).forEach((unit) => {
-        const texture = PIXI.Texture.from(unit.sprite)
-        texture.source.scaleMode = PIXI.SCALE_MODES.NEAREST
-        const sprite = new PIXI.Sprite(texture)
-        sprite.x = Math.round(unit.x - UNIT_SPRITE_SIZE/4)
-        sprite.y = Math.round(unit.y - UNIT_SPRITE_SIZE/4 - 2)
-        containers.units.addChild(sprite)
+
+    const unitsBatch = new PIXI.Container()
+
+    currentUnits.forEach(unit => {
+      const texture = PIXI.Texture.from(unit.sprite)
+      const sprite = getCachedSprite(texture, unit.sprite.uid)
+
+      sprite.x = Math.round(unit.x - UNIT_SPRITE_SIZE/4)
+      sprite.y = Math.round(unit.y - UNIT_SPRITE_SIZE/4 - 2)
+      
+      unitsBatch.addChild(sprite)
     })
-    
-    // Draw player units
-    player.getUnits().forEach((unit) => {
-        const texture = PIXI.Texture.from(unit.sprite)
-        texture.source.scaleMode = PIXI.SCALE_MODES.NEAREST
-        const sprite = new PIXI.Sprite(texture)
-        sprite.x = Math.round(unit.x - UNIT_SPRITE_SIZE/4)
-        sprite.y = Math.round(unit.y - UNIT_SPRITE_SIZE/4 - 2)
-        containers.units.addChild(sprite)
-    })
+
+    containers.units.addChild(unitsBatch)
   
     // Track performance
     drawMainTimings.push((performance.now() - start) | 0)
@@ -210,8 +203,7 @@ function drawBackground(map) {
         // Draw background (grass under objects)
         if (map[x][y].back) {
             const backTexture = PIXI.Texture.from(map[x][y].back)
-            backTexture.source.scaleMode = PIXI.SCALE_MODES.NEAREST
-            const backSprite = new PIXI.Sprite(backTexture)
+            const backSprite = getCachedSprite(backTexture, map[x][y].back.uid)
             backSprite.x = x * SPRITE_SIZE
             backSprite.y = y * SPRITE_SIZE
             backgroundBatch.addChild(backSprite)
@@ -219,8 +211,7 @@ function drawBackground(map) {
         
         // Draw terrain features
         const terrainTexture = PIXI.Texture.from(map[x][y].sprite)
-        terrainTexture.source.scaleMode = PIXI.SCALE_MODES.NEAREST
-        const terrainSprite = new PIXI.Sprite(terrainTexture)
+        const terrainSprite = getCachedSprite(terrainTexture, map[x][y].sprite.uid)
         terrainSprite.x = x * SPRITE_SIZE
         terrainSprite.y = y * SPRITE_SIZE
         terrainBatch.addChild(terrainSprite)
@@ -233,24 +224,24 @@ function drawBackground(map) {
 
     // Debug: draw unit paths
     if (DEBUG()) {
-        const debugBatch = new PIXI.Container()
+      // const debugBatch = new PIXI.Container()
       
-      if (gameState.humanPlayer) {
-        gameState.humanPlayer.getUnits().forEach((unit) => {
-          for (var i = 1; i < (unit.path || []).length; i++) {
-            const pathTexture = PIXI.Texture.from(offscreenSprite(sprites[spriteCoords_Path.x][spriteCoords_Path.y], SPRITE_SIZE))
-            pathTexture.source.scaleMode = PIXI.SCALE_MODES.NEAREST
-            const pathSprite = new PIXI.Sprite(pathTexture)
-            pathSprite.x = unit.path[i].x * SPRITE_SIZE
-            pathSprite.y = unit.path[i].y * SPRITE_SIZE
-            debugBatch.addChild(pathSprite)
-          }
-        })
-      }
+      // if (gameState.humanPlayer) {
+      //   gameState.humanPlayer.getUnits().forEach((unit) => {
+      //     for (var i = 1; i < (unit.path || []).length; i++) {
+      //       const pathTexture = PIXI.Texture.from(offscreenSprite(sprites[spriteCoords_Path.x][spriteCoords_Path.y], SPRITE_SIZE))
+      //       pathTexture.source.scaleMode = PIXI.SCALE_MODES.NEAREST
+      //       const pathSprite = new PIXI.Sprite(pathTexture)
+      //       pathSprite.x = unit.path[i].x * SPRITE_SIZE
+      //       pathSprite.y = unit.path[i].y * SPRITE_SIZE
+      //       debugBatch.addChild(pathSprite)
+      //     }
+      //   })
+      // }
       
-      containers.debug.addChild(debugBatch)
+      // containers.debug.addChild(debugBatch)
 
-      // console.log(`Background rendering: ${performance.now() - start}ms`)
+      console.log(`Background rendering: ${performance.now() - start}ms`)
     }
     
     backDrawn()

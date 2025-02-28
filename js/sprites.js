@@ -76,6 +76,7 @@ const offscreenSprite = (sprite, spriteSize, id) => {
     const canvas = new OffscreenCanvas(spriteSize, spriteSize)
     const ctx = canvas.getContext('2d')
     ctx.putImageData(sprite, 0, 0)
+    canvas.uid = hash
     offscreenSprites.set(hash, canvas)
   }
 

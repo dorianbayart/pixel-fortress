@@ -8,6 +8,7 @@ import { DEBUG, drawBack, toggleDebug } from 'globals'
 import * as PIXI from 'pixijs'
 import { containers, updateZoom } from 'renderer'
 import gameState from 'state'
+import { getCachedSprite } from 'utils'
   
   // Mouse object (will be initialized in initUI)
   let mouse = null
@@ -28,7 +29,7 @@ import gameState from 'state'
     // Create cursor sprite
     if (mouse.sprite) {
       const cursorTexture = await createTextureFromOffscreenCanvas(mouse.sprite)
-      cursorSprite = new PIXI.Sprite(cursorTexture)
+      cursorSprite = getCachedSprite(cursorTexture, 'cursor')
       cursorSprite.pivot.set(4.5, 4.5) // Center the cursor
       containers.ui.addChild(cursorSprite)
     }
@@ -103,7 +104,7 @@ import gameState from 'state'
           })
           
           texture.source.scaleMode = PIXI.SCALE_MODES.NEAREST
-          
+
           texture.source.once('loaded', () => {
             URL.revokeObjectURL(url)
           })
