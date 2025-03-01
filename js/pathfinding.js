@@ -2,16 +2,17 @@ export { searchPath }
 
 'use strict'
 
-import { MAP_WIDTH } from "maps"
+import { MAP_HEIGHT, MAP_WIDTH } from "maps"
 import gameState from "state"
 
 // Choose the pathfinding algorithm: [aStar, bestFirstSearch]
 const searchPath = aStar
 
-const getNodeKey = (x, y) => x * MAP_WIDTH + y
+const getNodeKey = (x, y) => x * MAP_WIDTH + y | 0
 
 function bestFirstSearch(startX, startY, endX, endY) {
   const startTime = performance.now()
+  const mapSize = MAP_HEIGHT * MAP_WIDTH
   const openList = []
   const closedList = new Map()
 
@@ -21,7 +22,7 @@ function bestFirstSearch(startX, startY, endX, endY) {
   }
 
   const isInBounds = (x, y) => {
-    return x >= 0 && x < gameState.map.length && y >= 0 && y < gameState.map[0].length
+    return x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT
   }
   if(!isInBounds(startX, startY) || !isInBounds(endX, endY)) return
 
@@ -90,7 +91,7 @@ function bestFirstSearch(startX, startY, endX, endY) {
   startNode.h = getHeuristic(startNode, endNode)
   heapPush(openList, startNode)
 
-  while (openList.length > 0 && openList.length < gameState.map.length * gameState.map[0].length) {
+  while (openList.length > 0 && openList.length < mapSize) {
     const current = heapPop(openList)
 
     if (current.x === endX && current.y === endY) {
@@ -123,24 +124,20 @@ function bestFirstSearch(startX, startY, endX, endY) {
 }
 
 function aStar(startX, startY, endX, endY) {
-  const startTime = performance.now()
+  const mapSize = MAP_WIDTH * MAP_HEIGHT
   const openList = []
   const closedList = new Map()
   const gScores = new Map()
 
-  const getHeuristic = (a, b) => {
-    // Manhattan distance heuristic
-    return Math.abs(a.x - b.x) + Math.abs(a.y - b.y)
-  }
+  // Simple Manhattan distance heuristic
+  const getHeuristic = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y)
 
-  const isInBounds = (x, y) => {
-    return x >= 0 && x < gameState.map.length && y >= 0 && y < gameState.map[0].length
-  }
+  // Check if coords are in bounds
+  const isInBounds = (x, y) => x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT
   if(!isInBounds(startX, startY) || !isInBounds(endX, endY)) return
 
-  const isWall = (x, y) => {
-    return gameState.map[x][y]?.weight === 99999999
-  }
+  // Check if coords are not a wall
+  const isWall = (x, y) => gameState.map[x][y]?.weight === 99999999
   if(isWall(startX, startY) || isWall(endX, endY)) return
 
   // Binary heap helper functions
@@ -191,10 +188,11 @@ function aStar(startX, startY, endX, endY) {
     if ((x + y) % 2 == 0) neighbors.reverse() // S N W E
 
     return neighbors.filter(
-      (neighbor) =>
-        isInBounds(neighbor.x, neighbor.y) &&
-        !isWall(neighbor.x, neighbor.y) &&
-        !closedList.has(getNodeKey(neighbor.x, neighbor.y))
+      (neighbor) => {
+        if (!isInBounds(neighbor.x, neighbor.y)) return false
+        if (isWall(neighbor.x, neighbor.y)) return false
+        return !closedList.has(getNodeKey(neighbor.x, neighbor.y))
+      }
     )
   }
 
@@ -203,10 +201,12 @@ function aStar(startX, startY, endX, endY) {
   startNode.g = 0
   startNode.h = getHeuristic(startNode, endNode)
   startNode.f = startNode.g + startNode.h
+
+  // Initialize search
   heapPush(openList, startNode)
   gScores.set(getNodeKey(startX, startY), startNode.g)
 
-  while (openList.length > 0 && openList.length < gameState.map.length * gameState.map[0].length) {
+  while (openList.length > 0 && openList.length < mapSize) {
     const current = heapPop(openList)
 
     if (current.x === endX && current.y === endY) {
@@ -220,26 +220,33 @@ function aStar(startX, startY, endX, endY) {
 
       return path
     }
+    
+    const currentKey = getNodeKey(current.x, current.y)
 
-    closedList.set(getNodeKey(current.x, current.y), current)
+    // Mark as closed
+    closedList.set(currentKey, current)
 
     // Calculate heuristic when adding neighbors
-    const newNeighbors = neighbors(current.x, current.y)
-    for (let neighbor of newNeighbors) {
+    const currentNeighbors = neighbors(current.x, current.y)
+    for (let neighbor of currentNeighbors) {
         const gScore = current.g + (gameState.map[neighbor.x][neighbor.y]?.weight || 1)
         const nodeKey = getNodeKey(neighbor.x, neighbor.y)
 
         if (!gScores.has(nodeKey) || gScore < gScores.get(nodeKey)) {
             gScores.set(nodeKey, gScore)
+
+            // Update neighbor node
             neighbor.g = gScore
             neighbor.h = getHeuristic(neighbor, endNode)
             neighbor.f = neighbor.g + neighbor.h
             neighbor.parent = current
+
+            // Add to open list
             heapPush(openList, neighbor)
         }
     }
   }
 
   // console.log("No path found - time spent " + (performance.now() - startTime) + "ms")
-  return null
+  return null // no path found
 }
