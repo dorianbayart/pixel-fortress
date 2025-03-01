@@ -35,14 +35,14 @@ class Player {
     return this.type === PlayerType.HUMAN
   }
 
-  update(delay, map) {
+  update(delay) {
     if(Math.random() > 0.995 || (this.type === PlayerType.AI && this.getUnits().length === 0)) { // create a random unit
       let x = Math.random()*MAP_WIDTH | 0
       const y = this.isHuman() ? MAP_HEIGHT-1 : 0
-      while(map[x][y].weight === MAX_WEIGHT) {
+      while(gameState.map[x][y].weight === MAX_WEIGHT) {
         x = Math.random()*MAP_WIDTH | 0
       }
-      this.addHumanSoldier(x, y, map)
+      this.addHumanSoldier(x, y)
     }
 
     const enemies = this.isHuman() ? 
@@ -50,28 +50,29 @@ class Player {
       gameState.humanPlayer.getUnits()
     
     for (var i = 0; i < this.getUnits().length; i++) {
-      this.units[i].update(delay, map, enemies)
+      this.units[i].update(delay, enemies)
     }
+    
     this.units = this.getUnits().filter(unit => unit.life > 0)
   }
 
-  addWorker(x, y, map) {
+  addWorker(x, y) {
     const enemies = this.isHuman() ? 
       gameState.aiPlayers.flatMap(ai => ai.getUnits()) : 
       gameState.humanPlayer.getUnits()
     
     this.units.push(
-      new Worker(x, y, this.getColor(), map, enemies)
+      new Worker(x, y, this.getColor(), enemies)
     )
   }
 
-  addHumanSoldier(x, y, map) {
+  addHumanSoldier(x, y) {
     const enemies = this.isHuman() ? 
       gameState.aiPlayers.flatMap(ai => ai.getUnits()) : 
       gameState.humanPlayer.getUnits()
     
     this.units.push(
-      new HumanSoldier(x, y, this.getColor(), map, enemies)
+      new HumanSoldier(x, y, this.getColor(), enemies)
     )
   }
 }

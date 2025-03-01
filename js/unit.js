@@ -7,10 +7,10 @@ export {
 
 'use strict'
 
-import { DEBUG, drawBack } from 'globals'
 import { MAP_HEIGHT, MAP_WIDTH } from 'maps'
 import { searchPath } from 'pathfinding'
 import { SPRITE_SIZE, UNIT_SPRITE_SIZE, offscreenSprite, unitsSprites, unitsSpritesDescription } from 'sprites'
+import gameState from 'state'
 import { distance } from 'utils'
 
 const PI = Math.PI
@@ -43,10 +43,9 @@ class Unit {
    * @param {number} x - X position in grid coordinates
    * @param {number} y - Y position in grid coordinates
    * @param {string} color - Unit color ('cyan' or 'red')
-   * @param {Array} map - Game map
    * @param {Array} enemies - Array of enemy units
    */
-  constructor(x, y, color, map, enemies) {
+  constructor(x, y, color, enemies) {
     // Position and movement
     this.uid = Math.random() * 1000000 | 0
     this.x = x * SPRITE_SIZE | 0
@@ -58,7 +57,7 @@ class Unit {
     this.isAttacking = false
     
     // Path finding
-    this.path = this.pathToNearestEnemy(map, enemies)
+    this.path = this.pathToNearestEnemy(enemies)
     this.goal = null
     
     // Timing
@@ -78,10 +77,9 @@ class Unit {
   /**
    * Update unit state
    * @param {number} delay - Time elapsed since last update (ms)
-   * @param {Array} map - Game map
    * @param {Array} enemies - Array of enemy units
    */
-  update(delay, map, enemies) {
+  update(delay, enemies) {
     const time = performance.now() | 0
 
     if(this.life <= 0) {
@@ -97,7 +95,7 @@ class Unit {
     if((this.currentNode.x === this.nextNode.x && this.currentNode.y === this.nextNode.y) || updatePath) {
       if(updatePath) {
         this.lastPathUpdate = time
-        this.path = this.pathToNearestEnemy(map, enemies)
+        this.path = this.pathToNearestEnemy(enemies)
       } else if(this.currentNode.x === this.nextNode.x && this.currentNode.y === this.nextNode.y && this.path?.length > 1) {
         this.path.splice(0, 1)
       }
@@ -108,7 +106,7 @@ class Unit {
       if(this.goal && distance(this, this.goal) <= this.range) {
         this.attackEnemy(delay)
         this.lastMoveUpdate = time
-        this.move(Math.min(delay, 40), map)
+        this.move(Math.min(delay, 40))
         return
       }
 
@@ -116,14 +114,14 @@ class Unit {
       if(!this.path) {
         this.handleNoPath(delay)
         this.lastMoveUpdate = time
-        this.move(Math.min(delay, 40), map)
+        this.move(Math.min(delay, 40))
         return
       }
       
       // Handle end of path
       if(this.path.length === 1) {
         this.lastMoveUpdate = time
-        this.move(Math.min(delay, 40), map)
+        this.move(Math.min(delay, 40))
         return
       }
 
@@ -144,7 +142,7 @@ class Unit {
     }
 
     this.lastMoveUpdate = time
-    this.move(Math.min(delay, 40), map)
+    this.move(Math.min(delay, 40))
   }
 
   /**
@@ -167,15 +165,14 @@ class Unit {
 
   /**
    * Find path to nearest enemy
-   * @param {Array} map - Game map
    * @param {Array} enemies - Array of enemy units
    * @returns {Array|null} Path to nearest enemy or null if no path found
    */
-  pathToNearestEnemy(map, enemies = []) {
+  pathToNearestEnemy(enemies = []) {
     let path, pathLength = MAP_WIDTH * MAP_HEIGHT
     this.goal = null
     enemies.forEach((enemy) => {
-      let temp = searchPath(map, this.currentNode.x, this.currentNode.y, enemy.currentNode.x, enemy.currentNode.y)
+      let temp = searchPath(this.currentNode.x, this.currentNode.y, enemy.currentNode.x, enemy.currentNode.y)
       if(temp?.length < pathLength) {
         path = temp
         pathLength = path.length
@@ -189,14 +186,13 @@ class Unit {
   /**
    * Move unit based on current path
    * @param {number} delay - Time elapsed since last update (ms)
-   * @param {Array} map - Game map
    */
-  move(delay, map) {
+  move(delay) {
     const devX = ((this.nextNode.x * SPRITE_SIZE - this.x) * 2 + (this.nextNextNode.x * SPRITE_SIZE - this.x)) / 3
     const devY = ((this.nextNode.y * SPRITE_SIZE - this.y) * 2 + (this.nextNextNode.y * SPRITE_SIZE - this.y)) / 3
     const theta = Math.atan2(devY, devX)
-    const vx = this.speed * (delay/1000) * Math.cos(theta) / map[this.currentNode.x][this.currentNode.y].weight
-    const vy = this.speed * (delay/1000) * Math.sin(theta) / map[this.currentNode.x][this.currentNode.y].weight
+    const vx = this.speed * (delay/1000) * Math.cos(theta) / gameState.map[this.currentNode.x][this.currentNode.y].weight
+    const vy = this.speed * (delay/1000) * Math.sin(theta) / gameState.map[this.currentNode.x][this.currentNode.y].weight
 
     let type = 'static'
     // Attack
@@ -263,8 +259,8 @@ class Unit {
  * Base class for worker units
  */
 class WorkerUnit extends Unit {
-  constructor(x, y, color, map, enemies) {
-    super(x, y, color, map, enemies)
+  constructor(x, y, color, enemies) {
+    super(x, y, color, enemies)
     
     // Worker units have weaker stats but can collect resources
     this.life = 5
@@ -300,8 +296,8 @@ class WorkerUnit extends Unit {
  * Base class for combat units
  */
 class CombatUnit extends Unit {
-  constructor(x, y, color, map, enemies) {
-    super(x, y, color, map, enemies)
+  constructor(x, y, color, enemies) {
+    super(x, y, color, enemies)
     
     // Combat units have specialized stats for fighting
     this.kills = 0
@@ -351,8 +347,8 @@ class CombatUnit extends Unit {
  * Base class for melee combat units (close-range fighters)
  */
 class MeleeUnit extends CombatUnit {
-  constructor(x, y, color, map, enemies) {
-    super(x, y, color, map, enemies)
+  constructor(x, y, color, enemies) {
+    super(x, y, color, enemies)
     
     // Melee units have shorter range but higher health
     this.range = 1 * SPRITE_SIZE
@@ -363,8 +359,8 @@ class MeleeUnit extends CombatUnit {
  * Base class for ranged combat units (long-range attackers)
  */
 class RangedUnit extends CombatUnit {
-  constructor(x, y, color, map, enemies) {
-    super(x, y, color, map, enemies)
+  constructor(x, y, color, enemies) {
+    super(x, y, color, enemies)
     
     // Ranged units have longer range but lower health
     this.range = 4 * SPRITE_SIZE
@@ -375,8 +371,8 @@ class RangedUnit extends CombatUnit {
  * Worker unit implementation
  */
 class Worker extends WorkerUnit {
-  constructor(x, y, color, map, enemies) {
-    super(x, y, color, map, enemies)
+  constructor(x, y, color, enemies) {
+    super(x, y, color, enemies)
     this.spriteName = 'human-worker-' + color
     this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
   }
@@ -386,8 +382,8 @@ class Worker extends WorkerUnit {
  * Human soldier unit implementation
  */
 class HumanSoldier extends MeleeUnit {
-  constructor(x, y, color, map, enemies) {
-    super(x, y, color, map, enemies)
+  constructor(x, y, color, enemies) {
+    super(x, y, color, enemies)
     this.spriteName = 'human-soldier-' + color
     this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
     this.life = 10
@@ -400,8 +396,8 @@ class HumanSoldier extends MeleeUnit {
  * Mage unit implementation (ranged magic user)
  */
 class Mage extends RangedUnit {
-  constructor(x, y, color, map, enemies) {
-    super(x, y, color, map, enemies)
+  constructor(x, y, color, enemies) {
+    super(x, y, color, enemies)
     this.spriteName = 'mage-' + color
     this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
     this.life = 8
@@ -414,8 +410,8 @@ class Mage extends RangedUnit {
  * Soldier unit implementation (medium melee fighter)
  */
 class Soldier extends MeleeUnit {
-  constructor(x, y, color, map, enemies) {
-    super(x, y, color, map, enemies)
+  constructor(x, y, color, enemies) {
+    super(x, y, color, enemies)
     this.spriteName = 'soldier-' + color
     this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
     this.life = 15
@@ -428,8 +424,8 @@ class Soldier extends MeleeUnit {
  * Warrior unit implementation (heavy melee fighter)
  */
 class Warrior extends MeleeUnit {
-  constructor(x, y, color, map, enemies) {
-    super(x, y, color, map, enemies)
+  constructor(x, y, color, enemies) {
+    super(x, y, color, enemies)
     this.spriteName = 'warrior-' + color
     this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
     this.life = 40

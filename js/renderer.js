@@ -202,7 +202,7 @@ function drawMain(player, AIs) {
       drawMainTimings.push((performance.now() - start))
       drawMainTimings.shift()
 
-      if(Math.random() > 0.994) console.log('Drawing units: ' + (drawMainTimings.reduce((res, curr) => res + curr, 0) / drawMainTimings.length).toFixed(2) + ' ms')
+      if(Math.random() > 0.9975) console.log('Drawing units: ' + (drawMainTimings.reduce((res, curr) => res + curr, 0) / drawMainTimings.length).toFixed(2) + ' ms')
     }
 }
 

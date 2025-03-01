@@ -23,7 +23,8 @@ const ZOOM = {
   // Game timing variables
   let elapsed = -5000
   let elapsedBack = -5000
-  let fps = new Array(50).fill(100)
+  let fps = new Array(100).fill(50)
+  let delays = new Array(100).fill(50)
   
   // Generate the game map using Perlin noise
   const generateMap = async () => {
@@ -161,7 +162,7 @@ const ZOOM = {
       if(gameState.map[i][MAP_HEIGHT-1].weight < MAX_WEIGHT) {
         for (let j = 0; j < MAP_WIDTH; j += Math.max(1, MAP_WIDTH/15 | 0)) {
           if(gameState.map[j][0].weight < MAX_WEIGHT) {
-            isValid = searchPath(gameState.map, i, MAP_HEIGHT-1, j, 0)?.length > 0
+            isValid = searchPath(i, MAP_HEIGHT-1, j, 0)?.length > 0
             if(isValid === false) return isValid
           }
         }
@@ -175,33 +176,53 @@ const ZOOM = {
     const now = performance.now()
     const delay = now - elapsed | 0
     elapsed = now
-  
+    
+    
     // Background rendering
     if(isDrawBackRequested() && now - elapsedBack > 150) {
       elapsedBack = now
       drawBackground(gameState.map)
     }
-  
+    
+    
     // Handle mouse interaction
     handleMouseInteraction(gameState.map, gameState.humanPlayer)
-  
+    
     // Track FPS
     if(gameState.debug) {
       fps.push(delay)
       fps.shift()
     }
-  
+    
+    
     // Update players and units
+    const timingStart = performance.now()
     gameState.humanPlayer.update(delay, gameState.map)
+    const timing = performance.now() - timingStart
+    
+    // Update AI players
     gameState.aiPlayers.forEach(ai => {
       ai.update(delay, gameState.map)
     })
     
+    
     // Render game
     drawMain(gameState.humanPlayer, gameState.aiPlayers)
+    
+    // Render UI
     updateUI(fps)
     
+    
     requestAnimationFrame(gameLoop)
+
+    if(gameState.debug && Math.random() > 0.9975) console.log(`Game Loop: ${fps.reduce((a, b) => a + b, 0) / fps.length} ms`)
+
+
+    if(gameState.debug) {
+      delays.push(timing)
+      delays.shift()
+      if(Math.random() > 0.993) console.log(`Human Player Updating took: ${delays.reduce((a, b) => a + b, 0) / delays.length} ms`)
+    }
   }
   
   // Initialize the game
