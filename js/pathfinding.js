@@ -2,7 +2,7 @@ export { searchPath }
 
 'use strict'
 
-import { MAP_HEIGHT, MAP_WIDTH } from "maps"
+import { MAP_HEIGHT, MAP_WIDTH, MAX_WEIGHT } from "maps"
 import gameState from "state"
 
 // Choose the pathfinding algorithm: [aStar, bestFirstSearch]
@@ -27,7 +27,7 @@ function bestFirstSearch(startX, startY, endX, endY) {
   if(!isInBounds(startX, startY) || !isInBounds(endX, endY)) return
 
   const isWall = (x, y) => {
-    return gameState.map[x][y]?.weight === 99999999
+    return gameState.map[x][y]?.weight === MAX_WEIGHT
   }
   if(isWall(startX, startY) || isWall(endX, endY)) return
 
@@ -126,7 +126,7 @@ function bestFirstSearch(startX, startY, endX, endY) {
 function aStar(startX, startY, endX, endY) {
   const mapSize = MAP_WIDTH * MAP_HEIGHT
   const openList = []
-  const closedList = new Map()
+  const closedList = new Uint8Array(mapSize)
   const gScores = new Map()
 
   // Simple Manhattan distance heuristic
@@ -137,7 +137,7 @@ function aStar(startX, startY, endX, endY) {
   if(!isInBounds(startX, startY) || !isInBounds(endX, endY)) return
 
   // Check if coords are not a wall
-  const isWall = (x, y) => gameState.map[x][y]?.weight === 99999999
+  const isWall = (x, y) => gameState.map[x][y]?.weight === MAX_WEIGHT
   if(isWall(startX, startY) || isWall(endX, endY)) return
 
   // Binary heap helper functions
@@ -191,7 +191,7 @@ function aStar(startX, startY, endX, endY) {
       (neighbor) => {
         if (!isInBounds(neighbor.x, neighbor.y)) return false
         if (isWall(neighbor.x, neighbor.y)) return false
-        return !closedList.has(getNodeKey(neighbor.x, neighbor.y))
+        return !closedList[getNodeKey(neighbor.x, neighbor.y)]
       }
     )
   }
@@ -221,10 +221,8 @@ function aStar(startX, startY, endX, endY) {
       return path
     }
     
-    const currentKey = getNodeKey(current.x, current.y)
-
     // Mark as closed
-    closedList.set(currentKey, current)
+    closedList[getNodeKey(current.x, current.y)] = 1
 
     // Calculate heuristic when adding neighbors
     const currentNeighbors = neighbors(current.x, current.y)
