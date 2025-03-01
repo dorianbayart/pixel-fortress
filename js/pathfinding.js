@@ -2,10 +2,13 @@ export { searchPath }
 
 'use strict'
 
+import { MAP_WIDTH } from "maps"
 import gameState from "state"
 
 // Choose the pathfinding algorithm: [aStar, bestFirstSearch]
 const searchPath = aStar
+
+const getNodeKey = (x, y) => x * MAP_WIDTH + y
 
 function bestFirstSearch(startX, startY, endX, endY) {
   const startTime = performance.now()
@@ -63,8 +66,6 @@ function bestFirstSearch(startX, startY, endX, endY) {
 
     return result
   }
-
-  const getNodeKey = (x, y) => `${x},${y}`
 
   const neighbors = (x, y) => {
     let neighbors = [
@@ -178,8 +179,6 @@ function aStar(startX, startY, endX, endY) {
 
     return result
   }
-
-  const getNodeKey = (x, y) => `${x},${y}`
 
   const neighbors = (x, y) => {
     let neighbors = [
