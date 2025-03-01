@@ -159,7 +159,8 @@ class GameState {
   }
 
   set gameStatus(status) {
-    if (['menu', 'playing', 'paused', 'gameOver'].includes(status)) {
+    if (['menu', 'initialize', 'playing', 'paused', 'gameOver'].includes(status)) {
+      console.log(status)
       const oldStatus = this._gameStatus
       this._gameStatus = status
       if (oldStatus !== status) {

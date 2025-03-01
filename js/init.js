@@ -8,7 +8,7 @@ import { initHomeMenu } from 'menu'
 import { initCanvases, resizeCanvases } from 'renderer'
 import { SPRITE_SIZE, loadSprites, sprites } from 'sprites'
 import gameState from 'state'
-import { initUI } from 'ui'
+import { initUI, showDebugMessage } from 'ui'
 
 // Initialize the game
 async function initializeGame() {
@@ -40,22 +40,35 @@ async function initializeGame() {
     
     // Listen for state changes
     gameState.events.on('game-status-changed', (status) => {
-      if (status === 'playing') {
-        startGame(sprites, mouseInstance);
+      if (status === 'initialize') {
+        startGame(sprites)
+      } else if (status === 'playing') {
+        showDebugMessage('New map generated !')
+      } else if (status === 'menu') {
+        // TODO: Reset UI to default state
       }
-    });
+    })
   }
   
   // Start the game
-  async function startGame(sprites, mouseInstance) {
+  async function startGame(sprites) {
     // Initialize game state
-    await initGame(sprites, mouseInstance)
-    
-    // Start game loop
-    gameLoop()
-    
-    // Show debug button
-    document.getElementById('debugButton').style.display = 'block'
+    const ready = await initGame(sprites)
+
+    if(ready) {
+      // Set game state to playing
+      gameState.gameStatus = 'playing'
+      
+      // Start game loop
+      gameLoop()
+      
+      // Show debug button
+      document.getElementById('debugButton').style.display = 'block'
+    } else {
+      showDebugMessage('Cannot generate a valid map ... :(')
+      // Set game state to menu
+      gameState.gameStatus = 'menu'
+    }
   }
   
   // Handle window resize

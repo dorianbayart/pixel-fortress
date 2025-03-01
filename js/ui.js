@@ -126,9 +126,7 @@ import { getCachedSprite } from 'utils'
   
     // Start game on "Random Map" click
     document.getElementById('generated').addEventListener('click', () => {
-      gameState.gameStatus = 'playing'
-
-      showDebugMessage('New map generated !')
+      gameState.gameStatus = 'initialize'
     })
   
     // Keyboard shortcuts

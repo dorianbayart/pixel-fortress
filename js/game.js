@@ -226,18 +226,18 @@ const ZOOM = {
   }
   
   // Initialize the game
-  const initGame = async (sprites, mouse) => {
+  const initGame = async (sprites) => {
     // Create players
     new Player(PlayerType.HUMAN)
     new Player(PlayerType.AI)
     
-    // Set game state to playing
-    gameState.gameStatus = 'playing'
-    
     // Generate map until we get a valid one
+    let i = 0
     do {
       await generateMap()
-    } while(isMapCorrect() === false)
-    
+    } while(isMapCorrect() === false && ++i < 100)
+
     await assignSpritesOnMap(sprites)
+
+    return isMapCorrect()
   }
