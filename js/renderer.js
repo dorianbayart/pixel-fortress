@@ -9,7 +9,8 @@ import { DEBUG, backDrawn } from 'globals'
 import { MAP_HEIGHT, MAP_WIDTH } from 'maps'
 import * as PIXI from 'pixijs'
 import { SPRITE_SIZE, UNIT_SPRITE_SIZE } from 'sprites'
-import { textureCache, getCachedSprite } from 'utils'
+import gameState from 'state'
+import { getCachedSprite, textureCache } from 'utils'
 
 // Pixi.js Application
 let app = null
@@ -22,6 +23,8 @@ const containers = {
   ui: null,
   debug: null
 }
+
+const unitSpriteMap = new Map()
 
 // Variables for resizing and scaling
 let canvasWidth = 0
@@ -155,30 +158,52 @@ function resizeCanvases() {
  * @param {Array} AIs - AI players
  */
 function drawMain(player, AIs) {
-    const start = performance.now()
+  if(gameState.debug) var start = performance.now()
 
     const currentUnits = [...player.getUnits(), ...AIs.flatMap(ai => ai.getUnits())]
-
-    // Clear the units container
-    containers.units.removeChildren()
-
-    const unitsBatch = new PIXI.Container()
+    const currentUnitIds = new Set()
 
     currentUnits.forEach(unit => {
-      const texture = PIXI.Texture.from(unit.sprite)
-      const sprite = getCachedSprite(texture, unit.sprite.uid)
+      currentUnitIds.add(unit.uid)
 
+      // Get existing sprite or create a new one
+      let sprite = unitSpriteMap.get(unit.uid)
+
+      // If no sprite exists or texture changed, create a new one
+      if (!sprite || sprite.textureKey !== unit.sprite.uid) {
+        // Remove old sprite if exists
+        if (sprite) {
+            containers.units.removeChild(sprite)
+        }
+        
+        // Create new sprite
+        const texture = PIXI.Texture.from(unit.sprite)
+        sprite = getCachedSprite(texture, unit.sprite.uid)
+        sprite.textureKey = unit.sprite.uid
+        unitSpriteMap.set(unit.uid, sprite)
+        containers.units.addChild(sprite)
+      }
+
+      // Update sprite position
       sprite.x = Math.round(unit.x - UNIT_SPRITE_SIZE/4)
       sprite.y = Math.round(unit.y - UNIT_SPRITE_SIZE/4 - 2)
-      
-      unitsBatch.addChild(sprite)
     })
 
-    containers.units.addChild(unitsBatch)
-  
-    // Track performance
-    drawMainTimings.push((performance.now() - start) | 0)
-    drawMainTimings.shift()
+    // Remove sprites for units that no longer exist
+    for (const [unitId, sprite] of unitSpriteMap.entries()) {
+      if (!currentUnitIds.has(unitId)) {
+          containers.units.removeChild(sprite)
+          unitSpriteMap.delete(unitId)
+      }
+    }
+    
+    if(gameState.debug) {
+      // Track performance
+      drawMainTimings.push((performance.now() - start))
+      drawMainTimings.shift()
+
+      if(Math.random() > 0.994) console.log('Drawing units: ' + (drawMainTimings.reduce((res, curr) => res + curr, 0) / drawMainTimings.length).toFixed(2) + ' ms')
+    }
 }
 
 /**

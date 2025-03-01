@@ -182,6 +182,7 @@ import { getCachedSprite } from 'utils'
     // Update cursor position
     if (cursorSprite && mouse) {
       cursorSprite.position.set(mouse.worldX - mouse.getViewTransform().x, mouse.worldY - mouse.getViewTransform().y)
+      cursorSprite.scale.set(1, 1);
     }
   }
   
@@ -204,15 +205,6 @@ import { getCachedSprite } from 'utils'
    * @param {Array} fps - FPS history array
    */
   function drawUI(fps) {
-    // Update cursor position to screen coordinates
-    if (cursorSprite && mouse) {
-        //cursorSprite.position.set(mouse.worldX - mouse.getViewTransform().x, mouse.worldY - mouse.getViewTransform().y);
-        
-        // Ensure cursor is not affected by view transformations
-        // by keeping it in screen space
-        cursorSprite.scale.set(1, 1);
-    }
-    
     // Update debug stats text
     if (DEBUG()) {
       const currentFps = (1000 * fps.length / fps.reduce((res, curr) => res + curr, 0)).toFixed(1)

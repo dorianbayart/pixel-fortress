@@ -23,10 +23,7 @@ const ZOOM = {
   // Game timing variables
   let elapsed = -5000
   let elapsedBack = -5000
-  let elapsedUI = -5000
   let fps = new Array(50).fill(100)
-  let timings = new Array(50).fill(10)
-  let drawMainTimings = new Array(50).fill(10)
   
   // Generate the game map using Perlin noise
   const generateMap = async () => {
@@ -176,7 +173,7 @@ const ZOOM = {
   // Main game loop
   const gameLoop = () => {
     const now = performance.now()
-    const delay = now - elapsed
+    const delay = now - elapsed | 0
     elapsed = now
   
     // Background rendering
@@ -189,7 +186,7 @@ const ZOOM = {
     handleMouseInteraction(gameState.map, gameState.humanPlayer)
   
     // Track FPS
-    if(delay) {
+    if(gameState.debug) {
       fps.push(delay)
       fps.shift()
     }
@@ -205,8 +202,6 @@ const ZOOM = {
     updateUI(fps)
     
     requestAnimationFrame(gameLoop)
-    timings.push((performance.now() - elapsed) | 0)
-    timings.shift()
   }
   
   // Initialize the game
