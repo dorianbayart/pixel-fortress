@@ -4,7 +4,7 @@ export { ZOOM, gameLoop, initGame }
 
 import { isDrawBackRequested } from 'globals'
 import { MAP_HEIGHT, MAP_WIDTH, MAX_WEIGHT } from 'maps'
-import { searchPath } from 'pathfinding'
+import { searchPath, clearPathCache } from 'pathfinding'
 import { Player, PlayerType } from 'players'
 import { drawBackground, drawMain } from 'renderer'
 import { SPRITE_SIZE, offscreenSprite } from 'sprites'
@@ -28,6 +28,9 @@ const ZOOM = {
   
   // Generate the game map using Perlin noise
   const generateMap = async () => {
+    // Clean the pathfinding algorithm
+    clearPathCache()
+
     // Create the map structure
     gameState.map = new Array(MAP_WIDTH).fill(null).map(() => new Array(MAP_HEIGHT).fill(null))
     
