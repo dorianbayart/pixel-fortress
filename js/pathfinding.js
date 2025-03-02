@@ -22,6 +22,14 @@ function clearPathCache() {
 
 const getNodeKey = (x, y) => y * MAP_WIDTH + x | 0
 
+// Simple Manhattan distance heuristic
+const getHeuristic = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y)
+
+// Check if coords are in bounds
+const isInBounds = (x, y) => x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT
+
+// Check if a cell is a wall
+const isWall = (x, y) => !isInBounds(x, y) || gameState.map[x][y]?.weight === MAX_WEIGHT
 
 
 function aStar(startX, startY, endX, endY) {
@@ -31,15 +39,7 @@ function aStar(startX, startY, endX, endY) {
     return [...pathCache.get(cacheKey)]; // Return a copy to prevent modification
   }
 
-  // Simple Manhattan distance heuristic
-  const getHeuristic = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y)
-
-  // Check if coords are in bounds
-  const isInBounds = (x, y) => x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT
-  if(!isInBounds(startX, startY) || !isInBounds(endX, endY)) return
-
-  // Check if coords are not a wall
-  const isWall = (x, y) => gameState.map[x][y]?.weight === MAX_WEIGHT
+  // Early exit
   if(isWall(startX, startY) || isWall(endX, endY)) return
 
   // For nearby targets, use direct path
@@ -100,7 +100,6 @@ function aStar(startX, startY, endX, endY) {
 
     return neighbors.filter(
       (neighbor) => {
-        if (!isInBounds(neighbor.x, neighbor.y)) return false
         if (isWall(neighbor.x, neighbor.y)) return false
         return !closedList[getNodeKey(neighbor.x, neighbor.y)]
       }
@@ -192,19 +191,8 @@ function bestFirstSearch(startX, startY, endX, endY) {
   const openList = []
   const closedList = new Map()
 
-  const getHeuristic = (a, b) => {
-    // Manhattan distance heuristic
-    return Math.abs(a.x - b.x) + Math.abs(a.y - b.y)
-  }
-
-  const isInBounds = (x, y) => {
-    return x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT
-  }
+  // Early exits
   if(!isInBounds(startX, startY) || !isInBounds(endX, endY)) return
-
-  const isWall = (x, y) => {
-    return gameState.map[x][y]?.weight === MAX_WEIGHT
-  }
   if(isWall(startX, startY) || isWall(endX, endY)) return
 
   // Binary heap helper functions
