@@ -8,7 +8,7 @@ import gameState from "state"
 // Choose the pathfinding algorithm: [aStar, bestFirstSearch]
 const searchPath = aStar
 
-const getNodeKey = (x, y) => x * MAP_WIDTH + y | 0
+const getNodeKey = (x, y) => y * MAP_WIDTH + x | 0
 
 function bestFirstSearch(startX, startY, endX, endY) {
   const startTime = performance.now()
@@ -127,7 +127,9 @@ function aStar(startX, startY, endX, endY) {
   const mapSize = MAP_WIDTH * MAP_HEIGHT
   const openList = []
   const closedList = new Uint8Array(mapSize)
-  const gScores = new Map()
+  const gScores = new Uint32Array(mapSize)
+  const INFINITY_SCORE = 0x7FFFFFFF // Use a large but safe value
+  gScores.fill(INFINITY_SCORE) // Max value for Uint32Array represents "infinity"
 
   // Simple Manhattan distance heuristic
   const getHeuristic = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y)
@@ -204,7 +206,7 @@ function aStar(startX, startY, endX, endY) {
 
   // Initialize search
   heapPush(openList, startNode)
-  gScores.set(getNodeKey(startX, startY), startNode.g)
+  gScores[getNodeKey(startX, startY)] = startNode.g
 
   while (openList.length > 0 && openList.length < mapSize) {
     const current = heapPop(openList)
@@ -221,17 +223,22 @@ function aStar(startX, startY, endX, endY) {
       return path
     }
     
+    const currentKey = getNodeKey(current.x, current.y)
+
+    // If already processed, skip
+    if (closedList[currentKey]) continue
+
     // Mark as closed
-    closedList[getNodeKey(current.x, current.y)] = 1
+    closedList[currentKey] = 1
 
     // Calculate heuristic when adding neighbors
     const currentNeighbors = neighbors(current.x, current.y)
     for (let neighbor of currentNeighbors) {
-        const gScore = current.g + (gameState.map[neighbor.x][neighbor.y]?.weight || 1)
+        const gScore = current.g + (gameState.map[neighbor.x][neighbor.y]?.weight || 1) | 0
         const nodeKey = getNodeKey(neighbor.x, neighbor.y)
 
-        if (!gScores.has(nodeKey) || gScore < gScores.get(nodeKey)) {
-            gScores.set(nodeKey, gScore)
+        if (gScore < gScores[nodeKey]) {
+            gScores[nodeKey] = gScore
 
             // Update neighbor node
             neighbor.g = gScore
