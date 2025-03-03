@@ -5,7 +5,7 @@ export { handleWindowResize, initializeGame }
 import { gameLoop, initGame } from 'game'
 import { drawBack } from 'globals'
 import { initHomeMenu } from 'menu'
-import { initCanvases, resizeCanvases } from 'renderer'
+import { app, initCanvases, resizeCanvases } from 'renderer'
 import { SPRITE_SIZE, loadSprites, sprites } from 'sprites'
 import gameState from 'state'
 import { initUI, showDebugMessage } from 'ui'
@@ -21,15 +21,6 @@ async function initializeGame() {
     // Initialize canvases
     await initCanvases()
     
-    // Perform initial resize
-    await handleWindowResize()
-  
-    // Load the custom font
-    await loadGameFont()
-  
-    // Load game sprites
-    await loadSprites()
-  
     // Initialize mouse handling
     const mouseModule = await import('mouse')
     const mouseInstance = new mouseModule.Mouse()
@@ -38,6 +29,15 @@ async function initializeGame() {
     // Initialize UI with mouse instance
     await initUI(mouseInstance)
     
+    // Perform initial resize
+    await handleWindowResize()
+  
+    // Load the custom font
+    await loadGameFont()
+  
+    // Load game sprites
+    await loadSprites()
+
     // Listen for state changes
     gameState.events.on('game-status-changed', (status) => {
       if (status === 'initialize') {
@@ -64,6 +64,14 @@ async function initializeGame() {
       
       // Show debug button
       document.getElementById('debugButton').style.display = 'block'
+
+      app.canvas.addEventListener('mouseenter', () => {
+        gameState.gameStatus = 'playing'
+      })
+
+      app.canvas.addEventListener('mouseleave', () => {
+        gameState.gameStatus = 'paused'
+      })
     } else {
       showDebugMessage('Cannot generate a valid map ... :(')
       // Set game state to menu
@@ -75,6 +83,9 @@ async function initializeGame() {
   async function handleWindowResize() {
     // Resize all canvases
     resizeCanvases()
+
+    // Update Mouse properties
+    gameState.UI.mouse._rectUpdateNeeded = true
   
     // Redraw the background
     drawBack()

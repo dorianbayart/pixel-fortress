@@ -13,6 +13,7 @@ import { getCachedSprite } from 'utils'
   // Mouse object (will be initialized in initUI)
   let mouse = null
   let elapsedUI = -5000
+  let cursorUpdateRafId = null
   
   // UI elements
   let cursorSprite = null
@@ -34,6 +35,9 @@ import { getCachedSprite } from 'utils'
       cursorSprite = getCachedSprite(cursorTexture, 'cursor')
       cursorSprite.pivot.set(4.5, 4.5) // Center the cursor
       containers.ui.addChild(cursorSprite)
+
+      // Start dedicated cursor update loop
+      updateCursor()
     }
     
     // Create debug stats text
@@ -179,13 +183,26 @@ import { getCachedSprite } from 'utils'
       mouse.zoomChanged = false
     }
     
-    // Update cursor position
-    if (cursorSprite && mouse) {
-      cursorSprite.position.set(mouse.xPixels * (globalThis.devicePixelRatio || 1) - mouse.sprite.width, mouse.yPixels * (globalThis.devicePixelRatio || 1) - mouse.sprite.height)
-      cursorSprite.scale.set(1, 1);
-    }
+    // // Update cursor position
+    // if (cursorSprite && mouse) {
+    //   cursorSprite.position.set(mouse.xPixels * (globalThis.devicePixelRatio || 1) - mouse.sprite.width, mouse.yPixels * (globalThis.devicePixelRatio || 1) - mouse.sprite.height)
+    //   cursorSprite.scale.set(1, 1);
+    // }
   }
   
+  function updateCursor() {
+    // Only update if cursor sprite and mouse exist
+    if (cursorSprite && mouse) {
+      cursorSprite.position.set(
+        mouse.xPixels * (window.devicePixelRatio || 1) - mouse.sprite.width,
+        mouse.yPixels * (window.devicePixelRatio || 1) - mouse.sprite.height
+      );
+    }
+    
+    // Continue the cursor update loop
+    cursorUpdateRafId = requestAnimationFrame(updateCursor);
+  }
+
   /**
    * Update UI elements
    * @param {Array} fps - FPS history array

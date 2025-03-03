@@ -11,7 +11,7 @@ const ZOOM = {
   FACTOR: 0.1,
   MAX: 4,
   MIN: 1,
-  current: 2
+  initial: 2
 }
 
 class Mouse {
@@ -31,13 +31,13 @@ class Mouse {
       this.lastX = 0
       this.lastY = 0
       this.prevDistance = 0 // distance between fingers
-      this.scale = ZOOM.current
+      this.scale = ZOOM.initial
       this.sprite = null
       this.zoomChanged = false
 
       // Store view transformation for zoom calculation
       this.viewTransform = {
-        scale: ZOOM.current,
+        scale: ZOOM.initial,
         x: 0,
         y: 0
       }
@@ -67,28 +67,35 @@ class Mouse {
     
       // Use this method to update mouse position from event handlers
       this.updatePosition = (clientX, clientY) => {
-        // Get position relative to canvas
-        const rect = app.canvas.getBoundingClientRect()
+        if (!this._canvasRect || this._rectUpdateNeeded) {
+          this._canvasRect = app.canvas.getBoundingClientRect()
+          this._rectUpdateNeeded = false
+          
+          // Also cache view dimensions
+          this._viewWidth = parseInt(app.canvas.style.width)
+          this._viewHeight = parseInt(app.canvas.style.height)
+        }
 
         // Screen coordinates
-        this.xPixels = (clientX - rect.left)
-        this.yPixels = (clientY - rect.top)
+        this.xPixels = (clientX - this._canvasRect.left)
+        this.yPixels = (clientY - this._canvasRect.top)
 
-        // Calculate mouse position in screen pixels
-        const viewWidth = parseInt(app.canvas.style.width)
-        const viewHeight = parseInt(app.canvas.style.height)
+        // Only calculate world coordinates when needed (not for every cursor update)
+        if (this._needWorldCoords) {
+          // Convert to normalized coordinates (0-1 across canvas)
+          const normalizedX = this.xPixels / this._viewWidth
+          const normalizedY = this.yPixels / this._viewHeight
+          
+          // Convert to world coordinates based on current view
+          this.worldX = ((normalizedX * app.renderer.width / this.viewTransform.scale) + this.viewTransform.x)
+          this.worldY = ((normalizedY * app.renderer.height / this.viewTransform.scale) + this.viewTransform.y)
+          
+          // Convert to grid coordinates
+          this.x = Math.floor(this.worldX / SPRITE_SIZE)
+          this.y = Math.floor(this.worldY / SPRITE_SIZE)
 
-        // Convert to normalized coordinates (0-1 across canvas)
-        const normalizedX = this.xPixels / viewWidth
-        const normalizedY = this.yPixels / viewHeight
-        
-        // Convert to world coordinates based on current view
-        this.worldX = ((normalizedX * app.renderer.width / this.viewTransform.scale) + this.viewTransform.x)
-        this.worldY = ((normalizedY * app.renderer.height / this.viewTransform.scale) + this.viewTransform.y)
-        
-        // Convert to grid coordinates
-        this.x = Math.floor(this.worldX / SPRITE_SIZE)
-        this.y = Math.floor(this.worldY / SPRITE_SIZE)
+          this._needWorldCoords = false
+        }
       }
     
       const distanceBetweenTouches = (touch1, touch2) => {
@@ -105,6 +112,7 @@ class Mouse {
           this.isDragging = true
           this.dragStartX = e.clientX
           this.dragStartY = e.clientY
+          this._needWorldCoords = true
           this.updatePosition(e.clientX, e.clientY)
         }
       })
@@ -119,6 +127,7 @@ class Mouse {
             }
             
           this.isDragging = false
+          this._needWorldCoords = true
           this.updatePosition(e.clientX, e.clientY)
         }
       })
@@ -127,6 +136,7 @@ class Mouse {
         e.preventDefault()
         
         // Update position first
+        this._needWorldCoords = true
         this.updatePosition(e.clientX, e.clientY)
         
         // Calculate zoom direction
@@ -179,6 +189,7 @@ class Mouse {
 
           // Flag that zoom/pan changed
           this.zoomChanged = true
+          this._needWorldCoords = true
         }
         
         // Store current position for next move event
@@ -199,6 +210,7 @@ class Mouse {
           this.dragStartY = e.touches[0].clientY
           this.lastX = e.touches[0].clientX
           this.lastY = e.touches[0].clientY
+          this._needWorldCoords = true
           this.updatePosition(e.touches[0].clientX, e.touches[0].clientY)
         } else if (e.touches.length === 2) { // Two fingers (pinch)
           this.isPinching = true
@@ -208,6 +220,7 @@ class Mouse {
           // Calculate pinch center
           const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2
           const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2
+          this._needWorldCoords = true
           this.updatePosition(centerX, centerY)
         }
       })
@@ -233,6 +246,7 @@ class Mouse {
           this.lastY = e.touches[0].clientY
           
           // Update mouse position and flag changes
+          this._needWorldCoords = true
           this.updatePosition(e.touches[0].clientX, e.touches[0].clientY)
           this.zoomChanged = true
         } else if (e.touches.length === 2 && this.isPinching) { // Pinch zoom
@@ -244,6 +258,7 @@ class Mouse {
           // Calculate pinch center
           const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2
           const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2
+          this._needWorldCoords = true
           this.updatePosition(centerX, centerY)
           
           // Store world position before zoom
@@ -289,6 +304,7 @@ class Mouse {
             const dy = Math.abs(e.changedTouches[0].clientY - this.dragStartY)
             if (dx < 10 && dy < 10) {
               this.clicked = true
+              this._needWorldCoords = true
               this.updatePosition(e.changedTouches[0].clientX, e.changedTouches[0].clientY)
             }
           }

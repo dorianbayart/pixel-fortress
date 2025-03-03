@@ -177,6 +177,11 @@ const ZOOM = {
   
   // Main game loop
   const gameLoop = () => {
+    if(gameState.gameStatus === 'paused') {
+      requestAnimationFrame(gameLoop)
+      return
+    }
+
     const now = performance.now()
     const delay = now - elapsed | 0
     elapsed = now

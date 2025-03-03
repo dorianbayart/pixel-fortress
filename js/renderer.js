@@ -113,6 +113,7 @@ async function initCanvases() {
   // Add the view to the document
   document.getElementById('canvas').replaceWith(app.canvas)
   app.canvas.id = 'canvas'
+  app.canvas.style.cursor = 'none'
   
   // Set up containers for organizing content
   containers.background = new PIXI.Container()
@@ -393,7 +394,7 @@ function drawBackground(map) {
     }
 
     // Debug: draw unit paths
-    if (DEBUG() && Math.random() > 0.996) {
+    if (DEBUG() && Math.random() > 0.8) {
       // const debugBatch = new PIXI.Container()
       
       // if (gameState.humanPlayer) {
