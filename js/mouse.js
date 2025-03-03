@@ -2,16 +2,16 @@ export { Mouse }
 
 'use strict'
 
+import { MAP_HEIGHT, MAP_WIDTH } from 'maps'
 import { app } from 'renderer'
-import { loadAndSplitImage, offscreenSprite } from 'sprites'
-import { throttle } from 'utils'
+import { SPRITE_SIZE, loadAndSplitImage, offscreenSprite } from 'sprites'
 
 
 const ZOOM = {
-  FACTOR: 0.025,
-  MAX: 2,
-  MIN: 0.5,
-  current: 1
+  FACTOR: 0.1,
+  MAX: 4,
+  MIN: 1,
+  current: 2
 }
 
 class Mouse {
@@ -31,21 +31,35 @@ class Mouse {
       this.lastX = 0
       this.lastY = 0
       this.prevDistance = 0 // distance between fingers
-      this.scale = 1
+      this.scale = ZOOM.current
       this.sprite = null
       this.zoomChanged = false
 
       // Store view transformation for zoom calculation
       this.viewTransform = {
-        scale: 1,
+        scale: ZOOM.current,
         x: 0,
         y: 0
+      }
+
+      // Track if initial position has been set
+      this.initialPositionSet = false
+
+      // Map boundaries in world coordinates
+      this.mapBounds = {
+        minX: 0,
+        minY: 0,
+        maxX: MAP_WIDTH * SPRITE_SIZE,
+        maxY: MAP_HEIGHT * SPRITE_SIZE
       }
     }
   
     async initMouse(canvas, spriteSize) {
       const SPRITE_SIZE = spriteSize
       this.canvas = canvas
+
+      // Set initial camera position after a short delay to ensure renderer is ready
+      setTimeout(() => this.setInitialCameraPosition(), 100)
 
       // Load cursor sprite
       const mouseSprite = (await loadAndSplitImage('assets/ui/crosshair.png', 9))[0][0]
@@ -141,6 +155,9 @@ class Mouse {
           this.viewTransform.x = mouseWorldX - ((mouseWorldX - this.viewTransform.x) / scaleRatio)
           this.viewTransform.y = mouseWorldY - ((mouseWorldY - this.viewTransform.y) / scaleRatio)
           
+          // Apply boundary constraints after zoom
+          this.applyBoundaryConstraints()
+
           // Set flag for renderer to update
           this.zoomChanged = true
         }
@@ -157,6 +174,9 @@ class Mouse {
           this.viewTransform.x -= dx
           this.viewTransform.y -= dy
           
+          // Apply boundary constraints
+          this.applyBoundaryConstraints()
+
           // Flag that zoom/pan changed
           this.zoomChanged = true
         }
@@ -205,6 +225,9 @@ class Mouse {
           this.viewTransform.x -= dx
           this.viewTransform.y -= dy
           
+          // Apply boundary constraints
+          this.applyBoundaryConstraints()
+
           // Store current position
           this.lastX = e.touches[0].clientX
           this.lastY = e.touches[0].clientY
@@ -235,7 +258,7 @@ class Mouse {
           
           // Calculate scale ratio
           const scaleRatio = newScale / this.viewTransform.scale
-          
+
           // Apply new scale
           this.viewTransform.scale = newScale
           
@@ -243,6 +266,9 @@ class Mouse {
           this.viewTransform.x = pinchWorldX - ((pinchWorldX - this.viewTransform.x) / scaleRatio)
           this.viewTransform.y = pinchWorldY - ((pinchWorldY - this.viewTransform.y) / scaleRatio)
           
+          // Apply boundary constraints
+          this.applyBoundaryConstraints()
+
           // Flag that zoom changed
           this.zoomChanged = true
         }
@@ -275,7 +301,58 @@ class Mouse {
         e.preventDefault()
       })
     }
+
+    // Apply constraints to keep the map within view bounds
+    applyBoundaryConstraints() {
+      const viewWidth = app.renderer.width / this.viewTransform.scale
+      const viewHeight = app.renderer.height / this.viewTransform.scale
+      
+      // If zoomed out enough to see entire map width, center it
+      if (viewWidth >= this.mapBounds.maxX) {
+        this.viewTransform.x = (this.mapBounds.maxX - viewWidth) / 2
+      } else {
+        // Otherwise, prevent scrolling past map edges
+        this.viewTransform.x = Math.max(
+          0, 
+          Math.min(this.viewTransform.x, this.mapBounds.maxX - viewWidth)
+        )
+      }
+      
+      // If zoomed out enough to see entire map height, center it
+      if (viewHeight >= this.mapBounds.maxY) {
+        this.viewTransform.y = (this.mapBounds.maxY - viewHeight) / 2
+      } else {
+        // Otherwise, prevent scrolling past map edges
+        this.viewTransform.y = Math.max(
+          0, 
+          Math.min(this.viewTransform.y, this.mapBounds.maxY - viewHeight)
+        )
+      }
+    }
     
+    // Set the initial camera position to the bottom center of the map
+    setInitialCameraPosition() {
+      if (this.initialPositionSet || !app.renderer) return
+      
+      // Calculate visible view dimensions in world space at current scale
+      const viewWidth = app.renderer.width / this.viewTransform.scale
+      const viewHeight = app.renderer.height / this.viewTransform.scale
+      
+      // Set x position to center the view horizontally on the map
+      this.viewTransform.x = (MAP_WIDTH * SPRITE_SIZE - viewWidth) / 2
+      
+      // Set y position to show the bottom of the map
+      this.viewTransform.y = MAP_HEIGHT * SPRITE_SIZE - viewHeight
+      
+      // Apply constraints to ensure valid position
+      this.applyBoundaryConstraints()
+      
+      // Mark as set and trigger redraw
+      this.initialPositionSet = true
+      this.zoomChanged = true
+      
+      console.log("Initial camera position set to bottom center")
+    }
     // Method to get current view transform for renderer
     getViewTransform() {
       return { ...this.viewTransform };
