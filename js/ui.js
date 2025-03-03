@@ -179,7 +179,7 @@ import { getCachedSprite } from 'utils'
     
     // Update cursor position
     if (cursorSprite && mouse) {
-      cursorSprite.position.set(mouse.worldX - mouse.getViewTransform().x, mouse.worldY - mouse.getViewTransform().y)
+      cursorSprite.position.set(mouse.xPixels * (globalThis.devicePixelRatio || 1) - mouse.sprite.width, mouse.yPixels * (globalThis.devicePixelRatio || 1) - mouse.sprite.height)
       cursorSprite.scale.set(1, 1);
     }
   }
@@ -211,7 +211,7 @@ import { getCachedSprite } from 'utils'
       const viewTransform = mouse.getViewTransform()
       
       statsText.text = [
-        `FPS: ${currentFps}`,
+        `FPS: ${currentFps} | DPR: ${globalThis.devicePixelRatio || 1}`,
         `Mouse: ${mouse.x}x${mouse.y}${mouse.isDragging ? ' | clic' : ''}`,
         `World: (${mouse.worldX.toFixed(0)}, ${mouse.worldY.toFixed(0)})`,
         `Zoom: ${viewTransform.scale.toFixed(2)}x`,

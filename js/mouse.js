@@ -69,12 +69,12 @@ class Mouse {
         const normalizedY = this.yPixels / viewHeight
         
         // Convert to world coordinates based on current view
-        this.worldX = ((normalizedX * app.renderer.width /*/ this.viewTransform.scale*/) + this.viewTransform.x)
-        this.worldY = ((normalizedY * app.renderer.height /*/ this.viewTransform.scale*/) + this.viewTransform.y)
-        // console.log(this.xPixels, viewWidth, normalizedX, app.renderer.width, this.viewTransform.x)
+        this.worldX = ((normalizedX * app.renderer.width / this.viewTransform.scale) + this.viewTransform.x)
+        this.worldY = ((normalizedY * app.renderer.height / this.viewTransform.scale) + this.viewTransform.y)
+        
         // Convert to grid coordinates
-        this.x = Math.floor(this.worldX / SPRITE_SIZE / this.viewTransform.scale)
-        this.y = Math.floor(this.worldY / SPRITE_SIZE / this.viewTransform.scale)
+        this.x = Math.floor(this.worldX / SPRITE_SIZE)
+        this.y = Math.floor(this.worldY / SPRITE_SIZE)
       }
     
       const distanceBetweenTouches = (touch1, touch2) => {
@@ -119,10 +119,6 @@ class Mouse {
         const zoomDirection = e.deltaY < 0 ? 1 : -1
         const zoomFactor = ZOOM.FACTOR * zoomDirection
         
-        // Store mouse world position before zoom
-        const mouseWorldX = this.worldX
-        const mouseWorldY = this.worldY
-        
         // Calculate new scale
         const newScale = Math.max(
           ZOOM.MIN, 
@@ -131,10 +127,19 @@ class Mouse {
         
         // If scale changed, update transforms
         if (newScale !== this.viewTransform.scale) {
+          // Store mouse world position before zoom
+          const mouseWorldX = this.worldX
+          const mouseWorldY = this.worldY
+          
+          // Calculate scale ratio
+          const scaleRatio = newScale / this.viewTransform.scale
+          
           // Calculate new offsets to keep mouse position fixed
           this.viewTransform.scale = newScale
-          this.viewTransform.x *= zoomFactor
-          this.viewTransform.y *= zoomFactor
+
+          // Adjust view transform to keep the mouse position fixed in world space
+          this.viewTransform.x = mouseWorldX - ((mouseWorldX - this.viewTransform.x) / scaleRatio)
+          this.viewTransform.y = mouseWorldY - ((mouseWorldY - this.viewTransform.y) / scaleRatio)
           
           // Set flag for renderer to update
           this.zoomChanged = true
@@ -228,10 +233,15 @@ class Mouse {
             Math.min(ZOOM.MAX, this.viewTransform.scale * scaleChange)
           )
           
+          // Calculate scale ratio
+          const scaleRatio = newScale / this.viewTransform.scale
+          
           // Apply new scale
           this.viewTransform.scale = newScale
-          this.viewTransform.x *= scaleChange
-          this.viewTransform.y *= scaleChange
+          
+          // Adjust view transform like we do for mouse wheel zoom
+          this.viewTransform.x = pinchWorldX - ((pinchWorldX - this.viewTransform.x) / scaleRatio)
+          this.viewTransform.y = pinchWorldY - ((pinchWorldY - this.viewTransform.y) / scaleRatio)
           
           // Flag that zoom changed
           this.zoomChanged = true
