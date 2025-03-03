@@ -73,6 +73,7 @@ const ZOOM = {
           else if (noiseValue < TERRAIN_THRESHOLD.TREE) terrainType = TERRAIN_TYPES.TREE
   
           gameState.map[x][y] = {
+              uid: y * MAP_WIDTH + x,
               type: terrainType.type,
               weight: terrainType.weight,
           }
@@ -182,7 +183,7 @@ const ZOOM = {
     
     
     // Background rendering
-    if(isDrawBackRequested() && now - elapsedBack > 150) {
+    if(isDrawBackRequested() || now - elapsedBack > 500) {
       elapsedBack = now
       drawBackground(gameState.map)
     }
