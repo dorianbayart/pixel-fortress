@@ -24,6 +24,8 @@ import { getCachedSprite } from 'utils'
    */
   async function initUI(mouseInstance) {
     mouse = mouseInstance
+    gameState.UI = { mouse: mouse }
+
     setupEventListeners()
     
     // Create cursor sprite

@@ -41,6 +41,16 @@ let spriteCoords_Mouse = { x: 21, y: 4 }
 // Performance tracking
 let drawMainTimings = new Array(50).fill(10)
 
+// Viewport tracking for culling
+let viewport = {
+  x: 0,
+  y: 0,
+  width: 0,
+  height: 0,
+  // Buffer size in tiles to render outside visible area (prevents pop-in during scrolling)
+  buffer: 2
+}
+
 /**
  * Convert an OffscreenCanvas to a PIXI.Texture
  * @param {OffscreenCanvas} canvas - Canvas to convert
@@ -153,6 +163,26 @@ function resizeCanvases() {
 }
 
 /**
+ * Update the viewport data based on current camera position and zoom
+ * @param {Object} viewTransform - Camera transform information 
+ */
+function updateViewport(viewTransform) {
+  const scale = viewTransform.scale
+  
+  // Calculate visible area in world coordinates
+  viewport.x = Math.floor(viewTransform.x / SPRITE_SIZE)
+  viewport.y = Math.floor(viewTransform.y / SPRITE_SIZE)
+  viewport.width = Math.ceil(app.renderer.width / (SPRITE_SIZE * scale))
+  viewport.height = Math.ceil(app.renderer.height / (SPRITE_SIZE * scale))
+  
+  // Add buffer area
+  viewport.startX = Math.max(0, viewport.x - viewport.buffer)
+  viewport.startY = Math.max(0, viewport.y - viewport.buffer)
+  viewport.endX = Math.min(MAP_WIDTH, viewport.x + viewport.width + viewport.buffer)
+  viewport.endY = Math.min(MAP_HEIGHT, viewport.y + viewport.height + viewport.buffer)
+}
+
+/**
  * Draw all game units
  * @param {Object} player - Human player
  * @param {Array} AIs - AI players
@@ -160,50 +190,78 @@ function resizeCanvases() {
 function drawMain(player, AIs) {
   if(gameState.debug) var start = performance.now()
 
-    const currentUnits = [...player.getUnits(), ...AIs.flatMap(ai => ai.getUnits())]
-    const currentUnitIds = new Set()
+  // Get current viewport from the mouse
+  const viewTransform = gameState.UI?.mouse?.getViewTransform()
+  if (viewTransform) {
+    updateViewport(viewTransform)
+  }
 
-    currentUnits.forEach(unit => {
+  const currentUnits = [...player.getUnits(), ...AIs.flatMap(ai => ai.getUnits())]
+  const currentUnitIds = new Set()
+
+  currentUnits.forEach(unit => {
+    // Skip units outside the viewport (with buffer)
+    const unitTileX = Math.floor(unit.x / SPRITE_SIZE)
+    const unitTileY = Math.floor(unit.y / SPRITE_SIZE)
+
+    if (viewTransform && (
+      unitTileX < viewport.startX || 
+      unitTileX > viewport.endX || 
+      unitTileY < viewport.startY || 
+      unitTileY > viewport.endY
+    )) {
+      // Store the ID so we keep track of it even when not rendered
       currentUnitIds.add(unit.uid)
 
-      // Get existing sprite or create a new one
+      // If the unit has a sprite already in the container, hide it
       let sprite = unitSpriteMap.get(unit.uid)
-
-      // If no sprite exists or texture changed, create a new one
-      if (!sprite || sprite.textureKey !== unit.sprite.uid) {
-        // Remove old sprite if exists
-        if (sprite) {
-            containers.units.removeChild(sprite)
-        }
-        
-        // Create new sprite
-        const texture = PIXI.Texture.from(unit.sprite)
-        sprite = getCachedSprite(texture, unit.sprite.uid)
-        sprite.textureKey = unit.sprite.uid
-        unitSpriteMap.set(unit.uid, sprite)
-        containers.units.addChild(sprite)
+      if (sprite) {
+        sprite.visible = false
       }
+      return
+    }
 
-      // Update sprite position
-      sprite.x = Math.round(unit.x - UNIT_SPRITE_SIZE/4)
-      sprite.y = Math.round(unit.y - UNIT_SPRITE_SIZE/4 - 2)
-    })
+    currentUnitIds.add(unit.uid)
 
-    // Remove sprites for units that no longer exist
-    for (const [unitId, sprite] of unitSpriteMap.entries()) {
-      if (!currentUnitIds.has(unitId)) {
+    // Get existing sprite or create a new one
+    let sprite = unitSpriteMap.get(unit.uid)
+
+    // If no sprite exists or texture changed, create a new one
+    if (!sprite || sprite.textureKey !== unit.sprite.uid) {
+      // Remove old sprite if exists
+      if (sprite) {
           containers.units.removeChild(sprite)
-          unitSpriteMap.delete(unitId)
       }
+      
+      // Create new sprite
+      const texture = PIXI.Texture.from(unit.sprite)
+      sprite = getCachedSprite(texture, unit.sprite.uid)
+      sprite.textureKey = unit.sprite.uid
+      unitSpriteMap.set(unit.uid, sprite)
+      containers.units.addChild(sprite)
     }
-    
-    if(gameState.debug) {
-      // Track performance
-      drawMainTimings.push((performance.now() - start))
-      drawMainTimings.shift()
 
-      if(Math.random() > 0.9975) console.log('Drawing units: ' + (drawMainTimings.reduce((res, curr) => res + curr, 0) / drawMainTimings.length).toFixed(2) + ' ms')
+    // Update sprite position and make it visible
+    sprite.visible = true
+    sprite.x = Math.round(unit.x - UNIT_SPRITE_SIZE/4)
+    sprite.y = Math.round(unit.y - UNIT_SPRITE_SIZE/4 - 2)
+  })
+
+  // Remove sprites for units that no longer exist
+  for (const [unitId, sprite] of unitSpriteMap.entries()) {
+    if (!currentUnitIds.has(unitId)) {
+        containers.units.removeChild(sprite)
+        unitSpriteMap.delete(unitId)
     }
+  }
+  
+  if(gameState.debug) {
+    // Track performance
+    drawMainTimings.push((performance.now() - start))
+    drawMainTimings.shift()
+
+    if(Math.random() > 0.9975) console.log('Drawing units: ' + (drawMainTimings.reduce((res, curr) => res + curr, 0) / drawMainTimings.length).toFixed(2) + ' ms')
+  }
 }
 
 /**
@@ -218,13 +276,25 @@ function drawBackground(map) {
     containers.terrain.removeChildren()
     containers.debug.removeChildren()
 
+    // Get current viewport from the mouse
+    const viewTransform = gameState.UI?.mouse?.getViewTransform()
+    if (viewTransform) {
+      updateViewport(viewTransform)
+    }
+
     // Create a sprite batch for better performance
     const backgroundBatch = new PIXI.Container()
     const terrainBatch = new PIXI.Container()
+
+    // Draw only visible map tiles plus buffer area
+    const startX = viewport.startX || 0;
+    const startY = viewport.startY || 0;
+    const endX = viewport.endX || MAP_WIDTH;
+    const endY = viewport.endY || MAP_HEIGHT;
   
     // Draw all map tiles
-    for (let x = 0; x < MAP_WIDTH; x++) {
-      for (let y = 0; y < MAP_HEIGHT; y++) {
+    for (let x = startX; x < endX; x++) {
+      for (let y = startY; y < endY; y++) {
         // Draw background (grass under objects)
         if (map[x][y].back) {
             const backTexture = PIXI.Texture.from(map[x][y].back)
@@ -266,6 +336,7 @@ function drawBackground(map) {
       
       // containers.debug.addChild(debugBatch)
 
+      // console.log(`Viewport tiles: ${(endX-startX)*(endY-startY)} of ${MAP_WIDTH*MAP_HEIGHT}`)
       console.log(`Background rendering: ${performance.now() - start}ms`)
     }
     
@@ -278,7 +349,7 @@ function drawBackground(map) {
  */
 function updateZoom(mouse) {
     // Get current view transform
-    const viewTransform = mouse.getViewTransform();
+    const viewTransform = mouse.getViewTransform()
     
     // Apply transformations to all containers that should be affected by zoom/pan
     const containersToTransform = [
@@ -294,18 +365,21 @@ function updateZoom(mouse) {
       //container.setTransform(0, 0, 1, 1, 0, 0, 0, 0, 0);
       
       // Apply new scale and position
-      container.scale.set(viewTransform.scale, viewTransform.scale);
+      container.scale.set(viewTransform.scale, viewTransform.scale)
       
       // Invert the translation caused by scale
-      const offsetX = -viewTransform.x * viewTransform.scale;
-      const offsetY = -viewTransform.y * viewTransform.scale;
+      const offsetX = -viewTransform.x * viewTransform.scale
+      const offsetY = -viewTransform.y * viewTransform.scale
       
       // Apply translation
-      container.position.set(offsetX, offsetY);
-    });
+      container.position.set(offsetX, offsetY)
+    })
+
+    // Update the viewport for culling calculations
+    updateViewport(viewTransform)
     
     // UI container shouldn't be affected by zoom/pan (for cursor and HUD)
     // We could leave it as is, but if we want to scale UI elements differently:
-    containers.ui.scale.set(1, 1);
-    containers.ui.position.set(0, 0);
+    containers.ui.scale.set(1, 1)
+    containers.ui.position.set(0, 0)
   }
