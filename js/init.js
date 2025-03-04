@@ -2,16 +2,20 @@ export { handleWindowResize, initializeGame }
 
 'use strict'
 
+import { getTileSize, initDimensions, updateDimensions } from 'dimensions'
 import { gameLoop, initGame } from 'game'
 import { drawBack } from 'globals'
 import { initHomeMenu } from 'menu'
 import { app, initCanvases, resizeCanvases } from 'renderer'
-import { SPRITE_SIZE, loadSprites, sprites } from 'sprites'
+import { loadSprites, sprites } from 'sprites'
 import gameState from 'state'
 import { initUI, showDebugMessage } from 'ui'
 
 // Initialize the game
 async function initializeGame() {
+  // Initialize dimensions system first
+  initDimensions()
+  
   // Set initial game state
   gameState.gameStatus = 'menu'
 
@@ -24,7 +28,7 @@ async function initializeGame() {
   // Initialize mouse handling
   const mouseModule = await import('mouse')
   const mouseInstance = new mouseModule.Mouse()
-  await mouseInstance.initMouse(document.getElementById('canvas'), SPRITE_SIZE)
+  await mouseInstance.initMouse(document.getElementById('canvas'), getTileSize())
 
   // Initialize UI with mouse instance
   await initUI(mouseInstance)
@@ -52,7 +56,7 @@ async function initializeGame() {
 
   // Load game sprites
   loadSprites()
-  
+
   // Load the custom font
   loadGameFont()
 
@@ -91,6 +95,9 @@ async function startGame(sprites) {
 
 // Handle window resize
 async function handleWindowResize() {
+  // Update dimensions
+  updateDimensions()
+
   // Resize all canvases
   resizeCanvases()
 

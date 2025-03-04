@@ -7,9 +7,9 @@ export {
 
 'use strict'
 
-import { MAP_HEIGHT, MAP_WIDTH } from 'maps'
+import { getMapDimensions, getTileSize } from 'dimensions'
 import { searchPath } from 'pathfinding'
-import { SPRITE_SIZE, UNIT_SPRITE_SIZE, offscreenSprite, unitsSprites, unitsSpritesDescription } from 'sprites'
+import { UNIT_SPRITE_SIZE, offscreenSprite, unitsSprites, unitsSpritesDescription } from 'sprites'
 import gameState from 'state'
 import { distance } from 'utils'
 
@@ -46,6 +46,8 @@ class Unit {
    * @param {Array} enemies - Array of enemy units
    */
   constructor(x, y, color, enemies) {
+    const SPRITE_SIZE = getTileSize()
+
     // Position and movement
     this.uid = Math.random() * 1000000 | 0
     this.x = x * SPRITE_SIZE | 0
@@ -169,6 +171,7 @@ class Unit {
    * @returns {Array|null} Path to nearest enemy or null if no path found
    */
   pathToNearestEnemy(enemies = []) {
+    const { width: MAP_WIDTH, height: MAP_HEIGHT } = getMapDimensions()
     let path, pathLength = MAP_WIDTH * MAP_HEIGHT
     this.goal = null
     enemies.forEach((enemy) => {
@@ -188,6 +191,7 @@ class Unit {
    * @param {number} delay - Time elapsed since last update (ms)
    */
   move(delay) {
+    const SPRITE_SIZE = getTileSize()
     const devX = ((this.nextNode.x * SPRITE_SIZE - this.x) * 2 + (this.nextNextNode.x * SPRITE_SIZE - this.x)) / 3
     const devY = ((this.nextNode.y * SPRITE_SIZE - this.y) * 2 + (this.nextNextNode.y * SPRITE_SIZE - this.y)) / 3
     const theta = Math.atan2(devY, devX)
@@ -265,8 +269,8 @@ class WorkerUnit extends Unit {
     // Worker units have weaker stats but can collect resources
     this.life = 5
     this.attack = 1
-    this.range = 0.75 * SPRITE_SIZE
-    this.speed = SPRITE_SIZE / 10 | 0
+    this.range = 0.75 * getTileSize()
+    this.speed = getTileSize() / 10 | 0
     this.resources = 0
     this.maxResources = 10
   }
@@ -351,7 +355,7 @@ class MeleeUnit extends CombatUnit {
     super(x, y, color, enemies)
     
     // Melee units have shorter range but higher health
-    this.range = 1 * SPRITE_SIZE
+    this.range = 1 * getTileSize()
   }
 }
 
@@ -360,10 +364,11 @@ class MeleeUnit extends CombatUnit {
  */
 class RangedUnit extends CombatUnit {
   constructor(x, y, color, enemies) {
+    const SPRITE_SIZE = getTileSize()
     super(x, y, color, enemies)
     
     // Ranged units have longer range but lower health
-    this.range = 4 * SPRITE_SIZE
+    this.range = 4 * getTileSize()
   }
 }
 
@@ -388,7 +393,7 @@ class HumanSoldier extends MeleeUnit {
     this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
     this.life = 10
     this.attack = 2
-    this.speed = SPRITE_SIZE / 10 | 0
+    this.speed = getTileSize() / 10 | 0
   }
 }
 
@@ -402,7 +407,7 @@ class Mage extends RangedUnit {
     this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
     this.life = 8
     this.attack = 10
-    this.speed = SPRITE_SIZE / 12 | 0
+    this.speed = getTileSize() / 12 | 0
   }
 }
 
@@ -416,7 +421,7 @@ class Soldier extends MeleeUnit {
     this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
     this.life = 15
     this.attack = 8
-    this.speed = SPRITE_SIZE / 16 | 0
+    this.speed = getTileSize() / 16 | 0
   }
 }
 
@@ -430,7 +435,7 @@ class Warrior extends MeleeUnit {
     this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
     this.life = 40
     this.attack = 5
-    this.range = 0.75 * SPRITE_SIZE
-    this.speed = SPRITE_SIZE / 20 | 0
+    this.range = 0.75 * getTileSize()
+    this.speed = getTileSize() / 20 | 0
   }
 }

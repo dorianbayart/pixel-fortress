@@ -2,7 +2,7 @@ export { Player, PlayerType }
 
 'use strict'
 
-import { MAP_HEIGHT, MAP_WIDTH, MAX_WEIGHT } from 'maps'
+import { getMapDimensions } from 'dimensions'
 import gameState from 'state'
 import { HumanSoldier, Worker } from 'unit'
 
@@ -11,8 +11,12 @@ const PlayerType = {
   AI: 'ai'
 }
 
+
+
+
 class Player {
   constructor(type = PlayerType.HUMAN) {
+
     this.type = type
     this.units = new Array()
 
@@ -37,6 +41,7 @@ class Player {
 
   update(delay) {
     if(Math.random() > 0.995 || (this.type === PlayerType.AI && this.getUnits().length === 0)) { // create a random unit
+      const { width: MAP_WIDTH, height: MAP_HEIGHT, maxWeight: MAX_WEIGHT } = getMapDimensions()
       let x = Math.random()*MAP_WIDTH | 0
       const y = this.isHuman() ? MAP_HEIGHT-1 : 0
       while(gameState.map[x][y].weight === MAX_WEIGHT) {
@@ -52,7 +57,7 @@ class Player {
     for (var i = 0; i < this.getUnits().length; i++) {
       this.units[i].update(delay, enemies)
     }
-    
+
     this.units = this.getUnits().filter(unit => unit.life > 0)
   }
 

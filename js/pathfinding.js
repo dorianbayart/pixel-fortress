@@ -1,8 +1,8 @@
-export { searchPath, clearPathCache }
+export { clearPathCache, searchPath }
 
 'use strict'
 
-import { MAP_HEIGHT, MAP_WIDTH, MAX_WEIGHT } from "maps"
+import { getMapDimensions } from 'dimensions'
 import gameState from "state"
 
 // Choose the pathfinding algorithm: [aStar, bestFirstSearch]
@@ -10,6 +10,7 @@ const searchPath = aStar
 
 const pathCache = new Map()
 const PATH_CACHE_MAX_SIZE = 2500
+// const { width: MAP_WIDTH, height: MAP_HEIGHT, maxWeight: MAX_WEIGHT } = getMapDimensions()
 
 // Function to create a unique cache key from start and end points
 const getCacheKey = (startX, startY, endX, endY) => {
@@ -20,16 +21,16 @@ function clearPathCache() {
   pathCache.clear();
 }
 
-const getNodeKey = (x, y) => y * MAP_WIDTH + x | 0
+const getNodeKey = (x, y) => y * getMapDimensions().width + x | 0
 
 // Simple Manhattan distance heuristic
 const getHeuristic = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y)
 
 // Check if coords are in bounds
-const isInBounds = (x, y) => x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT
+const isInBounds = (x, y) => x >= 0 && x < getMapDimensions().width && y >= 0 && y < getMapDimensions().height
 
 // Check if a cell is a wall
-const isWall = (x, y) => !isInBounds(x, y) || gameState.map[x][y]?.weight === MAX_WEIGHT
+const isWall = (x, y) => !isInBounds(x, y) || gameState.map[x][y]?.weight === getMapDimensions().weight
 
 
 function aStar(startX, startY, endX, endY) {
@@ -106,7 +107,7 @@ function aStar(startX, startY, endX, endY) {
     )
   }
 
-  const mapSize = MAP_WIDTH * MAP_HEIGHT
+  const mapSize = getMapDimensions().width * getMapDimensions().height
   const openList = []
   const closedList = new Uint8Array(mapSize)
   const gScores = new Uint32Array(mapSize)
@@ -179,7 +180,7 @@ function aStar(startX, startY, endX, endY) {
     }
   }
 
-  // console.log("No path found - time spent " + (performance.now() - startTime) + "ms")
+  // console.log("No path found")
   return null // no path found
 }
 

@@ -5,10 +5,10 @@ export {
 
 'use strict'
 
+import { getCanvasDimensions, getMapDimensions, getTileSize } from 'dimensions'
 import { DEBUG, backDrawn } from 'globals'
-import { MAP_HEIGHT, MAP_WIDTH } from 'maps'
 import * as PIXI from 'pixijs'
-import { SPRITE_SIZE, UNIT_SPRITE_SIZE } from 'sprites'
+import { UNIT_SPRITE_SIZE } from 'sprites'
 import gameState from 'state'
 import { getCachedSprite, textureCache } from 'utils'
 
@@ -27,11 +27,6 @@ const containers = {
 const unitSpriteMap = new Map()
 const backgroundSpriteMap = new Map()
 const terrainSpriteMap = new Map()
-
-// Variables for resizing and scaling
-let canvasWidth = 0
-let canvasHeight = 0
-let dpr = 1
 
 // Sprite coordinates for special tiles
 let spriteCoords_Start = { x: 21, y: 5 }
@@ -71,7 +66,7 @@ function loadTextureFromCanvas(canvas, key) {
   
   // Load the texture from the URL
   const texture = PIXI.Texture.from(url)
-  texture.source.resolution = dpr
+  texture.source.resolution = getCanvasDimensions().dpr
   texture.source.scaleMode = PIXI.SCALE_MODES.NEAREST
   
   // Store in cache
@@ -89,21 +84,20 @@ function loadTextureFromCanvas(canvas, key) {
  * Initialize Pixi.js application and containers
  */
 async function initCanvases() {
-  // Get DPR before initialization
-  dpr = window.devicePixelRatio || 1
+  // Get canvas dimensions from centralized system
+  const { width, height, dpr } = getCanvasDimensions()
 
   // Create Pixi Application
   app = new PIXI.Application()
   await app.init({
-    width: MAP_WIDTH * SPRITE_SIZE,
-    height: MAP_HEIGHT * SPRITE_SIZE,
+    width: width,
+    height: height,
     // backgroundColor: 0x228b22, // Forestgreen background
     backgroundAlpha: 0,
     resolution: dpr,
     autoDensity: true, // This adjusts the CSS size automatically
     antialias: false,
     canvas: document.getElementById('canvas'),
-    // resizeTo: window
   })
   
   // Add the view to the document
@@ -125,47 +119,34 @@ async function initCanvases() {
   app.stage.addChild(containers.units)
   app.stage.addChild(containers.ui)
   
-  console.log(app)
+  console.log("Canvas initialized:", app.canvas.width, "x", app.canvas.height, app)
 }
 
 /**
  * Resize the Pixi.js canvas to fit the window
  */
 function resizeCanvases() {
-  // Device Pixel Ratio (DPR)
-  dpr = globalThis.devicePixelRatio || 1
-
-  // Calculate new dimensions while maintaining aspect ratio
-  const screenWidth = (window.visualViewport?.width ?? window.innerWidth) || 800
-  const screenHeight = (window.visualViewport?.height ?? window.innerHeight) || 800
-
-  // Calculate available space, accounting for potential UI elements
-  // This makes sure we stay within the visible area
-  const availableWidth = Math.min(screenWidth, document.documentElement.clientWidth)
-  const availableHeight = Math.min(screenHeight, document.documentElement.clientHeight)
-
-  const screenAspectRatio = availableWidth / availableHeight
-  const desiredAspectRatio = MAP_WIDTH / MAP_HEIGHT
-
-  if (screenAspectRatio > desiredAspectRatio) {
-    // Screen is wider than our aspect ratio, set height to match screen and calculate width
-    canvasHeight = availableHeight
-    canvasWidth = canvasHeight * desiredAspectRatio
-  } else {
-    // Screen is taller than our aspect ratio, set width to match screen and calculate height
-    canvasWidth = availableWidth
-    canvasHeight = canvasWidth / desiredAspectRatio
-  }
+  // Get updated dimensions
+  const { width, height, dpr } = getCanvasDimensions()
 
   // Set renderer resolution based on device pixel ratio
   app.renderer.resolution = dpr
   
   // Resize the renderer
-  app.renderer.resize(MAP_WIDTH * SPRITE_SIZE, MAP_HEIGHT * SPRITE_SIZE)
+  app.renderer.resize(width, height)
 
-  // Update the canvas style
-  app.canvas.style.width = `${canvasWidth}px`
-  app.canvas.style.height = `${canvasHeight}px`
+  // Get viewport dimensions for CSS sizing
+  const viewportWidth = window.visualViewport?.width ?? window.innerWidth
+  const viewportHeight = window.visualViewport?.height ?? window.innerHeight
+
+  // Update the canvas style - use the viewport dimensions for CSS
+  app.canvas.style.width = `${viewportWidth}px`
+  app.canvas.style.height = `${viewportHeight}px`
+
+  // Force update for mouse controller
+  if (gameState.UI?.mouse) {
+    gameState.UI.mouse._rectUpdateNeeded = true
+  }
 }
 
 /**
@@ -173,6 +154,8 @@ function resizeCanvases() {
  * @param {Object} viewTransform - Camera transform information 
  */
 function updateViewport(viewTransform) {
+  const { width, height } = getMapDimensions()
+  const SPRITE_SIZE = getTileSize()
   const scale = viewTransform.scale
   
   // Calculate visible area in world coordinates
@@ -184,8 +167,8 @@ function updateViewport(viewTransform) {
   // Add buffer area
   viewport.startX = Math.max(0, viewport.x - viewport.buffer)
   viewport.startY = Math.max(0, viewport.y - viewport.buffer)
-  viewport.endX = Math.min(MAP_WIDTH, viewport.x + viewport.width + viewport.buffer)
-  viewport.endY = Math.min(MAP_HEIGHT, viewport.y + viewport.height + viewport.buffer)
+  viewport.endX = Math.min(width, viewport.x + viewport.width + viewport.buffer)
+  viewport.endY = Math.min(height, viewport.y + viewport.height + viewport.buffer)
 }
 
 /**
@@ -194,6 +177,7 @@ function updateViewport(viewTransform) {
  * @param {Array} AIs - AI players
  */
 function drawMain(player, AIs) {
+  const SPRITE_SIZE = getTileSize()
   if(gameState.debug) var start = performance.now()
 
   // Get current viewport from the mouse
@@ -275,6 +259,8 @@ function drawMain(player, AIs) {
  * @param {Array} map - Game map
  */
 function drawBackground(map) {
+    const { width, height } = getMapDimensions()
+    const SPRITE_SIZE = getTileSize()
     const start = performance.now()
 
     // Sets to track sprites that should be visible this frame
@@ -290,8 +276,8 @@ function drawBackground(map) {
     // Draw only visible map tiles plus buffer area
     const startX = viewport.startX || 0
     const startY = viewport.startY || 0
-    const endX = viewport.endX || MAP_WIDTH
-    const endY = viewport.endY || MAP_HEIGHT
+    const endX = viewport.endX || width
+    const endY = viewport.endY || height
   
     // Draw all map tiles
     for (let x = startX; x < endX; x++) {
@@ -357,15 +343,15 @@ function drawBackground(map) {
     const extendedBuffer = viewport.buffer * 3
     const farStartX = Math.max(0, viewport.x - extendedBuffer)
     const farStartY = Math.max(0, viewport.y - extendedBuffer)
-    const farEndX = Math.min(MAP_WIDTH, viewport.x + viewport.width + extendedBuffer)
-    const farEndY = Math.min(MAP_HEIGHT, viewport.y + viewport.height + extendedBuffer)
+    const farEndX = Math.min(width, viewport.x + viewport.width + extendedBuffer)
+    const farEndY = Math.min(height, viewport.y + viewport.height + extendedBuffer)
 
     // Hide or remove background sprites outside viewport
     for (const [key, sprite] of backgroundSpriteMap.entries()) {
         if (!visibleBackgroundSprites.has(key)) {
             // Extract coordinates from key (format: (y * MAP_WIDTH + x) * 10)
-            const y = Math.floor(key / 10 / MAP_WIDTH)
-            const x = (key / 10) % MAP_WIDTH
+            const y = Math.floor(key / 10 / width)
+            const x = (key / 10) % width
             
             // If sprite is far from viewport, remove it to save memory
             if (x < farStartX || x >= farEndX || y < farStartY || y >= farEndY) {
@@ -382,8 +368,8 @@ function drawBackground(map) {
     for (const [key, sprite] of terrainSpriteMap.entries()) {
         if (!visibleTerrainSprites.has(key)) {
             // Extract coordinates from key (format: y * MAP_WIDTH + x)
-            const y = Math.floor(key / MAP_WIDTH)
-            const x = key % MAP_WIDTH
+            const y = Math.floor(key / width)
+            const x = key % width
             
             // If sprite is far from viewport, remove it to save memory
             if (x < farStartX || x >= farEndX || y < farStartY || y >= farEndY) {

@@ -70,6 +70,9 @@ class GameState {
       difficulty: 'medium',
       mapSeed: null
     }
+
+    // UI references
+    this.UI = null
   }
 
   /* Debug state getters/setters */

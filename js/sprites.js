@@ -1,10 +1,11 @@
-export { loadAndSplitImage, loadSprites, offscreenSprite, sprites, unitsSprites, unitsSpritesDescription, SPRITE_SIZE, UNIT_SPRITE_SIZE }
+export { loadAndSplitImage, loadSprites, offscreenSprite, sprites, unitsSprites, unitsSpritesDescription, UNIT_SPRITE_SIZE }
 
 'use strict'
 
 import { arrayToHash } from 'utils'
+import { getTileSize } from 'dimensions'
 
-const SPRITE_SIZE = 16, UNIT_SPRITE_SIZE = 32
+const SPRITE_SIZE = getTileSize(), UNIT_SPRITE_SIZE = getTileSize() * 2
 
 let sprites, unitsSprites, unitsSpritesDescription
 
