@@ -5,8 +5,10 @@ export {
 'use strict'
   
 import { DEBUG, drawBack, toggleDebug } from 'globals'
+import { MAP_HEIGHT, MAP_WIDTH } from 'maps'
 import * as PIXI from 'pixijs'
-import { containers, updateZoom } from 'renderer'
+import { app, containers, updateZoom } from 'renderer'
+import { SPRITE_SIZE } from 'sprites'
 import gameState from 'state'
 import { getCachedSprite } from 'utils'
   
@@ -230,12 +232,24 @@ import { getCachedSprite } from 'utils'
       const viewTransform = mouse.getViewTransform()
       
       statsText.text = [
+        ``,
+        ``,
+        ``,
+        ``,
+        ``,
+        ``,
         `FPS: ${currentFps} | DPR: ${globalThis.devicePixelRatio || 1}`,
-        `Mouse: ${mouse.x}x${mouse.y}${mouse.isDragging ? ' | clic' : ''}`,
-        `World: (${mouse.worldX.toFixed(0)}, ${mouse.worldY.toFixed(0)})`,
-        `Zoom: ${viewTransform.scale.toFixed(2)}x`,
         `Game Status: ${gameState.gameStatus}`,
-        `Units: ${unitsCount} human, ${aiUnitsCount} AI`
+        `Units: ${unitsCount} human, ${aiUnitsCount} AI`,
+        `Mouse: ${mouse.x}x${mouse.y} (${mouse.worldX.toFixed(0)}, ${mouse.worldY.toFixed(0)})${mouse.isDragging ? ' | clic' : ''}`,
+        `Zoom: ${viewTransform.scale.toFixed(2)}x`,
+        `World: ${MAP_WIDTH}x${MAP_HEIGHT} (${MAP_WIDTH*SPRITE_SIZE}x${MAP_HEIGHT*SPRITE_SIZE})`,
+        
+        `ViewPort: ${window.visualViewport.width.toFixed(3)}x${window.visualViewport.height.toFixed(3)} | Offsets:${window.visualViewport.offsetTop},${window.visualViewport.pageTop}`,
+        `Screen: ${screen.width}x${screen.height} | Available: ${screen.availWidth}x${screen.availHeight}`,
+        `Window: ${window.innerWidth}x${window.innerHeight}`,
+        `CSS: ${document.documentElement.clientWidth}x${document.documentElement.clientHeight}`,
+        `Canvas: ${app.canvas.style.width}x${app.canvas.style.height}`
       ].join('\n')
       
       // Also update HTML stats for legacy support

@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport"
-    content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    content="width=device-width, height=device-height, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=contain, shrink-to-fit=no, target-densitydpi=device-dpi">
 
   <title>Pixel Fortress - A 2D pixel-based strategy game</title>
   <meta name="description"
@@ -29,6 +29,10 @@
   <meta property="twitter:description"
     content="A 2D pixel-based strategy game that uniquely merges the depth of Tower Defense with the addictive simplicity of Clicker styles.">
   <meta property="twitter:image" content="https://dorianbayart.github.io/sandbox/games/pixel-fortress/logo.svg">
+
+  <!-- iOS -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -63,6 +67,7 @@
     html {
       margin: 0;
       padding: 0;
+      padding: env(safe-area-inset-top, 20px) env(safe-area-inset-right, 20px) env(safe-area-inset-bottom, 20px) env(safe-area-inset-left, 20px);
       overflow: hidden;
       height: var(--app-height);
       width: var(--app-width);
@@ -72,7 +77,6 @@
       font-size: max(1.75dvh, 16px);
       display: flex;
       justify-content: center;
-      width: 100dvw;
       cursor: crosshair;
     }
 
@@ -80,7 +84,7 @@
       position: absolute;
       top: 0;
       left: 0;
-      height: auto;
+      height: var(--app-height);
       max-height: var(--app-height);
       width: var(--app-width);
       object-fit: contain;

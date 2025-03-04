@@ -1,5 +1,6 @@
 export { loadAndSplitImage, loadSprites, offscreenSprite, sprites, unitsSprites, unitsSpritesDescription, SPRITE_SIZE, UNIT_SPRITE_SIZE }
-;('use strict')
+
+'use strict'
 
 import { arrayToHash } from 'utils'
 

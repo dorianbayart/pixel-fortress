@@ -8,12 +8,16 @@ export { setupViewportHandling }
  */
 function updateViewportVariables() {
     // Get the actual viewport height and width
-    const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight
-    const vw = window.visualViewport ? window.visualViewport.width : window.innerWidth
+    const vh = Math.min(window.visualViewport?.height ?? window.innerHeight, window.screen.height)
+    const vw = window.visualViewport?.width ?? window.innerWidth
+
+    // Get the height of the address bar and add it to the viewport height
+    const addressBarHeight = document.documentElement.clientHeight - vh
+    vh += addressBarHeight
 
     // Set the CSS variables
-    document.documentElement.style.setProperty('--app-height', `${vh}px`)
-    document.documentElement.style.setProperty('--app-width', `${vw}px`)
+    document.documentElement.style.setProperty('--app-height', `${vh | 0}px`)
+    document.documentElement.style.setProperty('--app-width', `${vw | 0}px`)
 }
 
 // Function to add to your initialization code

@@ -32,12 +32,6 @@ async function initializeGame() {
   // Perform initial resize
   await handleWindowResize()
 
-  // Load the custom font
-  await loadGameFont()
-
-  // Load game sprites
-  await loadSprites()
-
   // Set up additional viewport listeners for mobile
   if (window.visualViewport) {
     window.visualViewport.addEventListener('resize', handleWindowResize)
@@ -54,6 +48,14 @@ async function initializeGame() {
       // TODO: Reset UI to default state
     }
   })
+
+
+  // Load game sprites
+  loadSprites()
+  
+  // Load the custom font
+  loadGameFont()
+
 }
 
 // Start the game
@@ -63,7 +65,7 @@ async function startGame(sprites) {
 
   if(ready) {
     showDebugMessage('New map generated !')
-    
+
     // Set game state to playing
     gameState.gameStatus = 'playing'
     
