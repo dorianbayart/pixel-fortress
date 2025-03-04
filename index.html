@@ -46,6 +46,8 @@
     :root {
       --font-base: "Jacquarda-Bastarda-9", fantasy, monospace, system-ui, sans-serif;
       --font-color: gold;
+      --app-height: 100dvh;
+      --app-width: 100dvw;
     }
 
     * {
@@ -62,7 +64,8 @@
       margin: 0;
       padding: 0;
       overflow: hidden;
-      height: 100dvh;
+      height: var(--app-height);
+      width: var(--app-width);
       background: linear-gradient(0deg, #228b22, #1a1a1a);
       background-size: 100% 125%;
       font-family: var(--font-base);
@@ -77,8 +80,11 @@
       top: 0;
       left: 0;
       height: auto;
-      width: 100dvw;
+      max-height: var(--app-height);
+      width: var(--app-width);
+      object-fit: contain;
       cursor: none;
+      touch-action: none;
       image-rendering: pixelated;
     }
 
@@ -175,6 +181,7 @@
         "ui": "./js/ui.js",
         "unit": "./js/unit.js",
         "utils": "./js/utils.js",
+        "viewport": "./js/viewport.js",
         "worker": "./js/worker.js",
         "pixijs": "./lib/pixi.mjs"
       }

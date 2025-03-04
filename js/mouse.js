@@ -8,7 +8,7 @@ import { SPRITE_SIZE, loadAndSplitImage, offscreenSprite } from 'sprites'
 
 
 const ZOOM = {
-  FACTOR: 0.1,
+  FACTOR: 0.066,
   MAX: 4,
   MIN: 1,
   initial: 2

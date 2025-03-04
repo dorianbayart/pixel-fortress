@@ -12,110 +12,118 @@ import { initUI, showDebugMessage } from 'ui'
 
 // Initialize the game
 async function initializeGame() {
-    // Set initial game state
-    gameState.gameStatus = 'menu'
+  // Set initial game state
+  gameState.gameStatus = 'menu'
 
-    // Initialize home menu
-    await initHomeMenu()
-    
-    // Initialize canvases
-    await initCanvases()
-    
-    // Initialize mouse handling
-    const mouseModule = await import('mouse')
-    const mouseInstance = new mouseModule.Mouse()
-    await mouseInstance.initMouse(document.getElementById('canvas'), SPRITE_SIZE)
+  // Initialize home menu
+  await initHomeMenu()
   
-    // Initialize UI with mouse instance
-    await initUI(mouseInstance)
-    
-    // Perform initial resize
-    await handleWindowResize()
+  // Initialize canvases
+  await initCanvases()
   
-    // Load the custom font
-    await loadGameFont()
-  
-    // Load game sprites
-    await loadSprites()
+  // Initialize mouse handling
+  const mouseModule = await import('mouse')
+  const mouseInstance = new mouseModule.Mouse()
+  await mouseInstance.initMouse(document.getElementById('canvas'), SPRITE_SIZE)
 
-    // Listen for state changes
-    gameState.events.on('game-status-changed', (status) => {
-      if (status === 'initialize') {
-        startGame(sprites)
-      } else if (status === 'playing') {
-        showDebugMessage('New map generated !')
-      } else if (status === 'menu') {
-        // TODO: Reset UI to default state
-      }
-    })
+  // Initialize UI with mouse instance
+  await initUI(mouseInstance)
+  
+  // Perform initial resize
+  await handleWindowResize()
+
+  // Load the custom font
+  await loadGameFont()
+
+  // Load game sprites
+  await loadSprites()
+
+  // Set up additional viewport listeners for mobile
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', handleWindowResize)
+    window.visualViewport.addEventListener('scroll', handleWindowResize)
   }
-  
-  // Start the game
-  async function startGame(sprites) {
-    // Initialize game state
-    const ready = await initGame(sprites)
 
-    if(ready) {
-      // Set game state to playing
-      gameState.gameStatus = 'playing'
+  // Listen for state changes
+  gameState.events.on('game-status-changed', (status) => {
+    if (status === 'initialize') {
+      startGame(sprites)
+    } else if (status === 'playing') {
       
-      // Start game loop
-      gameLoop()
-      
-      // Show debug button
-      document.getElementById('debugButton').style.display = 'block'
-
-      app.canvas.addEventListener('mouseenter', () => {
-        gameState.gameStatus = 'playing'
-      })
-
-      app.canvas.addEventListener('mouseleave', () => {
-        gameState.gameStatus = 'paused'
-      })
-    } else {
-      showDebugMessage('Cannot generate a valid map ... :(')
-      // Set game state to menu
-      gameState.gameStatus = 'menu'
+    } else if (status === 'menu') {
+      // TODO: Reset UI to default state
     }
-  }
-  
-  // Handle window resize
-  async function handleWindowResize() {
-    // Resize all canvases
-    resizeCanvases()
+  })
+}
 
-    // Update Mouse properties
-    gameState.UI.mouse._rectUpdateNeeded = true
+// Start the game
+async function startGame(sprites) {
+  // Initialize game state
+  const ready = await initGame(sprites)
+
+  if(ready) {
+    showDebugMessage('New map generated !')
+    
+    // Set game state to playing
+    gameState.gameStatus = 'playing'
+    
+    // Start game loop
+    gameLoop()
+    
+    // Show debug button
+    document.getElementById('debugButton').style.display = 'block'
+
+    app.canvas.addEventListener('mouseenter', () => {
+      gameState.gameStatus = 'playing'
+    })
+
+    app.canvas.addEventListener('mouseleave', () => {
+      gameState.gameStatus = 'paused'
+    })
+  } else {
+    showDebugMessage('Cannot generate a valid map ... :(')
+    // Set game state to menu
+    gameState.gameStatus = 'menu'
+  }
+}
+
+// Handle window resize
+async function handleWindowResize() {
+  // Resize all canvases
+  resizeCanvases()
+
+  // Update Mouse properties
+  gameState.UI.mouse._rectUpdateNeeded = true
+
+  // Redraw the background
+  drawBack()
+
+  // Ensure focus returns to window (fixes key events on some platforms)
+  window.focus()
   
-    // Redraw the background
-    drawBack()
+  return true
+}
+
+// Load the custom font
+async function loadGameFont() {
+  const font = new FontFace('Jacquarda-Bastarda-9', `url('assets/fonts/Jacquarda-Bastarda-9.woff2')`)
+  console.log('Loading font: ' + font.family)
   
-    // Ensure focus returns to window (fixes key events on some platforms)
-    window.focus()
+  try {
+    const fontLoaded = await font.load()
+    console.log('Font loaded!')
+    document.fonts.add(font)
+    
+    // Make font-loaded elements visible
+    document.querySelectorAll('.font-to-load').forEach((element) => element.classList.remove('font-to-load'))
     
     return true
-  }
-  
-  // Load the custom font
-  async function loadGameFont() {
-    const font = new FontFace('Jacquarda-Bastarda-9', `url('assets/fonts/Jacquarda-Bastarda-9.woff2')`)
-    console.log('Loading font: ' + font.family)
+  } catch (err) {
+    console.error('Error loading font:', err)
     
-    try {
-      const fontLoaded = await font.load()
-      console.log('Font loaded!')
-      document.fonts.add(font)
-      
-      // Make font-loaded elements visible
-      document.querySelectorAll('.font-to-load').forEach((element) => element.classList.remove('font-to-load'))
-      
-      return true
-    } catch (err) {
-      console.error('Error loading font:', err)
-      
-      // Make elements visible anyway in case of font error
-      document.querySelectorAll('.font-to-load').forEach((element) => element.classList.remove('font-to-load'))
-      
-      return false
-    }
+    // Make elements visible anyway in case of font error
+    document.querySelectorAll('.font-to-load').forEach((element) => element.classList.remove('font-to-load'))
+    
+    return false
   }
+}

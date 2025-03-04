@@ -32,7 +32,6 @@ const terrainSpriteMap = new Map()
 let canvasWidth = 0
 let canvasHeight = 0
 let dpr = 1
-const desiredAspectRatio = MAP_WIDTH / MAP_HEIGHT
 
 // Sprite coordinates for special tiles
 let spriteCoords_Start = { x: 21, y: 5 }
@@ -96,19 +95,16 @@ async function initCanvases() {
   // Create Pixi Application
   app = new PIXI.Application()
   await app.init({
-      width: MAP_WIDTH * SPRITE_SIZE,
-      height: MAP_HEIGHT * SPRITE_SIZE,
-      // backgroundColor: 0x228b22, // Forestgreen background
-      backgroundAlpha: 0,
-      resolution: dpr,
-      autoDensity: true, // This adjusts the CSS size automatically
-      antialias: false,
-      canvas: document.getElementById('canvas'),
-      // resizeTo: window
-    })
-
-  // Enable crisp pixel art rendering
-  // PIXI.settings.SCALE_MODE = 'nearest'
+    width: MAP_WIDTH * SPRITE_SIZE,
+    height: MAP_HEIGHT * SPRITE_SIZE,
+    // backgroundColor: 0x228b22, // Forestgreen background
+    backgroundAlpha: 0,
+    resolution: dpr,
+    autoDensity: true, // This adjusts the CSS size automatically
+    antialias: false,
+    canvas: document.getElementById('canvas'),
+    // resizeTo: window
+  })
   
   // Add the view to the document
   document.getElementById('canvas').replaceWith(app.canvas)
@@ -140,21 +136,28 @@ function resizeCanvases() {
   dpr = globalThis.devicePixelRatio || 1
 
   // Calculate new dimensions while maintaining aspect ratio
-  const screenWidth = globalThis.innerWidth || 800
-  const screenHeight = globalThis.innerHeight || 800
-  const screenAspectRatio = screenWidth / screenHeight
+  const screenWidth = (window.visualViewport?.width ?? window.innerWidth) || 800
+  const screenHeight = (window.visualViewport?.height ?? window.innerHeight) || 800
+
+  // Calculate available space, accounting for potential UI elements
+  // This makes sure we stay within the visible area
+  const availableWidth = Math.min(screenWidth, document.documentElement.clientWidth)
+  const availableHeight = Math.min(screenHeight, document.documentElement.clientHeight)
+
+  const screenAspectRatio = availableWidth / availableHeight
+  const desiredAspectRatio = MAP_WIDTH / MAP_HEIGHT
 
   if (screenAspectRatio > desiredAspectRatio) {
     // Screen is wider than our aspect ratio, set height to match screen and calculate width
-    canvasHeight = screenHeight
+    canvasHeight = availableHeight
     canvasWidth = canvasHeight * desiredAspectRatio
   } else {
     // Screen is taller than our aspect ratio, set width to match screen and calculate height
-    canvasWidth = screenWidth
+    canvasWidth = availableWidth
     canvasHeight = canvasWidth / desiredAspectRatio
   }
 
-  
+  // Set renderer resolution based on device pixel ratio
   app.renderer.resolution = dpr
   
   // Resize the renderer
