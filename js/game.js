@@ -49,15 +49,16 @@ const generateMap = async () => {
   // Clean the pathfinding algorithm
   clearPathCache()
 
-  // Initialize map dimensions based on current viewport
-  initMapDimensions()
+  // Get map dimensions
   const { width: MAP_WIDTH, height: MAP_HEIGHT, maxWeight: MAX_WEIGHT } = getMapDimensions()
 
   // Create the map structure
   gameState.map = new Array(MAP_WIDTH).fill(null).map(() => new Array(MAP_HEIGHT).fill(null))
   
-  // Generate a random seed
-  gameState.mapSeed = Math.floor(Math.random() * 10000)
+  // Generate a random seed if not already set
+  if (!gameState.mapSeed) {
+    gameState.mapSeed = Math.floor(Math.random() * 10000)
+  }
   
   const noise = new PerlinNoise(gameState.mapSeed)
   
@@ -69,7 +70,7 @@ const generateMap = async () => {
     SAND: { type: 'SAND', weight: 1, spriteRange: { x: [3, 3], y: [3, 3] } },
   }
 
-  const NOISE_SCALE = 0.14; // Controls terrain smoothness
+  const NOISE_SCALE = 0.08; // Controls terrain smoothness
   const TERRAIN_THRESHOLD = {
     WATER: 0.33,
     ROCK: 0.34,

@@ -1,16 +1,9 @@
-export { getTile }
+export { getTile, loadPredefinedMap }
 
 'use strict'
 
 import { getCanvasDimensions } from 'dimensions'
 import gameState from 'state'
-
-//const MAP_WIDTH = (globalThis.innerWidth > globalThis.innerHeight ? globalThis.innerWidth / SPRITE_SIZE * 1.25 : globalThis.innerHeight /1.5 / SPRITE_SIZE) / 2 | 0
-// const MAP_WIDTH = window.innerWidth > window.innerHeight ? 48 : 24
-// const MAP_HEIGHT = MAP_WIDTH * window.innerHeight / window.innerWidth | 0
-// const MAP_WIDTH = (window.visualViewport?.width ?? window.innerWidth) * (window.devicePixelRatio || 1) / SPRITE_SIZE | 0
-// const MAP_HEIGHT = (window.visualViewport?.height ?? window.innerHeight) * (window.devicePixelRatio || 1) / SPRITE_SIZE | 0
-// const MAX_WEIGHT = 99999999
 
 // Get map dimensions from centralized system
 const { width: MAP_WIDTH, height: MAP_HEIGHT, maxWeight: MAX_WEIGHT } = getCanvasDimensions()
@@ -22,3 +15,25 @@ const { width: MAP_WIDTH, height: MAP_HEIGHT, maxWeight: MAX_WEIGHT } = getCanva
  * @returns {Object} Tile object
  */
 const getTile = (x, y) => gameState.map[x]?.[y]
+
+/**
+ * Load a predefined map instead of generating one
+ * @param {string|number} mapId - Identifier for the map to load
+ * @returns {Promise<boolean>} Success status
+ */
+const loadPredefinedMap = async (mapId) => {
+    // Placeholder for future implementation
+    try {
+      // Example: This could later fetch a map definition from maps/seeds.json
+      const predefinedSeed = parseInt(mapId, 10)
+      if (!isNaN(predefinedSeed)) {
+        // If mapId is a number/string representing a seed, use it
+        gameState.mapSeed = predefinedSeed
+        return true
+      }
+      return false
+    } catch (error) {
+      console.error('Error loading predefined map:', error)
+      return false
+    }
+  }

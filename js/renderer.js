@@ -195,12 +195,18 @@ function updateViewport(viewTransform) {
   const scale = viewTransform.scale
   
   // Calculate visible area in world coordinates
-  viewport.x = Math.floor(viewTransform.x / SPRITE_SIZE)
-  viewport.y = Math.floor(viewTransform.y / SPRITE_SIZE)
+  viewport.x = Math.max(0, viewTransform.x / SPRITE_SIZE | 0)
+  viewport.y = Math.max(0, viewTransform.y / SPRITE_SIZE | 0)
+  
+  // Calculate visible viewport size in tiles
   viewport.width = Math.ceil(app.renderer.width / (SPRITE_SIZE * scale))
   viewport.height = Math.ceil(app.renderer.height / (SPRITE_SIZE * scale))
   
-  // Add buffer area
+  // Add buffer area for smoother scrolling
+  // Increase buffer for larger maps to reduce re-rendering frequency
+  viewport.buffer = Math.max(4, Math.ceil(Math.min(viewport.width, viewport.height) * 0.1))
+
+  // Calculate boundaries with buffer
   viewport.startX = Math.max(0, viewport.x - viewport.buffer)
   viewport.startY = Math.max(0, viewport.y - viewport.buffer)
   viewport.endX = Math.min(width, viewport.x + viewport.width + viewport.buffer)
