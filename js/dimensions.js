@@ -45,8 +45,8 @@ export {
  */
 function initMapDimensions() {
     // Get the visual viewport dimensions
-    const viewportWidth = window.visualViewport?.width ?? window.innerWidth
-    const viewportHeight = window.visualViewport?.height ?? window.innerHeight
+    const viewportWidth = getSafeViewportWidth()
+    const viewportHeight = getSafeViewportHeight()
 
     // Calculate how many tiles we can fit on screen
     // We divide by SPRITE_SIZE to convert pixels to tiles
@@ -64,8 +64,8 @@ function initMapDimensions() {
  */
 function updateDimensions() {
     // Get the visual viewport dimensions if available, otherwise use window
-    const viewportWidth = window.visualViewport?.width ?? window.innerWidth
-    const viewportHeight = window.visualViewport?.height ?? window.innerHeight
+    const viewportWidth = getSafeViewportWidth()
+    const viewportHeight = getSafeViewportHeight()
 
     // Set CSS variables for layout
     document.documentElement.style.setProperty('--app-width', `${viewportWidth}px`)
@@ -78,6 +78,38 @@ function updateDimensions() {
     // Log new dimensions for debugging
     console.log(`Canvas: ${canvasWidth} x ${canvasHeight} pixels`)
     console.log(`Viewport: ${viewportWidth} x ${viewportHeight} pixels (DPR: ${dpr})`)
+}
+
+/**
+ * Get viewport width accounting for safe areas
+ * @returns {number} Safe viewport width
+ */
+function getSafeViewportWidth() {
+    // Get the visual viewport dimensions if available, otherwise use window
+    const baseWidth = window.visualViewport?.width ?? window.innerWidth
+    
+    // Get safe area insets
+    const safeAreaLeft = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sal') || '0')
+    const safeAreaRight = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sar') || '0')
+    
+    // Return width minus safe areas
+    return baseWidth - safeAreaLeft - safeAreaRight | 0
+}
+
+/**
+ * Get viewport height accounting for safe areas
+ * @returns {number} Safe viewport height
+ */
+function getSafeViewportHeight() {
+    // Get the visual viewport dimensions if available, otherwise use window
+    const baseHeight = window.visualViewport?.height ?? window.innerHeight
+    
+    // Get safe area insets
+    const safeAreaTop = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sat') || '0')
+    const safeAreaBottom = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sab') || '0')
+    
+    // Return height minus safe areas
+    return baseHeight - safeAreaTop - safeAreaBottom | 0
 }
 
 /**

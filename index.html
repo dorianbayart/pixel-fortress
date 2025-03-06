@@ -48,15 +48,21 @@
     /* @import url('https://fonts.googleapis.com/css2?family=Jacquarda+Bastarda+9&display=swap'); */
 
     :root {
+      --sat: env(safe-area-inset-top, 0px);
+      --sar: env(safe-area-inset-right, 0px);
+      --sab: env(safe-area-inset-bottom, 0px);
+      --sal: env(safe-area-inset-left, 0px);
+      
       --font-base: "Jacquarda-Bastarda-9", fantasy, monospace, system-ui, sans-serif;
       --font-color: gold;
-      --app-height: 100dvh;
-      --app-width: 100dvw;
+      --app-height: 100vh;
+      --app-width: 100vw;
     }
 
     * {
       user-select: none;
       transition: opacity 750ms ease-in-out;
+      box-sizing: border-box;
     }
 
     .font-to-load {
@@ -67,10 +73,10 @@
     html {
       margin: 0;
       padding: 0;
-      padding: env(safe-area-inset-top, 20px) env(safe-area-inset-right, 20px) env(safe-area-inset-bottom, 20px) env(safe-area-inset-left, 20px);
       overflow: hidden;
-      height: var(--app-height);
-      width: var(--app-width);
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
       background: linear-gradient(0deg, #228b22, #1a1a1a);
       background-size: 100% 125%;
       font-family: var(--font-base);
@@ -80,6 +86,11 @@
       cursor: crosshair;
     }
 
+    body {
+      /* Apply safe area padding */
+      padding: var(--sat) var(--sar) var(--sab) var(--sal);
+    }
+
     canvas {
       position: absolute;
       top: 0;
@@ -87,6 +98,7 @@
       height: var(--app-height);
       max-height: var(--app-height);
       width: var(--app-width);
+      overflow: hidden;
       object-fit: contain;
       cursor: none;
       touch-action: none;
