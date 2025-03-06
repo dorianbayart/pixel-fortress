@@ -8,7 +8,7 @@
         "2d"
     ],
     "description": "Pixel Fortress is a 2D pixel-based strategy game that uniquely merges the depth of Tower Defense with the addictive simplicity of Clicker styles.",
-    "display": "fullscreen",
+    "display": "standalone",
     "icons": [
         {
             "sizes": "16x16",
