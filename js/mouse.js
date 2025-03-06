@@ -176,8 +176,8 @@ class Mouse {
     pixiView.addEventListener('pointermove', (e) => {
       // Handle dragging (panning the view)
       if (this.isDragging) {
-        const dx = (e.clientX - this.lastX) / this.viewTransform.scale
-        const dy = (e.clientY - this.lastY) / this.viewTransform.scale
+        const dx = (e.clientX - this.lastX) / this.viewTransform.scale * getCanvasDimensions().dpr
+        const dy = (e.clientY - this.lastY) / this.viewTransform.scale * getCanvasDimensions().dpr
         
         // Update view offset
         this.viewTransform.x -= dx
@@ -230,8 +230,8 @@ class Mouse {
       
       if (e.touches.length === 1 && this.isDragging) { // Single finger move
         // Calculate drag distance
-        const dx = (e.touches[0].clientX - this.lastX) / this.viewTransform.scale
-        const dy = (e.touches[0].clientY - this.lastY) / this.viewTransform.scale
+        const dx = (e.touches[0].clientX - this.lastX) / this.viewTransform.scale * getCanvasDimensions().dpr
+        const dy = (e.touches[0].clientY - this.lastY) / this.viewTransform.scale * getCanvasDimensions().dpr
         
         // Update view offset
         this.viewTransform.x -= dx
