@@ -32,9 +32,6 @@ export {
     // Get the device pixel ratio
     dpr = window.devicePixelRatio || 1
     
-    // Initialize map dimensions
-    initMapDimensions()
-    
     // Set initial dimensions
     updateDimensions()
   }
@@ -44,15 +41,8 @@ export {
  * Should only be called when creating a new map
  */
 function initMapDimensions() {
-    // Get the visual viewport dimensions
-    const viewportWidth = getSafeViewportWidth()
-    const viewportHeight = getSafeViewportHeight()
-
-    // Calculate how many tiles we can fit on screen
-    // We divide by SPRITE_SIZE to convert pixels to tiles
-    // We account for device pixel ratio to ensure consistent sizing
-    MAP_WIDTH = Math.ceil(viewportWidth * dpr / SPRITE_SIZE)
-    MAP_HEIGHT = Math.ceil(viewportHeight * dpr / SPRITE_SIZE)
+    MAP_WIDTH = 60
+    MAP_HEIGHT = 100
 
     // Log new map dimensions
     console.log(`Map initialized: ${MAP_WIDTH} x ${MAP_HEIGHT} tiles`)
@@ -72,8 +62,8 @@ function updateDimensions() {
     document.documentElement.style.setProperty('--app-height', `${viewportHeight}px`)
 
     // Store canvas dimensions in pixels
-    canvasWidth = MAP_WIDTH * SPRITE_SIZE
-    canvasHeight = MAP_HEIGHT * SPRITE_SIZE
+    canvasWidth = viewportWidth * dpr
+    canvasHeight = viewportHeight * dpr
 
     // Log new dimensions for debugging
     console.log(`Canvas: ${canvasWidth} x ${canvasHeight} pixels`)

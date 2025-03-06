@@ -2,7 +2,7 @@ export { Mouse }
 
 'use strict'
 
-import { getCanvasDimensions, getTileSize } from 'dimensions'
+import { getCanvasDimensions, getMapDimensions, getTileSize } from 'dimensions'
 import { app } from 'renderer'
 import { loadAndSplitImage, offscreenSprite } from 'sprites'
 
@@ -44,21 +44,10 @@ class Mouse {
 
     // Track if initial position has been set
     this.initialPositionSet = false
-
-    // Map boundaries in world coordinates
-    this.mapBounds = {
-      minX: 0,
-      minY: 0,
-      maxX: getCanvasDimensions().width,
-      maxY: getCanvasDimensions().height
-    }
   }
 
   async initMouse(canvas) {
     this.canvas = canvas
-
-    // Set initial camera position after a short delay to ensure renderer is ready
-    setTimeout(() => this.setInitialCameraPosition(), 100)
 
     // Load cursor sprite
     const mouseSprite = (await loadAndSplitImage('assets/ui/crosshair.png', 9))[0][0]
@@ -319,28 +308,31 @@ class Mouse {
 
   // Apply constraints to keep the map within view bounds
   applyBoundaryConstraints() {
+    const { width, height } = getMapDimensions()
+    const mapWidth = width * getTileSize()
+    const mapHeight = height * getTileSize()
     const viewWidth = app.renderer.width / this.viewTransform.scale
     const viewHeight = app.renderer.height / this.viewTransform.scale
     
     // If zoomed out enough to see entire map width, center it
-    if (viewWidth >= this.mapBounds.maxX) {
-      this.viewTransform.x = (this.mapBounds.maxX - viewWidth) / 2
+    if (viewWidth >= mapWidth) {
+      this.viewTransform.x = (mapWidth - viewWidth) / 2
     } else {
       // Otherwise, prevent scrolling past map edges
       this.viewTransform.x = Math.max(
         0, 
-        Math.min(this.viewTransform.x, this.mapBounds.maxX - viewWidth)
+        Math.min(this.viewTransform.x, mapWidth - viewWidth)
       )
     }
     
     // If zoomed out enough to see entire map height, center it
-    if (viewHeight >= this.mapBounds.maxY) {
-      this.viewTransform.y = (this.mapBounds.maxY - viewHeight) / 2
+    if (viewHeight >= mapHeight) {
+      this.viewTransform.y = (mapHeight - viewHeight) / 2
     } else {
       // Otherwise, prevent scrolling past map edges
       this.viewTransform.y = Math.max(
         0, 
-        Math.min(this.viewTransform.y, this.mapBounds.maxY - viewHeight)
+        Math.min(this.viewTransform.y, mapHeight - viewHeight)
       )
     }
   }
@@ -349,15 +341,19 @@ class Mouse {
   setInitialCameraPosition() {
     if (this.initialPositionSet || !app.renderer) return
     
+    // Get map dimensions in pixels
+    const mapWidth = getMapDimensions().width * getTileSize()
+    const mapHeight = getMapDimensions().height * getTileSize()
+    
     // Calculate visible view dimensions in world space at current scale
     const viewWidth = app.renderer.width / this.viewTransform.scale
     const viewHeight = app.renderer.height / this.viewTransform.scale
     
     // Set x position to center the view horizontally on the map
-    this.viewTransform.x = (getCanvasDimensions().width - viewWidth) / 2
+    this.viewTransform.x = (mapWidth - viewWidth) / 2
     
     // Set y position to show the bottom of the map
-    this.viewTransform.y = getCanvasDimensions().height - viewHeight
+    this.viewTransform.y = mapHeight - viewHeight
     
     // Apply constraints to ensure valid position
     this.applyBoundaryConstraints()

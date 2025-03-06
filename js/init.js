@@ -2,7 +2,7 @@ export { handleWindowResize, initializeGame }
 
 'use strict'
 
-import { getTileSize, initDimensions, updateDimensions } from 'dimensions'
+import { getTileSize, initDimensions, initMapDimensions, updateDimensions } from 'dimensions'
 import { gameLoop, initGame } from 'game'
 import { drawBack } from 'globals'
 import { initHomeMenu } from 'menu'
@@ -45,6 +45,7 @@ async function initializeGame() {
   // Listen for state changes
   gameState.events.on('game-status-changed', (status) => {
     if (status === 'initialize') {
+      initMapDimensions()
       startGame(sprites)
     } else if (status === 'playing') {
       
@@ -68,6 +69,9 @@ async function startGame(sprites) {
   const ready = await initGame(sprites)
 
   if(ready) {
+    // Set initial camera position
+    gameState.UI.mouse.setInitialCameraPosition()
+    
     showDebugMessage('New map generated !')
 
     // Set game state to playing
