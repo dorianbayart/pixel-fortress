@@ -8,10 +8,11 @@ import { loadAndSplitImage, offscreenSprite } from 'sprites'
 
 
 const ZOOM = {
-  FACTOR: 0.066,
-  MAX: 4,
-  MIN: 1,
-  initial: 2
+  TILES: 24,
+  FACTOR: 0.05,
+  MAX: 10,
+  MIN: 0.75,
+  initial: null,
 }
 
 class Mouse {
@@ -31,13 +32,13 @@ class Mouse {
     this.lastX = 0
     this.lastY = 0
     this.prevDistance = 0 // distance between fingers
-    this.scale = ZOOM.initial
+    this.scale = null,
     this.sprite = null
     this.zoomChanged = false
 
     // Store view transformation for zoom calculation
     this.viewTransform = {
-      scale: ZOOM.initial,
+      scale: null,
       x: 0,
       y: 0
     }
@@ -75,12 +76,12 @@ class Mouse {
         const normalizedY = this.yPixels / this._viewHeight
         
         // Convert to world coordinates based on current view
-        this.worldX = ((normalizedX * app.renderer.width / this.viewTransform.scale) + this.viewTransform.x)
-        this.worldY = ((normalizedY * app.renderer.height / this.viewTransform.scale) + this.viewTransform.y)
+        this.worldX = ((normalizedX * app.renderer.width / (this.viewTransform.scale || 1)) + this.viewTransform.x)
+        this.worldY = ((normalizedY * app.renderer.height / (this.viewTransform.scale || 1)) + this.viewTransform.y)
         
         // Convert to grid coordinates
-        this.x = Math.floor(this.worldX / getTileSize())
-        this.y = Math.floor(this.worldY / getTileSize())
+        this.x = (this.worldX / getTileSize()) | 0
+        this.y = (this.worldY / getTileSize()) | 0
 
         this._needWorldCoords = false
       }
@@ -131,10 +132,18 @@ class Mouse {
       const zoomDirection = e.deltaY < 0 ? 1 : -1
       const zoomFactor = ZOOM.FACTOR * zoomDirection
       
+      // Get map dimensions
+      const { width: mapWidth, height: mapHeight } = getMapDimensions()
+      const mapPixelWidth = mapWidth * getTileSize()
+      const mapPixelHeight = mapHeight * getTileSize()
+      
+      // Calculate min zoom based on map width and/or height (to prevent zooming out too much)
+      const minZoom = Math.max(ZOOM.MIN, app.renderer.width / mapPixelWidth, app.renderer.height / mapPixelHeight)
+      
       // Calculate new scale
       const newScale = Math.max(
-        ZOOM.MIN, 
-        Math.min(ZOOM.MAX, this.viewTransform.scale * (1 + zoomFactor))
+        minZoom, 
+        Math.min(this._calculateInitialZoom(), this.viewTransform.scale * (1 + zoomFactor))
       )
       
       // If scale changed, update transforms
@@ -159,6 +168,7 @@ class Mouse {
         // Set flag for renderer to update
         this.zoomChanged = true
       }
+
     })
 
     // Mouse move event
@@ -252,11 +262,19 @@ class Mouse {
         // Store world position before zoom
         const pinchWorldX = this.worldX
         const pinchWorldY = this.worldY
+
+        // Get map dimensions
+        const { width: mapWidth, height: mapHeight } = getMapDimensions()
+        const mapPixelWidth = mapWidth * getTileSize()
+        const mapPixelHeight = mapHeight * getTileSize()
         
+        // Calculate min zoom based on map width and/or height (to prevent zooming out too much)
+        const minZoom = Math.max(ZOOM.MIN, app.renderer.width / mapPixelWidth, app.renderer.height / mapPixelHeight)
+      
         // Calculate new scale
         const newScale = Math.max(
-          ZOOM.MIN,
-          Math.min(ZOOM.MAX, this.viewTransform.scale * scaleChange)
+          minZoom,
+          Math.min(this._calculateInitialZoom(), this.viewTransform.scale * scaleChange)
         )
         
         // Calculate scale ratio
@@ -306,6 +324,30 @@ class Mouse {
     })
   }
 
+  // 
+  setInitialZoom() {
+    // Update initial zoom value for reference
+    ZOOM.initial = this._calculateInitialZoom()
+    
+    return ZOOM.initial;
+  }
+
+  _calculateInitialZoom() {
+    // Set max tiles to display
+    const mapPixelWidth = ZOOM.TILES * getTileSize()
+    const mapPixelHeight = ZOOM.TILES * getTileSize()
+    
+    // Get canvas dimensions
+    const canvasWidth = app.renderer.width
+    const canvasHeight = app.renderer.height
+    
+    // Calculate zoom
+    const zoomForPortion = Math.min(canvasWidth / mapPixelWidth, canvasHeight / mapPixelHeight)
+    
+    // Ensure zoom is within reasonable bounds
+    return Math.min(Math.max(zoomForPortion, ZOOM.MIN), ZOOM.MAX)
+  }
+
   // Apply constraints to keep the map within view bounds
   applyBoundaryConstraints() {
     const { width, height } = getMapDimensions()
@@ -340,6 +382,11 @@ class Mouse {
   // Set the initial camera position to the bottom center of the map
   setInitialCameraPosition() {
     if (this.initialPositionSet || !app.renderer) return
+
+    // Now calculate initial zoom based on map and canvas size
+    const initialZoom = this.setInitialZoom()
+    this.scale = initialZoom
+    this.viewTransform.scale = initialZoom
     
     // Get map dimensions in pixels
     const mapWidth = getMapDimensions().width * getTileSize()
@@ -350,10 +397,10 @@ class Mouse {
     const viewHeight = app.renderer.height / this.viewTransform.scale
     
     // Set x position to center the view horizontally on the map
-    this.viewTransform.x = (mapWidth - viewWidth) / 2
+    this.viewTransform.x = (mapWidth - viewWidth) / 2 | 0
     
     // Set y position to show the bottom of the map
-    this.viewTransform.y = mapHeight - viewHeight
+    this.viewTransform.y = mapHeight - viewHeight | 0
     
     // Apply constraints to ensure valid position
     this.applyBoundaryConstraints()
@@ -362,7 +409,7 @@ class Mouse {
     this.initialPositionSet = true
     this.zoomChanged = true
     
-    console.log("Initial camera position set to bottom center")
+    console.log("Initial camera position set to bottom center", JSON.stringify(this.getViewTransform()))
   }
   // Method to get current view transform for renderer
   getViewTransform() {

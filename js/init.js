@@ -69,6 +69,9 @@ async function startGame(sprites) {
   const ready = await initGame(sprites)
 
   if(ready) {
+    // Perform initial resize
+    await handleWindowResize()
+    
     // Set initial camera position
     gameState.UI.mouse.setInitialCameraPosition()
     
@@ -99,14 +102,14 @@ async function startGame(sprites) {
 
 // Handle window resize
 async function handleWindowResize() {
+  // Update Mouse properties
+  gameState.UI.mouse._rectUpdateNeeded = true
+
   // Update dimensions
   updateDimensions()
 
   // Resize all canvases
   resizeCanvases()
-
-  // Update Mouse properties
-  gameState.UI.mouse._rectUpdateNeeded = true
 
   // Redraw the background
   drawBack()

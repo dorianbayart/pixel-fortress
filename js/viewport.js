@@ -57,12 +57,12 @@ function applySafeAreaInsets() {
     let viewportHeight = window.visualViewport?.height ?? window.innerHeight
     
     // Adjust viewport dimensions to account for safe areas
-    document.documentElement.style.setProperty('--app-height', `calc(${viewportHeight}px - ${safeAreaTop} - ${safeAreaBottom})`)
+    //document.documentElement.style.setProperty('--app-height', `calc(${viewportHeight}px - ${safeAreaTop} - ${safeAreaBottom})`)
     
     // Set canvas position to respect safe area
     const canvas = document.getElementById('canvas')
     if (canvas) {
-      canvas.style.top = safeAreaTop
-      canvas.style.height = `calc(100dvh - ${safeAreaTop} - ${safeAreaBottom})`
+      //canvas.style.top = safeAreaTop
+      //canvas.style.height = `calc(${viewportHeight}px - ${safeAreaTop} - ${safeAreaBottom})`
     }
   }

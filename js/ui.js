@@ -228,12 +228,6 @@ function drawUI(fps) {
     const SPRITE_SIZE = getTileSize()
     
     statsText.text = [
-      ``,
-      ``,
-      ``,
-      ``,
-      ``,
-      ``,
       `FPS: ${currentFps} | DPR: ${globalThis.devicePixelRatio || 1}`,
       `Game Status: ${gameState.gameStatus}`,
       `Units: ${unitsCount} human, ${aiUnitsCount} AI`,
