@@ -11,7 +11,7 @@ export {
 
 // Constants
 const SPRITE_SIZE = 16 // Base sprite size in pixels
-const MAX_WEIGHT = 99999999 // For pathfinding
+const MAX_WEIGHT = 0x7FFFFFFF // Very large but safe value
 
 // Map dimensions in tiles
 let MAP_WIDTH = 0

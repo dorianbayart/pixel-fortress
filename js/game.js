@@ -36,7 +36,7 @@ const initGame = async (sprites) => {
   let i = 0
   do {
     await generateMap()
-  } while(isMapCorrect() === false && ++i < 100)
+  } while(isMapCorrect() === false && ++i < 250)
 
   await assignSpritesOnMap(sprites)
 
@@ -55,10 +55,8 @@ const generateMap = async () => {
   // Create the map structure
   gameState.map = new Array(MAP_WIDTH).fill(null).map(() => new Array(MAP_HEIGHT).fill(null))
   
-  // Generate a random seed if not already set
-  if (!gameState.mapSeed) {
-    gameState.mapSeed = Math.floor(Math.random() * 10000)
-  }
+  // Generate a random seed
+  gameState.mapSeed = Math.floor(Math.random() * 10000)
   
   const noise = new PerlinNoise(gameState.mapSeed)
   
@@ -189,9 +187,9 @@ const isMapCorrect = () => {
   const { width: MAP_WIDTH, height: MAP_HEIGHT, maxWeight: MAX_WEIGHT } = getMapDimensions()
 
   let isValid = false
-  for (let i = 0; i < MAP_WIDTH; i += Math.max(1, MAP_WIDTH/15 | 0)) {
+  for (let i = 0; i < MAP_WIDTH; i += Math.max(1, MAP_WIDTH | 0)) {
     if(gameState.map[i][MAP_HEIGHT-1].weight < MAX_WEIGHT) {
-      for (let j = 0; j < MAP_WIDTH; j += Math.max(1, MAP_WIDTH/15 | 0)) {
+      for (let j = 0; j < MAP_WIDTH; j += Math.max(1, MAP_WIDTH | 0)) {
         if(gameState.map[j][0].weight < MAX_WEIGHT) {
           isValid = searchPath(i, MAP_HEIGHT-1, j, 0)?.length > 0
           if(isValid === false) return isValid

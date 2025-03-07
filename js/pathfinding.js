@@ -30,7 +30,7 @@ const getHeuristic = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y)
 const isInBounds = (x, y) => x >= 0 && x < getMapDimensions().width && y >= 0 && y < getMapDimensions().height
 
 // Check if a cell is a wall
-const isWall = (x, y) => !isInBounds(x, y) || gameState.map[x][y]?.weight === getMapDimensions().weight
+const isWall = (x, y) => !isInBounds(x, y) || gameState.map[x][y]?.weight === getMapDimensions().maxWeight
 
 
 function aStar(startX, startY, endX, endY) {
@@ -111,8 +111,7 @@ function aStar(startX, startY, endX, endY) {
   const openList = []
   const closedList = new Uint8Array(mapSize)
   const gScores = new Uint32Array(mapSize)
-  const INFINITY_SCORE = 0x7FFFFFFF // Use a large but safe value
-  gScores.fill(INFINITY_SCORE) // Max value for Uint32Array represents "infinity"
+  gScores.fill(getMapDimensions().maxWeight) // Max value for Uint32Array represents "infinity"
 
   let startNode = { x: startX, y: startY }
   let endNode = { x: endX, y: endY }
