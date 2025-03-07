@@ -15,7 +15,7 @@ const loadSprites = async () => {
     SPRITE_SIZE
   )
   unitsSpritesDescription = await (
-    await fetch('./assets/spriteDescription.json')
+    await fetch('./assets/unitsSpritesDescription.json')
   ).json()
 
   unitsSprites = {}

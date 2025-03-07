@@ -20,6 +20,16 @@ const ZOOM = {
   current: 1
 }
 
+const TERRAIN_TYPES = {
+  WATER: { type: 'WATER', weight: getMapDimensions().maxWeight, spriteRange: { x: [0, 0], y: [17, 17] } },
+  ROCK: { type: 'ROCK', weight: getMapDimensions().maxWeight, spriteRange: { x: [0, 1], y: [26, 26] } },
+  TREE: { type: 'TREE', weight: getMapDimensions().maxWeight, spriteRange: { x: [2, 3], y: [26, 27] } },
+  GRASS: { type: 'GRASS', weight: 1, spriteRange: { x: [0, 2], y: [0, 2] } },
+  SAND: { type: 'SAND', weight: 1, spriteRange: { x: [3, 3], y: [3, 3] } },
+  TENT_CYAN: { type: 'TENT_CYAN', weight: getMapDimensions().maxWeight, sprite: { x: 4, y: 33 } },
+  TENT_RED: { type: 'TENT_RED', weight: getMapDimensions().maxWeight, sprite: { x: 14, y: 33 } }
+}
+
 // Game timing variables
 let elapsed = -5000
 let elapsedBack = -5000
@@ -34,13 +44,15 @@ const initGame = async (sprites) => {
   
   // Generate map until we get a valid one
   let i = 0
+  let placedTents = false
   do {
     await generateMap()
-  } while(isMapCorrect() === false && ++i < 250)
+    placedTents = placeTents()
+  } while(!placedTents && ++i < 250)
 
   await assignSpritesOnMap(sprites)
 
-  return isMapCorrect()
+  return placedTents
 }
 
 
@@ -59,14 +71,6 @@ const generateMap = async () => {
   gameState.mapSeed = Math.floor(Math.random() * 10000)
   
   const noise = new PerlinNoise(gameState.mapSeed)
-  
-  const TERRAIN_TYPES = {
-    WATER: { type: 'WATER', weight: MAX_WEIGHT, spriteRange: { x: [0, 0], y: [17, 17] } },
-    ROCK: { type: 'ROCK', weight: MAX_WEIGHT, spriteRange: { x: [0, 1], y: [26, 26] } },
-    TREE: { type: 'TREE', weight: MAX_WEIGHT, spriteRange: { x: [2, 3], y: [26, 27] } },
-    GRASS: { type: 'GRASS', weight: 1, spriteRange: { x: [0, 2], y: [0, 2] } },
-    SAND: { type: 'SAND', weight: 1, spriteRange: { x: [3, 3], y: [3, 3] } },
-  }
 
   const NOISE_SCALE = 0.08; // Controls terrain smoothness
   const TERRAIN_THRESHOLD = {
@@ -102,18 +106,80 @@ const generateMap = async () => {
   }
 }
 
+// Place tents
+const placeTents = () => {
+  const { width: MAP_WIDTH, height: MAP_HEIGHT } = getMapDimensions()
+  
+  // Find suitable locations for tents
+  const humanY = MAP_HEIGHT * 19 / 20 // Near bottom for player
+  const aiY = MAP_HEIGHT / 20 // Near top for AI
+
+  const centerX = MAP_WIDTH / 2
+
+
+  for (let x = centerX - 2; x <= centerX + 2; x++) {
+    for (let y = -2; y <= 2; y++) {
+      if(
+        (x === centerX - 2 && y === -2)
+        || (x === centerX - 2 && y === 2)
+        || (x === centerX + 2 && y === -2)
+        || (x === centerX + 2 && y === 2)
+      ) continue
+
+      // Clean the zone around human tent
+      gameState.map[x][humanY + y] = {
+        uid: (humanY + y) * MAP_WIDTH + x,
+        type: TERRAIN_TYPES.GRASS.type,
+        weight: TERRAIN_TYPES.GRASS.weight
+      }
+
+      // Clean the zone around AI tent
+      gameState.map[x][aiY + y] = {
+        uid: (aiY + y) * MAP_WIDTH + x,
+        type: TERRAIN_TYPES.GRASS.type,
+        weight: TERRAIN_TYPES.GRASS.weight
+      }
+    }
+  }
+
+  if(searchPath(centerX, humanY, centerX, aiY)?.length) {
+    // Set human tent
+    gameState.map[centerX][humanY] = {
+      uid: humanY * MAP_WIDTH + centerX,
+      type: TERRAIN_TYPES.TENT_CYAN.type,
+      team: 'cyan',
+      weight: TERRAIN_TYPES.TENT_CYAN.weight
+    }
+    
+    // Set AI tent
+    gameState.map[centerX][aiY] = {
+      uid: aiY * MAP_WIDTH + centerX,
+      type: TERRAIN_TYPES.TENT_RED.type,
+      team: 'red',
+      weight: TERRAIN_TYPES.TENT_CYAN.weight
+    }
+    
+    // Store tent locations in game state for future reference
+    gameState.tents = {
+      human: { x: centerX, y: humanY },
+      ai: { x: centerX, y: aiY }
+    }
+
+    return true
+  }
+
+  return false
+}
+
+// Check if there's a valid path between top and bottom of map
+const isMapCorrect = () => {
+  return placeTents()
+}
+
 // Assign sprites to map tiles
 const assignSpritesOnMap = async (sprites) => {
   const { width: MAP_WIDTH, height: MAP_HEIGHT, maxWeight: MAX_WEIGHT } = getMapDimensions()
   const SPRITE_SIZE = getTileSize()
-  // Terrain type parameters
-  const TERRAIN_TYPES = {
-    WATER: { type: 'WATER', spriteRange: { x: [0, 0], y: [17, 17] } },
-    ROCK: { type: 'ROCK', spriteRange: { x: [0, 1], y: [26, 26] } },
-    TREE: { type: 'TREE', spriteRange: { x: [2, 3], y: [26, 27] } },
-    GRASS: { type: 'GRASS', spriteRange: { x: [0, 2], y: [0, 2] } },
-    SAND: { type: 'SAND', spriteRange: { x: [3, 3], y: [3, 3] } },
-  }
 
   for (let x = 0; x < MAP_WIDTH; x++) {
     for (let y = 0; y < MAP_HEIGHT; y++) {
@@ -175,29 +241,23 @@ const assignSpritesOnMap = async (sprites) => {
               terrainType.spriteRange.y[0]
           gameState.map[x][y].sprite = offscreenSprite(sprites[spriteX][spriteY], SPRITE_SIZE)
           break;
+        case TERRAIN_TYPES.TENT_CYAN.type:
+          spriteX = terrainType.sprite.x
+          spriteY = terrainType.sprite.y
+          gameState.map[x][y].sprite = offscreenSprite(sprites[spriteX][spriteY], SPRITE_SIZE)
+          gameState.map[x][y].back = offscreenSprite(grassSprite, SPRITE_SIZE)
+          break;
+        case TERRAIN_TYPES.TENT_RED.type:
+          spriteX = terrainType.sprite.x
+          spriteY = terrainType.sprite.y
+          gameState.map[x][y].sprite = offscreenSprite(sprites[spriteX][spriteY], SPRITE_SIZE)
+          gameState.map[x][y].back = offscreenSprite(grassSprite, SPRITE_SIZE)
+          break;
         default:
           break;
       }
     }
   }
-}
-
-// Check if there's a valid path between top and bottom of map
-const isMapCorrect = () => {
-  const { width: MAP_WIDTH, height: MAP_HEIGHT, maxWeight: MAX_WEIGHT } = getMapDimensions()
-
-  let isValid = false
-  for (let i = 0; i < MAP_WIDTH; i += Math.max(1, MAP_WIDTH | 0)) {
-    if(gameState.map[i][MAP_HEIGHT-1].weight < MAX_WEIGHT) {
-      for (let j = 0; j < MAP_WIDTH; j += Math.max(1, MAP_WIDTH | 0)) {
-        if(gameState.map[j][0].weight < MAX_WEIGHT) {
-          isValid = searchPath(i, MAP_HEIGHT-1, j, 0)?.length > 0
-          if(isValid === false) return isValid
-        }
-      }
-    }
-  }
-  return isValid
 }
 
 // Main game loop
