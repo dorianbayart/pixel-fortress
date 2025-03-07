@@ -5,7 +5,7 @@ export {
 
 'use strict'
 
-import { getCanvasDimensions, getMapDimensions, getTileSize } from 'dimensions'
+import { getCanvasDimensions, getMapDimensions, getSafeViewportSize, getTileSize } from 'dimensions'
 import { DEBUG, backDrawn } from 'globals'
 import * as PIXI from 'pixijs'
 import { UNIT_SPRITE_SIZE } from 'sprites'
@@ -128,6 +128,9 @@ async function initCanvases() {
 function resizeCanvases() {
   // Get updated dimensions
   const { width, height, dpr } = getCanvasDimensions()
+  const viewportSize = getSafeViewportSize()
+
+  if(!app?.renderer) return
 
   // Set renderer resolution based on device pixel ratio
   app.renderer.resolution = dpr
@@ -135,54 +138,18 @@ function resizeCanvases() {
   // Resize the renderer
   app.renderer.resize(width, height)
 
-  // Get viewport dimensions for CSS sizing
-  const viewportWidth = getSafeViewportWidth()
-  const viewportHeight = getSafeViewportHeight()
-
   // Update the canvas style - use the viewport dimensions for CSS
-  app.canvas.style.width = `${viewportWidth}px`
-  app.canvas.style.height = `${viewportHeight}px`
+  app.canvas.style.width = `${viewportSize.width}px`
+  app.canvas.style.height = `${viewportSize.height}px`
 
   // Ensure canvas respects safe areas by setting its position
-  app.canvas.style.top = 'var(--sat, 0px)'
-  app.canvas.style.left = 'var(--sal, 0px)'
+  app.canvas.style.top = `${viewportSize.safeArea.top}px`
+  app.canvas.style.left = `${viewportSize.safeArea.left}px`
 
   // Force update for mouse controller
   if (gameState.UI?.mouse) {
     gameState.UI.mouse._rectUpdateNeeded = true
   }
-}
-
-/**
- * Get viewport width accounting for safe areas
- * @returns {number} Safe viewport width
- */
-function getSafeViewportWidth() {
-  // Get the visual viewport dimensions if available, otherwise use window
-  const baseWidth = window.visualViewport?.width ?? window.innerWidth
-  
-  // Get safe area insets (these should be available as CSS variables)
-  const safeAreaLeft = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sal') || '0')
-  const safeAreaRight = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sar') || '0')
-  
-  // Return width minus safe areas
-  return baseWidth - safeAreaLeft - safeAreaRight
-}
-
-/**
- * Get viewport height accounting for safe areas
- * @returns {number} Safe viewport height
- */
-function getSafeViewportHeight() {
-  // Get the visual viewport dimensions if available, otherwise use window
-  const baseHeight = window.visualViewport?.height ?? window.innerHeight
-  
-  // Get safe area insets
-  const safeAreaTop = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sat') || '0')
-  const safeAreaBottom = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sab') || '0')
-  
-  // Return height minus safe areas
-  return baseHeight - safeAreaTop - safeAreaBottom
 }
 
 /**
@@ -453,11 +420,10 @@ function drawBackground(map) {
 
 /**
  * Update zoom level
- * @param {Object} mouse - Mouse state
  */
-function updateZoom(mouse) {
+function updateZoom() {
     // Get current view transform
-    const viewTransform = mouse.getViewTransform()
+    const viewTransform = gameState.UI?.mouse?.getViewTransform()
     
     // Apply transformations to all containers that should be affected by zoom/pan
     const containersToTransform = [

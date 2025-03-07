@@ -145,21 +145,6 @@ function setupEventListeners() {
         break
     }
   })
-  
-  // Handle mouse interactions with Pixi
-  // app.canvas.addEventListener('pointermove', (e) => {
-  //   if (mouse) {
-  //     // Convert client coordinates to canvas coordinates
-  //     const rect = app.canvas.getBoundingClientRect()
-  //     const canvasX = e.clientX - rect.left
-  //     const canvasY = e.clientY - rect.top
-      
-  //     // Update mouse position
-  //     if (mouse.updatePosition) {
-  //       mouse.updatePosition(canvasX, canvasY)
-  //     }
-  //   }
-  // })
 }
 
 /**
@@ -179,7 +164,7 @@ function handleMouseInteraction(map, player) {
 
   // Handle zoom changes
   if (mouse?.zoomChanged) {
-    updateZoom(mouse)
+    updateZoom()
     drawBack()
     mouse.zoomChanged = false
   }

@@ -1,46 +1,34 @@
 export {
     getCanvasDimensions,
     getMapDimensions,
+    getSafeViewportSize,
     getTileSize,
-    initDimensions,
     initMapDimensions,
     updateDimensions
 }
   
-  'use strict'
-  
-  // Constants
-  const SPRITE_SIZE = 16 // Base sprite size in pixels
-  const MAX_WEIGHT = 99999999 // For pathfinding
-  
-  // Map dimensions in tiles
-  let MAP_WIDTH = 0
-  let MAP_HEIGHT = 0
-  
-  // Canvas dimensions in pixels
-  let canvasWidth = 0
-  let canvasHeight = 0
-  
-  // Device pixel ratio
-  let dpr = 1
-  
-  /**
-   * Initialize dimensions system
-   * Should be called once at startup
-   */
-  function initDimensions() {
-    // Get the device pixel ratio
-    dpr = window.devicePixelRatio || 1
-    
-    // Set initial dimensions
-    updateDimensions()
-  }
-  
-  /**
+'use strict'
+
+// Constants
+const SPRITE_SIZE = 16 // Base sprite size in pixels
+const MAX_WEIGHT = 99999999 // For pathfinding
+
+// Map dimensions in tiles
+let MAP_WIDTH = 0
+let MAP_HEIGHT = 0
+
+// Canvas dimensions in pixels
+let canvasWidth = 0
+let canvasHeight = 0
+
+// Device pixel ratio
+let dpr = 1
+
+/**
  * Initialize map dimensions based on viewport size
  * Should only be called when creating a new map
  */
-function initMapDimensions() {
+const initMapDimensions = () => {
     MAP_WIDTH = 60
     MAP_HEIGHT = 120
 
@@ -52,61 +40,53 @@ function initMapDimensions() {
  * Update dimensions based on current window/viewport size
  * This should be called on resize events
  */
-function updateDimensions() {
-    // Get the visual viewport dimensions if available, otherwise use window
-    const viewportWidth = getSafeViewportWidth()
-    const viewportHeight = getSafeViewportHeight()
+const updateDimensions = async () => {
+    dpr = window.devicePixelRatio || 1
 
-    // Set CSS variables for layout
-    document.documentElement.style.setProperty('--app-width', `${viewportWidth}px`)
-    document.documentElement.style.setProperty('--app-height', `${viewportHeight}px`)
+    // Get viewport size accounting for safe areas
+    const viewportSize = getSafeViewportSize()
 
     // Store canvas dimensions in pixels
-    canvasWidth = viewportWidth * dpr
-    canvasHeight = viewportHeight * dpr
+    canvasWidth = viewportSize.width * dpr
+    canvasHeight = viewportSize.height * dpr
+
+    // Set CSS variables for layout
+    document.documentElement.style.setProperty('--app-width', `${viewportSize.width}px`)
+    document.documentElement.style.setProperty('--app-height', `${viewportSize.height}px`)
 
     // Log new dimensions for debugging
     console.log(`Canvas: ${canvasWidth} x ${canvasHeight} pixels`)
-    console.log(`Viewport: ${viewportWidth} x ${viewportHeight} pixels (DPR: ${dpr})`)
+    console.log(`Viewport: ${viewportSize.width} x ${viewportSize.height} pixels (DPR: ${dpr})`)
 }
 
-/**
- * Get viewport width accounting for safe areas
- * @returns {number} Safe viewport width
- */
-function getSafeViewportWidth() {
+const getSafeViewportSize = () => {
     // Get the visual viewport dimensions if available, otherwise use window
     const baseWidth = window.visualViewport?.width ?? window.innerWidth
-    
-    // Get safe area insets
-    const safeAreaLeft = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sal') || '0')
-    const safeAreaRight = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sar') || '0')
-    
-    // Return width minus safe areas
-    return baseWidth - safeAreaLeft - safeAreaRight | 0
-}
-
-/**
- * Get viewport height accounting for safe areas
- * @returns {number} Safe viewport height
- */
-function getSafeViewportHeight() {
-    // Get the visual viewport dimensions if available, otherwise use window
     const baseHeight = window.visualViewport?.height ?? window.innerHeight
-    
+
     // Get safe area insets
     const safeAreaTop = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sat') || '0')
+    const safeAreaRight = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sar') || '0')
     const safeAreaBottom = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sab') || '0')
-    
-    // Return height minus safe areas
-    return baseHeight - safeAreaTop - safeAreaBottom | 0
+    const safeAreaLeft = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sal') || '0')
+
+    return {
+        width: baseWidth - safeAreaLeft - safeAreaRight | 0,
+        height: baseHeight - safeAreaTop - safeAreaBottom | 0,
+        safeArea: {
+        top: safeAreaTop,
+        right: safeAreaRight,
+        bottom: safeAreaBottom,
+        left: safeAreaLeft
+        }
+    }
 }
 
 /**
  * Get current map dimensions in tiles
  * @returns {Object} Object with width and height properties
  */
-function getMapDimensions() {
+const getMapDimensions = () => {
     return {
         width: MAP_WIDTH,
         height: MAP_HEIGHT,
@@ -118,7 +98,7 @@ function getMapDimensions() {
  * Get current canvas dimensions in pixels
  * @returns {Object} Object with width, height, and dpr properties
  */
-function getCanvasDimensions() {
+const getCanvasDimensions = () => {
     return {
         width: canvasWidth,
         height: canvasHeight,
@@ -130,6 +110,6 @@ function getCanvasDimensions() {
  * Get the tile size in pixels
  * @returns {number} Tile size in pixels
  */
-function getTileSize() {
+const getTileSize = () => {
     return SPRITE_SIZE
 }

@@ -2,20 +2,17 @@ export { handleWindowResize, initializeGame }
 
 'use strict'
 
-import { getTileSize, initDimensions, initMapDimensions, updateDimensions } from 'dimensions'
+import { getTileSize, initMapDimensions } from 'dimensions'
 import { gameLoop, initGame } from 'game'
-import { drawBack } from 'globals'
 import { initHomeMenu } from 'menu'
 import { app, initCanvases, resizeCanvases } from 'renderer'
 import { loadSprites, sprites } from 'sprites'
 import gameState from 'state'
 import { initUI, showDebugMessage } from 'ui'
+import { viewportChange } from 'viewport'
 
 // Initialize the game
 async function initializeGame() {
-  // Initialize dimensions system first
-  initDimensions()
-  
   // Set initial game state
   gameState.gameStatus = 'menu'
 
@@ -36,12 +33,6 @@ async function initializeGame() {
   // Perform initial resize
   await handleWindowResize()
 
-  // Set up additional viewport listeners for mobile
-  if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', handleWindowResize)
-    window.visualViewport.addEventListener('scroll', handleWindowResize)
-  }
-
   // Listen for state changes
   gameState.events.on('game-status-changed', (status) => {
     if (status === 'initialize') {
@@ -53,7 +44,6 @@ async function initializeGame() {
       // TODO: Reset UI to default state
     }
   })
-
 
   // Load game sprites
   loadSprites()
@@ -103,19 +93,14 @@ async function startGame(sprites) {
 // Handle window resize
 async function handleWindowResize() {
   // Update Mouse properties
-  gameState.UI.mouse._rectUpdateNeeded = true
+  if (gameState.UI?.mouse) {
+    gameState.UI.mouse._rectUpdateNeeded = true
+  }
 
-  // Update dimensions
-  updateDimensions()
-
+  viewportChange()
+  
   // Resize all canvases
   resizeCanvases()
-
-  // Redraw the background
-  drawBack()
-
-  // Ensure focus returns to window (fixes key events on some platforms)
-  window.focus()
   
   return true
 }

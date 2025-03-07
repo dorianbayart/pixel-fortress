@@ -409,7 +409,7 @@ class Mouse {
     this.initialPositionSet = true
     this.zoomChanged = true
     
-    console.log("Initial camera position set to bottom center", JSON.stringify(this.getViewTransform()))
+    // console.log("Initial camera position set to bottom center", JSON.stringify(this.getViewTransform()))
   }
   // Method to get current view transform for renderer
   getViewTransform() {
