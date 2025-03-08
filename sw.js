@@ -9,6 +9,7 @@ const CACHED_URLS = [
   'sw.js',
   'favicon.ico',
   'css/modal.css',
+  'js/building.js',
   'js/dimensions.js',
   'js/game.js',
   'js/global.js',

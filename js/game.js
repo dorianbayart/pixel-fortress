@@ -2,7 +2,8 @@ export { ZOOM, gameLoop, initGame }
 
 'use strict'
 
-import { getMapDimensions, getTileSize, initMapDimensions } from 'dimensions'
+import { Tent } from 'building'
+import { getMapDimensions, getTileSize } from 'dimensions'
 import { isDrawBackRequested } from 'globals'
 import { clearPathCache, searchPath } from 'pathfinding'
 import { Player, PlayerType } from 'players'
@@ -165,6 +166,10 @@ const placeTents = () => {
       ai: { x: centerX, y: aiY }
     }
 
+    // Create actual tent buildings
+    new Tent(centerX, humanY, 'cyan', gameState.humanPlayer)
+    new Tent(centerX, aiY, 'red', gameState.aiPlayers[0])
+
     return true
   }
 
@@ -262,16 +267,15 @@ const assignSpritesOnMap = async (sprites) => {
 
 // Main game loop
 const gameLoop = () => {
+  const now = performance.now()
+  const delay = now - elapsed | 0
+  elapsed = now
+
   if(gameState.gameStatus === 'paused') {
     requestAnimationFrame(gameLoop)
     return
   }
 
-  const now = performance.now()
-  const delay = now - elapsed | 0
-  elapsed = now
-  
-  
   // Background rendering
   if(isDrawBackRequested() || now - elapsedBack > 500) {
     elapsedBack = now
