@@ -2,8 +2,7 @@ export { Player, PlayerType }
 
 'use strict'
 
-import { getMapDimensions } from 'dimensions'
-import gameState from 'state'
+import gameState, { EventSystem } from 'state'
 import { HumanSoldier, Worker } from 'unit'
 
 const PlayerType = {
@@ -18,11 +17,21 @@ class Player {
     this.units = new Array()
     this.buildings = new Array()
 
+    this.resources = {
+      wood: 10,
+      water: 0,
+      gold: 0,
+      money: 0,
+      population: 0
+    }
+
     if(this.isHuman()) {
       gameState.humanPlayer = this
     } else {
       gameState.addAiPlayer(this)
     }
+
+    this.events = new EventSystem()
   }
 
   getUnits() {
@@ -39,6 +48,26 @@ class Player {
 
   isHuman() {
     return this.type === PlayerType.HUMAN
+  }
+
+  getResources() {
+    // Calculate current population based on units
+    this.resources.population = this.units.length
+    return { ...this.resources }
+  }
+
+  updateResources(updates) {
+    const oldResources = { ...this.resources }
+    this.resources = { ...this.resources, ...updates }
+    this.events.emit('resources-changed', this.resources, oldResources)
+  }
+
+  // Add wood, subtract wood, etc.
+  addResource(type, amount) {
+    if (this.resources[type] !== undefined) {
+      this.resources[type] += amount
+      this.events.emit('resources-changed', this.resources)
+    }
   }
 
   update(delay) {

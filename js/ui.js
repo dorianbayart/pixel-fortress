@@ -4,7 +4,7 @@ export {
   
 'use strict'
   
-import { getMapDimensions, getTileSize } from 'dimensions'
+import { getCanvasDimensions, getMapDimensions, getTileSize } from 'dimensions'
 import { DEBUG, drawBack, toggleDebug } from 'globals'
 import * as PIXI from 'pixijs'
 import { app, containers, updateZoom } from 'renderer'
@@ -19,6 +19,8 @@ let cursorUpdateRafId = null
 // UI elements
 let cursorSprite = null
 let statsText = null
+let topBarContainer = null
+let resourceTexts = {}
 
 /**
  * Initialize UI components
@@ -64,12 +66,15 @@ async function initUI(mouseInstance) {
     drawBack()
   })
   
-  gameState.events.on('game-status-changed', (status) => {
+  gameState.events.on('game-status-changed', async (status) => {
     if (status === 'playing') {
       document.getElementById('homeMenu').style.opacity = 0
       setTimeout(() => {
         document.getElementById('homeMenu').style.display = 'none'
       }, 750)
+
+      // Create the top resource bar
+      await createTopBar()
     }
   })
 }
@@ -228,6 +233,130 @@ function drawUI(fps) {
     ].join('\n')
   }
 }
+
+function updateResourceDisplay(resources) {
+  for (const [resource, value] of Object.entries(resources)) {
+    if (resourceTexts[resource]) {
+      resourceTexts[resource].text = value.toString()
+    }
+  }
+}
+
+async function createTopBar() {
+  if (topBarContainer) return;
+  
+  const { width } = getCanvasDimensions()
+  const barHeight = 32 * getCanvasDimensions().dpr // Fixed height for the top bar
+  
+  // Create the container
+  topBarContainer = new PIXI.Container()
+  
+  // Create background
+  const background = new PIXI.Graphics()
+  background.beginFill(0x114611, 0.85) // Dark green with transparency
+  background.lineStyle(2, 0xFFD700, 0.5) // Gold border
+  background.drawRect(0, 0, width, barHeight)
+  background.endFill()
+  topBarContainer.addChild(background)
+
+  // Get resources from the human player
+  const playerResources = gameState.humanPlayer?.getResources()
+  
+  // Resources to display
+  const resources = [
+    { name: 'wood', icon: '🪵', initial: playerResources?.wood || 0 },
+    { name: 'water', icon: '💧', initial: playerResources?.water || 0 },
+    { name: 'gold', icon: '🪙', initial: playerResources?.gold || 0 },
+    { name: 'money', icon: '💰', initial: playerResources?.money || 0 },
+    { name: 'population', icon: '👥', initial: playerResources?.population || 0 }
+  ]
+  
+  const spacing = width / resources.length
+  
+  // Create each resource display
+  resources.forEach((resource, index) => {
+    const resourceContainer = new PIXI.Container()
+    resourceContainer.position.set(Math.floor(index * spacing + 10 * getCanvasDimensions().dpr), 6 * getCanvasDimensions().dpr)
+    
+    // Icon text (emoji)
+    const icon = new PIXI.Text({
+      text: resource.icon,
+      style: {
+        fontSize: 16 * getCanvasDimensions().dpr,
+        fill: 0xFFD700 // Gold color
+      }
+    })
+    resourceContainer.addChild(icon)
+    
+    // Resource value
+    const text = new PIXI.Text({
+      text: resource.initial.toString(),
+      style: {
+        fontFamily: 'var(--font-base)',
+        fontSize: 14 * getCanvasDimensions().dpr,
+        fill: 0xFFD700
+      }
+    })
+    text.position.set(24 * getCanvasDimensions().dpr, 2 * getCanvasDimensions().dpr) // Position after the icon
+    resourceContainer.addChild(text)
+    
+    // Store reference for updates
+    resourceTexts[resource.name] = text
+    
+    topBarContainer.addChild(resourceContainer)
+  })
+  
+  // Add to UI container
+  containers.ui.addChild(topBarContainer)
+  
+  // Subscribe to resource changes from human player
+  if (gameState.humanPlayer) {
+    gameState.humanPlayer.events.on('resources-changed', updateResourceDisplay)
+  }
+
+  // Subscribe to player changes
+  gameState.events.on('human-player-changed', (player) => {
+    if (player) {
+      player.events.on('resources-changed', updateResourceDisplay)
+      // Initial update with new player's resources
+      updateResourceDisplay(player.getResources())
+    }
+  })
+  
+  // Handle window resize to update positioning
+  gameState.events.on('draw-back-requested-changed', () => {
+    if (gameState.isDrawBackRequested) {
+      updateTopBarPosition()
+    }
+  })
+}
+
+
+function updateTopBarPosition() {
+  if (!topBarContainer) return
+  
+  const { width } = getCanvasDimensions()
+  const barHeight = 32 * getCanvasDimensions().dpr
+  
+  // Update background
+  const background = topBarContainer.getChildAt(0)
+  background.clear()
+  background.beginFill(0x114611, 0.85)
+  background.lineStyle(2, 0xFFD700, 0.5)
+  background.drawRect(0, 0, width, barHeight)
+  background.endFill()
+  
+  // Update resource positions
+  const resources = Object.keys(resourceTexts)
+  const spacing = width / resources.length
+  
+  resources.forEach((resource, index) => {
+    const container = resourceTexts[resource].parent
+    container.position.set(Math.floor(index * spacing + 10 * getCanvasDimensions().dpr), 6 * getCanvasDimensions().dpr)
+  })
+}
+
+
 
 const showDebugMessage = async (message) => {
   const debugElement = document.createElement('div')
