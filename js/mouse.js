@@ -59,10 +59,6 @@ class Mouse {
       if (!this._canvasRect || this._rectUpdateNeeded) {
         this._canvasRect = app.canvas.getBoundingClientRect()
         this._rectUpdateNeeded = false
-        
-        // Also cache view dimensions
-        this._viewWidth = parseInt(app.canvas.style.width)
-        this._viewHeight = parseInt(app.canvas.style.height)
       }
 
       // Screen coordinates
@@ -72,8 +68,8 @@ class Mouse {
       // Only calculate world coordinates when needed (not for every cursor update)
       if (this._needWorldCoords) {
         // Convert to normalized coordinates (0-1 across canvas)
-        const normalizedX = this.xPixels / this._viewWidth
-        const normalizedY = this.yPixels / this._viewHeight
+        const normalizedX = this.xPixels / this._canvasRect.width
+        const normalizedY = this.yPixels / this._canvasRect.height
         
         // Convert to world coordinates based on current view
         this.worldX = ((normalizedX * app.renderer.width / (this.viewTransform.scale || 1)) + this.viewTransform.x)
@@ -175,8 +171,8 @@ class Mouse {
     pixiView.addEventListener('pointermove', (e) => {
       // Handle dragging (panning the view)
       if (this.isDragging) {
-        const dx = (e.clientX - this.lastX) / this.viewTransform.scale * getCanvasDimensions().dpr
-        const dy = (e.clientY - this.lastY) / this.viewTransform.scale * getCanvasDimensions().dpr
+        const dx = (e.clientX - this.lastX) / this.viewTransform.scale
+        const dy = (e.clientY - this.lastY) / this.viewTransform.scale
         
         // Update view offset
         this.viewTransform.x -= dx
@@ -229,8 +225,8 @@ class Mouse {
       
       if (e.touches.length === 1 && this.isDragging) { // Single finger move
         // Calculate drag distance
-        const dx = (e.touches[0].clientX - this.lastX) / this.viewTransform.scale * getCanvasDimensions().dpr
-        const dy = (e.touches[0].clientY - this.lastY) / this.viewTransform.scale * getCanvasDimensions().dpr
+        const dx = (e.touches[0].clientX - this.lastX) / this.viewTransform.scale
+        const dy = (e.touches[0].clientY - this.lastY) / this.viewTransform.scale
         
         // Update view offset
         this.viewTransform.x -= dx

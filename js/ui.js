@@ -178,10 +178,7 @@ function handleMouseInteraction(map, player) {
 function updateCursor() {
   // Only update if cursor sprite and mouse exist
   if (cursorSprite && mouse) {
-    cursorSprite.position.set(
-      mouse.xPixels * (window.devicePixelRatio || 1) | 0,
-      mouse.yPixels * (window.devicePixelRatio || 1) | 0
-    );
+    cursorSprite.position.set(mouse.xPixels, mouse.yPixels);
   }
   
   // Continue the cursor update loop
@@ -225,7 +222,7 @@ function drawUI(fps) {
       `Zoom: ${viewTransform.scale.toFixed(2)}x`,
       `World: ${MAP_WIDTH}x${MAP_HEIGHT} (${MAP_WIDTH*SPRITE_SIZE}x${MAP_HEIGHT*SPRITE_SIZE})`,
       
-      `ViewPort: ${window.visualViewport.width.toFixed(3)}x${window.visualViewport.height.toFixed(3)} | Offsets:${window.visualViewport.offsetTop},${window.visualViewport.pageTop}`,
+      `Renderer: ${app.renderer.width}x${app.renderer.height}`,
       `Screen: ${screen.width}x${screen.height} | Available: ${screen.availWidth}x${screen.availHeight}`,
       `Window: ${window.innerWidth}x${window.innerHeight}`,
       `CSS: ${document.documentElement.clientWidth}x${document.documentElement.clientHeight}`,
@@ -246,7 +243,7 @@ async function createTopBar() {
   if (topBarContainer) return;
   
   const { width } = getCanvasDimensions()
-  const barHeight = 32 * getCanvasDimensions().dpr // Fixed height for the top bar
+  const barHeight = 32 // Fixed height for the top bar
   
   // Create the container
   topBarContainer = new PIXI.Container()
@@ -276,13 +273,13 @@ async function createTopBar() {
   // Create each resource display
   resources.forEach((resource, index) => {
     const resourceContainer = new PIXI.Container()
-    resourceContainer.position.set(Math.floor(index * spacing + 10 * getCanvasDimensions().dpr), 6 * getCanvasDimensions().dpr)
+    resourceContainer.position.set(Math.floor(index * spacing + 10), 6)
     
     // Icon text (emoji)
     const icon = new PIXI.Text({
       text: resource.icon,
       style: {
-        fontSize: 16 * getCanvasDimensions().dpr,
+        fontSize: 16,
         fill: 0xFFD700 // Gold color
       }
     })
@@ -293,11 +290,11 @@ async function createTopBar() {
       text: resource.initial.toString(),
       style: {
         fontFamily: 'var(--font-base)',
-        fontSize: 14 * getCanvasDimensions().dpr,
+        fontSize: 14,
         fill: 0xFFD700
       }
     })
-    text.position.set(24 * getCanvasDimensions().dpr, 2 * getCanvasDimensions().dpr) // Position after the icon
+    text.position.set(24, 2) // Position after the icon
     resourceContainer.addChild(text)
     
     // Store reference for updates
@@ -336,7 +333,7 @@ function updateTopBarPosition() {
   if (!topBarContainer) return
   
   const { width } = getCanvasDimensions()
-  const barHeight = 32 * getCanvasDimensions().dpr
+  const barHeight = 32
   
   // Update background
   const background = topBarContainer.getChildAt(0)
@@ -352,7 +349,7 @@ function updateTopBarPosition() {
   
   resources.forEach((resource, index) => {
     const container = resourceTexts[resource].parent
-    container.position.set(Math.floor(index * spacing + 10 * getCanvasDimensions().dpr), 6 * getCanvasDimensions().dpr)
+    container.position.set(Math.floor(index * spacing + 10), 6)
   })
 }
 

@@ -5,7 +5,7 @@ export {
 
 'use strict'
 
-import { getCanvasDimensions, getMapDimensions, getSafeViewportSize, getTileSize } from 'dimensions'
+import { getCanvasDimensions, getMapDimensions, getTileSize } from 'dimensions'
 import { DEBUG, backDrawn } from 'globals'
 import * as PIXI from 'pixijs'
 import { UNIT_SPRITE_SIZE } from 'sprites'
@@ -128,7 +128,6 @@ async function initCanvases() {
 function resizeCanvases() {
   // Get updated dimensions
   const { width, height, dpr } = getCanvasDimensions()
-  const viewportSize = getSafeViewportSize()
 
   if(!app?.renderer) return
 
@@ -137,14 +136,6 @@ function resizeCanvases() {
   
   // Resize the renderer
   app.renderer.resize(width, height)
-
-  // Update the canvas style - use the viewport dimensions for CSS
-  app.canvas.style.width = `${viewportSize.width}px`
-  app.canvas.style.height = `${viewportSize.height}px`
-
-  // Ensure canvas respects safe areas by setting its position
-  app.canvas.style.top = `${viewportSize.safeArea.top}px`
-  app.canvas.style.left = `${viewportSize.safeArea.left}px`
 
   // Force update for mouse controller
   if (gameState.UI?.mouse) {

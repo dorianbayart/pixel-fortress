@@ -13,12 +13,6 @@ let handleViewportChangeTimeout
  * Set up viewport event handling for responsive canvas
  */
 function setupViewportHandling() {
-  // Use the visualViewport API when available (better for mobile)
-  if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', viewportChange)
-    window.visualViewport.addEventListener('scroll', viewportChange)
-  }
-  
   // Also listen for regular window events
   window.addEventListener('resize', viewportChange)
   window.addEventListener('orientationchange', viewportChange)
@@ -51,5 +45,5 @@ const handleViewportChange = async () => {
 const viewportChange = () => {
     if(handleViewportChangeTimeout) clearTimeout(handleViewportChangeTimeout)
 
-    handleViewportChangeTimeout = setTimeout(handleViewportChange, 20)
+    handleViewportChangeTimeout = setTimeout(handleViewportChange, 40)
 }

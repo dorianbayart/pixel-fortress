@@ -55,8 +55,6 @@
       
       --font-base: "Jacquarda-Bastarda-9", fantasy, monospace, system-ui, sans-serif;
       --font-color: gold;
-      --app-height: 100dvh;
-      --app-width: 100dvw;
     }
 
     * {
@@ -92,12 +90,8 @@
     }
 
     canvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-      height: var(--app-height);
-      max-height: var(--app-height);
-      width: var(--app-width);
+      height: 100dvh;
+      width: 100dvw;
       overflow: hidden;
       object-fit: contain;
       cursor: none;
@@ -115,7 +109,12 @@
     }
 
     #homeMenu {
-      position: relative;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      height: 100dvh;
+      width: 100dvw;
       z-index: 50;
       text-align: center;
       padding: 0;

@@ -1,7 +1,6 @@
 export {
     getCanvasDimensions,
     getMapDimensions,
-    getSafeViewportSize,
     getTileSize,
     initMapDimensions,
     updateDimensions
@@ -43,43 +42,15 @@ const initMapDimensions = () => {
 const updateDimensions = async () => {
     dpr = window.devicePixelRatio || 1
 
-    // Get viewport size accounting for safe areas
-    const viewportSize = getSafeViewportSize()
-
     // Store canvas dimensions in pixels
-    canvasWidth = viewportSize.width * dpr
-    canvasHeight = viewportSize.height * dpr
-
-    // Set CSS variables for layout
-    document.documentElement.style.setProperty('--app-width', `${viewportSize.width}px`)
-    document.documentElement.style.setProperty('--app-height', `${viewportSize.height}px`)
+    canvasWidth = window.innerWidth
+    canvasHeight = window.innerHeight
 
     // Log new dimensions for debugging
     console.log(`Canvas: ${canvasWidth} x ${canvasHeight} pixels`)
-    console.log(`Viewport: ${viewportSize.width} x ${viewportSize.height} pixels (DPR: ${dpr})`)
-}
-
-const getSafeViewportSize = () => {
-    // Get the visual viewport dimensions if available, otherwise use window
-    const baseWidth = window.visualViewport?.width ?? window.innerWidth
-    const baseHeight = window.visualViewport?.height ?? window.innerHeight
-
-    // Get safe area insets
-    const safeAreaTop = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sat') || '0')
-    const safeAreaRight = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sar') || '0')
-    const safeAreaBottom = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sab') || '0')
-    const safeAreaLeft = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sal') || '0')
-
-    return {
-        width: baseWidth - safeAreaLeft - safeAreaRight | 0,
-        height: baseHeight - safeAreaTop - safeAreaBottom | 0,
-        safeArea: {
-        top: safeAreaTop,
-        right: safeAreaRight,
-        bottom: safeAreaBottom,
-        left: safeAreaLeft
-        }
-    }
+    console.log(`Viewport: ${window.innerWidth} x ${window.innerHeight} pixels (DPR: ${dpr})`)
+    
+    return { width: canvasWidth, height: canvasHeight, dpr: dpr }
 }
 
 /**
