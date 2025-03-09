@@ -25,6 +25,8 @@ let bottomBarContainer = null
 let resourceTexts = {}
 let buildingSlots = []
 let selectedBuildingIndex = -1
+let tooltipContainer = null
+let tooltipVisible = false
 
 /**
  * Initialize UI components
@@ -366,7 +368,7 @@ async function createBottomBar() {
   if (bottomBarContainer) return
   
   const { width } = getCanvasDimensions()
-  const barHeight = 64 // Taller than top bar to accommodate building icons
+  const barHeight = 80 // Taller than top bar to accommodate building icons
   
   // Create the container
   bottomBarContainer = new PIXI.Container()
@@ -384,6 +386,9 @@ async function createBottomBar() {
 
   // Add slots for buildings
   await createBuildingSlots()
+
+  // Create tooltip container (initially hidden)
+  createBuildingTooltip()
   
   // Add to UI container
   containers.ui.addChild(bottomBarContainer)
@@ -396,10 +401,34 @@ async function createBottomBar() {
   })
 }
 
+function updateBottomBarPosition() {
+  if (!bottomBarContainer) return
+  
+  const { width } = getCanvasDimensions()
+  const barHeight = 80
+  
+  // Update position to stay at bottom
+  bottomBarContainer.position.set(0, app.renderer.height - barHeight)
+  
+  // Update background
+  const background = bottomBarContainer.getChildAt(0)
+  background.clear()
+  background.beginFill(0x114611, 0.85)
+  background.lineStyle(2, 0xFFD700, 0.5)
+  background.drawRect(0, 0, width, barHeight)
+  background.endFill()
+  
+  // Hide tooltip when resizing
+  hideTooltip()
+
+  // Recreate building slots to adjust for new width
+  createBuildingSlots()
+}
+
 async function createBuildingSlots() {
   const { width } = getCanvasDimensions()
-  const slotSize = 48 // Size of building icon slots
-  const padding = 8
+  const slotSize = 56 // Size of building icon slots
+  const padding = 10
   const maxSlots = Math.floor(width / (slotSize + padding))
   
   // Clear existing slots
@@ -425,8 +454,11 @@ async function createBuildingSlots() {
   
   for (let i = 0; i < numSlots; i++) {
     const slot = new PIXI.Container()
-    slot.position.set(startX + i * (slotSize + padding), 8)
+    slot.position.set(startX + i * (slotSize + padding), 12)
     
+    // Store position for tooltip
+    buildings[i].slotPosition = { x: slot.position.x, y: slot.position.y }
+
     // Slot background
     const slotBg = new PIXI.Graphics()
     slotBg.beginFill(0x333333, 0.7)
@@ -439,7 +471,7 @@ async function createBuildingSlots() {
     const icon = new PIXI.Text({
       text: buildings[i].icon,
       style: {
-        fontSize: 24,
+        fontSize: 28,
         fill: 0xFFFFFF
       }
     })
@@ -451,11 +483,11 @@ async function createBuildingSlots() {
       text: buildings[i].name,
       style: {
         fontFamily: 'var(--font-base)',
-        fontSize: 10,
+        fontSize: 11,
         fill: 0xFFD700
       }
     })
-    name.position.set(4, slotSize - 14)
+    name.position.set(4, slotSize - 15)
     slot.addChild(name)
     
     // Make slot interactive
@@ -467,6 +499,10 @@ async function createBuildingSlots() {
     
     // Add click event
     slotBg.on('pointerdown', () => handleBuildingSelect(i))
+
+    // Add hover events for tooltip
+    slotBg.on('pointerover', () => updateTooltip(buildings[i]))
+    slotBg.on('pointerout', () => hideTooltip())
     
     // Check if player can afford this building and adjust appearance
     const canAfford = Building.checkCanAffordBuilding(buildings[i])
@@ -489,7 +525,7 @@ function handleBuildingSelect(index) {
     prevBg.clear()
     prevBg.beginFill(0x333333, 0.7)
     prevBg.lineStyle(1, 0xFFD700, 0.8)
-    prevBg.drawRect(0, 0, 48, 48)
+    prevBg.drawRect(0, 0, 56, 56)
     prevBg.endFill()
   }
   
@@ -508,7 +544,7 @@ function handleBuildingSelect(index) {
   bg.clear()
   bg.beginFill(0x555555, 0.9)
   bg.lineStyle(2, 0xFFFFFF, 1)
-  bg.drawRect(0, 0, 48, 48)
+  bg.drawRect(0, 0, 56, 56)
   bg.endFill()
 
   // Format cost display
@@ -528,25 +564,155 @@ function handleBuildingSelect(index) {
   showDebugMessage(statusMessage)
 }
 
-function updateBottomBarPosition() {
-  if (!bottomBarContainer) return
+
+
+
+// Create a tooltip container for building information
+function createBuildingTooltip() {
+  if (tooltipContainer) {
+    bottomBarContainer.removeChild(tooltipContainer)
+  }
   
-  const { width } = getCanvasDimensions()
-  const barHeight = 64
+  tooltipContainer = new PIXI.Container()
+  tooltipContainer.visible = false
   
-  // Update position to stay at bottom
-  bottomBarContainer.position.set(0, app.renderer.height - barHeight)
-  
-  // Update background
-  const background = bottomBarContainer.getChildAt(0)
-  background.clear()
-  background.beginFill(0x114611, 0.85)
-  background.lineStyle(2, 0xFFD700, 0.5)
-  background.drawRect(0, 0, width, barHeight)
+  // Background for the tooltip
+  const background = new PIXI.Graphics()
+  background.beginFill(0x333333, 0.9)
+  background.lineStyle(2, 0xFFD700, 0.8)
+  background.drawRoundedRect(0, 0, 250, 140, 8)
   background.endFill()
+  tooltipContainer.addChild(background)
   
-  // Recreate building slots to adjust for new width
-  createBuildingSlots()
+  // Add placeholder text elements that will be updated on hover
+  const titleText = new PIXI.Text({
+    text: "",
+    style: {
+      fontFamily: 'var(--font-base)',
+      fontSize: 16,
+      fill: 0xFFD700,
+      fontWeight: 'bold'
+    }
+  })
+  titleText.position.set(10, 10)
+  tooltipContainer.addChild(titleText)
+  
+  const iconText = new PIXI.Text({
+    text: "",
+    style: {
+      fontSize: 32,
+    }
+  })
+  iconText.position.set(10, 35)
+  tooltipContainer.addChild(iconText)
+  
+  const descText = new PIXI.Text({
+    text: "",
+    style: {
+      fontFamily: 'var(--font-base)',
+      fontSize: 12,
+      fill: 0xFFFFFF
+    }
+  })
+  descText.position.set(50, 45)
+  tooltipContainer.addChild(descText)
+  
+  const costTitle = new PIXI.Text({
+    text: "Costs:",
+    style: {
+      fontFamily: 'var(--font-base)',
+      fontSize: 12,
+      fill: 0xFFD700
+    }
+  })
+  costTitle.position.set(10, 85)
+  tooltipContainer.addChild(costTitle)
+  
+  const costContainer = new PIXI.Container()
+  costContainer.position.set(10, 105)
+  tooltipContainer.addChild(costContainer)
+  
+  bottomBarContainer.addChild(tooltipContainer)
+}
+
+// Update the tooltip with building information
+function updateTooltip(building) {
+  if (!tooltipContainer) return
+  
+  const titleText = tooltipContainer.getChildAt(1)
+  const iconText = tooltipContainer.getChildAt(2)
+  const descText = tooltipContainer.getChildAt(3)
+  const costContainer = tooltipContainer.getChildAt(5)
+  
+  // Update text content
+  titleText.text = building.name
+  iconText.text = building.icon
+  descText.text = building.description
+  
+  // Clear previous cost items
+  while (costContainer.children.length > 0) {
+    costContainer.removeChildAt(0)
+  }
+  
+  // Add resource costs with icons
+  let xOffset = 0;
+  
+  const resourceIcons = {
+    wood: "🪵",
+    water: "💧",
+    gold: "🪙",
+    money: "💰",
+    rock: "🪨"
+  }
+  
+  for (const [resource, amount] of Object.entries(building.costs)) {
+    const container = new PIXI.Container()
+    container.position.set(xOffset, 0)
+    
+    // Resource icon
+    const icon = new PIXI.Text({
+      text: resourceIcons[resource] || "❓",
+      style: { fontSize: 16 }
+    });
+    container.addChild(icon)
+    
+    // Resource amount
+    const amountText = new PIXI.Text({
+      text: amount.toString(),
+      style: {
+        fontFamily: 'var(--font-base)',
+        fontSize: 12,
+        fill: 0xFFFFFF
+      }
+    })
+    amountText.position.set(20, 4)
+    container.addChild(amountText)
+    
+    costContainer.addChild(container)
+    xOffset += 55
+  }
+  
+  // Position the tooltip
+  const { width } = getCanvasDimensions();
+  const tooltipWidth = 250
+  
+  // Calculate position to ensure tooltip stays within screen bounds
+  let tooltipX = building.slotPosition.x
+  if (tooltipX + tooltipWidth > width) {
+    tooltipX = width - tooltipWidth - 10
+  }
+  
+  tooltipContainer.position.set(tooltipX, -150) // Position above the slot
+  tooltipContainer.visible = true
+  tooltipVisible = true
+}
+
+// Hide the tooltip
+function hideTooltip() {
+  if (tooltipContainer) {
+    tooltipContainer.visible = false
+    tooltipVisible = false
+  }
 }
 
 
