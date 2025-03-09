@@ -4,6 +4,7 @@ export {
   
 'use strict'
   
+import { Building } from 'building'
 import { getCanvasDimensions, getMapDimensions, getTileSize } from 'dimensions'
 import { DEBUG, drawBack, toggleDebug } from 'globals'
 import * as PIXI from 'pixijs'
@@ -408,13 +409,15 @@ async function createBuildingSlots() {
   buildingSlots = []
   
   // Create slots based on available buildings
-  // For now, let's add some placeholder slots
   const buildings = [
-    { name: "House", icon: "🏠", cost: 10 },
-    { name: "Barracks", icon: "⚔️", cost: 25 },
-    { name: "Farm", icon: "🌾", cost: 15 },
-    { name: "Tower", icon: "🗼", cost: 30 },
-    { name: "Wall", icon: "🧱", cost: 5 }
+    Building.TYPES.LUMBERJACK,
+    Building.TYPES.TENT,
+    Building.TYPES.GOLD_MINE,
+    Building.TYPES.QUARRY,
+    Building.TYPES.WELL,
+    Building.TYPES.BARRACKS,
+    Building.TYPES.ARMORY,
+    Building.TYPES.CITADEL
   ]
   
   const numSlots = Math.min(buildings.length, maxSlots)
@@ -465,6 +468,14 @@ async function createBuildingSlots() {
     // Add click event
     slotBg.on('pointerdown', () => handleBuildingSelect(i))
     
+    // Check if player can afford this building and adjust appearance
+    const canAfford = Building.checkCanAffordBuilding(buildings[i])
+    if (!canAfford) {
+      slotBg.alpha = 0.5;
+      icon.alpha = 0.5;
+      name.alpha = 0.5;
+    }
+
     bottomBarContainer.addChild(slot)
     buildingSlots.push(slot)
   }
@@ -499,13 +510,22 @@ function handleBuildingSelect(index) {
   bg.lineStyle(2, 0xFFFFFF, 1)
   bg.drawRect(0, 0, 48, 48)
   bg.endFill()
+
+  // Format cost display
+  const costs = slot.buildingData.costs
+  const costText = Object.entries(costs)
+    .map(([resource, amount]) => `${resource}: ${amount}`)
+    .join(', ')
   
   // Display building info
-  console.log(`Selected: ${slot.buildingData.name}, Cost: ${slot.buildingData.cost}`)
+  const canAfford = Building.checkCanAffordBuilding(slot.buildingData)
+  if(!canAfford) handleBuildingSelect(index)
   
-  // Here we would set up the game for building placement mode
-  // For now we'll just show a debug message
-  showDebugMessage(`Selected ${slot.buildingData.name} for placement`)
+
+  const statusMessage = canAfford ? 
+    `Selected ${slot.buildingData.name} for placement` : 
+    `Cannot afford ${slot.buildingData.name} (Needs ${costText})`
+  showDebugMessage(statusMessage)
 }
 
 function updateBottomBarPosition() {
