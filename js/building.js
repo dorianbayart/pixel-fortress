@@ -15,7 +15,7 @@ class Building {
           name: "Lumberjack's Hut",
           icon: "🪓",
           costs: { wood: 10 },
-          description: "Cuts wood"
+          description: "Harvests wood from nearby trees"
         },
         TENT: {
           name: "Tent",

@@ -11,7 +11,13 @@ import * as PIXI from 'pixijs'
 import { app, containers, updateZoom } from 'renderer'
 import gameState from 'state'
 import { getCachedSprite } from 'utils'
-  
+
+const UI_FONTS = {
+  PRIMARY: "system-ui, 'Open Sans', Arial, sans-serif",
+  MONOSPACE: "monospace, 'Courier New', Courier",
+  DESIGN: "Jacquarda-Bastarda-9"
+}
+
 // Mouse object (will be initialized in initUI)
 let mouse = null
 let elapsedUI = -5000
@@ -52,7 +58,7 @@ async function initUI(mouseInstance) {
   // Create debug stats text
   statsText = new PIXI.Text({
     text: '',
-    fontFamily: 'monospace',
+    fontFamily: UI_FONTS.MONOSPACE,
     fontSize: 14,
     resolution: window.devicePixelRatio || 1,
     fill: 0xffffff,
@@ -299,7 +305,7 @@ async function createTopBar() {
     const text = new PIXI.Text({
       text: resource.initial.toString(),
       style: {
-        fontFamily: 'var(--font-base)',
+        fontFamily: UI_FONTS.PRIMARY,
         fontSize: 14,
         fill: 0xFFD700
       }
@@ -482,12 +488,13 @@ async function createBuildingSlots() {
     const name = new PIXI.Text({
       text: buildings[i].name,
       style: {
-        fontFamily: 'var(--font-base)',
+        fontFamily: UI_FONTS.PRIMARY,
         fontSize: 11,
-        fill: 0xFFD700
+        fill: 0xFFD700,
+        padding: 20
       }
     })
-    name.position.set(4, slotSize - 15)
+    name.position.set((slotSize - name.width) / 2, slotSize - 15)
     slot.addChild(name)
     
     // Make slot interactive
@@ -580,7 +587,7 @@ function createBuildingTooltip() {
   const background = new PIXI.Graphics()
   background.beginFill(0x333333, 0.9)
   background.lineStyle(2, 0xFFD700, 0.8)
-  background.drawRoundedRect(0, 0, 250, 140, 8)
+  background.drawRoundedRect(0, 0, 275, 140, 8)
   background.endFill()
   tooltipContainer.addChild(background)
   
@@ -588,10 +595,11 @@ function createBuildingTooltip() {
   const titleText = new PIXI.Text({
     text: "",
     style: {
-      fontFamily: 'var(--font-base)',
+      fontFamily: UI_FONTS.PRIMARY,
       fontSize: 16,
       fill: 0xFFD700,
-      fontWeight: 'bold'
+      fontWeight: 'bold',
+      padding: 40
     }
   })
   titleText.position.set(10, 10)
@@ -609,9 +617,10 @@ function createBuildingTooltip() {
   const descText = new PIXI.Text({
     text: "",
     style: {
-      fontFamily: 'var(--font-base)',
+      fontFamily: UI_FONTS.PRIMARY,
       fontSize: 12,
-      fill: 0xFFFFFF
+      fill: 0xFFFFFF,
+      padding: 40
     }
   })
   descText.position.set(50, 45)
@@ -620,7 +629,7 @@ function createBuildingTooltip() {
   const costTitle = new PIXI.Text({
     text: "Costs:",
     style: {
-      fontFamily: 'var(--font-base)',
+      fontFamily: UI_FONTS.PRIMARY,
       fontSize: 12,
       fill: 0xFFD700
     }
@@ -680,7 +689,7 @@ function updateTooltip(building) {
     const amountText = new PIXI.Text({
       text: amount.toString(),
       style: {
-        fontFamily: 'var(--font-base)',
+        fontFamily: UI_FONTS.PRIMARY,
         fontSize: 12,
         fill: 0xFFFFFF
       }
@@ -694,10 +703,10 @@ function updateTooltip(building) {
   
   // Position the tooltip
   const { width } = getCanvasDimensions();
-  const tooltipWidth = 250
+  const tooltipWidth = 275
   
   // Calculate position to ensure tooltip stays within screen bounds
-  let tooltipX = building.slotPosition.x
+  let tooltipX = building.slotPosition.x + 56 / 2 - tooltipWidth / 2
   if (tooltipX + tooltipWidth > width) {
     tooltipX = width - tooltipWidth - 10
   }
