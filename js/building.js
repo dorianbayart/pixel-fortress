@@ -12,7 +12,7 @@ import gameState from 'state'
 class Building {
     static TYPES = {
         LUMBERJACK: {
-          name: "Lumberjack's Hut",
+          name: "Lumberjack",
           icon: "🪓",
           costs: { wood: 10 },
           description: "Harvests wood from nearby trees"

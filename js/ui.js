@@ -491,7 +491,7 @@ async function createBuildingSlots() {
         fontFamily: UI_FONTS.PRIMARY,
         fontSize: 11,
         fill: 0xFFD700,
-        padding: 20
+        padding: 25
       }
     })
     name.position.set((slotSize - name.width) / 2, slotSize - 15)
@@ -599,7 +599,7 @@ function createBuildingTooltip() {
       fontSize: 16,
       fill: 0xFFD700,
       fontWeight: 'bold',
-      padding: 40
+      padding: 25
     }
   })
   titleText.position.set(10, 10)
