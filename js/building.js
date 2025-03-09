@@ -12,52 +12,60 @@ import gameState from 'state'
 class Building {
     static TYPES = {
         LUMBERJACK: {
-          name: "Lumberjack",
+          name: "Wood Hut",
           icon: "🪓",
           costs: { wood: 10 },
-          description: "Harvests wood from nearby trees"
+          description: "Harvests wood from nearby trees",
+          sprite: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAABXklEQVR4nO2ZwW2EMBBFLRcDBQUpW8AafEiwvQ3MLdvD7oHUFNzOhogcCLACZHEI9vwv/QL4898wAiEgCIIg6H9FJDPVdIs+Nw+RtAgBSPYNyNVnt+RMpYYATSfeP+Tp7pd984ntBEIAkn0D8jHnZZM4AhQ4cQTg0YBTagjkIcxH3wDayfxTAG1n36uJ22sx+Ov68mAVgEMAFccG6MGu1swCuG/thPJbcA7AvJW8G2COHkDWv/dvfsPt1AE7wdT6YAgEfvLKVTNjWid2KBECkGiAWkegv+4GGx24E46OwExEJFdP248ibCcgAI8GZLEh4EbMX0z1W/uxJwjUevWGeD16AyiQ+afLLvZfZ4QACA1wAcxHjwDtnXjsIgRAaIDbw3xsIkycUHnLfes7MF/wmrjlXnnLPQAH5gteE7fcK28RQPXXgDrx236rAXMn98BzIQBCAyRrBCAIgiCRpn4AbtcHa+oFkwUAAAAASUVORK5CYII='
         },
         TENT: {
           name: "Tent",
           icon: "⛺",
           costs: { wood: 5, water: 5, money: 5 },
-          description: "Produces peons"
+          description: "Produces peons",
+          sprite: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0Ij4KICAgIDxyZWN0IHg9IjI0IiB5PSIwIiB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjNTU1NUZGIiAvPgogICAgPHJlY3QgeD0iMzIiIHk9IjAiIHdpZHRoPSI4IiBoZWlnaHQ9IjgiIGZpbGw9IiM1NTU1RkYiIC8+CiAgICA8cmVjdCB4PSIxNiIgeT0iOCIgd2lkdGg9IjgiIGhlaWdodD0iOCIgZmlsbD0iIzU1NTVGRiIgLz4KICAgIDxyZWN0IHg9IjI0IiB5PSI4IiB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjNTU1NUZGIiAvPgogICAgPHJlY3QgeD0iMzIiIHk9IjgiIHdpZHRoPSI4IiBoZWlnaHQ9IjgiIGZpbGw9IiM1NTU1RkYiIC8+CiAgICA8cmVjdCB4PSI0MCIgeT0iOCIgd2lkdGg9IjgiIGhlaWdodD0iOCIgZmlsbD0iIzU1NTVGRiIgLz4KICAgIDxyZWN0IHg9IjgiIHk9IjE2IiB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjNTU1NUZGIiAvPgogICAgPHJlY3QgeD0iMTYiIHk9IjE2IiB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjNTU1NUZGIiAvPgogICAgPHJlY3QgeD0iMjQiIHk9IjE2IiB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjNTU1NUZGIiAvPgogICAgPHJlY3QgeD0iMzIiIHk9IjE2IiB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjNTU1NUZGIiAvPgogICAgPHJlY3QgeD0iNDAiIHk9IjE2IiB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjNTU1NUZGIiAvPgogICAgPHJlY3QgeD0iNDgiIHk9IjE2IiB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjNTU1NUZGIiAvPgogICAgPHJlY3QgeD0iMCIgeT0iMjQiIHdpZHRoPSI4IiBoZWlnaHQ9IjgiIGZpbGw9IiM1NTU1RkYiIC8+CiAgICA8cmVjdCB4PSI4IiB5PSIyNCIgd2lkdGg9IjgiIGhlaWdodD0iOCIgZmlsbD0iIzU1NTVGRiIgLz4KICAgIDxyZWN0IHg9IjE2IiB5PSIyNCIgd2lkdGg9IjgiIGhlaWdodD0iOCIgZmlsbD0iIzU1NTVGRiIgLz4KICAgIDxyZWN0IHg9IjI0IiB5PSIyNCIgd2lkdGg9IjgiIGhlaWdodD0iOCIgZmlsbD0iIzAwMDBBQSIgLz4KICAgIDxyZWN0IHg9IjMyIiB5PSIyNCIgd2lkdGg9IjgiIGhlaWdodD0iOCIgZmlsbD0iIzAwMDBBQSIgLz4KICAgIDxyZWN0IHg9IjQwIiB5PSIyNCIgd2lkdGg9IjgiIGhlaWdodD0iOCIgZmlsbD0iIzU1NTVGRiIgLz4KICAgIDxyZWN0IHg9IjQ4IiB5PSIyNCIgd2lkdGg9IjgiIGhlaWdodD0iOCIgZmlsbD0iIzU1NTVGRiIgLz4KICAgIDxyZWN0IHg9IjU2IiB5PSIyNCIgd2lkdGg9IjgiIGhlaWdodD0iOCIgZmlsbD0iIzU1NTVGRiIgLz4KICAgIDxyZWN0IHg9IjAiIHk9IjMyIiB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjNTU1NUZGIiAvPgogICAgPHJlY3QgeD0iOCIgeT0iMzIiIHdpZHRoPSI4IiBoZWlnaHQ9IjgiIGZpbGw9IiM1NTU1RkYiIC8+CiAgICA8cmVjdCB4PSIxNiIgeT0iMzIiIHdpZHRoPSI4IiBoZWlnaHQ9IjgiIGZpbGw9IiMwMDAwQUEiIC8+CiAgICA8cmVjdCB4PSIyNCIgeT0iMzIiIHdpZHRoPSI4IiBoZWlnaHQ9IjgiIGZpbGw9IiMwMDAwQUEiIC8+CiAgICA8cmVjdCB4PSIzMiIgeT0iMzIiIHdpZHRoPSI4IiBoZWlnaHQ9IjgiIGZpbGw9IiMwMDAwQUEiIC8+CiAgICA8cmVjdCB4PSI0MCIgeT0iMzIiIHdpZHRoPSI4IiBoZWlnaHQ9IjgiIGZpbGw9IiMwMDAwQUEiIC8+CiAgICA8cmVjdCB4PSI0OCIgeT0iMzIiIHdpZHRoPSI4IiBoZWlnaHQ9IjgiIGZpbGw9IiM1NTU1RkYiIC8+CiAgICA8cmVjdCB4PSI1NiIgeT0iMzIiIHdpZHRoPSI4IiBoZWlnaHQ9IjgiIGZpbGw9IiM1NTU1RkYiIC8+CiAgICA8cmVjdCB4PSIwIiB5PSI0MCIgd2lkdGg9IjgiIGhlaWdodD0iOCIgZmlsbD0iI0FBNTUwMCIgLz4KICAgIDxyZWN0IHg9IjgiIHk9IjQwIiB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjQUE1NTAwIiAvPgogICAgPHJlY3QgeD0iMTYiIHk9IjQwIiB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjQUE1NTAwIiAvPgogICAgPHJlY3QgeD0iMjQiIHk9IjQwIiB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjQUE1NTAwIiAvPgogICAgPHJlY3QgeD0iMzIiIHk9IjQwIiB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjQUE1NTAwIiAvPgogICAgPHJlY3QgeD0iNDAiIHk9IjQwIiB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjQUE1NTAwIiAvPgogICAgPHJlY3QgeD0iNDgiIHk9IjQwIiB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjQUE1NTAwIiAvPgogICAgPHJlY3QgeD0iNTYiIHk9IjQwIiB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjQUE1NTAwIiAvPgogIDwvc3ZnPg=='
         },
         GOLD_MINE: {
           name: "Gold Mine",
           icon: "⛏️",
-          costs: { wood: 25, rock: 5 },
-          description: "Mines gold"
+          costs: { wood: 25, stone: 5 },
+          description: "Mines gold",
+          sprite: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAACLUlEQVR4nO2ZsUscQRSHt9DmOksbq32XmYju71hJPA5yAYsUFoIgXmFhSOAOjjuIIJjUSRHSJYVJk6Q4FLQStFBI/h/Bq2wMCYzsycmxybqr3uRmdt4Hrxv2lo+Z39t553kMwzAaAUmlowKSfwJfrnmuCoAtEqBRgBUSoFmA8RIQe9nXRyf3rufvPqjSg2k7JECDAKskQJMAayRAowArJCAmoPFxW20dHg9Vwvrb939L8MXv2aJcNbILzM+V1dKLump8+pz/nYCUFlZ+XFHLjZZqfevkU0JAYjvw5VmWfl5deKZqm2/Uxu5+vo5DGIbjAYlFkOjAF+dpIkrFhyor1kjoE06GhRKJWkDiAL74lSThPgJukuCZxMzUzASK4iVI/owL6Lae3FhpAvoS4s/1TAUaBETFAoh3gOIjQJwBypgQRMYhR25DECxADm0UFn0xvtrZy+cOQMaK7g5WC+jGzvZtBUQXKKcFgKRqf++YJwB3DLssLwxf/Bhcs9LecExAsXeBul5TqTy1VwBSKvEWSfJicF3zy1d3BET05gkD65brTbMFdO8YdknPj4Yqg+vKj8r/nDbnVkA4GRbi47Vo5P7fBUBj2KX/tugM60hZKeBq0GqJAGh4sWq1OgYSp84K6P/vYJSA7pDDznjgigCMMOyMACxAjjTsRg5YgHQj7JLgtCdOe8XtjjjtFYcdcdorbneUg76eBFxpd0nAlW/7JMACJO8AuHwEGIbxXOIScpe5PQPthBcAAAAASUVORK5CYII='
         },
         QUARRY: {
-          name: "Stone Quarry",
+          name: "Quarry",
           icon: "🪨",
           costs: { wood: 20 },
-          description: "Extracts rock"
+          description: "Extracts stone",
+          sprite: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAABq0lEQVR4nO1ayW3DMBBcHy0wHfAVN+B8XIVqoB+xsUoDLECqJF/Lqc7gBkIgQCFsMYwO65gB5iMIC+5gZkkdRAAAAAAwOPhkbnwyriIRrWhJ4J/GpaK1dk1LAkMAM28HsJfxOxSPTfdOb0bw/Sb/zck5hCGAmbcDOD7jbTmuGcH9NDkdhzAEMPN2AA+f8XHNCB5nk8M5hCGAWZYDCv16u+idq1FmxnpvTvyZcNE7V+idLIWW6LcjIICGA9yzbYkIaMwAwRDUT9oFhGhVXqyYqb3L1V7mQku0rfcXPApn8xMg7lkggwB7OCAfgXURAYUZIBiCCruAYBtUOAcIDkJqwJOgRD4bpO9G0tNjZpELblvvk5JN1Nk/hKAAgbey+ctbnAAt63XSdB0QQMEBrimj16Jo5Mf52Jjhruv1HoHUy2S5qK/r9SFDGe66HgQgOGDdaQTEOxf4X49jLWsPh22f9ahvcNsFe19ru64HAfoGL90BVM4Ea9cV0/Ox8YeKJEk29ftD9UpB0nKvf8A/1BsWHPijJHaRXdfrHQwBzLIdQF6GfY6gHgAAAEAevgEc3qOLmwTvWAAAAABJRU5ErkJggg=='
         },
         WELL: {
           name: "Well",
           icon: "🧱",
-          costs: { wood: 10, rock: 10 },
-          description: "Produces water"
+          costs: { wood: 10, stone: 10 },
+          description: "Produces water",
+          sprite: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAABxklEQVR4nO1aQU7DMBDcBqm8oPlLuZMf8AXKJVZ7orc0Fzi0L+EGivOs+gXJIguCEguUrOIEV52R5tSuHI9mdu20RAAAAAAwGOc8rc4HVTc8rdYs4eblvW5TWn8+pD9rW9LcMLniNk+xUIDXjw6P8Z2o3l2fmRYQYE4YOEAFFYFjvK6Pq7/J5DkiJjAB+tbPiCII4BMGDlBBReDtgW6szRva3F9VBNg5B0CAFRxQzxoBFh5F3QgQs6g+uAgwBCA4gAS4+ggsk311m+y5IWVZNGUP8H43MCN7wPL+uVome244tQDe7wYGAig4wAgi0Gd5aST6HGgz3r4buBxl/0sQYHIYCKDgACOw4OPX+39usfO7gPMZ+3agdxjhA7gnvz72XY4gQA4HMCKQowcwmmCOKcCzjMFS66rUmodym27qNiW1Puoz4fV6CgE61EXBc9ZDgAwOiMgnSkRAoweUaIL6eqfANt3UO/XEQ+luQFI7tt5+3+vmLdwHCp3k+09R2wA2BQHSf3SALorOFHBzKm1SY+vdDc9+FN45G5BeVsbW900JCJDBAREi4BMleoBGEywFY2jsGAtuCvyChV2kIV1ePQAAAEDf+AQS3+go4fDeQAAAAABJRU5ErkJggg=='
         },
         BARRACKS: {
           name: "Barracks",
           icon: "⚔️",
           costs: { wood: 15, water: 10, gold: 5 },
-          description: "Trains soldiers"
+          description: "Trains soldiers",
+          sprite: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAABZ0lEQVR4nO2ZUW6DMBBEN/QeSW8AN/R9+LZzIe8x2k7lj0ipVbBIjDH2PGn/UFBmZ9YLiBBCCCG7ApFBryNylb+O33ImQAGEDtCWI4DMHT6dQKAAQgdoTxEAOy59dTyGDpD3HeBv02JpqJocgNyb3G3C3bnlsrZty3sKMLXvAL+Scf+ZFmBtJlQvgE91eGtZi6J/uDYBnLU/ciSgAJJ0wKaMv+AAY8zwKACXqhzgc2e+tkiAAggdoJVFoOhMQGUOKD4TQAGEDlBGYOQMUA7BkaeAHnQMhqNuqe7OfYVd4FHNHYMucc6HZWjXvQAUQOgAXXsfECJg7d8quPvvHoHaI0EBDB0wdB0BAJfomrLfCn30oSK2ZOm9YHdAAYQO0MwR+Ge/f3kvOByzUYDUuV79TIihAKZDB5inTM7z/LH1ef75t0Km166PZ8ThM8EkOpa7Q6Xvl4QCmM4dgERm44yf7X6EEEKkUX4BxuhHPhXplNUAAAAASUVORK5CYII='
         },
         ARMORY: {
           name: "Armory",
           icon: "🛡️",
-          costs: { wood: 25, water: 20, rock: 15, gold: 20 },
-          description: "Trains heavy infantry"
+          costs: { wood: 25, water: 20, stone: 15, gold: 20 },
+          description: "Trains heavy infantry",
+          sprite: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAB3ElEQVR4nO2aUXKCMBiEYzuT3uTvSUpP4OABSq9QfOIeZQb63OvIdRDHYqn+Ar+BQIPZndk3g+RjN6BEKQiCIAiyLv3yUeogrmxZKbVSS5IO4r1VAEnyoJYkDQDxfSeA3vKSorzqcpjuqs3nn/Xr1mjCfPxz9NX5XUcrVc27RlCU7UUAadF4EICz8SKAuRNCAJD5lQASOi8B+HHPmsA7z8dKACZfE0i44jcB6EmE9HljALYTQQCQ+ZUAzZ7lKcqMTsB0TRg7Ye7RvyU0e5KbBIDFKy4CME2EBoAYCdBXDyjbxlIl6vt60ZjeB1TGYDw/P+sV0Mw3ATjr9CAABuOt/5rUABALCcj9TkDIOnrltttbT6evjieM535q6f30ANJisFsBjDgeAARIQDXFf4qrX/NKuF6B04Sb8x8y+QstFIA9aQCI/U7ASU2nwnRXugRgvf5+tNp5Sa4BSJJq3vcCIQDskIANKlBgDdhgESz8vAuMvSuMBfDvE+YCgBQJKL2uAEX5xcvTzv/1BgLgr8pm3xNk+vpcmpApAP5593aNRQCw9yoBZLhnaGo7t0+Q5gbg2j5BAoD8vhNQ69i7dttOSD3B7u9TrokmAbAgEQBkfiegVl9nTQ1BEAQp2zoAV9s22rKd+csAAAAASUVORK5CYII='
         },
         CITADEL: {
           name: "Citadel",
           icon: "🏰",
-          costs: { wood: 40, water: 40, rock: 20, gold: 50 },
-          description: "Trains elite warriors"
+          costs: { wood: 40, water: 40, stone: 20, gold: 50 },
+          description: "Trains elite warriors",
+          sprite: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAB70lEQVR4nO1aUW6CQBAdaKM9id4ET9CIB7BXqH7NPaCJfnsJozewcJmmxmkwRUWFZbIsi+685H0tzK5v3xtXAUAgEAgE7YMI/At64BKIwN9vPcr5u/EO4BJIBIDndwAi+WVcr/H1WoCq64HosXoEIvlhnFIZJ1/fVBBg65dee2SUPJZDUASg53cAVmT2fbV6aVqATvUIVOywimwBVGzbISgCkHsOQEbGbQhgtCeg5o4bF8C0I1AEIHFAeGWzcZycGEa3NqwarxMBnfrGIzCOExpMF2d+LIgzrhJAt74IEIkDDma/96P0aLucwxsLpjScLk8cTJe8HqBZX/tcgA13/dbPAbrnAhQBSBwQ8m1WTW4EGPXsRyBKqBfMStkP5swmyKsnAsTiAOp0BHqjeSG/k3h3G4GL8fGzRaB3xbfRZ1GAjce6XwQIxAFkNAJA5GU3FaiIQLYrObPMV1p4NDvaPufPxq9l+xOznlLjQ5+Z7nkCtNwTrGdeBREAHXcAGO4Jncu8bUfY33EFRAB00AGo82ywBQG6/WwwMiyAaUegCEDuOQAbfB/gX4BDXfaDefU5w3RPwKb/FWbuiO35wfYCbM8Pthdge364e/ZXsW0BWOuz/dsgaliArr05iiIAue0AUPYMZgabricQCAQCAdzDH7txa8JBeNntAAAAAElFTkSuQmCC'
         }
       }
 

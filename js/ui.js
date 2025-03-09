@@ -279,7 +279,7 @@ async function createTopBar() {
     { name: 'wood', icon: '🪵', initial: playerResources?.wood || 0 },
     { name: 'water', icon: '💧', initial: playerResources?.water || 0 },
     { name: 'gold', icon: '🪙', initial: playerResources?.gold || 0 },
-    { name: 'rock', icon: '🪨', initial: playerResources?.rock || 0 },
+    { name: 'stone', icon: '🪨', initial: playerResources?.stone || 0 },
     { name: 'money', icon: '💰', initial: playerResources?.money || 0 },
     { name: 'population', icon: '👥', initial: playerResources?.population || 0 }
   ]
@@ -433,7 +433,7 @@ function updateBottomBarPosition() {
 
 async function createBuildingSlots() {
   const { width } = getCanvasDimensions()
-  const slotSize = 56 // Size of building icon slots
+  const slotSize = 64 // Size of building icon slots
   const padding = 10
   const maxSlots = Math.floor(width / (slotSize + padding))
   
@@ -474,14 +474,22 @@ async function createBuildingSlots() {
     slot.addChild(slotBg)
     
     // Building icon
-    const icon = new PIXI.Text({
-      text: buildings[i].icon,
-      style: {
-        fontSize: 28,
-        fill: 0xFFFFFF
-      }
-    })
-    icon.position.set(slotSize / 2 - 12, 4)
+    let icon
+    if(buildings[i].sprite) {
+      icon = new PIXI.Sprite(await PIXI.Assets.load({ src: buildings[i].sprite }))
+      icon.width = 36
+      icon.height = 36
+      icon.position.set(slotSize / 2 - 18, 6) // Center the icon in the slot
+    } else {
+      icon = new PIXI.Text({
+        text: buildings[i].icon,
+        style: {
+          fontSize: 30,
+          fill: 0xFFFFFF
+        }
+      })
+      icon.position.set(slotSize / 2 - 15, 5)
+    }
     slot.addChild(icon)
     
     // Building name
@@ -491,10 +499,12 @@ async function createBuildingSlots() {
         fontFamily: UI_FONTS.PRIMARY,
         fontSize: 11,
         fill: 0xFFD700,
-        padding: 25
+        padding: 10,
+        align: 'center'
       }
     })
-    name.position.set((slotSize - name.width) / 2, slotSize - 15)
+    name.anchor.set(0.5, 0)
+    name.position.set(slotSize / 2 + 7, slotSize - 18)
     slot.addChild(name)
     
     // Make slot interactive
@@ -532,7 +542,7 @@ function handleBuildingSelect(index) {
     prevBg.clear()
     prevBg.beginFill(0x333333, 0.7)
     prevBg.lineStyle(1, 0xFFD700, 0.8)
-    prevBg.drawRect(0, 0, 56, 56)
+    prevBg.drawRect(0, 0, 64, 64)
     prevBg.endFill()
   }
   
@@ -551,7 +561,7 @@ function handleBuildingSelect(index) {
   bg.clear()
   bg.beginFill(0x555555, 0.9)
   bg.lineStyle(2, 0xFFFFFF, 1)
-  bg.drawRect(0, 0, 56, 56)
+  bg.drawRect(0, 0, 64, 64)
   bg.endFill()
 
   // Format cost display
@@ -605,14 +615,9 @@ function createBuildingTooltip() {
   titleText.position.set(10, 10)
   tooltipContainer.addChild(titleText)
   
-  const iconText = new PIXI.Text({
-    text: "",
-    style: {
-      fontSize: 32,
-    }
-  })
-  iconText.position.set(10, 35)
-  tooltipContainer.addChild(iconText)
+  const iconContainer = new PIXI.Container()
+  iconContainer.position.set(10, 35)
+  tooltipContainer.addChild(iconContainer)
   
   const descText = new PIXI.Text({
     text: "",
@@ -623,7 +628,7 @@ function createBuildingTooltip() {
       padding: 40
     }
   })
-  descText.position.set(50, 45)
+  descText.position.set(64, 48)
   tooltipContainer.addChild(descText)
   
   const costTitle = new PIXI.Text({
@@ -645,23 +650,31 @@ function createBuildingTooltip() {
 }
 
 // Update the tooltip with building information
-function updateTooltip(building) {
+async function updateTooltip(building) {
   if (!tooltipContainer) return
   
   const titleText = tooltipContainer.getChildAt(1)
-  const iconText = tooltipContainer.getChildAt(2)
+  const iconContainer = tooltipContainer.getChildAt(2)
   const descText = tooltipContainer.getChildAt(3)
   const costContainer = tooltipContainer.getChildAt(5)
   
   // Update text content
   titleText.text = building.name
-  iconText.text = building.icon
   descText.text = building.description
   
   // Clear previous cost items
   while (costContainer.children.length > 0) {
     costContainer.removeChildAt(0)
   }
+
+  // Clear and update icon container
+  while (iconContainer.children.length > 0) {
+    iconContainer.removeChildAt(0)
+  }
+  const iconSprite = new PIXI.Sprite(await PIXI.Assets.load({ src: building.sprite }))
+  iconSprite.width = 42
+  iconSprite.height = 42
+  iconContainer.addChild(iconSprite)
   
   // Add resource costs with icons
   let xOffset = 0;
@@ -671,7 +684,7 @@ function updateTooltip(building) {
     water: "💧",
     gold: "🪙",
     money: "💰",
-    rock: "🪨"
+    stone: "🪨"
   }
   
   for (const [resource, amount] of Object.entries(building.costs)) {
