@@ -22,6 +22,7 @@ class Player {
       water: 0,
       gold: 0,
       money: 0,
+      rock: 0,
       population: 0
     }
 

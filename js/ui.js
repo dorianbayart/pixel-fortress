@@ -20,7 +20,10 @@ let cursorUpdateRafId = null
 let cursorSprite = null
 let statsText = null
 let topBarContainer = null
+let bottomBarContainer = null
 let resourceTexts = {}
+let buildingSlots = []
+let selectedBuildingIndex = -1
 
 /**
  * Initialize UI components
@@ -74,7 +77,10 @@ async function initUI(mouseInstance) {
       }, 750)
 
       // Create the top resource bar
-      await createTopBar()
+      createTopBar()
+
+      // Create the bottom building bar
+      createBottomBar()
     }
   })
 }
@@ -264,6 +270,7 @@ async function createTopBar() {
     { name: 'wood', icon: '🪵', initial: playerResources?.wood || 0 },
     { name: 'water', icon: '💧', initial: playerResources?.water || 0 },
     { name: 'gold', icon: '🪙', initial: playerResources?.gold || 0 },
+    { name: 'rock', icon: '🪨', initial: playerResources?.rock || 0 },
     { name: 'money', icon: '💰', initial: playerResources?.money || 0 },
     { name: 'population', icon: '👥', initial: playerResources?.population || 0 }
   ]
@@ -353,6 +360,174 @@ function updateTopBarPosition() {
   })
 }
 
+
+async function createBottomBar() {
+  if (bottomBarContainer) return
+  
+  const { width } = getCanvasDimensions()
+  const barHeight = 64 // Taller than top bar to accommodate building icons
+  
+  // Create the container
+  bottomBarContainer = new PIXI.Container()
+  
+  // Create background
+  const background = new PIXI.Graphics()
+  background.beginFill(0x114611, 0.85) // Dark green with transparency
+  background.lineStyle(2, 0xFFD700, 0.5) // Gold border
+  background.drawRect(0, 0, width, barHeight)
+  background.endFill()
+  bottomBarContainer.addChild(background)
+
+  // Position at bottom of screen
+  bottomBarContainer.position.set(0, app.renderer.height - barHeight)
+
+  // Add slots for buildings
+  await createBuildingSlots()
+  
+  // Add to UI container
+  containers.ui.addChild(bottomBarContainer)
+  
+  // Subscribe to relevant events
+  gameState.events.on('draw-back-requested-changed', () => {
+    if (gameState.isDrawBackRequested) {
+      updateBottomBarPosition()
+    }
+  })
+}
+
+async function createBuildingSlots() {
+  const { width } = getCanvasDimensions()
+  const slotSize = 48 // Size of building icon slots
+  const padding = 8
+  const maxSlots = Math.floor(width / (slotSize + padding))
+  
+  // Clear existing slots
+  buildingSlots.forEach(slot => {
+    if (slot.parent) slot.parent.removeChild(slot)
+  })
+  buildingSlots = []
+  
+  // Create slots based on available buildings
+  // For now, let's add some placeholder slots
+  const buildings = [
+    { name: "House", icon: "🏠", cost: 10 },
+    { name: "Barracks", icon: "⚔️", cost: 25 },
+    { name: "Farm", icon: "🌾", cost: 15 },
+    { name: "Tower", icon: "🗼", cost: 30 },
+    { name: "Wall", icon: "🧱", cost: 5 }
+  ]
+  
+  const numSlots = Math.min(buildings.length, maxSlots)
+  const startX = (width - (numSlots * (slotSize + padding) - padding)) / 2
+  
+  for (let i = 0; i < numSlots; i++) {
+    const slot = new PIXI.Container()
+    slot.position.set(startX + i * (slotSize + padding), 8)
+    
+    // Slot background
+    const slotBg = new PIXI.Graphics()
+    slotBg.beginFill(0x333333, 0.7)
+    slotBg.lineStyle(1, 0xFFD700, 0.8)
+    slotBg.drawRect(0, 0, slotSize, slotSize)
+    slotBg.endFill()
+    slot.addChild(slotBg)
+    
+    // Building icon
+    const icon = new PIXI.Text({
+      text: buildings[i].icon,
+      style: {
+        fontSize: 24,
+        fill: 0xFFFFFF
+      }
+    })
+    icon.position.set(slotSize / 2 - 12, 4)
+    slot.addChild(icon)
+    
+    // Building name
+    const name = new PIXI.Text({
+      text: buildings[i].name,
+      style: {
+        fontFamily: 'var(--font-base)',
+        fontSize: 10,
+        fill: 0xFFD700
+      }
+    })
+    name.position.set(4, slotSize - 14)
+    slot.addChild(name)
+    
+    // Make slot interactive
+    slotBg.eventMode = 'static'
+    slotBg.cursor = 'pointer'
+    
+    // Store the building data with the slot
+    slot.buildingData = buildings[i]
+    
+    // Add click event
+    slotBg.on('pointerdown', () => handleBuildingSelect(i))
+    
+    bottomBarContainer.addChild(slot)
+    buildingSlots.push(slot)
+  }
+}
+
+function handleBuildingSelect(index) {
+  // Deselect previous selection
+  if (selectedBuildingIndex >= 0 && selectedBuildingIndex < buildingSlots.length) {
+    const prevSlot = buildingSlots[selectedBuildingIndex]
+    const prevBg = prevSlot.getChildAt(0)
+    prevBg.clear()
+    prevBg.beginFill(0x333333, 0.7)
+    prevBg.lineStyle(1, 0xFFD700, 0.8)
+    prevBg.drawRect(0, 0, 48, 48)
+    prevBg.endFill()
+  }
+  
+  // If clicking same building, deselect it
+  if (selectedBuildingIndex === index) {
+    selectedBuildingIndex = -1
+    return
+  }
+  
+  // Select new building
+  selectedBuildingIndex = index
+  const slot = buildingSlots[index]
+  const bg = slot.getChildAt(0)
+  
+  // Highlight selected building
+  bg.clear()
+  bg.beginFill(0x555555, 0.9)
+  bg.lineStyle(2, 0xFFFFFF, 1)
+  bg.drawRect(0, 0, 48, 48)
+  bg.endFill()
+  
+  // Display building info
+  console.log(`Selected: ${slot.buildingData.name}, Cost: ${slot.buildingData.cost}`)
+  
+  // Here we would set up the game for building placement mode
+  // For now we'll just show a debug message
+  showDebugMessage(`Selected ${slot.buildingData.name} for placement`)
+}
+
+function updateBottomBarPosition() {
+  if (!bottomBarContainer) return
+  
+  const { width } = getCanvasDimensions()
+  const barHeight = 64
+  
+  // Update position to stay at bottom
+  bottomBarContainer.position.set(0, app.renderer.height - barHeight)
+  
+  // Update background
+  const background = bottomBarContainer.getChildAt(0)
+  background.clear()
+  background.beginFill(0x114611, 0.85)
+  background.lineStyle(2, 0xFFD700, 0.5)
+  background.drawRect(0, 0, width, barHeight)
+  background.endFill()
+  
+  // Recreate building slots to adjust for new width
+  createBuildingSlots()
+}
 
 
 const showDebugMessage = async (message) => {
