@@ -191,6 +191,7 @@ class Mouse {
       this.lastY = e.clientY
       
       // Update mouse position
+      this._needWorldCoords = true
       this.updatePosition(e.clientX, e.clientY)
     })
 

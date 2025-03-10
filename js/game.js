@@ -2,7 +2,7 @@ export { ZOOM, gameLoop, initGame }
 
 'use strict'
 
-import { Tent } from 'building'
+import { Building } from 'building'
 import { getMapDimensions, getTileSize } from 'dimensions'
 import { isDrawBackRequested } from 'globals'
 import { clearPathCache, searchPath } from 'pathfinding'
@@ -27,8 +27,8 @@ const TERRAIN_TYPES = {
   TREE: { type: 'TREE', weight: getMapDimensions().maxWeight, spriteRange: { x: [2, 3], y: [26, 27] } },
   GRASS: { type: 'GRASS', weight: 1, spriteRange: { x: [0, 2], y: [0, 2] } },
   SAND: { type: 'SAND', weight: 1, spriteRange: { x: [3, 3], y: [3, 3] } },
-  TENT_CYAN: { type: 'TENT_CYAN', weight: getMapDimensions().maxWeight, sprite: { x: 4, y: 33 } },
-  TENT_RED: { type: 'TENT_RED', weight: getMapDimensions().maxWeight, sprite: { x: 14, y: 33 } }
+  // TENT_CYAN: { type: 'TENT_CYAN', weight: getMapDimensions().maxWeight, sprite: { x: 4, y: 33 } },
+  // TENT_RED: { type: 'TENT_RED', weight: getMapDimensions().maxWeight, sprite: { x: 14, y: 33 } }
 }
 
 // Game timing variables
@@ -144,31 +144,9 @@ const placeTents = () => {
   }
 
   if(searchPath(centerX, humanY, centerX, aiY)?.length) {
-    // Set human tent
-    gameState.map[centerX][humanY] = {
-      uid: humanY * MAP_WIDTH + centerX,
-      type: TERRAIN_TYPES.TENT_CYAN.type,
-      team: 'cyan',
-      weight: TERRAIN_TYPES.TENT_CYAN.weight
-    }
-    
-    // Set AI tent
-    gameState.map[centerX][aiY] = {
-      uid: aiY * MAP_WIDTH + centerX,
-      type: TERRAIN_TYPES.TENT_RED.type,
-      team: 'red',
-      weight: TERRAIN_TYPES.TENT_CYAN.weight
-    }
-    
-    // Store tent locations in game state for future reference
-    gameState.tents = {
-      human: { x: centerX, y: humanY },
-      ai: { x: centerX, y: aiY }
-    }
-
     // Create actual tent buildings
-    new Tent(centerX, humanY, 'cyan', gameState.humanPlayer)
-    new Tent(centerX, aiY, 'red', gameState.aiPlayers[0])
+    gameState.humanPlayer.addBuilding(centerX, humanY, Building.TYPES.TENT)
+    gameState.aiPlayers[0].addBuilding(centerX, aiY, Building.TYPES.TENT)
 
     return true
   }
@@ -246,19 +224,8 @@ const assignSpritesOnMap = async (sprites) => {
               terrainType.spriteRange.y[0]
           gameState.map[x][y].sprite = offscreenSprite(sprites[spriteX][spriteY], SPRITE_SIZE)
           break;
-        case TERRAIN_TYPES.TENT_CYAN.type:
-          spriteX = terrainType.sprite.x
-          spriteY = terrainType.sprite.y
-          gameState.map[x][y].sprite = offscreenSprite(sprites[spriteX][spriteY], SPRITE_SIZE)
-          gameState.map[x][y].back = offscreenSprite(grassSprite, SPRITE_SIZE)
-          break;
-        case TERRAIN_TYPES.TENT_RED.type:
-          spriteX = terrainType.sprite.x
-          spriteY = terrainType.sprite.y
-          gameState.map[x][y].sprite = offscreenSprite(sprites[spriteX][spriteY], SPRITE_SIZE)
-          gameState.map[x][y].back = offscreenSprite(grassSprite, SPRITE_SIZE)
-          break;
         default:
+          gameState.map[x][y].back = offscreenSprite(grassSprite, SPRITE_SIZE)
           break;
       }
     }

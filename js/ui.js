@@ -9,6 +9,7 @@ import { getCanvasDimensions, getMapDimensions, getTileSize } from 'dimensions'
 import { DEBUG, drawBack, toggleDebug } from 'globals'
 import * as PIXI from 'pixijs'
 import { app, containers, updateZoom } from 'renderer'
+import { offscreenSprite, sprites } from 'sprites'
 import gameState from 'state'
 import { getCachedSprite } from 'utils'
 
@@ -33,6 +34,11 @@ let buildingSlots = []
 let selectedBuildingIndex = -1
 let tooltipContainer = null
 let tooltipVisible = false
+
+// building placement
+let buildingPreviewSprite = null
+let isValidPlacement = false
+let selectedBuildingType = null
 
 /**
  * Initialize UI components
@@ -90,6 +96,14 @@ async function initUI(mouseInstance) {
 
       // Create the bottom building bar
       createBottomBar()
+    } else if (status === 'menu' || status === 'paused') {
+      // Remove preview sprite if it exists
+      if (buildingPreviewSprite && buildingPreviewSprite.parent) {
+        buildingPreviewSprite.parent.removeChild(buildingPreviewSprite)
+        buildingPreviewSprite = null
+      }
+      selectedBuildingType = null
+      selectedBuildingIndex = -1
     }
   })
 }
@@ -173,12 +187,30 @@ function setupEventListeners() {
  * @param {Object} player - Player object
  */
 function handleMouseInteraction(map, player) {
-  // Handle mouse click to create units
-  if (mouse?.clicked) {
-    const { maxWeight: MAX_WEIGHT } = getMapDimensions()
-    mouse.clicked = false
-    if (map[mouse.x] && map[mouse.x][mouse.y]?.weight < MAX_WEIGHT) {
-      player.addWorker(mouse.x, mouse.y, map)
+  // Update building preview if a building type is selected
+  if (selectedBuildingType) {
+    updateBuildingPreview()
+    
+    // Handle mouse click to place building
+    if (mouse?.clicked && isValidPlacement) {
+      mouse.clicked = false
+      
+      // Check if player can afford the building
+      if (Building.checkCanAffordBuilding(selectedBuildingType)) {
+        // Create the building
+        player.addBuilding(mouse.x, mouse.y, selectedBuildingType)
+        
+        // Show message
+        showDebugMessage(`${selectedBuildingType.name} placed!`)
+        
+        // Clear selection
+        if (selectedBuildingIndex >= 0) {
+          handleBuildingSelect(selectedBuildingIndex)
+        }
+        
+        // Request background redraw
+        drawBack()
+      }
     }
   }
 
@@ -515,7 +547,7 @@ async function createBuildingSlots() {
     slot.buildingData = buildings[i]
     
     // Add click event
-    slotBg.on('pointerdown', () => handleBuildingSelect(i))
+    slotBg.on('pointerup', () => handleBuildingSelect(i))
 
     // Add hover events for tooltip
     slotBg.on('pointerover', () => updateTooltip(buildings[i]))
@@ -549,6 +581,13 @@ function handleBuildingSelect(index) {
   // If clicking same building, deselect it
   if (selectedBuildingIndex === index) {
     selectedBuildingIndex = -1
+    selectedBuildingType = null
+
+    // Remove preview sprite if it exists
+    if (buildingPreviewSprite && buildingPreviewSprite.parent) {
+      buildingPreviewSprite.parent.removeChild(buildingPreviewSprite)
+      buildingPreviewSprite = null
+    }
     return
   }
   
@@ -563,22 +602,72 @@ function handleBuildingSelect(index) {
   bg.lineStyle(2, 0xFFFFFF, 1)
   bg.drawRect(0, 0, 64, 64)
   bg.endFill()
+  
+  // Store the selected building type
+  selectedBuildingType = slot.buildingData
 
   // Format cost display
-  const costs = slot.buildingData.costs
+  const costs = selectedBuildingType.costs
   const costText = Object.entries(costs)
     .map(([resource, amount]) => `${resource}: ${amount}`)
     .join(', ')
   
   // Display building info
-  const canAfford = Building.checkCanAffordBuilding(slot.buildingData)
-  if(!canAfford) handleBuildingSelect(index)
+  const canAfford = Building.checkCanAffordBuilding(selectedBuildingType)
+  if(!canAfford) {
+    // selectedBuildingType = null
+    handleBuildingSelect(index)
+  }
   
 
   const statusMessage = canAfford ? 
     `Selected ${slot.buildingData.name} for placement` : 
     `Cannot afford ${slot.buildingData.name} (Needs ${costText})`
   showDebugMessage(statusMessage)
+}
+
+
+
+function isValidBuildingPosition(x, y) {
+  // Check if coordinates are in bounds
+  if (!gameState.map[x] || !gameState.map[x][y]) return false
+  
+  // For now, only allow building on grass or sand tiles
+  return ['GRASS', 'SAND'].includes(gameState.map[x][y].type)
+}
+
+
+
+async function updateBuildingPreview() {
+  console.log(gameState.UI.mouse, mouse)
+  if (!selectedBuildingType || !mouse) return
+
+  // Create preview sprite if it doesn't exist
+  if (!buildingPreviewSprite) {
+    // Load the building sprite texture
+    selectedBuildingType.sprite_coords.cyan.x
+    const sprite = offscreenSprite(sprites[selectedBuildingType.sprite_coords.cyan.x][selectedBuildingType.sprite_coords.cyan.y], getTileSize())
+    const texture = PIXI.Texture.from(sprite)
+    buildingPreviewSprite = getCachedSprite(texture, sprite.uid)
+    buildingPreviewSprite.width = getTileSize()
+    buildingPreviewSprite.height = getTileSize()
+    buildingPreviewSprite.anchor.set(0.5, 0.5)
+    containers.ui.addChild(buildingPreviewSprite)
+  }
+
+  // Check if the current position is valid
+  isValidPlacement = isValidBuildingPosition(mouse.x, mouse.y)
+  
+  // Update preview position
+  const tileSize = getTileSize()
+  buildingPreviewSprite.x = mouse.xPixels
+  buildingPreviewSprite.y = mouse.yPixels
+  
+  // Set tint color based on validity (green if valid, red if invalid)
+  buildingPreviewSprite.tint = isValidPlacement ? 0x00FF00 : 0xFF0000
+  
+  // Set alpha for better visibility
+  buildingPreviewSprite.alpha = 0.7
 }
 
 

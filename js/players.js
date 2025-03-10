@@ -2,6 +2,7 @@ export { Player, PlayerType }
 
 'use strict'
 
+import { Building } from 'building'
 import gameState, { EventSystem } from 'state'
 import { HumanSoldier, Worker } from 'unit'
 
@@ -18,10 +19,10 @@ class Player {
     this.buildings = new Array()
 
     this.resources = {
-      wood: 10,
-      water: 0,
+      wood: 10 + 5,
+      water: 0 + 5,
       gold: 0,
-      money: 0,
+      money: 0 + 5,
       stone: 0,
       population: 0
     }
@@ -87,6 +88,18 @@ class Player {
 
     this.units = this.getUnits().filter(unit => unit.life > 0)
     this.buildings = this.getBuildings().filter(building => building.health > 0)
+  }
+
+  addBuilding(x, y, buildingType) {
+    // Deduct resources
+    const resources = this.getResources()
+    for (const [resource, cost] of Object.entries(buildingType.costs)) {
+      resources[resource] -= cost
+    }
+    this.updateResources(resources)
+
+    // Create building
+    Building.create(buildingType, x, y, this.getColor(), this)
   }
 
   addWorker(x, y) {
