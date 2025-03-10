@@ -107,7 +107,7 @@ class Mouse {
           // If barely moved, treat as a click
           const dx = Math.abs(e.clientX - this.dragStartX)
           const dy = Math.abs(e.clientY - this.dragStartY)
-          if (dx < 5 && dy < 5) {
+          if (dx < 5 && dy < 5 && e.clientY < getCanvasDimensions().height - 80) {
               this.clicked = true
           }
           

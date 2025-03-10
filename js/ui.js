@@ -192,11 +192,9 @@ function handleMouseInteraction(map, player) {
     updateBuildingPreview()
     
     // Handle mouse click to place building
-    if (mouse?.clicked && isValidPlacement) {
-      mouse.clicked = false
-      
+    if (mouse?.clicked) {
       // Check if player can afford the building
-      if (Building.checkCanAffordBuilding(selectedBuildingType)) {
+      if (isValidPlacement && Building.checkCanAffordBuilding(selectedBuildingType)) {
         // Create the building
         player.addBuilding(mouse.x, mouse.y, selectedBuildingType)
         
@@ -211,6 +209,9 @@ function handleMouseInteraction(map, player) {
         // Request background redraw
         drawBack()
       }
+
+      // Reset mouse click
+      mouse.clicked = false
     }
   }
 
@@ -639,7 +640,6 @@ function isValidBuildingPosition(x, y) {
 
 
 async function updateBuildingPreview() {
-  console.log(gameState.UI.mouse, mouse)
   if (!selectedBuildingType || !mouse) return
 
   // Create preview sprite if it doesn't exist
@@ -649,8 +649,8 @@ async function updateBuildingPreview() {
     const sprite = offscreenSprite(sprites[selectedBuildingType.sprite_coords.cyan.x][selectedBuildingType.sprite_coords.cyan.y], getTileSize())
     const texture = PIXI.Texture.from(sprite)
     buildingPreviewSprite = getCachedSprite(texture, sprite.uid)
-    buildingPreviewSprite.width = getTileSize()
-    buildingPreviewSprite.height = getTileSize()
+    buildingPreviewSprite.width = getTileSize() * getCanvasDimensions().dpr
+    buildingPreviewSprite.height = getTileSize() * getCanvasDimensions().dpr
     buildingPreviewSprite.anchor.set(0.5, 0.5)
     containers.ui.addChild(buildingPreviewSprite)
   }
