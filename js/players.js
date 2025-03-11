@@ -103,21 +103,13 @@ class Player {
   }
 
   addWorker(x, y) {
-    const enemies = this.isHuman() ? 
-      gameState.aiPlayers.flatMap(ai => ai.getUnits()) : 
-      gameState.humanPlayer.getUnits()
-    
     this.units.push(
-      new Peon(x, y, this.getColor(), enemies)
+      new Peon(x, y, this.getColor())
     )
   }
 
   addLumberjackWorker(x, y, assignedBuilding) {
-    const enemies = this.isHuman() ? 
-      gameState.aiPlayers.flatMap(ai => ai.getUnits()) : 
-      gameState.humanPlayer.getUnits()
-    
-    const worker = new LumberjackWorker(x, y, this.getColor(), enemies)
+    const worker = new LumberjackWorker(x, y, this.getColor())
     
     if (assignedBuilding) {
       worker.assignedBuilding = assignedBuilding
@@ -128,12 +120,8 @@ class Player {
   }
 
   addHumanSoldier(x, y) {
-    const enemies = this.isHuman() ? 
-      gameState.aiPlayers.flatMap(ai => ai.getUnits()) : 
-      gameState.humanPlayer.getUnits()
-    
     this.units.push(
-      new HumanSoldier(x, y, this.getColor(), enemies)
+      new HumanSoldier(x, y, this.getColor())
     )
   }
 }

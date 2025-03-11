@@ -357,23 +357,14 @@ async function createTopBar() {
   
   // Subscribe to resource changes from human player
   if (gameState.humanPlayer) {
-    gameState.humanPlayer.events.on('resources-changed', updateResourceDisplay)
+    gameState.humanPlayer.events.on('resources-changed', () => {
+      updateResourceDisplay(gameState.humanPlayer.getResources())
+    })
   }
-
-  // Subscribe to player changes
-  gameState.events.on('human-player-changed', (player) => {
-    if (player) {
-      player.events.on('resources-changed', updateResourceDisplay)
-      // Initial update with new player's resources
-      updateResourceDisplay(player.getResources())
-    }
-  })
   
   // Handle window resize to update positioning
   gameState.events.on('draw-back-requested-changed', () => {
-    if (gameState.isDrawBackRequested) {
-      updateTopBarPosition()
-    }
+    updateTopBarPosition()
   })
 }
 
@@ -432,11 +423,16 @@ async function createBottomBar() {
   // Add to UI container
   containers.ui.addChild(bottomBarContainer)
   
+  // Subscribe to resource changes from human player
+  if (gameState.humanPlayer) {
+    gameState.humanPlayer.events.on('resources-changed', () => {
+      createBuildingSlots()
+    })
+  }
+
   // Subscribe to relevant events
   gameState.events.on('draw-back-requested-changed', () => {
-    if (gameState.isDrawBackRequested) {
-      updateBottomBarPosition()
-    }
+    updateBottomBarPosition()
   })
 }
 
@@ -492,8 +488,12 @@ async function createBuildingSlots() {
   const startX = (width - (numSlots * (slotSize + padding) - padding)) / 2
   
   for (let i = 0; i < numSlots; i++) {
+    // Check if player can afford this building and adjust appearance
+    const canAfford = Building.checkCanAffordBuilding(buildings[i])
+
     const slot = new PIXI.Container()
     slot.position.set(startX + i * (slotSize + padding), 12)
+    slot.alpha = canAfford ? 1 : 0.5
     
     // Store position for tooltip
     buildings[i].slotPosition = { x: slot.position.x, y: slot.position.y }
@@ -533,12 +533,14 @@ async function createBuildingSlots() {
         fontSize: 11,
         fill: 0xFFD700,
         padding: 10,
-        align: 'center'
+        align: 'center',
       }
     })
     name.anchor.set(0.5, 0)
     name.position.set(slotSize / 2 + 7, slotSize - 18)
     slot.addChild(name)
+
+    
     
     // Make slot interactive
     slotBg.eventMode = 'static'
@@ -553,14 +555,6 @@ async function createBuildingSlots() {
     // Add hover events for tooltip
     slotBg.on('pointerover', () => updateTooltip(buildings[i]))
     slotBg.on('pointerout', () => hideTooltip())
-    
-    // Check if player can afford this building and adjust appearance
-    const canAfford = Building.checkCanAffordBuilding(buildings[i])
-    if (!canAfford) {
-      slotBg.alpha = 0.5;
-      icon.alpha = 0.5;
-      name.alpha = 0.5;
-    }
 
     bottomBarContainer.addChild(slot)
     buildingSlots.push(slot)
