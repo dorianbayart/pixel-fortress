@@ -44,13 +44,35 @@ function aStar(startX, startY, endX, endY) {
   if(isWall(startX, startY) || isWall(endX, endY)) return
 
   // For nearby targets, use direct path
-  if (Math.abs(startX - endX) + Math.abs(startY - endY) <= 3) {
-    // Return simplified path for very close targets
-    return [
-      { x: startX, y: startY, weight: gameState.map[startX][startY].weight },
-      { x: endX, y: endY, weight: gameState.map[endX][endY].weight }
-    ];
-  }
+  // if (Math.abs(startX - endX) + Math.abs(startY - endY) < 4) {
+  //   // Check if there are any obstacles between start and end
+  //   let hasObstacle = false
+
+  //   // Check points along the line between start and end
+  //   const dx = endX - startX
+  //   const dy = endY - startY
+  //   const steps = Math.max(Math.abs(dx), Math.abs(dy))
+    
+  //   if (steps > 1) {
+  //     for (let i = 1; i < steps; i++) {
+  //       const x = Math.floor(startX + dx * (i / steps))
+  //       const y = Math.floor(startY + dy * (i / steps))
+        
+  //       if (isWall(x, y)) {
+  //         hasObstacle = true
+  //         break
+  //       }
+  //     }
+  //   }
+    
+  //   // Only use direct path if there are no obstacles
+  //   if (!hasObstacle) {
+  //     return [
+  //       { x: startX, y: startY, weight: gameState.map[startX][startY].weight },
+  //       { x: endX, y: endY, weight: gameState.map[endX][endY].weight }
+  //     ]
+  //   }
+  // }
   
   // Binary heap helper functions
   const heapPush = (heap, node) => {
