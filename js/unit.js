@@ -1,8 +1,8 @@
 export {
-  CombatUnit, HumanSoldier,
+  CombatUnit, HumanSoldier, LumberjackWorker,
   Mage, MeleeUnit,
   RangedUnit, Soldier, Unit, Warrior,
-  Worker, WorkerUnit
+  Peon, WorkerUnit
 }
 
 'use strict'
@@ -21,7 +21,7 @@ Class hierarchy
 
 Unit (base class)
 ├── WorkerUnit (collects resources)
-│   └── Worker
+│   └── Peon
 ├── CombatUnit (fighting capabilities)
 │   ├── MeleeUnit (close combat)
 │   │   ├── HumanSoldier
@@ -266,21 +266,134 @@ class WorkerUnit extends Unit {
   constructor(x, y, color, enemies) {
     super(x, y, color, enemies)
     
-    // Worker units have weaker stats but can collect resources
+    // Peon units have weaker stats but can collect resources
     this.life = 5
     this.attack = 1
     this.range = 0.75 * getTileSize()
     this.speed = getTileSize() / 10 | 0
     this.resources = 0
     this.maxResources = 10
+
+    // Task states
+    this.task = 'idle' // 'idle', 'gathering', 'returning', 'assigned'
+    this.assignedPath = null // Path assigned by a building
+  }
+
+  /**
+   * Override to handle worker's specific behavior
+   * @param {number} delay - Time elapsed since last update (ms)
+   * @param {Array} enemies - Array of enemy units
+   */
+  update(delay, enemies) {
+    const time = performance.now() | 0
+    
+    if(this.life <= 0) {
+      // Cleanup unit
+      this.path = null
+      this.sprite = null
+      return
+    }
+
+    const updatePath = time - this.lastPathUpdate > Math.min((this.path?.length || 1)*250, 4000)
+    
+    // Update Path
+    if((this.currentNode.x === this.nextNode.x && this.currentNode.y === this.nextNode.y) || updatePath) {
+      if(updatePath) {
+        this.lastPathUpdate = time
+        
+        // Only look for enemies if we're not on a specific task
+        if (this.task === 'idle') {
+          this.path = this.pathToNearestEnemy(enemies)
+        } 
+        // For assigned tasks, maintain the assigned path
+        else if (this.task === 'assigned' && this.assignedPath) {
+          this.path = this.assignedPath
+          // Don't clear the assigned path - we might need it if interrupted
+        }
+        // Other tasks like 'gathering' or 'returning' are handled in handleNoPath
+      } else if(this.currentNode.x === this.nextNode.x && this.currentNode.y === this.nextNode.y && this.path?.length > 1) {
+        this.path.splice(0, 1)
+      }
+
+      this.isAttacking = false
+
+      // Handle attacking enemy in range - but only if not on a critical task
+      if(this.goal && distance(this, this.goal) <= this.range && this.task === 'idle') {
+        this.attackEnemy(delay)
+        this.lastMoveUpdate = time
+        this.move(Math.min(delay, 40))
+        return
+      }
+
+      // Handle no path case
+      if(!this.path) {
+        this.handleNoPath(delay)
+        this.lastMoveUpdate = time
+        this.move(Math.min(delay, 40))
+        return
+      }
+      
+      // Handle end of path
+      if(this.path.length === 1) {
+        // If we've reached our destination for an assigned task
+        if (this.task === 'assigned') {
+          // Clear assigned path to signal completion
+          this.assignedPath = null
+          this.goal = null
+        }
+        
+        this.lastMoveUpdate = time
+        this.move(Math.min(delay, 40))
+        return
+      }
+
+      // Set next node in path
+      this.nextNode.x = this.path[1]?.x
+      this.nextNode.y = this.path[1]?.y
+
+      // Look ahead one more node if possible
+      if(this.path[2]) {
+        this.nextNextNode.x = this.path[2]?.x
+        this.nextNextNode.y = this.path[2]?.y
+      } else {
+        this.nextNextNode.x = this.path[1]?.x
+        this.nextNextNode.y = this.path[1]?.y
+      }
+    }
+
+    this.lastMoveUpdate = time
+    this.move(Math.min(delay, 40))
+  }
+
+  /**
+   * Set an assigned path from a building
+   * @param {Array} path - Path to follow
+   */
+  assignPath(path) {
+    this.assignedPath = path
+    this.path = path
+    this.task = 'assigned'
+    this.goal = path[path.length - 1]
   }
   
   /**
    * Override to collect resources when no enemies are around
    */
   handleNoPath(delay) {
-    // Instead of losing life when no enemies, workers collect resources
-    this.collectResources(delay)
+    // 
+  }
+
+  /**
+   * Check if unit has arrived at its assigned destination
+   * @param {Object} targetPos - Target position {x, y}
+   * @returns {boolean} - Whether the unit is close enough to target
+   */
+  hasArrivedAtAssignment(targetPos) {
+    const unitPos = { 
+      x: this.x, 
+      y: this.y 
+    };
+    return distance(unitPos, targetPos) <= getTileSize();
   }
   
   /**
@@ -373,13 +486,145 @@ class RangedUnit extends CombatUnit {
 }
 
 /**
- * Worker unit implementation
+ * Peon unit implementation
  */
-class Worker extends WorkerUnit {
+class Peon extends WorkerUnit {
   constructor(x, y, color, enemies) {
     super(x, y, color, enemies)
     this.spriteName = 'human-worker-' + color
     this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
+  }
+}
+
+/**
+ * Specialized worker for gathering wood from trees
+ */
+class LumberjackWorker extends WorkerUnit {
+  constructor(x, y, color, enemies) {
+    super(x, y, color, enemies)
+    this.spriteName = 'human-worker-' + color
+    this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
+    
+    // Specialized properties
+    this.harvestRate = 0.1 // Wood per second
+    this.maxResources = 1 // Can carry more wood than regular workers
+    this.assignedBuilding = null // Reference to lumberjack building
+
+    this.task = 'gathering'
+    this.findAndHarvestTrees(0)
+  }
+  
+  /**
+   * Override to gather wood from trees when no enemies are around
+   */
+  handleNoPath(delay) {
+    // If carrying full resources, return to building
+    if (this.resources >= this.maxResources) {
+      this.task = 'returning'
+      this.depositResources()
+      return
+    }
+    
+    // Otherwise look for trees to harvest
+    this.task = 'gathering'
+    this.findAndHarvestTrees(delay)
+  }
+  
+  /**
+   * Find and harvest trees
+   */
+  findAndHarvestTrees(delay) {
+    // Find closest tree tile
+    const tree = this.findClosestTree()
+    
+    if (tree) {
+      // If we're at the tree, harvest it
+      const treePosition = { x: tree.x * getTileSize(), y: tree.y * getTileSize() }
+      
+      if (distance(this, treePosition) <= this.range * 2) {
+        // Harvest wood based on rate and delay
+        const harvestedAmount = this.harvestRate * delay / 1000
+        this.resources += harvestedAmount
+      } else {
+        // Path to the tree
+        this.path = searchPath(this.currentNode.x, this.currentNode.y, tree.x, tree.y)
+      }
+    }
+  }
+  
+  /**
+   * Find the closest tree tile
+   * @returns {Object|null} Coordinates of closest tree or null if none found
+   */
+  findClosestTree() {
+    const { width, height } = getMapDimensions()
+    let closestTree = null
+    let closestDistance = Infinity
+    
+    // Search in gradually expanding radius for efficiency
+    for (let radius = 1; radius < 40; radius++) {
+      for (let dx = -radius; dx <= radius; dx++) {
+        for (let dy = -radius; dy <= radius; dy++) {
+          // Only check tiles on the perimeter of this radius
+          if (Math.abs(dx) === radius || Math.abs(dy) === radius) {
+            const tileX = this.currentNode.x + dx
+            const tileY = this.currentNode.y + dy
+            
+            // Check if coordinates are valid
+            if (tileX >= 0 && tileX < width && tileY >= 0 && tileY < height) {
+              const tile = gameState.map[tileX][tileY]
+              
+              // Check if it's a tree
+              if (tile.type === 'TREE') {
+                const dist = Math.hypot(dx, dy)
+                if (dist < closestDistance) {
+                  closestDistance = dist
+                  closestTree = { x: tileX, y: tileY }
+                }
+              }
+            }
+          }
+        }
+      }
+      
+      // If we found a tree in this radius, return it
+      if (closestTree) return closestTree
+    }
+    
+    return null
+  }
+  
+  /**
+   * Deposit collected resources at lumberjack building
+   */
+  depositResources() {
+    // If we're close to the building, deposit resources
+    if (this.assignedBuilding) {
+      const buildingPosition = { 
+        x: this.assignedBuilding.x * getTileSize(), 
+        y: this.assignedBuilding.y * getTileSize() 
+      }
+      
+      if (distance(this, buildingPosition) <= this.range * 2) {
+        // Add resources to player
+        if (this.resources > 0) {
+          // Round to prevent tiny floating point additions
+          const amount = Math.floor(this.resources)
+          if (amount > 0) {
+            this.assignedBuilding.owner.addResource('wood', amount)
+            this.resources = 0
+          }
+        }
+      } else {
+        // Path back to building
+        this.path = searchPath(
+          this.currentNode.x, 
+          this.currentNode.y, 
+          this.assignedBuilding.x, 
+          this.assignedBuilding.y + 1
+        )
+      }
+    }
   }
 }
 

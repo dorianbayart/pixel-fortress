@@ -53,6 +53,8 @@ const initGame = async (sprites) => {
 
   await assignSpritesOnMap(sprites)
 
+  elapsedBack = elapsed = performance.now()
+
   return placedTents
 }
 

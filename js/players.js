@@ -4,7 +4,7 @@ export { Player, PlayerType }
 
 import { Building } from 'building'
 import gameState, { EventSystem } from 'state'
-import { HumanSoldier, Worker } from 'unit'
+import { HumanSoldier, Peon } from 'unit'
 
 const PlayerType = {
   HUMAN: 'human',
@@ -108,8 +108,23 @@ class Player {
       gameState.humanPlayer.getUnits()
     
     this.units.push(
-      new Worker(x, y, this.getColor(), enemies)
+      new Peon(x, y, this.getColor(), enemies)
     )
+  }
+
+  addLumberjackWorker(x, y, assignedBuilding) {
+    const enemies = this.isHuman() ? 
+      gameState.aiPlayers.flatMap(ai => ai.getUnits()) : 
+      gameState.humanPlayer.getUnits()
+    
+    const worker = new LumberjackWorker(x, y, this.getColor(), enemies)
+    
+    if (assignedBuilding) {
+      worker.assignedBuilding = assignedBuilding
+    }
+    
+    this.units.push(worker)
+    return worker
   }
 
   addHumanSoldier(x, y) {

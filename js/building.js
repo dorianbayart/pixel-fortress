@@ -3,9 +3,13 @@ export { Building, Tent, WorkerBuilding }
 'use strict'
 
 import { getMapDimensions, getTileSize } from 'dimensions'
+import { searchPath } from 'pathfinding'
 import { Player } from 'players'
 import { offscreenSprite, sprites } from 'sprites'
 import gameState from 'state'
+import { LumberjackWorker, Peon, WorkerUnit } from 'unit'
+import { distance } from 'utils'
+
 
 /**
  * Base Building class for all game buildings
@@ -164,6 +168,20 @@ class WorkerBuilding extends Building {
     this.type = 'WORKER_BUILDING'
   }
   
+}
+
+/**
+ * Tent is a specialized worker building (the player's base)
+ */
+class Tent extends WorkerBuilding {
+  constructor(x, y, color, owner) {
+    super(x, y, color, owner)
+    this.type = Building.TYPES.TENT
+    this.health = 200
+    this.maxHealth = 200
+    this.productionCooldown = 10000 // 10 seconds
+  }
+
   /**
    * Update building and produce workers
    * @param {number} delay - Time elapsed since last update (ms)
@@ -192,27 +210,131 @@ class WorkerBuilding extends Building {
 }
 
 /**
- * Tent is a specialized worker building (the player's base)
- */
-class Tent extends WorkerBuilding {
-  constructor(x, y, color, owner) {
-    super(x, y, color, owner)
-    this.type = Building.TYPES.TENT
-    this.health = 200
-    this.maxHealth = 200
-    this.productionCooldown = 10000 // 10 seconds
-  }
-}
-
-/**
  * Lumberjack host workers to gather trees
  */
 class Lumberjack extends WorkerBuilding {
     constructor(x, y, color, owner) {
-      super(x, y, color, owner)
-      this.type = Building.TYPES.LUMBERJACK
-      this.health = 200
-      this.maxHealth = 200
-      this.productionCooldown = 10000 // 10 seconds
+        super(x, y, color, owner)
+        this.type = Building.TYPES.LUMBERJACK
+        this.health = 150
+        this.maxHealth = 150
+        this.level = 1
+        this.maxWorkers = this.level // Level 1 can handle 1 worker
+        this.assignedWorkers = []
+
+        // Production timer for converting workers
+        this.productionTimer = 0
+        this.productionCooldown = 2000 // 5 seconds to convert a worker
+        this.convertingWorker = null
     }
-  }
+
+    /**
+     * Update building state and convert workers
+     */
+    update(delay) {
+        super.update(delay)
+
+        // If we're not at max capacity and not already converting
+        if (this.assignedWorkers.filter(unit => unit instanceof LumberjackWorker).length < this.maxWorkers && !this.convertingWorker) {
+            // Look for nearby workers to convert
+            this.findWorkerToConvert()
+        }
+
+        // If we're converting a worker
+        if (this.convertingWorker) {
+            this.productionTimer += delay
+            
+            // Check if conversion is complete
+            if (this.productionTimer >= this.productionCooldown) {
+                this.completeWorkerConversion()
+                this.productionTimer = 0
+                this.convertingWorker = null
+            }
+        }
+    }
+
+    /**
+     * Find a nearby regular worker to convert
+     */
+    findWorkerToConvert() {
+        if (!this.owner) return
+
+        //if(this.assignedWorkers.length >= this.maxWorkers) {
+            const regularWorker = this.assignedWorkers.find(unit => unit instanceof Peon)
+            if(regularWorker) {
+                const d = distance(
+                    regularWorker.currentNode, this
+                )
+
+                //regularWorker.assignPath(path)
+                if (d < 2) {
+                    this.convertingWorker = regularWorker
+                } else {
+                    this.convertingWorker = null
+                    this.productionTimer = 0
+                }
+                return
+            }
+        //}
+
+        // Get all the owner's regular workers
+        const regularWorkers = this.owner.getUnits().filter(unit => unit instanceof Peon && !(unit instanceof LumberjackWorker))
+
+        // Find the closest worker
+        let closestWorker = null
+        let closestDistance = Infinity
+        let shortestPath = null
+
+        for (const worker of regularWorkers) {
+            const path = searchPath(
+                worker.currentNode.x, 
+                worker.currentNode.y,
+                this.x,
+                this.y + 1
+              )
+            
+            if (path?.length < closestDistance) {
+                closestDistance = path.length
+                shortestPath = path
+                closestWorker = worker
+            }
+        }
+
+         // If we found a close worker
+        if(closestWorker) {
+            // Move the worker to the building
+            closestWorker.assignPath(shortestPath)
+            this.assignedWorkers.push(closestWorker)
+        }
+    }
+
+    /**
+     * Complete worker conversion
+     */
+    completeWorkerConversion() {
+        if (!this.convertingWorker || !this.owner) return
+
+        // Remove the regular worker
+        const assignedWorkerIndex = this.assignedWorkers.indexOf(this.convertingWorker)
+        if (assignedWorkerIndex > -1) {
+            this.assignedWorkers.splice(assignedWorkerIndex, 1)
+        }
+        const workerIndex = this.owner.units.indexOf(this.convertingWorker)
+        if (workerIndex > -1) {
+            this.owner.units.splice(workerIndex, 1)
+        }
+
+        const lumberjackWorker = new LumberjackWorker(
+            this.x,
+            this.y + 1,
+            this.owner.getColor()
+        )
+
+        // Assign it to this building
+        lumberjackWorker.assignedBuilding = this
+        this.assignedWorkers.push(lumberjackWorker)
+
+        // Add to player's units
+        this.owner.units.push(lumberjackWorker)
+    }
+}
