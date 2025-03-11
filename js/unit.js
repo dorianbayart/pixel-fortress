@@ -294,6 +294,19 @@ class WorkerUnit extends Unit {
       return
     }
 
+    // Check if task is gathering or returning and handle it first
+    if (this.task === 'gathering') {
+      // If we're a lumberjack worker, try to find and harvest trees
+      if (this instanceof LumberjackWorker) {
+          this.findAndHarvestTrees(delay)
+      }
+    } else if (this.task === 'returning') {
+        // If we're a lumberjack worker, try to deposit resources
+        if (this instanceof LumberjackWorker) {
+            this.depositResources()
+        }
+    }
+    
     const updatePath = time - this.lastPathUpdate > Math.min((this.path?.length || 1)*250, 4000)
     
     // Update Path
@@ -538,16 +551,32 @@ class LumberjackWorker extends WorkerUnit {
     const tree = this.findClosestTree()
     
     if (tree) {
-      // If we're at the tree, harvest it
-      const treePosition = { x: tree.x * getTileSize(), y: tree.y * getTileSize() }
-      
-      if (distance(this, treePosition) <= this.range * 2) {
+      if (distance(this.currentNode, tree) <= this.range * 1.42 / getTileSize()) {
         // Harvest wood based on rate and delay
         const harvestedAmount = this.harvestRate * delay / 1000
         this.resources += harvestedAmount
+        this.goal = null
+        this.path = null
       } else {
-        // Path to the tree
-        this.path = searchPath(this.currentNode.x, this.currentNode.y, tree.x, tree.y)
+        // try a regular path to get as close as possible
+        let shortestPath = null
+        let path = null
+          // Find a suitable adjacent tile to the tree
+          for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+            const adjX = tree.x + dx
+            const adjY = tree.y + dy
+            
+            // Check if this adjacent tile is walkable
+            if (gameState.map[adjX]?.[adjY] && gameState.map[adjX][adjY].weight < getMapDimensions().maxWeight) {
+              path = searchPath(this.currentNode.x, this.currentNode.y, adjX, adjY)
+              if(path?.length < (shortestPath?.length || Infinity)) {
+                shortestPath = path
+              }
+          
+          }
+        }
+        this.path = shortestPath
+        this.goal = this.path[this.path.length - 1]
       }
     }
   }
@@ -602,10 +631,10 @@ class LumberjackWorker extends WorkerUnit {
     if (this.assignedBuilding) {
       const buildingPosition = { 
         x: this.assignedBuilding.x * getTileSize(), 
-        y: this.assignedBuilding.y * getTileSize() 
+        y: (this.assignedBuilding.y + 1) * getTileSize() 
       }
       
-      if (distance(this, buildingPosition) <= this.range * 2) {
+      if (distance(this, buildingPosition) <= this.range * 1.42) {
         // Add resources to player
         if (this.resources > 0) {
           // Round to prevent tiny floating point additions
@@ -615,6 +644,8 @@ class LumberjackWorker extends WorkerUnit {
             this.resources = 0
           }
         }
+        //this.goal = null
+        this.handleNoPath(0)
       } else {
         // Path back to building
         this.path = searchPath(
@@ -623,6 +654,7 @@ class LumberjackWorker extends WorkerUnit {
           this.assignedBuilding.x, 
           this.assignedBuilding.y + 1
         )
+        this.goal = this.path[this.path.length - 1]
       }
     }
   }

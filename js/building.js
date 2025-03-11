@@ -224,7 +224,7 @@ class Lumberjack extends WorkerBuilding {
 
         // Production timer for converting workers
         this.productionTimer = 0
-        this.productionCooldown = 2000 // 5 seconds to convert a worker
+        this.productionCooldown = 750 // Small delay to convert a worker
         this.convertingWorker = null
     }
 
