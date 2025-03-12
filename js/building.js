@@ -234,6 +234,8 @@ class Lumberjack extends WorkerBuilding {
     update(delay) {
         super.update(delay)
 
+        this.assignedWorkers = this.assignedWorkers.filter(unit => unit.life > 0)
+
         // If we're not at max capacity and not already converting
         if (this.assignedWorkers.filter(unit => unit instanceof LumberjackWorker).length < this.maxWorkers && !this.convertingWorker) {
             // Look for nearby workers to convert
