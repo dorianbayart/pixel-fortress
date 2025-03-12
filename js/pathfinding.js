@@ -30,7 +30,12 @@ const getHeuristic = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y)
 const isInBounds = (x, y) => x >= 0 && x < getMapDimensions().width && y >= 0 && y < getMapDimensions().height
 
 // Check if a cell is a wall
-const isWall = (x, y) => !isInBounds(x, y) || gameState.map[x][y]?.weight === getMapDimensions().maxWeight
+const isWall = (x, y) => {
+  if (!isInBounds(x, y)) return true
+
+  // Only consider maximum weight as walls, not buildings (2047) or trees (255)
+  return (gameState.map[x][y]?.weight || 0) === getMapDimensions().maxWeight
+}
 
 
 function aStar(startX, startY, endX, endY) {

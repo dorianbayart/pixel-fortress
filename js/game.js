@@ -22,13 +22,12 @@ const ZOOM = {
 }
 
 const TERRAIN_TYPES = {
-  WATER: { type: 'WATER', weight: getMapDimensions().maxWeight, spriteRange: { x: [0, 0], y: [17, 17] } },
+  WATER: { type: 'WATER', weight: 5, spriteRange: { x: [0, 0], y: [17, 17] } },
   ROCK: { type: 'ROCK', weight: getMapDimensions().maxWeight, spriteRange: { x: [0, 1], y: [26, 26] } },
-  TREE: { type: 'TREE', weight: getMapDimensions().maxWeight, spriteRange: { x: [2, 3], y: [26, 27] } },
+  TREE: { type: 'TREE', weight: 1024, spriteRange: { x: [2, 3], y: [26, 27] } },
   GRASS: { type: 'GRASS', weight: 1, spriteRange: { x: [0, 2], y: [0, 2] } },
-  SAND: { type: 'SAND', weight: 1, spriteRange: { x: [3, 3], y: [3, 3] } },
-  // TENT_CYAN: { type: 'TENT_CYAN', weight: getMapDimensions().maxWeight, sprite: { x: 4, y: 33 } },
-  // TENT_RED: { type: 'TENT_RED', weight: getMapDimensions().maxWeight, sprite: { x: 14, y: 33 } }
+  SAND: { type: 'SAND', weight: 1.75, spriteRange: { x: [3, 3], y: [3, 3] } },
+  BUILDING: { type: 'BUILDING', weight: Building.WEIGHT }
 }
 
 // Game timing variables
@@ -145,7 +144,11 @@ const placeTents = () => {
     }
   }
 
-  if(searchPath(centerX, humanY, centerX, aiY)?.length) {
+  const path = searchPath(centerX, humanY, centerX, aiY)
+  const weight = path?.reduce((p, c) => p + c.weight, 0)
+
+  if(path?.length && 2*weight < MAP_WIDTH * MAP_HEIGHT) {
+    console.log(path, weight)
     // Create actual tent buildings
     gameState.humanPlayer.addBuilding(centerX, humanY, Building.TYPES.TENT)
     gameState.aiPlayers[0].addBuilding(centerX, aiY, Building.TYPES.TENT)

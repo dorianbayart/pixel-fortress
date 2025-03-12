@@ -5,7 +5,6 @@ export {
 
 'use strict'
 
-import { Building } from 'building'
 import { getMapDimensions, getTileSize } from 'dimensions'
 import { searchPath } from 'pathfinding'
 import { UNIT_SPRITE_SIZE, offscreenSprite, unitsSprites, unitsSpritesDescription } from 'sprites'
@@ -24,6 +23,7 @@ Unit (base class)
 |   └── Lumberjack (wood)
 ├── CombatUnit (fighting capabilities)
 │   ├── MeleeUnit (close combat)
+│   │   ├── PeonSoldier
 │   │   ├── HumanSoldier
 │   │   ├── Soldier 
 │   │   └── Warrior
@@ -129,8 +129,6 @@ class Unit {
     const updatePath = time - this.lastPathUpdate > maxTime
     const distToNextNode = distance(this.currentNode, this.nextNode) || 0
 
-    //console.log(this.task, mathPathLength, distToNextNode, updatePath)
-
     // Update Path
     if(!this.path || distToNextNode < 1 || updatePath) {
       if(updatePath) {
@@ -147,11 +145,7 @@ class Unit {
    * Find the best path to the goal
    */
   findPath() {
-    let temp = searchPath(this.currentNode.x, this.currentNode.y, this.goal.x, this.goal.y)
-    //if(!this.path || temp?.length < this.path?.length) {
-      this.path = temp
-    //}
-    temp = null
+    this.path = searchPath(this.currentNode.x, this.currentNode.y, this.goal.x, this.goal.y)
   }
 
   /**
@@ -186,47 +180,6 @@ class Unit {
         this.nextNextNode.y = this.path[1]?.y
       }
     }
-    /*
-      this.isAttacking = false
-
-      // Handle attacking enemy in range
-      if(this.goal && distance(this, this.goal) <= this.range) {
-        this.attackEnemy(delay)
-        this.lastMoveUpdate = time
-        this.move(Math.min(delay, 40))
-        return
-      }
-
-      // Handle no path case
-      if(!this.path) {
-        this.handleNoPath(delay)
-        this.lastMoveUpdate = time
-        this.move(Math.min(delay, 40))
-        return
-      }
-      
-      // Handle end of path
-      if(this.path.length === 1) {
-        this.lastMoveUpdate = time
-        this.move(Math.min(delay, 40))
-        return
-      }
-      */
-      // // Set next node in path
-      // this.nextNode.x = this.path[1]?.x
-      // this.nextNode.y = this.path[1]?.y
-
-      // // Look ahead one more node if possible
-      // if(this.path[2]) {
-      //   this.nextNextNode.x = this.path[2]?.x
-      //   this.nextNextNode.y = this.path[2]?.y
-      // } else {
-      //   this.nextNextNode.x = this.path[1]?.x
-      //   this.nextNextNode.y = this.path[1]?.y
-      // }
-
-      //if(DEBUG) drawBack()
-    
 
     this.lastMoveUpdate = time
     this.move(Math.min(delay, 40))
@@ -259,17 +212,25 @@ class Unit {
     let path, pathLength = MAP_WIDTH * MAP_HEIGHT
     this.goal = null
     const enemies = this.owner.getEnemies()
+
     enemies.forEach((enemy) => {
       let temp
-      if(enemy instanceof Unit) temp = searchPath(this.currentNode.x, this.currentNode.y, enemy.currentNode.x, enemy.currentNode.y)
-      if(enemy instanceof Building) temp = searchPath(this.currentNode.x, this.currentNode.y, enemy.x, enemy.y)
+      if(enemy instanceof Unit) {
+        temp = searchPath(this.currentNode.x, this.currentNode.y, enemy.currentNode.x, enemy.currentNode.y)
+      } else {
+        // Buildings are not using CurrentNode
+        temp = searchPath(this.currentNode.x, this.currentNode.y, enemy.x, enemy.y)
+      }
+
       if(temp?.length < pathLength) {
         path = temp
         pathLength = path.length
         this.goal = enemy
       }
+
       temp = null
     })
+
     return path
   }
 
@@ -282,8 +243,9 @@ class Unit {
     const devX = ((this.nextNode.x * SPRITE_SIZE - this.x) * 2 + (this.nextNextNode.x * SPRITE_SIZE - this.x)) / 3
     const devY = ((this.nextNode.y * SPRITE_SIZE - this.y) * 2 + (this.nextNextNode.y * SPRITE_SIZE - this.y)) / 3
     const theta = Math.atan2(devY, devX)
-    const vx = this.speed * (delay/1000) * Math.cos(theta) / gameState.map[this.currentNode.x][this.currentNode.y].weight
-    const vy = this.speed * (delay/1000) * Math.sin(theta) / gameState.map[this.currentNode.x][this.currentNode.y].weight
+    const speedFactor = gameState.map[this.currentNode.x][this.currentNode.y].weight < 10 ? 1/gameState.map[this.currentNode.x][this.currentNode.y].weight : 1/4
+    const vx = this.speed * (delay/1000) * Math.cos(theta) * speedFactor * SPRITE_SIZE
+    const vy = this.speed * (delay/1000) * Math.sin(theta) * speedFactor * SPRITE_SIZE
 
     let type = 'static'
     // Attack
@@ -296,8 +258,8 @@ class Unit {
     // Walk
     if(this.goal && Math.abs(vx) + Math.abs(vy) > this.speed * (delay/2000)) {
       type = 'walk'
-      this.x += vx * (delay)
-      this.y += vy * (delay)
+      this.x += vx
+      this.y += vy
       this.theta = theta
 
       if(Math.hypot(devX, devY) < SPRITE_SIZE/3) {
@@ -358,7 +320,7 @@ class WorkerUnit extends Unit {
     // Peon units have weaker stats but can collect resources
     this.life = 5
     this.attack = 1
-    this.range = 1 * getTileSize()
+    this.range = 1.5 * getTileSize()
     this.speed = getTileSize() / 10 | 0
     this.resources = 0
     this.maxResources = 1
@@ -369,108 +331,6 @@ class WorkerUnit extends Unit {
 
     this.timeSinceLastTask = 0
   }
-
-  /**
-   * Override to handle worker's specific behavior
-   * @param {number} delay - Time elapsed since last update (ms)
-   * @param {Array} enemies - Array of enemy units
-   */
-  // update(delay) {
-  //   const time = performance.now() | 0
-    
-  //   if(this.life <= 0) {
-  //     // Cleanup unit
-  //     this.path = null
-  //     this.sprite = null
-  //     return
-  //   }
-
-  //   this.handleTasks(delay)
-
-  //   this.updateMovement(delay)
-  // }
-
-  /**
-   * Update movement of the unit
-   * @param {number} delay - Time elapsed since last update (ms)
-   */
-  // updateMovement(delay, time) {
-
-  //   const mathPathLength = this.path?.length || 1
-  //   const updatePath = time - this.lastPathUpdate > /*Math.min(*/Math.log(mathPathLength)*150 + 50*mathPathLength/*, 4000)*/
-  //   const distToNextNode = distance(this.currentNode, this.nextNode) || 0
-    
-  //   // Update Path
-  //   if(distToNextNode < 1 || updatePath) {
-  //     if(updatePath) {
-  //       this.lastPathUpdate = time
-        
-  //       // Only look for enemies if we're not on a specific task
-  //       if (this.task === 'idle') {
-  //         const path = this.pathToNearestEnemy()
-  //         if (!path || !this.path || path?.length < this.path?.length) this.path = path
-  //       } 
-  //       // For assigned tasks, maintain the assigned path
-  //       else if (this.task === 'assigned' && this.assignedPath) {
-  //         this.path = this.assignedPath
-  //         // Don't clear the assigned path - we might need it if interrupted
-  //       }
-  //       // Other tasks like 'gathering' or 'returning' are handled in handleNoPath
-  //     } else if(distToNextNode < 1 && mathPathLength > 1) {
-  //       this.path.splice(0, 1)
-  //     }
-
-  //     this.isAttacking = false
-
-  //     // Handle attacking enemy in range - but only if not on a critical task
-  //     if(this.goal && distance(this, this.goal) < this.range && this.task === 'idle') {
-  //       this.attackEnemy(delay)
-  //       this.lastMoveUpdate = time
-  //       this.move(Math.min(delay, 40))
-  //       return
-  //     }
-
-  //     // Handle no path case
-  //     if(!this.path) {
-  //       this.handleNoPath(delay)
-  //       this.lastMoveUpdate = time
-  //       this.move(Math.min(delay, 40))
-  //       return
-  //     }
-
-      
-      
-  //     // Handle end of path
-  //     if(this.path.length <= 1) {
-  //       // If we've reached our destination for an assigned task
-  //       if (this.task === 'assigned' || this.task === 'returning') {
-  //         // Clear assigned path to signal completion
-  //         this.assignedPath = null
-  //         this.goal = null
-  //       }
-        
-  //       this.lastMoveUpdate = time
-  //       this.move(Math.min(delay, 40))
-  //       return
-  //     }
-
-  //     // Set next node in path
-  //     this.nextNode.x = this.path[1]?.x
-  //     this.nextNode.y = this.path[1]?.y
-
-  //     // Look ahead one more node if possible
-  //     if(this.path[2]) {
-  //       this.nextNextNode.x = this.path[2]?.x
-  //       this.nextNextNode.y = this.path[2]?.y
-  //     } else {
-  //       this.nextNextNode.x = this.path[1]?.x
-  //       this.nextNextNode.y = this.path[1]?.y
-  //     }
-  //   }
-
-  //   this.lastMoveUpdate = time
-  //   this.move(Math.min(delay, 40))
-  // }
 
   /**
    * Set an assigned path from a building
@@ -515,6 +375,9 @@ class LumberjackWorker extends WorkerUnit {
 
   handleTasks(delay, time) {
     if(this.task === 'idle') return
+
+    // Store previous task to detect changes
+    const previousTask = this.task
     
     if(this.resources < this.maxResources) {
       this.task = 'gathering'
@@ -522,18 +385,22 @@ class LumberjackWorker extends WorkerUnit {
       this.task = 'returning'
     }
 
+    // If task has changed, clear path to force recalculation
+    if(previousTask !== this.task) {
+      this.path = null;
+      this.lastPathUpdate = 0; // Force immediate path recalculation
+    }
+
     switch(this.task) {
       case 'gathering':
         this.findTreeToHarvest(time)
         break
       case 'returning':
-        this.goal = { x: this.assignedBuilding.x, y: this.assignedBuilding.y + 1 }
+        this.goal = this.assignedBuilding
         break
     }
 
     this.timeSinceLastTask = 0
-
-    // console.log(this.task, this.resources, this.currentNode, this.path?.length, distance(this.currentNode, this.goal))
   }
 
   /**
@@ -569,25 +436,25 @@ class LumberjackWorker extends WorkerUnit {
       //   // this.path = null
       // } else {
         // try a regular path to get as close as possible
-        let shortestPath = null
-        let path = null
-          // Find a suitable adjacent tile to the tree
-          for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-            const adjX = tree.x + dx
-            const adjY = tree.y + dy
+        // let shortestPath = null
+        // let path = null
+        //   // Find a suitable adjacent tile to the tree
+        //   for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        //     const adjX = tree.x + dx
+        //     const adjY = tree.y + dy
             
-            // Check if this adjacent tile is walkable
-            if (gameState.map[adjX]?.[adjY] && gameState.map[adjX][adjY].weight < getMapDimensions().maxWeight) {
-              path = searchPath(this.currentNode.x, this.currentNode.y, adjX, adjY)
-              if(path?.length < (shortestPath?.length || Infinity)) {
-                shortestPath = path
-              }
-          }
-        }
+        //     // Check if this adjacent tile is walkable
+        //     if (gameState.map[adjX]?.[adjY] && gameState.map[adjX][adjY].weight < getMapDimensions().maxWeight) {
+        //       path = searchPath(this.currentNode.x, this.currentNode.y, adjX, adjY)
+        //       if(path?.length < (shortestPath?.length || Infinity)) {
+        //         shortestPath = path
+        //       }
+        //   }
+        // }
 
         this.lastPathUpdate = time
-        this.path = shortestPath
-        this.goal = this.path[this.path.length - 1]
+        this.path = searchPath(this.currentNode.x, this.currentNode.y, tree.x, tree.y)//shortestPath
+        if (this.path) this.goal = tree
       //}
     }
   }
@@ -671,6 +538,11 @@ class CombatUnit extends Unit {
   constructor(x, y, owner) {
     super(x, y, owner)
     
+    this.range = 1.25 * getTileSize()
+    this.life = 10
+    this.speed = getTileSize() / 12 | 0
+    this.attack = 2
+
     // Combat units have specialized stats for fighting
     this.kills = 0
     this.experience = 0
@@ -779,7 +651,7 @@ class PeonSoldier extends MeleeUnit {
     this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
     this.life = 5
     this.attack = 1
-    this.speed = getTileSize() / 10 | 0
+    this.speed = getTileSize() / 10 | 0 // Speedier than normal Combat other units
   }
 }
 
@@ -793,7 +665,6 @@ class HumanSoldier extends MeleeUnit {
     this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
     this.life = 10
     this.attack = 2
-    this.speed = getTileSize() / 10 | 0
   }
 }
 
@@ -807,7 +678,7 @@ class Mage extends RangedUnit {
     this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
     this.life = 8
     this.attack = 10
-    this.speed = getTileSize() / 12 | 0
+    this.speed = getTileSize() / 14 | 0
   }
 }
 
@@ -821,7 +692,7 @@ class Soldier extends MeleeUnit {
     this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
     this.life = 15
     this.attack = 8
-    this.speed = getTileSize() / 16 | 0
+    this.speed = getTileSize() / 15 | 0
   }
 }
 
@@ -836,6 +707,6 @@ class Warrior extends MeleeUnit {
     this.life = 40
     this.attack = 5
     this.range = 0.75 * getTileSize()
-    this.speed = getTileSize() / 20 | 0
+    this.speed = getTileSize() / 18 | 0
   }
 }

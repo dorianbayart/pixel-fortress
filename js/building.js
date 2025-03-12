@@ -15,6 +15,8 @@ import { distance } from 'utils'
  * Base Building class for all game buildings
  */
 class Building {
+    static WEIGHT = 8192
+
     static TYPES = {
         LUMBERJACK: {
           name: "Wood Hut",
@@ -112,8 +114,9 @@ class Building {
 
     // Position the building onto the map
     gameState.map[x][y].uid = this.uid
-    // Update map tile to make it unwalkable
-    gameState.map[x][y].weight = getMapDimensions().maxWeight
+    // Update map tile to make it hardly walkable
+    gameState.map[x][y].weight = Building.WEIGHT
+    gameState.map[x][y].type = 'BUILDING'
   }
   
   /**
