@@ -327,7 +327,7 @@ class Lumberjack extends WorkerBuilding {
         const lumberjackWorker = new LumberjackWorker(
             this.x,
             this.y + 1,
-            this.owner.getColor()
+            this.owner
         )
 
         // Assign it to this building

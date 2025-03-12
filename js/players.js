@@ -3,8 +3,9 @@ export { Player, PlayerType }
 'use strict'
 
 import { Building } from 'building'
+import { getTileSize } from 'dimensions'
 import gameState, { EventSystem } from 'state'
-import { HumanSoldier, Peon } from 'unit'
+import { HumanSoldier, Peon, PeonSoldier, WorkerUnit } from 'unit'
 
 const PlayerType = {
   HUMAN: 'human',
@@ -52,6 +53,17 @@ class Player {
     return this.type === PlayerType.HUMAN
   }
 
+  getEnemies() {
+    return this.isHuman() ? 
+      [
+        ...gameState.aiPlayers.flatMap(ai => ai.getUnits()),
+        ...gameState.aiPlayers.flatMap(ai => ai.getBuildings())
+      ] : [
+        ...gameState.humanPlayer.getUnits(),
+        ...gameState.humanPlayer.getBuildings()
+      ]
+  }
+
   getResources() {
     // Calculate current population based on units
     this.resources.population = this.units.length
@@ -77,13 +89,15 @@ class Player {
     for (let i = 0; i < this.getBuildings().length; i++) {
       this.buildings[i].update(delay)
     }
-
-    const enemies = this.isHuman() ? 
-      gameState.aiPlayers.flatMap(ai => ai.getUnits()) : 
-      gameState.humanPlayer.getUnits()
     
     for (let i = 0; i < this.getUnits().length; i++) {
-      this.units[i].update(delay, enemies)
+      this.units[i].update(delay)
+
+      if(this.units[i] instanceof WorkerUnit && this.units[i].timeSinceLastTask > 1000) {
+        // inactive Peons are converted to PeonSoldier
+        this.addPeonSoldier(this.units[i].currentNode.x, this.units[i].currentNode.y)
+        this.units[i].life = 0
+      }
     }
 
     this.units = this.getUnits().filter(unit => unit.life > 0)
@@ -104,12 +118,12 @@ class Player {
 
   addWorker(x, y) {
     this.units.push(
-      new Peon(x, y, this.getColor())
+      new Peon(x, y, this)
     )
   }
 
   addLumberjackWorker(x, y, assignedBuilding) {
-    const worker = new LumberjackWorker(x, y, this.getColor())
+    const worker = new LumberjackWorker(x, y, this)
     
     if (assignedBuilding) {
       worker.assignedBuilding = assignedBuilding
@@ -119,9 +133,15 @@ class Player {
     return worker
   }
 
+  addPeonSoldier(x, y) {
+    this.units.push(
+      new PeonSoldier(x, y, this)
+    )
+  }
+
   addHumanSoldier(x, y) {
     this.units.push(
-      new HumanSoldier(x, y, this.getColor())
+      new HumanSoldier(x, y, this)
     )
   }
 }
