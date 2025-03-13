@@ -6,7 +6,7 @@ import { getTileSize, initMapDimensions } from 'dimensions'
 import { gameLoop, initGame } from 'game'
 import { initHomeMenu } from 'menu'
 import { app, initCanvases, resizeCanvases } from 'renderer'
-import { loadSprites, sprites } from 'sprites'
+import { loadSprites } from 'sprites'
 import gameState from 'state'
 import { initUI, showDebugMessage } from 'ui'
 import { viewportChange } from 'viewport'
@@ -37,7 +37,7 @@ async function initializeGame() {
   gameState.events.on('game-status-changed', (status) => {
     if (status === 'initialize') {
       initMapDimensions()
-      startGame(sprites)
+      startGame()
     } else if (status === 'playing') {
       
     } else if (status === 'menu') {
@@ -54,9 +54,9 @@ async function initializeGame() {
 }
 
 // Start the game
-async function startGame(sprites) {
+async function startGame() {
   // Initialize game state
-  const ready = await initGame(sprites)
+  const ready = await initGame()
 
   if(ready) {
     // Perform initial resize

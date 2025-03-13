@@ -145,6 +145,8 @@ class Building {
     const spriteX = building.type.sprite_coords[color].x
     const spriteY = building.type.sprite_coords[color].y
     gameState.map[x][y].sprite = offscreenSprite(sprites[spriteX][spriteY], getTileSize())
+
+    return building
   }
 
   static checkCanAffordBuilding(building) {
@@ -229,6 +231,13 @@ class Lumberjack extends WorkerBuilding {
         this.productionTimer = 0
         this.productionCooldown = 750 // Small delay to convert a worker
         this.convertingWorker = null
+
+        // Add nearby trees array
+        this.nearbyTrees = []
+        this.treeSearchRadius = 10 // Search within 10 tiles radius
+
+        // Find and order nearby trees after construction
+        this.findAndOrderNearbyTrees()
     }
 
     /**
@@ -256,6 +265,115 @@ class Lumberjack extends WorkerBuilding {
                 this.convertingWorker = null
             }
         }
+    }
+
+    /**
+     * Find and order nearby trees by path distance
+     */
+    async findAndOrderNearbyTrees() {
+        const { width, height } = getMapDimensions()
+        const treesToProcess = []
+        
+        // First, find all trees within radius
+        for (let dx = -this.treeSearchRadius; dx <= this.treeSearchRadius; dx++) {
+            for (let dy = -this.treeSearchRadius; dy <= this.treeSearchRadius; dy++) {
+                const tileX = this.x + dx
+                const tileY = this.y + dy
+                
+                // Check if coordinates are valid
+                if (tileX >= 0 && tileX < width && tileY >= 0 && tileY < height) {
+                    const tile = gameState.map[tileX][tileY]
+                    
+                    // Check if it's a harvestable tree
+                    if (tile?.type === 'TREE' && tile?.lifeRemaining > 0) {
+                        // Use geometric distance for initial filtering
+                        const geoDist = Math.sqrt(dx * dx + dy * dy)
+                        if (geoDist <= this.treeSearchRadius) {
+                            treesToProcess.push({ x: tileX, y: tileY, geoDist })
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Sort initially by geometric distance to process closer trees first
+        treesToProcess.sort((a, b) => a.geoDist - b.geoDist)
+        
+        // Calculate path distance for each tree and add valid ones to nearbyTrees
+        for (const tree of treesToProcess) {
+            // Use building's adjacent tile as starting point for better pathing
+            const startX = this.x
+            const startY = this.y + 1 // Use tile below building as default starting point
+            
+            // Calculate path to the tree
+            const path = searchPath(startX, startY, tree.x, tree.y)
+            
+            // Only add trees that have a valid path
+            if (path && path.length > 0) {
+                this.nearbyTrees.push({
+                    x: tree.x,
+                    y: tree.y,
+                    pathDistance: path.length,
+                    pathWeight: path.reduce((sum, node) => sum + node.weight, 0)
+                })
+            }
+        }
+        
+        // Sort trees by path weight (easier paths first)
+        this.nearbyTrees.sort((a, b) => {
+            // First compare by path weight
+            if (a.pathWeight !== b.pathWeight) {
+                return a.pathWeight - b.pathWeight
+            }
+            // Then by path distance as a tiebreaker
+            return a.pathDistance - b.pathDistance
+        })
+        
+        // Limit the number of trees to avoid memory issues
+        if (this.nearbyTrees.length > 30) {
+            this.nearbyTrees = this.nearbyTrees.slice(0, 30)
+        }
+        
+        console.log(`Found ${this.nearbyTrees.length} harvestable trees near lumberjack at (${this.x},${this.y})`)
+    }
+
+
+    /**
+     * Get the next available tree for harvesting
+     * @returns {Object|null} The next tree to harvest or null if none available
+     */
+    getNextHarvestableTree() {
+        // If no trees found initially, try searching again
+        // if (this.nearbyTrees.length === 0) {
+        //     this.findAndOrderNearbyTrees()
+        // }
+        
+        // Return the first valid tree in the list
+        for (let i = 0; i < this.nearbyTrees?.length; i++) {
+            const tree = this.nearbyTrees[i]
+            // Verify the tree still exists and harvestable
+            if (gameState.map[tree.x][tree.y].type === 'TREE' && gameState.map[tree.x][tree.y].lifeRemaining > 0) {
+                return tree
+            } else {
+                this.removeTree(tree)
+            }
+        }
+        
+        // No valid trees found
+        return null
+    }
+
+    /**
+     * Remove a tree from the nearbyTrees list
+     * @param {Object} tree - The tree to remove
+     */
+    async removeTree(tree) {
+        this.nearbyTrees = this.nearbyTrees.filter(t => 
+            !(t.x === tree.x && t.y === tree.y)
+        )
+
+        // Update the available trees
+        this.findAndOrderNearbyTrees()
     }
 
     /**

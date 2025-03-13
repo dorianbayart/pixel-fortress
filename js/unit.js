@@ -6,6 +6,7 @@ export {
 'use strict'
 
 import { getMapDimensions, getTileSize } from 'dimensions'
+import { updateSprite, TERRAIN_TYPES } from 'game'
 import { searchPath } from 'pathfinding'
 import { UNIT_SPRITE_SIZE, offscreenSprite, unitsSprites, unitsSpritesDescription } from 'sprites'
 import gameState from 'state'
@@ -423,39 +424,18 @@ class LumberjackWorker extends WorkerUnit {
    * Find and harvest trees
    */
   findTreeToHarvest(time) {
-    if(this.goal) return
-    // Find closest tree tile
-    const tree = this.findClosestTree()
+    if (this.goal) return
+
+    // Get a tree from the assigned building's list
+    const tree = this.assignedBuilding?.getNextHarvestableTree()
     
     if (tree) {
-      // if (distance(this.currentNode, tree) <= this.range * 1.42 / getTileSize()) {
-      //   // Harvest wood based on rate and delay
-      //   // const harvestedAmount = this.harvestRate * delay / 1000
-      //   // this.resources += harvestedAmount
-      //   // this.goal = null
-      //   // this.path = null
-      // } else {
-        // try a regular path to get as close as possible
-        // let shortestPath = null
-        // let path = null
-        //   // Find a suitable adjacent tile to the tree
-        //   for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-        //     const adjX = tree.x + dx
-        //     const adjY = tree.y + dy
-            
-        //     // Check if this adjacent tile is walkable
-        //     if (gameState.map[adjX]?.[adjY] && gameState.map[adjX][adjY].weight < getMapDimensions().maxWeight) {
-        //       path = searchPath(this.currentNode.x, this.currentNode.y, adjX, adjY)
-        //       if(path?.length < (shortestPath?.length || Infinity)) {
-        //         shortestPath = path
-        //       }
-        //   }
-        // }
-
-        this.lastPathUpdate = time
-        this.path = searchPath(this.currentNode.x, this.currentNode.y, tree.x, tree.y)//shortestPath
-        if (this.path) this.goal = tree
-      //}
+      this.lastPathUpdate = time
+      this.path = searchPath(this.currentNode.x, this.currentNode.y, tree.x, tree.y)
+      if (this.path) this.goal = tree
+    } else {
+      // No tree found, stay idle
+      this.task = 'idle'
     }
   }
   
@@ -463,52 +443,52 @@ class LumberjackWorker extends WorkerUnit {
    * Find and harvest trees
    */
   harvest(delay) {
-    this.resources += this.harvestRate * delay / 1000
+    // Get the tree tile
+    const tree = gameState.map[this.goal.x][this.goal.y]
+
+    // Check if this is still a valid tree
+    if (tree?.type === 'TREE' && tree?.lifeRemaining > 0) {
+      // Calculate how much to harvest (limited by what's left in the tree)
+      const amountToHarvest = Math.min(
+        this.harvestRate * delay / 1000,
+        tree.lifeRemaining,
+        this.maxResources - this.resources
+      )
+
+      // Add to worker's carried resources
+      this.resources += amountToHarvest
+
+      // Reduce tree's remaining resources
+      tree.lifeRemaining -= amountToHarvest
+
+      // Check if tree is depleted
+      if (tree.lifeRemaining <= 0) {
+        this.depleteTree({ x: this.goal.x, y: this.goal.y })
+        this.goal = null
+        this.path = null
+      }
+    } else {
+      // Tree is no longer valid, find a new one
+      this.goal = null
+      this.path = null
+    }
   }
 
   /**
-   * Find the closest tree tile
-   * @returns {Object|null} Coordinates of closest tree or null if none found
+   * Handle tree depletion
+   * @param {Object} tree - The tree tile
    */
-  findClosestTree() {
-    const { width, height } = getMapDimensions()
-    let closestTree = null
-    let closestDistance = Infinity
+  async depleteTree(tree) {
+    // Update the map tile
+    gameState.map[tree.x][tree.y].type = 'DEPLETED_TREE'
+    gameState.map[tree.x][tree.y].weight = TERRAIN_TYPES.GRASS.weight
     
-    // Search in gradually expanding radius for efficiency
-    for (let radius = 1; radius < 24; radius++) {
-      for (let dx = -radius; dx <= radius; dx++) {
-        for (let dy = -radius; dy <= radius; dy++) {
-          // Only check tiles on the perimeter of this radius
-          if (Math.abs(dx) === radius || Math.abs(dy) === radius) {
-            const tileX = this.currentNode.x + dx
-            const tileY = this.currentNode.y + dy
-            
-            // Check if coordinates are valid
-            if (tileX >= 0 && tileX < width && tileY >= 0 && tileY < height) {
-              const tile = gameState.map[tileX][tileY]
-              
-              // Check if it's a tree
-              if (tile.type === 'TREE') {
-                const dist = Math.hypot(dx, dy)
-                if (dist < closestDistance) {
-                  closestDistance = dist
-                  closestTree = { x: tileX, y: tileY }
-                }
-              }
-            }
-          }
-        }
-      }
-      
-      // If we found a tree in this radius, return it
-      if (closestTree) {
-        return closestTree
-      }
+    updateSprite(tree.x, tree.y)
+    
+    // Remove from lumberjack's tree list if applicable
+    if (this.assignedBuilding) {
+        this.assignedBuilding.removeTree(tree)
     }
-    
-    this.task = 'idle'
-    return null
   }
   
   /**

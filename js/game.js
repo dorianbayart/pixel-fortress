@@ -1,14 +1,14 @@
-export { ZOOM, gameLoop, initGame }
+export { TERRAIN_TYPES, ZOOM, gameLoop, initGame, updateSprite }
 
 'use strict'
 
 import { Building } from 'building'
 import { getMapDimensions, getTileSize } from 'dimensions'
-import { isDrawBackRequested } from 'globals'
+import { drawBack, isDrawBackRequested } from 'globals'
 import { clearPathCache, searchPath } from 'pathfinding'
 import { Player, PlayerType } from 'players'
 import { drawBackground, drawMain } from 'renderer'
-import { offscreenSprite } from 'sprites'
+import { offscreenSprite, sprites } from 'sprites'
 import gameState from 'state'
 import { handleMouseInteraction, updateUI } from 'ui'
 import { PerlinNoise } from 'utils'
@@ -25,6 +25,7 @@ const TERRAIN_TYPES = {
   WATER: { type: 'WATER', weight: 5, spriteRange: { x: [0, 0], y: [17, 17] } },
   ROCK: { type: 'ROCK', weight: getMapDimensions().maxWeight, spriteRange: { x: [0, 1], y: [26, 26] } },
   TREE: { type: 'TREE', weight: 1024, spriteRange: { x: [2, 3], y: [26, 27] } },
+  DEPLETED_TREE: { type: 'DEPLETED_TREE', weight: 2.5, spriteRange: { x: [1], y: [27] } },
   GRASS: { type: 'GRASS', weight: 1, spriteRange: { x: [0, 2], y: [0, 2] } },
   SAND: { type: 'SAND', weight: 1.75, spriteRange: { x: [3, 3], y: [3, 3] } },
   BUILDING: { type: 'BUILDING', weight: Building.WEIGHT }
@@ -37,7 +38,7 @@ let fps = new Array(100).fill(50)
 let delays = new Array(100).fill(50)
 
 // Initialize the game
-const initGame = async (sprites) => {
+const initGame = async () => {
   // Create players
   new Player(PlayerType.HUMAN)
   new Player(PlayerType.AI)
@@ -50,7 +51,7 @@ const initGame = async (sprites) => {
     placedTents = placeTents()
   } while(!placedTents && ++i < 250)
 
-  await assignSpritesOnMap(sprites)
+  await assignSpritesOnMap()
 
   elapsedBack = elapsed = performance.now()
 
@@ -99,11 +100,21 @@ const generateMap = async () => {
         else if (noiseValue < TERRAIN_THRESHOLD.GRASS) terrainType = TERRAIN_TYPES.GRASS
         else if (noiseValue < TERRAIN_THRESHOLD.TREE) terrainType = TERRAIN_TYPES.TREE
 
-        gameState.map[x][y] = {
+        if (terrainType.type === 'TREE') {
+          gameState.map[x][y] = {
             uid: y * MAP_WIDTH + x,
             type: terrainType.type,
             weight: terrainType.weight,
+            lifeRemaining: 50 // Each tree can produce 50 wood
+          }
+        } else {
+          gameState.map[x][y] = {
+            uid: y * MAP_WIDTH + x,
+            type: terrainType.type,
+            weight: terrainType.weight,
+          }
         }
+        
       }
   }
 }
@@ -148,7 +159,8 @@ const placeTents = () => {
   const weight = path?.reduce((p, c) => p + c.weight, 0)
 
   if(path?.length && 2*weight < MAP_WIDTH * MAP_HEIGHT) {
-    console.log(path, weight)
+    console.log('Path between the 2 tents:', path, weight)
+
     // Create actual tent buildings
     gameState.humanPlayer.addBuilding(centerX, humanY, Building.TYPES.TENT)
     gameState.aiPlayers[0].addBuilding(centerX, aiY, Building.TYPES.TENT)
@@ -165,7 +177,7 @@ const isMapCorrect = () => {
 }
 
 // Assign sprites to map tiles
-const assignSpritesOnMap = async (sprites) => {
+const assignSpritesOnMap = async () => {
   const { width: MAP_WIDTH, height: MAP_HEIGHT, maxWeight: MAX_WEIGHT } = getMapDimensions()
   const SPRITE_SIZE = getTileSize()
 
@@ -190,7 +202,7 @@ const assignSpritesOnMap = async (sprites) => {
               (terrainType.spriteRange.y[1] - terrainType.spriteRange.y[0] + 1)) + 
               terrainType.spriteRange.y[0]
           gameState.map[x][y].sprite = offscreenSprite(sprites[spriteX][spriteY], SPRITE_SIZE)
-          break;
+          break
         case TERRAIN_TYPES.TREE.type:
           spriteX = Math.floor(Math.random() * 
               (terrainType.spriteRange.x[1] - terrainType.spriteRange.x[0] + 1)) + 
@@ -200,7 +212,17 @@ const assignSpritesOnMap = async (sprites) => {
               terrainType.spriteRange.y[0]
           gameState.map[x][y].sprite = offscreenSprite(sprites[spriteX][spriteY], SPRITE_SIZE)
           gameState.map[x][y].back = offscreenSprite(grassSprite, SPRITE_SIZE)
-          break;
+          break
+        case TERRAIN_TYPES.TREE.type:
+          spriteX = Math.floor(Math.random() * 
+              (terrainType.spriteRange.x[1] - terrainType.spriteRange.x[0] + 1)) + 
+              terrainType.spriteRange.x[0]
+          spriteY = Math.floor(Math.random() * 
+              (terrainType.spriteRange.y[1] - terrainType.spriteRange.y[0] + 1)) + 
+              terrainType.spriteRange.y[0]
+          gameState.map[x][y].sprite = offscreenSprite(sprites[spriteX][spriteY], SPRITE_SIZE)
+          gameState.map[x][y].back = offscreenSprite(grassSprite, SPRITE_SIZE)
+          break
         case TERRAIN_TYPES.ROCK.type:
           spriteX = Math.floor(Math.random() * 
               (terrainType.spriteRange.x[1] - terrainType.spriteRange.x[0] + 1)) + 
@@ -210,7 +232,7 @@ const assignSpritesOnMap = async (sprites) => {
               terrainType.spriteRange.y[0]
           gameState.map[x][y].sprite = offscreenSprite(sprites[spriteX][spriteY], SPRITE_SIZE)
           gameState.map[x][y].back = offscreenSprite(grassSprite, SPRITE_SIZE)
-          break;
+          break
         case TERRAIN_TYPES.SAND.type:
           spriteX = Math.floor(Math.random() * 
               (terrainType.spriteRange.x[1] - terrainType.spriteRange.x[0] + 1)) + 
@@ -219,7 +241,7 @@ const assignSpritesOnMap = async (sprites) => {
               (terrainType.spriteRange.y[1] - terrainType.spriteRange.y[0] + 1)) + 
               terrainType.spriteRange.y[0]
           gameState.map[x][y].sprite = offscreenSprite(sprites[spriteX][spriteY], SPRITE_SIZE)
-          break;
+          break
         case TERRAIN_TYPES.WATER.type:
           spriteX = Math.floor(Math.random() * 
               (terrainType.spriteRange.x[1] - terrainType.spriteRange.x[0] + 1)) + 
@@ -228,14 +250,36 @@ const assignSpritesOnMap = async (sprites) => {
               (terrainType.spriteRange.y[1] - terrainType.spriteRange.y[0] + 1)) + 
               terrainType.spriteRange.y[0]
           gameState.map[x][y].sprite = offscreenSprite(sprites[spriteX][spriteY], SPRITE_SIZE)
-          break;
+          break
         default:
           gameState.map[x][y].back = offscreenSprite(grassSprite, SPRITE_SIZE)
-          break;
+          break
       }
     }
   }
 }
+
+// Update the sprite on the map at specified coords
+const updateSprite = async (x, y) => {
+  const terrainType = TERRAIN_TYPES[gameState.map[x][y].type]
+  let spriteX, spriteY
+  switch (gameState.map[x][y].type) {
+    case TERRAIN_TYPES.DEPLETED_TREE.type:
+      spriteX = terrainType.spriteRange.x[0]
+      spriteY = terrainType.spriteRange.y[0]
+      gameState.map[x][y].sprite = offscreenSprite(sprites[spriteX][spriteY], getTileSize())
+      break
+    case TERRAIN_TYPES.GRASS.type:
+    case TERRAIN_TYPES.TREE.type:
+    case TERRAIN_TYPES.ROCK.type:
+    case TERRAIN_TYPES.SAND.type:
+    case TERRAIN_TYPES.WATER.type:
+    default:
+      break
+  }
+
+  drawBack()
+} 
 
 // Main game loop
 const gameLoop = () => {
