@@ -158,7 +158,7 @@ const placeTents = () => {
   const path = searchPath(centerX, humanY, centerX, aiY)
   const weight = path?.reduce((p, c) => p + c.weight, 0)
 
-  if(path?.length && 2*weight < MAP_WIDTH * MAP_HEIGHT) {
+  if(path?.length && weight < 2 * (MAP_WIDTH + MAP_HEIGHT)) {
     console.log('Path between the 2 tents:', path, weight)
 
     // Create actual tent buildings

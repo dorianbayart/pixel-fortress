@@ -229,12 +229,15 @@ class Lumberjack extends WorkerBuilding {
 
         // Production timer for converting workers
         this.productionTimer = 0
-        this.productionCooldown = 750 // Small delay to convert a worker
+        this.productionCooldown = 1000 // Small delay to convert a worker
         this.convertingWorker = null
 
         // Add nearby trees array
         this.nearbyTrees = []
         this.treeSearchRadius = 10 // Search within 10 tiles radius
+
+        this.treeProcessingInProgress = false
+        this.treeProcessingQueue = []
 
         // Find and order nearby trees after construction
         this.findAndOrderNearbyTrees()
@@ -271,8 +274,14 @@ class Lumberjack extends WorkerBuilding {
      * Find and order nearby trees by path distance
      */
     async findAndOrderNearbyTrees() {
+        // If already processing, don't start again
+        if (this.treeProcessingInProgress) {
+            return
+        }
+        
+        this.treeProcessingInProgress = true
         const { width, height } = getMapDimensions()
-        const treesToProcess = []
+        this.treeProcessingQueue = []
         
         // First, find all trees within radius
         for (let dx = -this.treeSearchRadius; dx <= this.treeSearchRadius; dx++) {
@@ -289,37 +298,28 @@ class Lumberjack extends WorkerBuilding {
                         // Use geometric distance for initial filtering
                         const geoDist = Math.sqrt(dx * dx + dy * dy)
                         if (geoDist <= this.treeSearchRadius) {
-                            treesToProcess.push({ x: tileX, y: tileY, geoDist })
+                            this.treeProcessingQueue.push({ x: tileX, y: tileY })
                         }
                     }
                 }
             }
         }
-        
-        // Sort initially by geometric distance to process closer trees first
-        treesToProcess.sort((a, b) => a.geoDist - b.geoDist)
-        
-        // Calculate path distance for each tree and add valid ones to nearbyTrees
-        for (const tree of treesToProcess) {
-            // Use building's adjacent tile as starting point for better pathing
-            const startX = this.x
-            const startY = this.y + 1 // Use tile below building as default starting point
-            
-            // Calculate path to the tree
-            const path = searchPath(startX, startY, tree.x, tree.y)
-            
-            // Only add trees that have a valid path
-            if (path && path.length > 0) {
-                this.nearbyTrees.push({
-                    x: tree.x,
-                    y: tree.y,
-                    pathDistance: path.length,
-                    pathWeight: path.reduce((sum, node) => sum + node.weight, 0)
-                })
-            }
+
+        // Initialize the tree list
+        this.nearbyTrees = []
+
+        // Process remaining trees in the background
+        if (this.treeProcessingQueue.length > 0) {
+            setTimeout(() => this.processNextTreeInQueue(), 5)
+        } else {
+            this.treeProcessingInProgress = false
         }
-        
-        // Sort trees by path weight (easier paths first)
+    }
+
+    /**
+     * Sort trees by path quality and limit the number stored
+     */
+    sortTreesByPathQuality() {
         this.nearbyTrees.sort((a, b) => {
             // First compare by path weight
             if (a.pathWeight !== b.pathWeight) {
@@ -327,14 +327,47 @@ class Lumberjack extends WorkerBuilding {
             }
             // Then by path distance as a tiebreaker
             return a.pathDistance - b.pathDistance
-        })
+        });
         
-        // Limit the number of trees to avoid memory issues
+        // Limit to 30 trees max to avoid memory issues
         if (this.nearbyTrees.length > 30) {
             this.nearbyTrees = this.nearbyTrees.slice(0, 30)
         }
+    }
+
+    /**
+     * Process next tree in the queue without blocking the main thread
+     */
+    processNextTreeInQueue() {
+        // If building is destroyed or no more trees to process, stop
+        if (!this.owner || this.health <= 0 || this.treeProcessingQueue.length === 0) {
+            this.treeProcessingInProgress = false
+            this.treeProcessingQueue = []
+            return
+        }
         
-        console.log(`Found ${this.nearbyTrees.length} harvestable trees near lumberjack at (${this.x},${this.y})`)
+        // Get next tree from queue
+        const tree = this.treeProcessingQueue.shift()
+        const startX = this.x
+        const startY = this.y
+        
+        // Calculate path
+        const path = searchPath(startX, startY, tree.x, tree.y)
+        
+        if (path?.length > 0) {
+            this.nearbyTrees.push({
+                x: tree.x,
+                y: tree.y,
+                pathDistance: path.length,
+                pathWeight: path.reduce((sum, node) => sum + node.weight, 0)
+            })
+            
+            // Re-sort and trim the list
+            this.sortTreesByPathQuality()
+        }
+        
+        // Process next tree after a small delay
+        setTimeout(() => this.processNextTreeInQueue(), 5)
     }
 
 
@@ -343,11 +376,6 @@ class Lumberjack extends WorkerBuilding {
      * @returns {Object|null} The next tree to harvest or null if none available
      */
     getNextHarvestableTree() {
-        // If no trees found initially, try searching again
-        // if (this.nearbyTrees.length === 0) {
-        //     this.findAndOrderNearbyTrees()
-        // }
-        
         // Return the first valid tree in the list
         for (let i = 0; i < this.nearbyTrees?.length; i++) {
             const tree = this.nearbyTrees[i]
@@ -368,12 +396,18 @@ class Lumberjack extends WorkerBuilding {
      * @param {Object} tree - The tree to remove
      */
     async removeTree(tree) {
+        // Remove from current trees list
         this.nearbyTrees = this.nearbyTrees.filter(t => 
             !(t.x === tree.x && t.y === tree.y)
         )
 
-        // Update the available trees
-        this.findAndOrderNearbyTrees()
+        // Also remove from processing queue if it's there
+        this.treeProcessingQueue = this.treeProcessingQueue.filter(t => 
+            !(t.x === tree.x && t.y === tree.y)
+        )
+
+        // Update the available trees in background
+        setTimeout(() => this.findAndOrderNearbyTrees(), 40)
     }
 
     /**
@@ -389,7 +423,6 @@ class Lumberjack extends WorkerBuilding {
                     regularWorker.currentNode, this
                 )
 
-                //regularWorker.assignPath(path)
                 if (d < 2) {
                     this.convertingWorker = regularWorker
                 } else {
@@ -413,7 +446,7 @@ class Lumberjack extends WorkerBuilding {
                 worker.currentNode.x, 
                 worker.currentNode.y,
                 this.x,
-                this.y + 1
+                this.y
               )
             
             if (path?.length < closestDistance) {
@@ -437,6 +470,13 @@ class Lumberjack extends WorkerBuilding {
     completeWorkerConversion() {
         if (!this.convertingWorker || !this.owner) return
 
+        // Create a lumberjack's worker
+        const lumberjackWorker = this.owner.addLumberjackWorker(
+            this.convertingWorker.currentNode.x,
+            this.convertingWorker.currentNode.y,
+            this
+        )
+
         // Remove the regular worker
         const assignedWorkerIndex = this.assignedWorkers.indexOf(this.convertingWorker)
         if (assignedWorkerIndex > -1) {
@@ -446,18 +486,5 @@ class Lumberjack extends WorkerBuilding {
         if (workerIndex > -1) {
             this.owner.units.splice(workerIndex, 1)
         }
-
-        const lumberjackWorker = new LumberjackWorker(
-            this.x,
-            this.y + 1,
-            this.owner
-        )
-
-        // Assign it to this building
-        lumberjackWorker.assignedBuilding = this
-        this.assignedWorkers.push(lumberjackWorker)
-
-        // Add to player's units
-        this.owner.units.push(lumberjackWorker)
     }
 }

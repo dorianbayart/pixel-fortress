@@ -3,9 +3,8 @@ export { Player, PlayerType }
 'use strict'
 
 import { Building } from 'building'
-import { getTileSize } from 'dimensions'
 import gameState, { EventSystem } from 'state'
-import { HumanSoldier, Peon, PeonSoldier, WorkerUnit } from 'unit'
+import { HumanSoldier, LumberjackWorker, Peon, PeonSoldier, WorkerUnit } from 'unit'
 
 const PlayerType = {
   HUMAN: 'human',
@@ -93,7 +92,7 @@ class Player {
     for (let i = 0; i < this.getUnits().length; i++) {
       this.units[i].update(delay)
 
-      if(this.units[i] instanceof WorkerUnit && this.units[i].timeSinceLastTask > 1000) {
+      if(this.units[i] instanceof WorkerUnit && this.units[i].timeSinceLastTask > 1000 && this.units[i].task === 'idle') {
         // inactive Peons are converted to PeonSoldier
         this.addPeonSoldier(this.units[i].currentNode.x, this.units[i].currentNode.y)
         this.units[i].life = 0
@@ -126,7 +125,9 @@ class Player {
     const worker = new LumberjackWorker(x, y, this)
     
     if (assignedBuilding) {
+      // Assign the worker to the building
       worker.assignedBuilding = assignedBuilding
+      assignedBuilding.assignedWorkers.push(worker)
     }
     
     this.units.push(worker)

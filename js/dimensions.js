@@ -28,8 +28,8 @@ let dpr = 1
  * Should only be called when creating a new map
  */
 const initMapDimensions = () => {
-    MAP_WIDTH = 100
-    MAP_HEIGHT = 160
+    MAP_WIDTH = 60
+    MAP_HEIGHT = 120
 
     // Log new map dimensions
     console.log(`Map initialized: ${MAP_WIDTH} x ${MAP_HEIGHT} tiles`)

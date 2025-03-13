@@ -103,7 +103,7 @@ class Unit {
 
     if(distance(this.currentNode, this.goal.currentNode ?? this.goal) <= this.range / getTileSize()) {
       this.goalReached(delay, time)
-      this.next = null
+      //this.nextNode = null
       this.timeSinceLastTask = 0
     }
     
@@ -199,7 +199,7 @@ class Unit {
    * @param {number} delay - Time elapsed since last update (ms)
    */
   handleNoPath(delay) {
-    this.life -= delay / 1000
+    // this.life -= delay / 1000
     // this.goal = null
   }
 
@@ -245,15 +245,20 @@ class Unit {
     const devY = ((this.nextNode.y * SPRITE_SIZE - this.y) * 2 + (this.nextNextNode.y * SPRITE_SIZE - this.y)) / 3
     const theta = Math.atan2(devY, devX)
     const speedFactor = gameState.map[this.currentNode.x][this.currentNode.y].weight < 10 ? 1/gameState.map[this.currentNode.x][this.currentNode.y].weight : 1/4
-    const vx = this.speed * (delay/1000) * Math.cos(theta) * speedFactor * SPRITE_SIZE
-    const vy = this.speed * (delay/1000) * Math.sin(theta) * speedFactor * SPRITE_SIZE
+    let vx = this.speed * (delay/1000) * Math.cos(theta) * speedFactor * SPRITE_SIZE
+    let vy = this.speed * (delay/1000) * Math.sin(theta) * speedFactor * SPRITE_SIZE
 
     let type = 'static'
+    if (distance(this.currentNode, this.goal) <= this.range/getTileSize()) {
+      // Stop walking if arrived at goal
+      vx = vy = 0
+    }
+
     // Attack
     if(this.task === 'attack') {
       type = 'attack'
     }
-    if(distance(this.currentNode, this.goal) <= this.range/getTileSize() && this.task === 'gathering') {
+    if(this.task === 'gathering') {
       type = 'lumberjack'
     }
     // Walk
@@ -321,7 +326,7 @@ class WorkerUnit extends Unit {
     // Peon units have weaker stats but can collect resources
     this.life = 5
     this.attack = 1
-    this.range = 1.5 * getTileSize()
+    this.range = 1 * getTileSize()
     this.speed = getTileSize() / 10 | 0
     this.resources = 0
     this.maxResources = 1
@@ -518,7 +523,7 @@ class CombatUnit extends Unit {
   constructor(x, y, owner) {
     super(x, y, owner)
     
-    this.range = 1.25 * getTileSize()
+    this.range = 1 * getTileSize()
     this.life = 10
     this.speed = getTileSize() / 12 | 0
     this.attack = 2
