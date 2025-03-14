@@ -242,8 +242,8 @@ function drawMain(player, AIs) {
 
     // Update sprite position and make it visible
     sprite.visible = true
-    sprite.x = Math.round(unit.x - UNIT_SPRITE_SIZE/4)
-    sprite.y = Math.round(unit.y - UNIT_SPRITE_SIZE/4 - 2)
+    sprite.x = unit.x - UNIT_SPRITE_SIZE/4
+    sprite.y = unit.y - UNIT_SPRITE_SIZE/4 - 2
   })
 
   // Remove sprites for units that no longer exist
