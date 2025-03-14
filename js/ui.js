@@ -5,6 +5,7 @@ export {
 'use strict'
   
 import { Building } from 'building'
+import CONSTANTS from 'constants'
 import { getCanvasDimensions, getMapDimensions, getTileSize } from 'dimensions'
 import { DEBUG, drawBack, toggleDebug } from 'globals'
 import * as PIXI from 'pixijs'
@@ -407,7 +408,7 @@ async function createBottomBar() {
   if (bottomBarContainer) return
   
   const { width } = getCanvasDimensions()
-  const barHeight = 80 // Taller than top bar to accommodate building icons
+  const barHeight = CONSTANTS.UI.BOTTOM_BAR_HEIGHT
   
   // Create the container
   bottomBarContainer = new PIXI.Container()
@@ -449,7 +450,7 @@ function updateBottomBarPosition() {
   if (!bottomBarContainer) return
   
   const { width } = getCanvasDimensions()
-  const barHeight = 80
+  const barHeight = CONSTANTS.UI.BOTTOM_BAR_HEIGHT
   
   // Update position to stay at bottom
   bottomBarContainer.position.set(0, app.renderer.height - barHeight)

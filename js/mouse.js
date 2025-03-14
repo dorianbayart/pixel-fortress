@@ -2,6 +2,7 @@ export { Mouse }
 
 'use strict'
 
+import CONSTANTS from 'constants'
 import { getCanvasDimensions, getMapDimensions, getTileSize } from 'dimensions'
 import { app } from 'renderer'
 import { loadAndSplitImage, offscreenSprite } from 'sprites'
@@ -374,8 +375,8 @@ class Mouse {
     const mapWidth = width * getTileSize()
     const mapHeight = height * getTileSize()
     const viewWidth = app.renderer.width / this.viewTransform.scale
-    const viewHeight = app.renderer.height / this.viewTransform.scale
-    
+    const viewHeight = (app.renderer.height - CONSTANTS.UI.BOTTOM_BAR_HEIGHT) / this.viewTransform.scale
+  
     // If zoomed out enough to see entire map width, center it
     if (viewWidth >= mapWidth) {
       this.viewTransform.x = (mapWidth - viewWidth) / 2
@@ -416,7 +417,7 @@ class Mouse {
     
     // Calculate visible view dimensions in world space at current scale
     const viewWidth = app.renderer.width / this.viewTransform.scale
-    const viewHeight = app.renderer.height / this.viewTransform.scale
+    const viewHeight = (app.renderer.height - CONSTANTS.UI.BOTTOM_BAR_HEIGHT) / this.viewTransform.scale
     
     // Set x position to center the view horizontally on the map
     this.viewTransform.x = (mapWidth - viewWidth) / 2 | 0
