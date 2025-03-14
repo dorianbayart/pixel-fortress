@@ -70,7 +70,8 @@ class GameState {
     // Game settings
     this._settings = {
       difficulty: 'medium',
-      mapSeed: null
+      mapSeed: null,
+      mapSize: 'medium'
     }
 
     // UI references

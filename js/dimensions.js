@@ -8,6 +8,8 @@ export {
   
 'use strict'
 
+import gameState from 'state'
+
 // Constants
 const SPRITE_SIZE = 16 // Base sprite size in pixels
 const MAX_WEIGHT = 0x7FFFFFFF // Very large but safe value
@@ -28,11 +30,28 @@ let dpr = 1
  * Should only be called when creating a new map
  */
 const initMapDimensions = () => {
-    MAP_WIDTH = 60
-    MAP_HEIGHT = 120
+    // Get map size setting
+    const mapSize = gameState.settings?.mapSize || 'medium'
+
+    // Set map dimensions based on size
+    switch (mapSize) {
+        case 'small':
+            MAP_WIDTH = 40
+            MAP_HEIGHT = 80
+            break
+        case 'large':
+            MAP_WIDTH = 80
+            MAP_HEIGHT = 160
+            break
+        case 'medium':
+        default:
+            MAP_WIDTH = 60
+            MAP_HEIGHT = 120
+            break
+    }
 
     // Log new map dimensions
-    console.log(`Map initialized: ${MAP_WIDTH} x ${MAP_HEIGHT} tiles`)
+    console.log(`Map initialized: ${MAP_WIDTH} x ${MAP_HEIGHT} tiles (${mapSize} size)`)
 }
 
 /**

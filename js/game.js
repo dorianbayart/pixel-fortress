@@ -47,9 +47,9 @@ const initGame = async () => {
   let i = 0
   let placedTents = false
   do {
-    await generateMap()
+    await generateMap(gameState.mapSeed)
     placedTents = placeTents()
-  } while(!placedTents && ++i < 250)
+  } while(!placedTents && ++i < 150)
 
   await assignSpritesOnMap()
 
@@ -71,7 +71,7 @@ const initGame = async () => {
  * 
  * @returns {Promise<void>}
  */
-const generateMap = async () => {
+const generateMap = async (seed) => {
   // Clean the pathfinding algorithm
   clearPathCache()
 
@@ -82,9 +82,9 @@ const generateMap = async () => {
   gameState.map = new Array(MAP_WIDTH).fill(null).map(() => new Array(MAP_HEIGHT).fill(null))
   
   // Generate a random seed
-  gameState.mapSeed = Math.floor(Math.random() * 10000)
+  //gameState.mapSeed = seed ?? Math.floor(Math.random() * 10000)
   
-  const noise = new PerlinNoise(gameState.mapSeed)
+  const noise = new PerlinNoise(gameState.mapSeed ?? Math.floor(Math.random() * 10000))
 
   const NOISE_SCALE = 0.08; // Controls terrain smoothness
   const TERRAIN_THRESHOLD = {

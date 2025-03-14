@@ -1,3 +1,54 @@
+
+/* Add to your CSS */
+.scenarii-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.scenarii-item {
+  border: 1px solid var(--font-color);
+  border-radius: 8px;
+  padding: 15px;
+  background-color: rgba(34, 139, 34, 0.3);
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.scenarii-item:hover {
+  background-color: rgba(34, 139, 34, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.scenarii-item h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: var(--font-color);
+}
+
+.play-button {
+  background-color: forestgreen;
+  color: var(--font-color);
+  border: 1px solid var(--font-color);
+  padding: 5px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: var(--font-base);
+  margin-top: 10px;
+}
+
+.play-button:hover {
+  background-color: #1a6b1a;
+  box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+}
+
+
+
+
+
+
 /* Modal styles */
 .modal {
   display: none;
@@ -176,4 +227,62 @@
 .license a {
   color: var(--font-color);
   text-decoration: underline;
+}
+
+
+/* Add to your CSS */
+.option-group {
+  margin-bottom: 20px;
+}
+
+.option-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.option-btn {
+  background-color: rgba(34, 139, 34, 0.3);
+  border: 1px solid var(--font-color);
+  color: var(--font-color);
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: var(--font-base);
+  transition: all 0.2s ease;
+}
+
+.option-btn:hover {
+  background-color: rgba(34, 139, 34, 0.6);
+}
+
+.option-btn.selected {
+  background-color: forestgreen;
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.toggle-label input {
+  margin-right: 8px;
+}
+
+#saveOptions, #closeOptions, #closeScenarii {
+  margin: 0 10px;
+  padding: 8px 16px;
+  background-color: forestgreen;
+  color: var(--font-color);
+  border: 1px solid var(--font-color);
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: var(--font-base);
+}
+
+#closeOptions, #closeScenarii {
+  background-color: #333;
 }

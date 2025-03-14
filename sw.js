@@ -29,6 +29,7 @@ const CACHED_URLS = [
   'js/viewport.js',
   'lib/pixi.mjs',
   'lib/pixi.min.mjs',
+  'maps/seeds.json',
   'assets/logo.png',
   'assets/logo.svg',
   'assets/logo_banner.svg',

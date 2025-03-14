@@ -84,9 +84,6 @@ async function startGame() {
     
     // Start game loop
     gameLoop()
-    
-    // Show debug button
-    document.getElementById('debugButton').style.display = 'block'
 
     app.canvas.addEventListener('mouseenter', () => {
       gameState.gameStatus = 'playing'

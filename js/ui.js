@@ -161,10 +161,6 @@ async function createTextureFromOffscreenCanvas(canvas) {
  * Setup all event listeners for UI interaction
  */
 function setupEventListeners() {
-  // Debug button toggle
-  document.getElementById('debugButton').addEventListener('click', () => {
-    toggleDebug()
-  })
 
   // Start game on "Random Map" click
   document.getElementById('generated').addEventListener('click', () => {
@@ -593,11 +589,11 @@ async function createBuildingSlots() {
     })
 
     // Add hover events for tooltip
-    slotBg.on('pointerover', () => {
+    slotBg.on('pointerover', (e) => {
       e.stopPropagation()
       updateTooltip(buildings[i])
     })
-    slotBg.on('pointerout', () => {
+    slotBg.on('pointerout', (e) => {
       e.stopPropagation()
       hideTooltip()
     })

@@ -129,6 +129,29 @@
       justify-content: center;
     }
 
+    /* Add subtle animation to the game logo */
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    #gameLogo {
+      margin: max(4dvh, 1.5rem);
+    }
+
+    #gameLogo img {
+      animation: pulse 3s infinite ease-in-out;
+      filter: drop-shadow(0 0 10px forestgreen);
+    }
+
+    /* Make the title more prominent */
+    #homeMenu h1 {
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      margin: 1.5dvh;
+      text-shadow: 0 0 10px forestgreen, 0 0 20px forestgreen;
+    }
+
     #homeMenu h2 {
       cursor: pointer;
       margin: 1.5dvh;
@@ -141,6 +164,34 @@
 
     #homeMenu h2:hover {
       text-decoration: underline;
+    }
+
+    .menu-button {
+      cursor: pointer;
+      padding: 0.75dvh 2dvw;
+      margin: 1.5dvh;
+      background: rgba(34, 139, 34, 0.3);
+      border: 2px solid var(--font-color);
+      border-radius: 6px;
+      color: var(--font-color);
+      font-family: var(--font-base);
+      font-size: 1.5rem;
+      text-align: center;
+      transition: all 0.3s ease;
+      width: min(80%, 240px);
+      text-shadow: 0 0 5px forestgreen;
+      box-shadow: 0 0 10px rgba(34, 139, 34, 0.5);
+    }
+
+    .menu-button:hover {
+      background: rgba(34, 139, 34, 0.6);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(34, 139, 34, 0.7);
+    }
+
+    .menu-button:active {
+      transform: translateY(1px);
+      box-shadow: 0 2px 6px rgba(34, 139, 34, 0.7);
     }
 
     #progressBar {
@@ -166,7 +217,7 @@
       width: max(20dvw, 180px);
     }
 
-    button {
+    /* button {
       z-index: 105;
       position: absolute;
       top: 25dvh;
@@ -175,7 +226,7 @@
       border: none;
       padding: 0.2rem 0.4rem;
       display: none;
-    }
+    } */
   </style>
 
   <link rel="stylesheet" href="css/modal.css">
@@ -219,19 +270,88 @@
       <img src="assets/base_192_pixelated.png" alt="Game Logo" width="48" height="48">
     </div>
 
-    <h2 id="scenarii" class="font-to-load">Scenarii</h2>
-    <h2 id="generated" class="font-to-load">Random Map</h2>
-    <h2 id="options" class="font-to-load">Options</h2>
-    <h2 id="about" class="font-to-load">About</h2>
+    <div class="menu-options">
+      <button id="scenarii" class="menu-button font-to-load">Scenarii</button>
+      <button id="generated" class="menu-button font-to-load">Random Map</button>
+      <button id="options" class="menu-button font-to-load">Options</button>
+      <button id="about" class="menu-button font-to-load">About</button>
+    </div>
   </div>
 
   
   <canvas id="canvas" width="100" height="100"></canvas>
-  <div id="stats"></div>
-  <button id="debugButton">DEBUG</button>
 </body>
 
 </html>
+
+
+
+
+<!-- Add this after the optionsSection div -->
+<div id="scenariiSection" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Select Scenario</h2>
+      <span class="close">&times;</span>
+    </div>
+    <div class="modal-body">
+      <div id="scenarii-list" class="scenarii-grid">
+        <!-- Will be populated from JavaScript -->
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button id="closeScenarii">Back to Menu</button>
+    </div>
+  </div>
+</div>
+
+
+
+
+<!-- Add this after the aboutSection div -->
+<div id="optionsSection" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Game Options</h2>
+      <span class="close">&times;</span>
+    </div>
+    <div class="modal-body">
+      <div class="option-group">
+        <h3>Difficulty</h3>
+        <div class="option-controls">
+          <button class="option-btn" data-difficulty="easy">Easy</button>
+          <button class="option-btn selected" data-difficulty="medium">Medium</button>
+          <button class="option-btn" data-difficulty="hard">Hard</button>
+        </div>
+      </div>
+      
+      <div class="option-group">
+        <h3>Map Size</h3>
+        <div class="option-controls">
+          <button class="option-btn" data-map-size="small">Small</button>
+          <button class="option-btn selected" data-map-size="medium">Medium</button>
+          <button class="option-btn" data-map-size="large">Large</button>
+        </div>
+      </div>
+      
+      <div class="option-group">
+        <h3>Debug Mode</h3>
+        <div class="option-controls">
+          <label class="toggle-label">
+            <input type="checkbox" id="debugToggle">
+            <span class="toggle-text">Show FPS and Debug Info</span>
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button id="saveOptions">Save</button>
+      <button id="closeOptions">Cancel</button>
+    </div>
+  </div>
+</div>
+
+
 
 <!-- About section modal that appears when "About" is clicked -->
 <div id="aboutSection" class="modal">
