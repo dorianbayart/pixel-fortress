@@ -59,7 +59,18 @@ const initGame = async () => {
 }
 
 
-// Generate the game map using Perlin noise
+/**
+ * Generate the game map using Perlin noise
+ * Creates a natural-looking terrain with water, rocks, trees, grass, and sand.
+ * The map is stored in the global game state and contains:
+ * - Terrain type
+ * - Movement cost (weight)
+ * - Resource information for harvestable tiles
+ * 
+ * TODO: needs to add gold
+ * 
+ * @returns {Promise<void>}
+ */
 const generateMap = async () => {
   // Clean the pathfinding algorithm
   clearPathCache()
@@ -119,7 +130,13 @@ const generateMap = async () => {
   }
 }
 
-// Place tents
+/**
+ * Place starting tents for human and AI players
+ * Creates bases at opposite sides of the map (human at bottom, AI at top).
+ * Ensures there's a valid path between bases and clears terrain around them.
+ * 
+ * @returns {boolean} True if tents were successfully placed with a valid path between them
+ */
 const placeTents = () => {
   const { width: MAP_WIDTH, height: MAP_HEIGHT } = getMapDimensions()
   
@@ -169,11 +186,6 @@ const placeTents = () => {
   }
 
   return false
-}
-
-// Check if there's a valid path between top and bottom of map
-const isMapCorrect = () => {
-  return placeTents()
 }
 
 // Assign sprites to map tiles

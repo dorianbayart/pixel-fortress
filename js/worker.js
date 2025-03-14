@@ -13,5 +13,6 @@ self.onmessage = (event) => {
 }
 
 const draw = () => {
-
+  // TODO: Implement drawing logic for the web worker
+  // Can be used for offloading rendering tasks from the main thread
 }

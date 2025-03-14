@@ -49,6 +49,9 @@ let viewport = {
 
 /**
  * Convert an OffscreenCanvas to a PIXI.Texture
+ * This allows dynamically generated canvas content to be used in the PIXI rendering pipeline.
+ * The function handles conversion to a blob, creating a URL, and proper cleanup.
+ * 
  * @param {OffscreenCanvas} canvas - Canvas to convert
  * @param {string} key - Cache key
  * @returns {PIXI.Texture} The created texture
@@ -145,7 +148,13 @@ function resizeCanvases() {
 
 /**
  * Update the viewport data based on current camera position and zoom
- * @param {Object} viewTransform - Camera transform information 
+ * This determines which portions of the map need to be rendered
+ * and calculates the visibility boundaries with buffer for smooth scrolling
+ * 
+ * @param {Object} viewTransform - Camera transform information containing:
+ *   @param {number} viewTransform.scale - Current zoom level
+ *   @param {number} viewTransform.x - X offset of the viewport
+ *   @param {number} viewTransform.y - Y offset of the viewport
  */
 function updateViewport(viewTransform) {
   const { width, height } = getMapDimensions()

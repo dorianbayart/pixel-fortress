@@ -13,9 +13,14 @@ import { distance } from 'utils'
 
 /**
  * Base Building class for all game buildings
+ * Handles common building properties and behaviors including:
+ * - Health and damage
+ * - Positioning on the map
+ * - Production timers
+ * - Player ownership
  */
 class Building {
-    static WEIGHT = 8192
+    static WEIGHT = 8192 // Movement cost for walking through a building tile
 
     static TYPES = {
         LUMBERJACK: {
@@ -215,7 +220,10 @@ class Tent extends WorkerBuilding {
 }
 
 /**
- * Lumberjack host workers to gather trees
+ * Lumberjack building for wood harvesting
+ * Converts regular idle workers to specialized lumberjack workers.
+ * Identifies harvestable trees in the vicinity and assigns workers to them.
+ * Processes harvested wood and transfers it to the player's resources.
  */
 class Lumberjack extends WorkerBuilding {
     constructor(x, y, color, owner) {

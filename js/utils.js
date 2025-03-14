@@ -6,6 +6,14 @@ import { Sprite } from 'pixijs'
 
 const SCALE_MODE = 'nearest'
 
+/**
+ * Apply throttle on a function
+ * Prevent a function to be called many times
+ * 
+ * @param {function} func The function to throttle
+ * @param {number} A millisecond time to wait
+ * @returns 
+ */
 const throttle = (func, wait = 100) => {
     let timeout
     return (...args) => {
@@ -18,24 +26,26 @@ const throttle = (func, wait = 100) => {
     }
 }
 
-
+/**
+ * Calculate the distance between 2 points (x,y)
+ *
+ * @param {{x:number,y:number}} Object a
+ * @param {{x:number,y:number}} Object b
+ * @returns {number|null} The distance between the points, or null if one of the points is missing
+ */
 const distance = (a, b) => {
     if(!a?.x || !a?.y || !b?.x || !b?.y) return null
     return Math.sqrt(Math.pow(b.x-a.x, 2) + Math.pow(b.y-a.y, 2))
 }
 
-
-// Calculate a very simplified hash from an array of string or integers
+/**
+ * Calculate a very simplified hash from an array of string or integers
+ * 
+ * @param {Array<string|number>} [array] The array to hash
+ * @returns {string} The hash of the array
+ */
 const arrayToHash = (array) => {
     return array.slice(0, array.length / 2 | 0).join('')
-
-    // Not used
-    // let hash = 0;
-    // if (array.length === 0) return hash
-    //
-    // return array.join('').split('').reduce((hash, char) => {
-    //     return char.charCodeAt(0) + (hash << 6) + (hash << 16) - hash
-    // }, 0)
 }
 
 const textureCache = new Map()
@@ -44,7 +54,7 @@ const spriteCache = new Map()
 /**
  * Get or create a cached sprite for a texture
  * @param {PIXI.Texture|OffscreenCanvas} source - Texture or canvas to use
- * @param {string} key - Cache key
+ * @param {string} [key] - Cache key
  * @returns {PIXI.Sprite} Cached or new sprite
  */
 function getCachedSprite(source, key) {
@@ -70,14 +80,14 @@ function getCachedSprite(source, key) {
     // Cache the sprite
     spriteCache.set(sprite.sourceKey, sprite)
 
-
-    // if(Math.random() > 0.9975) {
-    //     console.log(`Sprite cache size: ${spriteCache.size}`)
-    // }
-
     return sprite
 }
 
+/**
+ * 2D Perlin Noise generator
+ * 
+ * @param {number} [seed] - Seed for the noise
+ */
 class PerlinNoise {
     constructor(seed = 0) {
         this.seed = seed

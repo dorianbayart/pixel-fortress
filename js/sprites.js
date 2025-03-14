@@ -7,8 +7,20 @@ import { getTileSize } from 'dimensions'
 
 const SPRITE_SIZE = getTileSize(), UNIT_SPRITE_SIZE = getTileSize() * 2
 
+/** The Offsreen sprite cache */
+const offscreenSprites = new Map()
+
+/** Exposed variables that stores the sprites and their descriptor */
 let sprites, unitsSprites, unitsSpritesDescription
 
+/**
+ * Sprite loader
+ * 1. Store the terrain and building sprites in 'sprites'
+ * 2. Load the units sprites descriptor file
+ * 3. Build and store the unit sprites in 'unitSprites' object
+ * 
+ * @returns {Promise<void>}
+ */
 const loadSprites = async () => {
   sprites = await loadAndSplitImage(
     './assets/punyworld-overworld-tileset.png',
@@ -61,7 +73,7 @@ const loadAndSplitImage = (url, spriteSize) => {
       }
 
       resolve(
-        sprites /*.filter(sprite => sprite.data.reduce((r, c) => r + c))*/
+        sprites
       )
     }
 
@@ -70,7 +82,13 @@ const loadAndSplitImage = (url, spriteSize) => {
   })
 }
 
-const offscreenSprites = new Map()
+/**
+ * 
+ * @param {ImageData} sprite 
+ * @param {number} spriteSize 
+ * @param {string|number} id 
+ * @returns 
+ */
 const offscreenSprite = (sprite, spriteSize, id) => {
   const hash = id ?? arrayToHash(sprite.data)
 

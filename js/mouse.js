@@ -47,13 +47,24 @@ class Mouse {
     this.initialPositionSet = false
   }
 
+  /**
+   * Initialize UI components
+   * Sets up the game interface including:
+   * - Mouse cursor
+   * - Debug statistics display
+   * - Event listeners for UI interactions
+   * - Top and bottom UI bars
+   * - Building selection interface
+   * 
+   * @param {Object} mouseInstance - Mouse controller instance
+   */
   async initMouse(canvas) {
     this.canvas = canvas
 
     // Load cursor sprite
     const mouseSprite = (await loadAndSplitImage('assets/ui/crosshair.png', 9))[0][0]
     this.sprite = offscreenSprite(mouseSprite, 9, 'cursor')
-  
+    console.log(this.sprite)
     // Use this method to update mouse position from event handlers
     this.updatePosition = (clientX, clientY) => {
       if (!this._canvasRect || this._rectUpdateNeeded) {
@@ -321,7 +332,10 @@ class Mouse {
     })
   }
 
-  // 
+  /**
+   * Set the initial Zoom level
+   * @returns {number} The initial zoom level
+   */
   setInitialZoom() {
     // Update initial zoom value for reference
     ZOOM.initial = this._calculateInitialZoom()
@@ -329,6 +343,11 @@ class Mouse {
     return ZOOM.initial;
   }
 
+  /**
+   * Calculate the initial zoom level based on map size and canvas dimensions
+   * This sets an appropriate zoom so that a reasonable portion of the map is visible
+   * @returns {number} The calculated initial zoom value
+   */
   _calculateInitialZoom() {
     // Set max tiles to display
     const mapPixelWidth = ZOOM.TILES * getTileSize()
@@ -345,7 +364,11 @@ class Mouse {
     return Math.min(Math.max(zoomForPortion, ZOOM.MIN), ZOOM.MAX)
   }
 
-  // Apply constraints to keep the map within view bounds
+  /**
+   * Apply constraints to keep the map within view bounds
+   * This prevents the user from scrolling beyond the edges of the map
+   * Centers the map when zoomed out enough to see the entire width/height
+   */
   applyBoundaryConstraints() {
     const { width, height } = getMapDimensions()
     const mapWidth = width * getTileSize()
@@ -376,7 +399,9 @@ class Mouse {
     }
   }
   
-  // Set the initial camera position to the bottom center of the map
+  /**
+   * Set the initial camera position to the bottom center of the map
+   */
   setInitialCameraPosition() {
     if (this.initialPositionSet || !app.renderer) return
 
@@ -408,7 +433,10 @@ class Mouse {
     
     // console.log("Initial camera position set to bottom center", JSON.stringify(this.getViewTransform()))
   }
-  // Method to get current view transform for renderer
+  
+  /*
+  * Helper to get current view transform for renderer
+  */
   getViewTransform() {
     return { ...this.viewTransform };
   }

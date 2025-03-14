@@ -5,31 +5,39 @@ export { clearPathCache, searchPath }
 import { getMapDimensions } from 'dimensions'
 import gameState from "state"
 
-// Choose the pathfinding algorithm: [aStar, bestFirstSearch]
+/**
+ * Choose the pathfinding algorithm: [aStar, bestFirstSearch]
+ * The searchPath function is a proxy to the real pathfinding algorithm
+ */
 const searchPath = aStar
 
 const pathCache = new Map()
 const PATH_CACHE_MAX_SIZE = 2500
 // const { width: MAP_WIDTH, height: MAP_HEIGHT, maxWeight: MAX_WEIGHT } = getMapDimensions()
 
-// Function to create a unique cache key from start and end points
+/**
+ * Function to create a unique cache key from start and end points
+ * This key is used to store complete paths in a cache
+ */
 const getCacheKey = (startX, startY, endX, endY) => {
   return `${startX},${startY}-${endX},${endY}`;
 }
 
+/** Clean the paths cache stored in a Map */
 function clearPathCache() {
   pathCache.clear();
 }
 
+/** Returns a unique cache key for the specified coordinates */
 const getNodeKey = (x, y) => y * getMapDimensions().width + x | 0
 
-// Simple Manhattan distance heuristic
+/** Simple Manhattan distance heuristic */
 const getHeuristic = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y)
 
-// Check if coords are in bounds
+/** Check if coords are in bounds */
 const isInBounds = (x, y) => x >= 0 && x < getMapDimensions().width && y >= 0 && y < getMapDimensions().height
 
-// Check if a cell is a wall
+/** Check if a cell is a wall */
 const isWall = (x, y) => {
   if (!isInBounds(x, y)) return true
 
@@ -37,7 +45,17 @@ const isWall = (x, y) => {
   return (gameState.map[x][y]?.weight || 0) === getMapDimensions().maxWeight
 }
 
-
+/**
+ * A* pathfinding algorithm implementation
+ * Finds the shortest path between two points on the map accounting for obstacles and terrain costs.
+ * Uses a binary heap for performance optimization and caches results for repeated queries.
+ * 
+ * @param {number} startX - Starting X coordinate
+ * @param {number} startY - Starting Y coordinate
+ * @param {number} endX - Destination X coordinate
+ * @param {number} endY - Destination Y coordinate
+ * @returns {Array|null} Array of path nodes or null if no path found
+ */
 function aStar(startX, startY, endX, endY) {
   // Check cache first
   const cacheKey = getCacheKey(startX, startY, endX, endY);
@@ -48,8 +66,8 @@ function aStar(startX, startY, endX, endY) {
   // Early exit
   if(isWall(startX, startY) || isWall(endX, endY)) return
 
-  // For nearby targets, use direct path
-  // if (Math.abs(startX - endX) + Math.abs(startY - endY) < 4) {
+  // // For straight line paths, try to use direct path
+  // if (startX === endX || startY === endY) {
   //   // Check if there are any obstacles between start and end
   //   let hasObstacle = false
 
@@ -63,7 +81,7 @@ function aStar(startX, startY, endX, endY) {
   //       const x = Math.floor(startX + dx * (i / steps))
   //       const y = Math.floor(startY + dy * (i / steps))
         
-  //       if (isWall(x, y)) {
+  //       if ((gameState.map[x][y]?.weight || 0) > 10) {
   //         hasObstacle = true
   //         break
   //       }
@@ -206,12 +224,24 @@ function aStar(startX, startY, endX, endY) {
     }
   }
 
-  // console.log("No path found")
   return null // no path found
 }
 
 
-
+/**
+ * @deprecated
+ * BestFirstSearch pathfinding algorithm implementation
+ * A greedy algorithm that explores paths that appear closest to the goal first.
+ * Less accurate than A* but can be faster in some scenarios.
+ * 
+ * This is not optimized at all - and maybe not functionnal anymore
+ * 
+ * @param {number} startX - Starting X coordinate
+ * @param {number} startY - Starting Y coordinate
+ * @param {number} endX - Destination X coordinate
+ * @param {number} endY - Destination Y coordinate
+ * @returns {Array|null} Array of path nodes or null if no path found
+ */
 function bestFirstSearch(startX, startY, endX, endY) {
   const startTime = performance.now()
   const mapSize = MAP_HEIGHT * MAP_WIDTH

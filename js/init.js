@@ -11,7 +11,19 @@ import gameState from 'state'
 import { initUI, showDebugMessage } from 'ui'
 import { viewportChange } from 'viewport'
 
-// Initialize the game
+/**
+ * Initialize the game
+ * Sets up the core game components in the proper sequence:
+ * 1. Set initial game state
+ * 2. Initialize UI menus
+ * 3. Set up canvas and rendering
+ * 4. Initialize input handling
+ * 5. Set up event listeners
+ * 6. Load custom fonts
+ * 7. Load game assets and sprites
+ * 
+ * This function is called when the page loads.
+ */
 async function initializeGame() {
   // Set initial game state
   gameState.gameStatus = 'menu'
@@ -45,11 +57,11 @@ async function initializeGame() {
     }
   })
 
-  // Load game sprites
-  loadSprites()
-
   // Load the custom font
   loadGameFont()
+
+  // Load game sprites
+  loadSprites()
 
 }
 

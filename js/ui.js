@@ -218,6 +218,15 @@ function handleMouseInteraction(map, player) {
   // Handle zoom changes
   if (mouse?.zoomChanged) {
     updateZoom()
+
+    // Remove preview sprite if it exists
+    if (buildingPreviewSprite && buildingPreviewSprite.parent) {
+      buildingPreviewSprite.parent.removeChild(buildingPreviewSprite)
+      buildingPreviewSprite = null
+    }
+    // Recreate the preview sprite
+    updateBuildingPreview()
+
     drawBack()
     mouse.zoomChanged = false
   }
@@ -632,9 +641,17 @@ function isValidBuildingPosition(x, y) {
 }
 
 
-
+/**
+ * 
+ * Draw a building sprite preview following the mouse cursor.
+ * 
+ * @returns {Promise<void>} 
+ */
 async function updateBuildingPreview() {
   if (!selectedBuildingType || !mouse) return
+
+
+  const viewTransform = gameState.UI?.mouse?.getViewTransform()
 
   // Create preview sprite if it doesn't exist
   if (!buildingPreviewSprite) {
@@ -643,8 +660,8 @@ async function updateBuildingPreview() {
     const sprite = offscreenSprite(sprites[selectedBuildingType.sprite_coords.cyan.x][selectedBuildingType.sprite_coords.cyan.y], getTileSize())
     const texture = PIXI.Texture.from(sprite)
     buildingPreviewSprite = getCachedSprite(texture, sprite.uid)
-    buildingPreviewSprite.width = getTileSize() * getCanvasDimensions().dpr
-    buildingPreviewSprite.height = getTileSize() * getCanvasDimensions().dpr
+    buildingPreviewSprite.width = getTileSize() * viewTransform.scale
+    buildingPreviewSprite.height = getTileSize() * viewTransform.scale
     buildingPreviewSprite.anchor.set(0.5, 0.5)
     containers.ui.addChild(buildingPreviewSprite)
   }
@@ -654,9 +671,19 @@ async function updateBuildingPreview() {
   
   // Update preview position
   const tileSize = getTileSize()
-  buildingPreviewSprite.x = mouse.xPixels
-  buildingPreviewSprite.y = mouse.yPixels
   
+  // Convert grid coordinates to world coordinates (center of the tile)
+  const worldX = (mouse.x * tileSize) + (tileSize / 2)
+  const worldY = (mouse.y * tileSize) + (tileSize / 2)
+  
+  // Convert world coordinates to screen coordinates (with zoom)
+  const screenX = (worldX - viewTransform.x) * viewTransform.scale
+  const screenY = (worldY - viewTransform.y) * viewTransform.scale
+  
+  // Update preview position to be at the center of the grid tile
+  buildingPreviewSprite.x = screenX
+  buildingPreviewSprite.y = screenY
+
   // Set tint color based on validity (green if valid, red if invalid)
   buildingPreviewSprite.tint = isValidPlacement ? 0x00FF00 : 0xFF0000
   

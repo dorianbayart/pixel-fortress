@@ -37,6 +37,13 @@ Unit (base class)
 
 /**
  * Base Unit class for all game units
+ * Handles common unit behaviors including:
+ * - Movement and pathfinding
+ * - Sprite animation and direction
+ * - Task management
+ * - Basic unit properties (health, speed, etc.)
+ * 
+ * Acts as the foundation for specialized unit types.
  */
 class Unit {
   /**
@@ -364,6 +371,10 @@ class Peon extends WorkerUnit {
 
 /**
  * Specialized worker for gathering wood from trees
+ * Can harvest trees, transport wood back to lumberjack buildings,
+ * and track resource gathering progress.
+ * 
+ * Has unique behaviors for tree selection, harvesting, and resource depletion.
  */
 class LumberjackWorker extends WorkerUnit {
   constructor(x, y, owner) {
