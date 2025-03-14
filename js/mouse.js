@@ -208,8 +208,24 @@ class Mouse {
     })
 
     // Touch start event
-  pixiView.addEventListener('touchstart', (e) => {
+    pixiView.addEventListener('touchstart', (e) => {
       e.preventDefault()
+
+      // Get position of touch
+      const touchX = e.touches[0].clientX
+      const touchY = e.touches[0].clientY
+
+      // Check if touch is in the bottom bar area
+      const bottomBarY = app.renderer.height - CONSTANTS.UI.BOTTOM_BAR_HEIGHT
+      const isBottomBarTouch = touchY >= bottomBarY
+
+      // If touch is in bottom bar, don't initiate dragging or pinching
+      if (isBottomBarTouch) {
+        // Just update position for UI interaction
+        //this._needWorldCoords = true
+        //this.updatePosition(touchX, touchY)
+        //return
+      }
       
       if (e.touches.length === 1) { // Single finger touch
         this.isDragging = true
@@ -235,6 +251,16 @@ class Mouse {
     // Touch move event
     pixiView.addEventListener('touchmove', (e) => {
       e.preventDefault()
+
+      // Check if touch is in the bottom bar area
+      const touchY = e.touches[0].clientY
+      const bottomBarY = app.renderer.height - CONSTANTS.UI.BOTTOM_BAR_HEIGHT
+      const isBottomBarTouch = touchY >= bottomBarY
+
+      // Skip dragging if touch is in bottom bar
+      if (isBottomBarTouch) {
+        return
+      }
       
       if (e.touches.length === 1 && this.isDragging) { // Single finger move
         // Calculate drag distance
@@ -313,14 +339,23 @@ class Mouse {
       }
       
       if (e.touches.length === 0) {
-        // If barely moved, treat as a click
+        // If touching a UI element
         if (e.changedTouches.length > 0) {
-          const dx = Math.abs(e.changedTouches[0].clientX - this.dragStartX)
-          const dy = Math.abs(e.changedTouches[0].clientY - this.dragStartY)
-          if (dx < 10 && dy < 10) {
+          const touchX = e.changedTouches[0].clientX
+          const touchY = e.changedTouches[0].clientY
+
+          // Check if touch is in the bottom bar area
+          const bottomBarY = app.renderer.height - CONSTANTS.UI.BOTTOM_BAR_HEIGHT
+          const isBottomBarTouch = touchY >= bottomBarY
+          
+          const dx = Math.abs(touchX - this.dragStartX)
+          const dy = Math.abs(touchY - this.dragStartY)
+
+          // If barely moved, treat as a click
+          if ((dx < 10 && dy < 10) || isBottomBarTouch) {
             this.clicked = true
             this._needWorldCoords = true
-            this.updatePosition(e.changedTouches[0].clientX, e.changedTouches[0].clientY)
+            this.updatePosition(touchX, touchY)
           }
         }
         this.isDragging = false

@@ -424,6 +424,22 @@ async function createBottomBar() {
   // Position at bottom of screen
   bottomBarContainer.position.set(0, app.renderer.height - barHeight)
 
+  // Update hit area to match new dimensions
+  bottomBarContainer.hitArea = new PIXI.Rectangle(0, 0, width, barHeight)
+
+  // Add event listeners to prevent touch events from reaching the canvas
+  bottomBarContainer.on('pointerdown', (e) => {
+    e.stopPropagation()
+  })
+
+  bottomBarContainer.on('pointermove', (e) => {
+    e.stopPropagation()
+  })
+
+  bottomBarContainer.on('pointerup', (e) => {
+    e.stopPropagation()
+  })
+  
   // Add slots for buildings
   await createBuildingSlots()
 
@@ -455,6 +471,9 @@ function updateBottomBarPosition() {
   // Update position to stay at bottom
   bottomBarContainer.position.set(0, app.renderer.height - barHeight)
   
+  // Update hit area to match new dimensions
+  bottomBarContainer.hitArea = new PIXI.Rectangle(0, 0, width, barHeight)
+
   // Update background
   const background = bottomBarContainer.getChildAt(0)
   background.clear()
@@ -560,11 +579,28 @@ async function createBuildingSlots() {
     slot.buildingData = buildings[i]
     
     // Add click event
-    slotBg.on('pointerup', () => handleBuildingSelect(i))
+    slotBg.on('pointerup', (e) => {
+      e.stopPropagation()
+      handleBuildingSelect(i)
+    })
+    slotBg.on('pointerdown', (e) => {
+      e.stopPropagation()  // Prevent event bubbling
+    })
+    
+    slotBg.on('touchend', (e) => {
+      e.stopPropagation()  // Prevent event bubbling
+      //handleBuildingSelect(i)
+    })
 
     // Add hover events for tooltip
-    slotBg.on('pointerover', () => updateTooltip(buildings[i]))
-    slotBg.on('pointerout', () => hideTooltip())
+    slotBg.on('pointerover', () => {
+      e.stopPropagation()
+      updateTooltip(buildings[i])
+    })
+    slotBg.on('pointerout', () => {
+      e.stopPropagation()
+      hideTooltip()
+    })
 
     bottomBarContainer.addChild(slot)
     buildingSlots.push(slot)
