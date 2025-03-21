@@ -34,6 +34,7 @@ Details: The menu presents what the User can do: Play on random map, Play a pred
 
 ## Gameplay (Medium Priority)
 
+- [x] **Fog of War:** Implement a fog of war mechanism.
 - [ ] **Special Maps:** Add predefined maps. *(Not Planned)*
 - [ ] **Campaign Mode:** Add campaigns maps with scenarii. *(Not Planned)*
 

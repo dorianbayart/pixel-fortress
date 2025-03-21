@@ -29,6 +29,7 @@ Stay tuned for updates!
 
 * **HTML/2D Canvas:** Provides the structure and visuals of the game.
 * **JavaScript:** Handles game logic, rendering, and player interactions.
+* **Pixi.js:** Used for rendering, animation and in-game UI.
 * _Potentially_ **Web Workers:** May be used for background tasks to enhance performance.
 
 

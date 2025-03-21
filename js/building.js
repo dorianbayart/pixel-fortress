@@ -107,6 +107,7 @@ class Building {
     this.maxHealth = 100
     this.productionTimer = 0
     this.productionCooldown = 10000 // 10 seconds by default
+    this.visibilityRange = getTileSize() * 8
     this.type = null
     
     // Register building with player

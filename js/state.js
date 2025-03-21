@@ -71,7 +71,8 @@ class GameState {
     this._settings = {
       difficulty: 'medium',
       mapSeed: null,
-      mapSize: 'medium'
+      mapSize: 'medium',
+      fogOfWar: true
     }
 
     // UI references

@@ -59,7 +59,7 @@
 
     * {
       user-select: none;
-      transition: opacity 350ms ease-in-out;
+      transition: all 350ms ease-in-out;
       box-sizing: border-box;
     }
 
@@ -87,6 +87,11 @@
     body {
       /* Apply safe area padding */
       padding: var(--sat) var(--sar) var(--sab) var(--sal);
+    }
+
+    body.playing-mode {
+      background: #1a1a1a; /* Dark background, but not true black */
+      background-size: 100% 100%;
     }
 
     canvas {
@@ -237,6 +242,7 @@
         "building": "./js/building.js",
         "constants": "./js/constants.js",
         "dimensions": "./js/dimensions.js",
+        "fogOfWar": "./js/fogOfWar.js",
         "game": "./js/game.js",
         "globals": "./js/globals.js",
         "init": "./js/init.js",
@@ -306,7 +312,7 @@
 
 
 
-<!-- Add this after the optionsSection div -->
+<!-- Scenarii section modal that appears when "Scenarii" is clicked -->
 <div id="scenariiSection" class="modal">
   <div class="modal-content">
     <div class="modal-header">
@@ -327,7 +333,7 @@
 
 
 
-<!-- Add this after the aboutSection div -->
+<!-- Options section modal that appears when "Options" is clicked -->
 <div id="optionsSection" class="modal">
   <div class="modal-content">
     <div class="modal-header">
@@ -350,6 +356,16 @@
           <button class="option-btn" data-map-size="small">Small</button>
           <button class="option-btn selected" data-map-size="medium">Medium</button>
           <button class="option-btn" data-map-size="large">Large</button>
+        </div>
+      </div>
+
+      <div class="option-group">
+        <h3>Fog of War</h3>
+        <div class="option-controls">
+          <label class="toggle-label">
+            <input type="checkbox" id="fogToggle" checked>
+            <span class="toggle-text">Enable Fog of War</span>
+          </label>
         </div>
       </div>
       

@@ -6,6 +6,7 @@ export {
 'use strict'
 
 import { getCanvasDimensions, getMapDimensions, getTileSize } from 'dimensions'
+import { isPositionExplored, isPositionVisible } from 'fogOfWar'
 import { DEBUG, backDrawn } from 'globals'
 import * as PIXI from 'pixijs'
 import { UNIT_SPRITE_SIZE } from 'sprites'
@@ -78,7 +79,7 @@ function loadTextureFromCanvas(canvas, key) {
   // Clean up the URL when the texture is loaded
   texture.on('update', () => {
     URL.revokeObjectURL(url)
-  });
+  })
   
   return texture
 }
@@ -238,7 +239,26 @@ function drawMain(player, AIs) {
     updateViewport(viewTransform)
   }
 
-  const currentUnits = [...player.getUnits(), ...AIs.flatMap(ai => ai.getUnits())]
+  const currentUnits = [...player.getUnits()]
+
+  // Only add AI units if they're visible
+  AIs.flatMap(ai => ai.getUnits()).forEach(unit => {
+    const unitTileX = Math.floor(unit.x / SPRITE_SIZE)
+    const unitTileY = Math.floor(unit.y / SPRITE_SIZE)
+
+    if (viewTransform && (
+      unitTileX >= viewport.startX || 
+      unitTileX <= viewport.endX || 
+      unitTileY >= viewport.startY || 
+      unitTileY <= viewport.endY
+    )) {
+      // Check if unit is visible through fog of war
+      if (!gameState.settings.fogOfWar || isPositionVisible(unitTileX, unitTileY)) {
+        currentUnits.push(unit)
+      }
+    }
+  })
+
   const currentUnitIds = new Set()
 
   currentUnits.forEach(unit => {
@@ -336,6 +356,11 @@ function drawBackground(map) {
   // Draw all map tiles
   for (let x = startX; x < endX; x++) {
     for (let y = startY; y < endY; y++) {
+      // Skip rendering if using fog of war and tile hasn't been explored
+      if (gameState.settings.fogOfWar && !isPositionExplored(x, y)) {
+        continue
+      }
+
       const tileKey = map[x][y].uid
 
       // Draw background (grass under objects)

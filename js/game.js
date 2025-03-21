@@ -4,6 +4,7 @@ export { TERRAIN_TYPES, ZOOM, gameLoop, initGame, updateSprite }
 
 import { Building } from 'building'
 import { getMapDimensions, getTileSize } from 'dimensions'
+import { renderFog, updateVisibility } from 'fogOfWar'
 import { drawBack, isDrawBackRequested } from 'globals'
 import { clearPathCache, searchPath } from 'pathfinding'
 import { Player, PlayerType } from 'players'
@@ -334,10 +335,19 @@ const gameLoop = () => {
     ai.update(delay, gameState.map)
   })
   
+  // Update fog of war
+  if (gameState.settings.fogOfWar) {
+    updateVisibility(delay)
+  }
   
   // Render game
   drawMain(gameState.humanPlayer, gameState.aiPlayers)
   
+  // Render fog of war
+  if (gameState.settings.fogOfWar) {
+    renderFog(delay)
+  }
+
   // Render UI
   updateUI(fps)
   

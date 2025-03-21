@@ -156,6 +156,10 @@ async function setupOptionsSection() {
   const openOptionsModal = () => {
       // Set current values based on game settings
       debugToggle.checked = gameState.debug
+
+      // Set fog of war toggle
+      const fogToggle = document.getElementById('fogToggle')
+      fogToggle.checked = gameState.settings?.fogOfWar !== false
       
       // Update difficulty selection (default to "medium" if not set)
       const currentDifficulty = gameState.settings?.difficulty || 'medium'
@@ -189,10 +193,14 @@ async function setupOptionsSection() {
       // Get selected map size
       const selectedMapSize = optionsSection.querySelector('.option-btn[data-map-size].selected')?.dataset.mapSize || 'medium'
       
+      // Get fog of war toggle state
+      const fogOfWarEnabled = document.getElementById('fogToggle').checked
+
       // Update game settings
       gameState.updateSettings({
           difficulty: selectedDifficulty,
-          mapSize: selectedMapSize
+          mapSize: selectedMapSize,
+          fogOfWar: fogOfWarEnabled
       })
       
       // Update debug mode

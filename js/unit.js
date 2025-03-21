@@ -85,6 +85,7 @@ class Unit {
     this.attack = null
     this.spriteName = null
     this.sprite = null
+    this.visibilityRange = getTileSize() * 5
   }
 
   /**
@@ -251,7 +252,8 @@ class Unit {
     const devX = ((this.nextNode.x * SPRITE_SIZE - this.x) * 2 + (this.nextNextNode.x * SPRITE_SIZE - this.x)) / 3
     const devY = ((this.nextNode.y * SPRITE_SIZE - this.y) * 2 + (this.nextNextNode.y * SPRITE_SIZE - this.y)) / 3
     const theta = Math.atan2(devY, devX)
-    const speedFactor = gameState.map[this.currentNode.x][this.currentNode.y].weight < 10 ? 1/gameState.map[this.currentNode.x][this.currentNode.y].weight : 1/4
+    const nodeForSpeedFactor = { x: Math.round(this.x / SPRITE_SIZE), y: Math.round(this.y / SPRITE_SIZE) }
+    const speedFactor = gameState.map[nodeForSpeedFactor.x][nodeForSpeedFactor.y].weight < 10 ? 1/gameState.map[nodeForSpeedFactor.x][nodeForSpeedFactor.y].weight : 1/4
     let vx = this.speed * (delay/1000) * Math.cos(theta) * speedFactor * SPRITE_SIZE
     let vy = this.speed * (delay/1000) * Math.sin(theta) * speedFactor * SPRITE_SIZE
 
@@ -635,6 +637,7 @@ class RangedUnit extends CombatUnit {
     
     // Ranged units have longer range but lower health
     this.range = 4 * getTileSize()
+    this.visibilityRange = getTileSize() * 8
   }
 }
 

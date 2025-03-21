@@ -3,9 +3,10 @@ export { handleWindowResize, initializeGame }
 'use strict'
 
 import { getTileSize, initMapDimensions } from 'dimensions'
+import { initFogOfWar } from 'fogOfWar'
 import { gameLoop, initGame } from 'game'
 import { initHomeMenu } from 'menu'
-import { app, containers, initCanvases, resizeCanvases } from 'renderer'
+import { app, initCanvases, resizeCanvases } from 'renderer'
 import { loadSprites } from 'sprites'
 import gameState from 'state'
 import { initUI, showDebugMessage } from 'ui'
@@ -60,9 +61,16 @@ async function initializeGame() {
         startGame()
       }, 40)
     } else if (status === 'playing') {
+
+      // Add the playing-mode class to the body
+      document.body.classList.add('playing-mode')
+
       
     } else if (status === 'menu') {
       if(app?.canvas) app.canvas.style.opacity = 0.2
+
+      // Remove the playing-mode class when returning to menu
+      document.body.classList.remove('playing-mode')
 
       // Clear game state
       gameState.map = null
@@ -85,6 +93,11 @@ async function startGame() {
     
     // Set initial camera position
     gameState.UI.mouse.setInitialCameraPosition()
+    
+    // Initialize fog of war
+    if (gameState.settings.fogOfWar) {
+      await initFogOfWar()
+    }
     
     showDebugMessage('New map generated !')
 
