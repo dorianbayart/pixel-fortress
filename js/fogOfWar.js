@@ -103,7 +103,7 @@ function updateVisibility(delay, force = false) {
             // Check if within map bounds
             if (x >= 0 && x < width && y >= 0 && y < height) {
               // Calculate fog factor based on distance (closer = clearer)
-              const distanceFactor = 1 - Math.sqrt(distanceSquared) / visibilityRange
+              const distanceFactor = Math.min(1, 1 - Math.log(1 + Math.sqrt(distanceSquared) / visibilityRange))
               
               // Brighter at center, darker at edges
               fogGrid[x][y] = Math.min(fogGrid[x][y], 1 - distanceFactor)

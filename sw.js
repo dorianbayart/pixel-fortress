@@ -12,6 +12,7 @@ const CACHED_URLS = [
   'js/building.js',
   'js/constants.js',
   'js/dimensions.js',
+  'js/fogOfWar.js',
   'js/game.js',
   'js/global.js',
   'js/index.js',

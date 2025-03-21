@@ -5,9 +5,10 @@ export { Building, Tent, WorkerBuilding }
 import { getMapDimensions, getTileSize } from 'dimensions'
 import { searchPath } from 'pathfinding'
 import { Player } from 'players'
+import { createProgressIndicator, removeProgressIndicator, updateProgressIndicator } from 'renderer'
 import { offscreenSprite, sprites } from 'sprites'
 import gameState from 'state'
-import { LumberjackWorker, Peon, WorkerUnit } from 'unit'
+import { LumberjackWorker, Peon } from 'unit'
 import { distance } from 'utils'
 
 
@@ -109,6 +110,11 @@ class Building {
     this.productionCooldown = 10000 // 10 seconds by default
     this.visibilityRange = getTileSize() * 8
     this.type = null
+
+    // Progress indicator properties
+    this.showProgressIndicator = false
+    this.indicatorColor = 0xFFD700
+    this.progress = 0
     
     // Register building with player
     if (owner) {
@@ -134,6 +140,11 @@ class Building {
       gameState.map[x][y].uid = null
       gameState.map[x][y].weight = 1
       gameState.map[x][y].type = 'GRASS'
+
+      if (indicatorMap?.has(this.uid)) {
+        removeProgressIndicator(this.uid)
+      }
+
       return
     }
   }
@@ -195,6 +206,10 @@ class Tent extends WorkerBuilding {
     this.health = 200
     this.maxHealth = 200
     this.productionCooldown = 10000 // 10 seconds
+
+    this.showProgressIndicator = true
+
+    createProgressIndicator(this, 10, color)
   }
 
   /**
@@ -206,11 +221,17 @@ class Tent extends WorkerBuilding {
     
     // Update production timer
     this.productionTimer += delay
+
+    // Update progress for indicator
+    this.progress = this.productionTimer / this.productionCooldown
+
+    updateProgressIndicator(this, this.progress)
     
     // Check if it's time to produce a worker
     if (this.productionTimer >= this.productionCooldown) {
       this.produceWorker()
       this.productionTimer -= this.productionCooldown
+      this.progress = 0 // Reset progress after producing
     }
   }
   

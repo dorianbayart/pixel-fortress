@@ -4,7 +4,7 @@ export { setupViewportHandling, viewportChange }
 
 import { updateDimensions } from 'dimensions'
 import { drawBack } from 'globals'
-import { resizeCanvases, updateZoom } from 'renderer'
+import { indicatorMap, resizeCanvases, updateProgressIndicator, updateZoom } from 'renderer'
 import gameState from 'state'
 
 let handleViewportChangeTimeout
@@ -31,7 +31,20 @@ const handleViewportChange = async () => {
         updateZoom()
     }
 
-    
+    // Update indicators positions if needed
+    if (indicatorMap?.size > 0) {
+        // Force indicator positions to update
+        indicatorMap.forEach((indicator, uid) => {
+            const entity = [...(gameState.humanPlayer?.getUnits() || []), 
+                            ...(gameState.humanPlayer?.getBuildings() || [])]
+                            .find(e => e.uid === uid)
+            
+            if (entity && entity.showProgressIndicator) {
+                updateProgressIndicator(entity, entity.progress || 0)
+            }
+        })
+    }
+
     // Request redraw of background
     drawBack()
 

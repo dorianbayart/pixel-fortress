@@ -1,6 +1,5 @@
 export {
-  app,
-  containers, drawBackground, drawMain, initCanvases, loadTextureFromCanvas, resizeCanvases, updateZoom
+  app, containers, createProgressIndicator, drawBackground, drawMain, indicatorMap, initCanvases, loadTextureFromCanvas, removeProgressIndicator, resizeCanvases, updateProgressIndicator, updateZoom
 }
 
 'use strict'
@@ -21,10 +20,12 @@ const containers = {
   background: null,
   terrain: null,
   units: null,
+  indicators: null,
   ui: null,
   debug: null
 }
 
+const indicatorMap = new Map()
 const unitSpriteMap = new Map()
 const backgroundSpriteMap = new Map()
 const terrainSpriteMap = new Map()
@@ -149,6 +150,7 @@ async function initCanvases() {
   containers.background = new PIXI.Container()
   containers.terrain = new PIXI.Container()
   containers.units = new PIXI.Container()
+  containers.indicators = new PIXI.Container()
   containers.ui = new PIXI.Container()
   containers.debug = new PIXI.Container()
   
@@ -157,6 +159,7 @@ async function initCanvases() {
   app.stage.addChild(containers.terrain)
   app.stage.addChild(containers.debug)
   app.stage.addChild(containers.units)
+  app.stage.addChild(containers.indicators)
   app.stage.addChild(containers.ui)
   
   console.log("Canvas initialized:", app.canvas.width, "x", app.canvas.height, app)
@@ -307,6 +310,18 @@ function drawMain(player, AIs) {
     sprite.visible = true
     sprite.x = unit.x - UNIT_SPRITE_SIZE/4
     sprite.y = unit.y - UNIT_SPRITE_SIZE/4 - 2
+
+    // Handle progress indicators for units
+    if (unit.showProgressIndicator) {
+      let indicator = indicatorMap.get(unit.uid)
+      if (!indicator) {
+        indicator = createProgressIndicator(unit, 10, unit.indicatorColor || 0x00FF00)
+      }
+      
+      updateProgressIndicator(unit, unit.progress || 0)
+    } else if (indicatorMap.has(unit.uid)) {
+      removeProgressIndicator(unit.uid)
+    }
   })
 
   // Remove sprites for units that no longer exist
@@ -492,38 +507,116 @@ function drawBackground(map) {
  * Update zoom level
  */
 function updateZoom() {
-    // Get current view transform
-    const viewTransform = gameState.UI?.mouse?.getViewTransform()
+  // Get current view transform
+  const viewTransform = gameState.UI?.mouse?.getViewTransform()
+  
+  // Apply transformations to all containers that should be affected by zoom/pan
+  const containersToTransform = [
+    containers.background,
+    containers.terrain,
+    containers.units,
+    containers.indicators,
+    containers.debug
+  ];
+  
+  // Apply scale to each container
+  containersToTransform.forEach(container => {
+    // Reset transformations
+    //container.setTransform(0, 0, 1, 1, 0, 0, 0, 0, 0);
     
-    // Apply transformations to all containers that should be affected by zoom/pan
-    const containersToTransform = [
-      containers.background,
-      containers.terrain,
-      containers.units,
-      containers.debug
-    ];
+    // Apply new scale and position
+    container.scale.set(viewTransform.scale, viewTransform.scale)
     
-    // Apply scale to each container
-    containersToTransform.forEach(container => {
-      // Reset transformations
-      //container.setTransform(0, 0, 1, 1, 0, 0, 0, 0, 0);
-      
-      // Apply new scale and position
-      container.scale.set(viewTransform.scale, viewTransform.scale)
-      
-      // Invert the translation caused by scale
-      const offsetX = -viewTransform.x * viewTransform.scale
-      const offsetY = -viewTransform.y * viewTransform.scale
-      
-      // Apply translation
-      container.position.set(offsetX, offsetY)
-    })
+    // Invert the translation caused by scale
+    const offsetX = -viewTransform.x * viewTransform.scale
+    const offsetY = -viewTransform.y * viewTransform.scale
+    
+    // Apply translation
+    container.position.set(offsetX, offsetY)
+  })
 
-    // Update the viewport for culling calculations
-    updateViewport(viewTransform)
-    
-    // UI container shouldn't be affected by zoom/pan (for cursor and HUD)
-    // We could leave it as is, but if we want to scale UI elements differently:
-    containers.ui.scale.set(1, 1)
-    containers.ui.position.set(0, 0)
+  // Update the viewport for culling calculations
+  updateViewport(viewTransform)
+  
+  // UI container shouldn't be affected by zoom/pan (for cursor and HUD)
+  // We could leave it as is, but if we want to scale UI elements differently:
+  containers.ui.scale.set(1, 1)
+  containers.ui.position.set(0, 0)
+}
+
+/**
+ * Create a progress indicator for an entity
+ * @param {Object} entity - Unit or building to create indicator for
+ * @param {number} width - Width of the indicator
+ * @param {number} color - Color of the progress bar
+ * @returns {PIXI.Container} The created indicator container
+ */
+function createProgressIndicator(entity, width = 10, color = 0x00FF00) {
+  const indicator = new PIXI.Container()
+  
+  // Create pixelated background (dark border)
+  const background = new PIXI.Graphics()
+  background.beginFill(0x000000, 0.6)
+  background.drawRect(0, 0, width, 3)
+  background.endFill()
+  
+  // Create progress bar (initially empty)
+  const progressBar = new PIXI.Graphics()
+  progressBar.beginFill(color, 1)
+  progressBar.drawRect(1, 1, 0, 1) // 1px border around progress
+  progressBar.endFill()
+  
+  indicator.addChild(background)
+  indicator.addChild(progressBar)
+  
+  // Add to container and map
+  containers.indicators.addChild(indicator)
+  indicatorMap.set(entity.uid, indicator)
+  
+  return indicator
+}
+
+/**
+ * Update a progress indicator's position and value
+ * @param {Object} entity - Unit or building the indicator belongs to
+ * @param {number} progress - Progress value (0-1)
+ */
+function updateProgressIndicator(entity, progress) {
+  const indicator = indicatorMap.get(entity.uid)
+  if (!indicator) return
+
+  const SPRITE_SIZE = getTileSize()
+  
+  // Position above entity (different for units vs buildings)
+  if (entity.currentNode) {
+    // Unit
+    indicator.x = entity.x - SPRITE_SIZE/4
+    indicator.y = entity.y - SPRITE_SIZE/2 - 4
+  } else {
+    // Building
+    indicator.x = entity.x * SPRITE_SIZE + SPRITE_SIZE/4
+    indicator.y = entity.y * SPRITE_SIZE - 4
   }
+  
+  // Update progress bar width (max width is background width minus 2px for border)
+  const background = indicator.getChildAt(0)
+  const progressBar = indicator.getChildAt(1)
+  
+  progressBar.clear()
+  progressBar.beginFill(progressBar.fill?.color || 0x00FF00, 1)
+  const maxWidth = background.width - 2
+  progressBar.drawRect(1, 1, maxWidth * Math.min(1, Math.max(0, progress)), 1)
+  progressBar.endFill()
+}
+
+/**
+ * Remove a progress indicator
+ * @param {number} entityUid - UID of entity to remove indicator for
+ */
+function removeProgressIndicator(entityUid) {
+  const indicator = indicatorMap.get(entityUid)
+  if (indicator) {
+    containers.indicators.removeChild(indicator)
+    indicatorMap.delete(entityUid)
+  }
+}

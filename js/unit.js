@@ -6,8 +6,9 @@ export {
 'use strict'
 
 import { getMapDimensions, getTileSize } from 'dimensions'
-import { updateSprite, TERRAIN_TYPES } from 'game'
+import { TERRAIN_TYPES, updateSprite } from 'game'
 import { searchPath } from 'pathfinding'
+import { removeProgressIndicator } from 'renderer'
 import { UNIT_SPRITE_SIZE, offscreenSprite, unitsSprites, unitsSpritesDescription } from 'sprites'
 import gameState from 'state'
 import { distance } from 'utils'
@@ -86,6 +87,11 @@ class Unit {
     this.spriteName = null
     this.sprite = null
     this.visibilityRange = getTileSize() * 5
+
+    // Progress indicator properties
+    this.showProgressIndicator = false
+    this.indicatorColor = 0x0000BB
+    this.progress = 0
   }
 
   /**
@@ -100,6 +106,11 @@ class Unit {
       // Cleanup unit
       this.path = null
       this.sprite = null
+
+      if (indicatorMap?.has(this.uid)) {
+        removeProgressIndicator(this.uid)
+      }
+      
       return
     }
 
@@ -390,6 +401,8 @@ class LumberjackWorker extends WorkerUnit {
     this.maxResources = 1
     this.assignedBuilding = null // Reference to lumberjack building
 
+    this.showProgressIndicator = true
+
     this.task = 'gathering'
   }
 
@@ -477,6 +490,9 @@ class LumberjackWorker extends WorkerUnit {
       // Add to worker's carried resources
       this.resources += amountToHarvest
 
+      // Update progress for indicator
+      this.progress = this.resources / this.maxResources
+
       // Reduce tree's remaining resources
       tree.lifeRemaining -= amountToHarvest
 
@@ -519,6 +535,7 @@ class LumberjackWorker extends WorkerUnit {
       if (this.resources > 0) {
           this.assignedBuilding.owner.addResource('wood', this.resources | 0)
           this.resources = 0
+          this.progress = 0 // Reset progress after depositing
       }
     } else {
       // Assigned building as been probably destroyed
