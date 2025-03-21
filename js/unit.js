@@ -293,6 +293,7 @@ class Unit {
    * @returns {OffscreenCanvas} Updated sprite
    */
   updateSprite(type, theta = -PI/2, delay) {
+    if(!unitsSpritesDescription) return
     const keys = Object.keys(unitsSpritesDescription[this.spriteName][type])
 
     this.spriteTimer += delay

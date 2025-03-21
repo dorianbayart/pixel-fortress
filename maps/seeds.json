@@ -16,7 +16,14 @@
             "name": "Bottlenecks",
             "seed": 1360,
             "size": "medium"
+        },
+        {
+            "name": "Bases",
+            "seed": 859,
+            "size": "medium"
         }
+
+
     ],
-    "valid_seeds": [1412, 458, 464, 599, 627, 780, 993, 1224, 2529]
+    "valid_seeds": []
 }

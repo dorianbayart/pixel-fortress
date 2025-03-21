@@ -129,8 +129,12 @@ class Building {
    * @param {number} delay - Time elapsed since last update (ms)
    */
   update(delay) {
-    // Base building doesn't produce anything
-    // But we should update any status effects, etc.
+    if(this.health <= 0) {
+      gameState.map[x][y].uid = null
+      gameState.map[x][y].weight = 1
+      gameState.map[x][y].type = 'GRASS'
+      return
+    }
   }
 
   static create(buildingType, x, y, color, owner) {

@@ -160,6 +160,15 @@ class GameState {
   }
 
   /**
+   * Clear the human player object and all its children and emit event
+   */
+  clearHumanPlayer() {
+    if(this._players.human) this._players.human.clear()
+    this._players.human = null
+    this.events.emit('human-player-changed', this._players.human)
+  }
+
+  /**
    * Get the list of AI players objects
    * @returns {Player[]} An array of AI players
    */
@@ -180,6 +189,7 @@ class GameState {
    * Clear the AI players list and emit event
    */
   clearAiPlayers() {
+    this._players.ais.forEach(ai => ai.clear())
     this._players.ais = []
     this.events.emit('ai-players-changed', this.aiPlayers)
   }

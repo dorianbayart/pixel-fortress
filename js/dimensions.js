@@ -59,7 +59,7 @@ const initMapDimensions = () => {
  * This should be called on resize events
  */
 const updateDimensions = async () => {
-    dpr = window.devicePixelRatio || 1
+    dpr = (window.devicePixelRatio || 1)
 
     // Store canvas dimensions in pixels
     canvasWidth = window.innerWidth

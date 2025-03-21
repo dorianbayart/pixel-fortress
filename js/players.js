@@ -36,6 +36,11 @@ class Player {
     this.events = new EventSystem()
   }
 
+  clear() {
+    this.units = null
+    this.buildings = null
+  }
+
   getUnits() {
     return this.units
   }

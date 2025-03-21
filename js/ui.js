@@ -1,5 +1,5 @@
 export {
-  handleMouseInteraction, initUI, mouse, setupEventListeners, showDebugMessage, updateUI
+  handleMouseInteraction, initUI, mouse, setupEventListeners, setupGameMenuEventListeners, showDebugMessage, updateUI
 }
   
 'use strict'
@@ -46,13 +46,58 @@ let selectedBuildingType = null
  * @param {Object} mouseInstance - Mouse controller instance
  */
 async function initUI(mouseInstance) {
+  if(!mouse) {
+    // Subscribe to state changes
+    gameState.events.on('debug-changed', (value) => {
+      statsText.visible = value
+      drawBack()
+    })
+    
+    gameState.events.on('game-status-changed', async (status) => {
+      if (status === 'playing') {
+        document.getElementById('homeMenu').style.opacity = 0
+        setTimeout(() => {
+          document.getElementById('homeMenu').style.display = 'none'
+        }, 600)
+
+        // Create the top resource bar
+        createTopBar()
+
+        // Create the bottom building bar
+        createBottomBar()
+
+      } else if (status === 'paused') {
+        // Remove preview sprite if it exists
+        if (buildingPreviewSprite && buildingPreviewSprite.parent) {
+          buildingPreviewSprite.parent.removeChild(buildingPreviewSprite)
+          buildingPreviewSprite = null
+        }
+        selectedBuildingType = null
+        selectedBuildingIndex = -1
+      } else if (status === 'menu') {
+        // Remove preview sprite if it exists
+        if (buildingPreviewSprite && buildingPreviewSprite.parent) {
+          buildingPreviewSprite.parent.removeChild(buildingPreviewSprite)
+          buildingPreviewSprite = null
+        }
+        selectedBuildingType = null
+        selectedBuildingIndex = -1
+
+        // Show home menu
+        document.getElementById('homeMenu').style.display = 'flex'
+        setTimeout(() => {
+          document.getElementById('homeMenu').style.opacity = 1
+        }, 20)
+      }
+    })
+  }
+  
+
   mouse = mouseInstance
   gameState.UI = { mouse: mouse }
 
-  setupEventListeners()
-  
   // Create cursor sprite
-  if (mouse.sprite) {
+  if (mouse?.sprite) {
     const cursorTexture = await createTextureFromOffscreenCanvas(mouse.sprite)
     cursorSprite = getCachedSprite(cursorTexture, 'cursor')
     cursorSprite.pivot.set(4.5, 4.5) // Center the cursor
@@ -66,47 +111,17 @@ async function initUI(mouseInstance) {
   statsText = new PIXI.Text({
     text: '',
     fontFamily: UI_FONTS.MONOSPACE,
-    fontSize: 14,
+    fontSize: 10,
     resolution: window.devicePixelRatio || 1,
     fill: 0xffffff,
     stroke: 0x000000,
     strokeThickness: 2
   })
-  statsText.position.set(10, 10)
+  statsText.position.set(10, 38)
+  statsText.scale.set(1, 1)
   statsText.visible = DEBUG()
   containers.ui.addChild(statsText)
   
-  // Subscribe to state changes
-  gameState.events.on('debug-changed', (value) => {
-    statsText.visible = value
-    if (!value) {
-      document.getElementById('stats').innerHTML = null
-    }
-    drawBack()
-  })
-  
-  gameState.events.on('game-status-changed', async (status) => {
-    if (status === 'playing') {
-      document.getElementById('homeMenu').style.opacity = 0
-      setTimeout(() => {
-        document.getElementById('homeMenu').style.display = 'none'
-      }, 750)
-
-      // Create the top resource bar
-      createTopBar()
-
-      // Create the bottom building bar
-      createBottomBar()
-    } else if (status === 'menu' || status === 'paused') {
-      // Remove preview sprite if it exists
-      if (buildingPreviewSprite && buildingPreviewSprite.parent) {
-        buildingPreviewSprite.parent.removeChild(buildingPreviewSprite)
-        buildingPreviewSprite = null
-      }
-      selectedBuildingType = null
-      selectedBuildingIndex = -1
-    }
-  })
 }
 
 /**
@@ -164,6 +179,7 @@ function setupEventListeners() {
 
   // Start game on "Random Map" click
   document.getElementById('generated').addEventListener('click', () => {
+    gameState.mapSeed = null
     gameState.gameStatus = 'initialize'
   })
 
@@ -174,6 +190,49 @@ function setupEventListeners() {
       case 'd':
         toggleDebug()
         break
+    }
+  })
+
+  setupGameMenuEventListeners()
+}
+
+/**
+ * Setup event listeners for the in-game menu
+ */
+function setupGameMenuEventListeners() {
+  const gameMenuSection = document.getElementById('gameMenuSection')
+  const closeButton = gameMenuSection.querySelector('.close')
+  const resumeGameButton = document.getElementById('resumeGame')
+  const resetMapButton = document.getElementById('resetMap')
+  const quitToHomeButton = document.getElementById('quitToHome')
+  
+  // Resume game button
+  resumeGameButton.addEventListener('click', closeGameMenu)
+  
+  // Close button
+  closeButton.addEventListener('click', closeGameMenu)
+  
+  // Reset map button
+  resetMapButton.addEventListener('click', resetCurrentMap)
+  
+  // Quit to home button
+  quitToHomeButton.addEventListener('click', quitToHome)
+  
+  // Close the modal if the user clicks outside of it
+  window.addEventListener('click', (event) => {
+    if (event.target === gameMenuSection) {
+      closeGameMenu('game')
+    }
+  })
+  
+  // Escape key toggles the menu
+  window.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      if (gameMenuSection.classList.contains('show')) {
+        closeGameMenu('game')
+      } else if (gameState.gameStatus === 'playing') {
+        openGameMenu()
+      }
     }
   })
 }
@@ -269,7 +328,7 @@ function drawUI(fps) {
     const SPRITE_SIZE = getTileSize()
     
     statsText.text = [
-      `FPS: ${currentFps} | DPR: ${globalThis.devicePixelRatio || 1}`,
+      `FPS: ${currentFps} | DPR: ${getCanvasDimensions().dpr}:${globalThis.devicePixelRatio || 1}`,
       `Game Status: ${gameState.gameStatus}`,
       `Units: ${unitsCount} human, ${aiUnitsCount} AI`,
       `Mouse: ${mouse.x}x${mouse.y} (${mouse.worldX.toFixed(0)}, ${mouse.worldY.toFixed(0)})${mouse.isDragging ? ' | clic' : ''}`,
@@ -280,7 +339,7 @@ function drawUI(fps) {
       `Screen: ${screen.width}x${screen.height} | Available: ${screen.availWidth}x${screen.availHeight}`,
       `Window: ${window.innerWidth}x${window.innerHeight}`,
       `CSS: ${document.documentElement.clientWidth}x${document.documentElement.clientHeight}`,
-      `Canvas: ${app.canvas.style.width}x${app.canvas.style.height}`
+      `Canvas: ${app.canvas.style.width} x ${app.canvas.style.height}`
     ].join('\n')
   }
 }
@@ -294,7 +353,10 @@ function updateResourceDisplay(resources) {
 }
 
 async function createTopBar() {
-  if (topBarContainer) return;
+  if (topBarContainer) {
+    topBarContainer.removeChildren()
+    topBarContainer.destroy()
+  }
   
   const { width } = getCanvasDimensions()
   const barHeight = 32 // Fixed height for the top bar
@@ -357,6 +419,37 @@ async function createTopBar() {
     
     topBarContainer.addChild(resourceContainer)
   })
+
+  // Add menu button to the right side of the top bar
+  const menuButton = new PIXI.Container()
+  menuButton.position.set(width - 44, 4) // Position on the right side
+
+  // Create button background
+  const menuButtonBg = new PIXI.Graphics()
+  menuButtonBg.beginFill(0x114611, 0.7)
+  menuButtonBg.lineStyle(1, 0xFFD700, 0.8)
+  menuButtonBg.drawRoundedRect(0, 0, 36, 26, 4)
+  menuButtonBg.endFill()
+  menuButton.addChild(menuButtonBg)
+
+  // Create hamburger menu icon (three lines)
+  const menuIcon = new PIXI.Graphics()
+  menuIcon.beginFill(0xFFD700)
+  menuIcon.drawRect(8, 7, 20, 2)  // Top line
+  menuIcon.drawRect(8, 13, 20, 2) // Middle line
+  menuIcon.drawRect(8, 19, 20, 2) // Bottom line
+  menuIcon.endFill()
+  menuButton.addChild(menuIcon)
+
+  // Make button interactive
+  menuButtonBg.eventMode = 'static'
+  menuButtonBg.cursor = 'pointer'
+  menuButtonBg.on('pointerup', (e) => {
+    e.stopPropagation()
+    openGameMenu()
+  })
+
+  topBarContainer.addChild(menuButton)
   
   // Add to UI container
   containers.ui.addChild(topBarContainer)
@@ -401,7 +494,10 @@ function updateTopBarPosition() {
 
 
 async function createBottomBar() {
-  if (bottomBarContainer) return
+  if (bottomBarContainer) {
+    bottomBarContainer.removeChildren()
+    bottomBarContainer.destroy()
+  }
   
   const { width } = getCanvasDimensions()
   const barHeight = CONSTANTS.UI.BOTTOM_BAR_HEIGHT
@@ -878,6 +974,81 @@ function hideTooltip() {
     tooltipContainer.visible = false
     tooltipVisible = false
   }
+}
+
+
+
+
+/**
+ * Open the game menu modal, pausing the game
+ */
+function openGameMenu() {
+  // Pause the game
+  //const previousStatus = gameState.gameStatus
+  gameState.gameStatus = 'paused'
+  
+  // Store previous status to return to it when closing
+  //gameState._previousStatus = previousStatus
+  
+  // Show the menu
+  const gameMenuSection = document.getElementById('gameMenuSection')
+  gameMenuSection.style.display = 'block'
+  
+  // Slight delay for fade-in effect
+  setTimeout(() => {
+    gameMenuSection.classList.add('show')
+  }, 20)
+}
+
+/**
+ * Close the game menu modal, resuming the game
+ */
+function closeGameMenu(destination) {
+  const gameMenuSection = document.getElementById('gameMenuSection')
+  gameMenuSection.classList.remove('show')
+  
+  // Wait for transition to complete before hiding and resuming
+  setTimeout(() => {
+    gameMenuSection.style.display = 'none'
+    
+    // Resume game state (usually 'playing')
+    if (destination === 'home' || destination === 'reset') {
+      
+    } else if (destination === 'game') {
+      gameState.gameStatus = 'playing'
+    }
+  }, 600) // Same as transition time
+}
+
+/**
+ * Reset the current map while keeping the same seed
+ */
+function resetCurrentMap() {
+  // Store the current seed
+  //const currentSeed = gameState.mapSeed
+  
+  // Close the menu first
+  closeGameMenu('reset')
+  
+  // Set the saved seed and initialize new game
+  //gameState.mapSeed = currentSeed
+  console.log('Reset to Map Seed: ', gameState.mapSeed)
+  gameState.gameStatus = 'initialize'
+  
+  showDebugMessage('Resetting map...')
+}
+
+/**
+ * Quit to the home menu
+ */
+function quitToHome() {
+  // Close the menu first
+  closeGameMenu('home')
+  
+  // Set game status to menu
+  gameState.gameStatus = 'menu'
+  
+  showDebugMessage('Returning to main menu...')
 }
 
 

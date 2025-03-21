@@ -3,13 +3,16 @@ export { initHomeMenu }
 'use strict'
 
 import gameState from 'state'
+import { setupEventListeners } from 'ui'
 
 
 // Initialize all menu functions
 async function initHomeMenu() {
+  setupScenariiSection()
   setupAboutSection()
   setupOptionsSection()
-  setupScenariiSection()
+
+  setupEventListeners()
 }
 
 // Function to fetch the game version from manifest.json
@@ -101,7 +104,7 @@ async function setupScenariiSection() {
       // Wait for transition to complete before hiding
       setTimeout(() => {
           scenariiSection.style.display = 'none'
-      }, 750) // Same as transition time
+      }, 600) // Same as transition time
   }
   
   // Add event listeners
@@ -175,7 +178,7 @@ async function setupOptionsSection() {
       // Wait for transition to complete before hiding
       setTimeout(() => {
           optionsSection.style.display = 'none'
-      }, 750) // Same as transition time
+      }, 600) // Same as transition time
   }
   
   // Function to save options
@@ -263,7 +266,7 @@ async function setupAboutSection() {
     // Wait for transition to complete before hiding
     setTimeout(() => {
       aboutSection.style.display = 'none'
-    }, 750) // Same as transition time
+    }, 600) // Same as transition time
   }
   
   // Add event listeners

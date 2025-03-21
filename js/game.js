@@ -45,17 +45,18 @@ const initGame = async () => {
   
   // Generate map until we get a valid one
   let i = 0
-  let placedTents = false
+  let isMapCorrect = true
   do {
-    await generateMap(gameState.mapSeed)
-    placedTents = placeTents()
-  } while(!placedTents && ++i < 150)
+    if(!isMapCorrect) gameState.mapSeed = null
+    await generateMap()
+    isMapCorrect = placeTents()
+  } while(!isMapCorrect && ++i < 150)
 
   await assignSpritesOnMap()
 
   elapsedBack = elapsed = performance.now()
 
-  return placedTents
+  return isMapCorrect
 }
 
 
@@ -71,7 +72,7 @@ const initGame = async () => {
  * 
  * @returns {Promise<void>}
  */
-const generateMap = async (seed) => {
+const generateMap = async () => {
   // Clean the pathfinding algorithm
   clearPathCache()
 
@@ -80,11 +81,9 @@ const generateMap = async (seed) => {
 
   // Create the map structure
   gameState.map = new Array(MAP_WIDTH).fill(null).map(() => new Array(MAP_HEIGHT).fill(null))
-  
-  // Generate a random seed
-  //gameState.mapSeed = seed ?? Math.floor(Math.random() * 10000)
-  
-  const noise = new PerlinNoise(gameState.mapSeed ?? Math.floor(Math.random() * 10000))
+  gameState.mapSeed  = gameState.mapSeed ?? Math.floor(Math.random() * 10000)
+
+  const noise = new PerlinNoise(gameState.mapSeed)
 
   const NOISE_SCALE = 0.08; // Controls terrain smoothness
   const TERRAIN_THRESHOLD = {
@@ -304,6 +303,10 @@ const gameLoop = () => {
     return
   }
 
+  if(gameState.gameStatus === 'menu') {
+    return
+  }
+
   // Background rendering
   if(isDrawBackRequested() || now - elapsedBack > 500) {
     elapsedBack = now
@@ -323,7 +326,7 @@ const gameLoop = () => {
   
   // Update players and units
   const timingStart = performance.now()
-  gameState.humanPlayer.update(delay, gameState.map)
+  if(gameState.humanPlayer) gameState.humanPlayer.update(delay, gameState.map)
   const timing = performance.now() - timingStart
   
   // Update AI players

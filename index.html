@@ -59,7 +59,7 @@
 
     * {
       user-select: none;
-      transition: opacity 750ms ease-in-out;
+      transition: opacity 350ms ease-in-out;
       box-sizing: border-box;
     }
 
@@ -283,6 +283,25 @@
 </body>
 
 </html>
+
+
+
+<!-- In-game menu modal -->
+<div id="gameMenuSection" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Game Menu</h2>
+      <span class="close">&times;</span>
+    </div>
+    <div class="modal-body">
+      <div class="menu-options">
+        <button id="resumeGame" class="menu-button">Resume Game</button>
+        <button id="resetMap" class="menu-button">Reset Map</button>
+        <button id="quitToHome" class="menu-button">Quit to Home</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 
 

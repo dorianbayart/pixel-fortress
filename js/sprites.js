@@ -22,6 +22,9 @@ let sprites, unitsSprites, unitsSpritesDescription
  * @returns {Promise<void>}
  */
 const loadSprites = async () => {
+  sprites = unitsSprites = unitsSpritesDescription = null
+  offscreenSprites.clear()
+
   sprites = await loadAndSplitImage(
     './assets/punyworld-overworld-tileset.png',
     SPRITE_SIZE

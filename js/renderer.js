@@ -91,22 +91,58 @@ async function initCanvases() {
   const { width, height, dpr } = getCanvasDimensions()
 
   // Create Pixi Application
-  app = new PIXI.Application()
-  await app.init({
-    width: width,
-    height: height,
-    // backgroundColor: 0x228b22, // Forestgreen background
-    backgroundAlpha: 0,
-    resolution: dpr,
-    autoDensity: true, // This adjusts the CSS size automatically
-    antialias: false,
-    canvas: document.getElementById('canvas'),
-  })
+  if(!app) {
+    app = new PIXI.Application()
+    await app.init({
+      width: width,
+      height: height,
+      // backgroundColor: 0x228b22, // Forestgreen background
+      backgroundAlpha: 0,
+      resolution: dpr,
+      autoDensity: true, // This adjusts the CSS size automatically
+      antialias: false,
+      canvas: document.getElementById('canvas'),
+    })
+    
+    // Add the view to the document
+    document.getElementById('canvas').replaceWith(app.canvas)
+    app.canvas.id = 'canvas'
+    app.canvas.style.cursor = 'none'
+    
   
-  // Add the view to the document
-  document.getElementById('canvas').replaceWith(app.canvas)
-  app.canvas.id = 'canvas'
-  app.canvas.style.cursor = 'none'
+    app.canvas.addEventListener('mouseenter', () => {
+      if(gameState.gameStatus === 'paused') gameState.gameStatus = 'playing'
+    })
+  
+    app.canvas.addEventListener('mouseleave', () => {
+      if(gameState.gameStatus === 'playing') gameState.gameStatus = 'paused'
+    })
+  } else {
+    // Clear all containers to remove game elements from canvas
+    for (const container of Object.values(containers)) {
+      if (container) {
+        for (const subcontainer of Object.values(container)) {
+          if (subcontainer) {
+            console.log(subcontainer)
+            // Remove all children but keep the container itself
+            if(subcontainer.removeChildren && subcontainer.children) subcontainer.removeChildren()
+            //if(subcontainer.destroy) subcontainer.destroy()
+          }
+        }
+        // Remove all children but keep the container itself
+        if(container.removeChildren && container.children) container.removeChildren()
+        if(container.destroy) container.destroy()
+      }
+    }
+
+    // Clear the renderer to reset the canvas
+    app.renderer.clear()
+
+    app.renderer.resolution = dpr
+    app.renderer.antialias = false
+  }
+
+  app.canvas.style.opacity = 1
   
   // Set up containers for organizing content
   containers.background = new PIXI.Container()
@@ -123,6 +159,11 @@ async function initCanvases() {
   app.stage.addChild(containers.ui)
   
   console.log("Canvas initialized:", app.canvas.width, "x", app.canvas.height, app)
+
+  // Reset cached sprite maps
+  backgroundSpriteMap.clear()
+  terrainSpriteMap.clear()
+  unitSpriteMap.clear()
 }
 
 /**
@@ -188,6 +229,8 @@ function updateViewport(viewTransform) {
 function drawMain(player, AIs) {
   const SPRITE_SIZE = getTileSize()
   if(gameState.debug) var start = performance.now()
+
+  if(gameState.gameStatus !== 'playing') return
 
   // Get current viewport from the mouse
   const viewTransform = gameState.UI?.mouse?.getViewTransform()
@@ -268,154 +311,156 @@ function drawMain(player, AIs) {
  * @param {Array} map - Game map
  */
 function drawBackground(map) {
-    const { width, height } = getMapDimensions()
-    const SPRITE_SIZE = getTileSize()
-    const start = performance.now()
+  if(!map || !gameState.map) return
 
-    // Sets to track sprites that should be visible this frame
-    const visibleBackgroundSprites = new Set()
-    const visibleTerrainSprites = new Set()
+  const { width, height } = getMapDimensions()
+  const SPRITE_SIZE = getTileSize()
+  const start = performance.now()
 
-    // Get current viewport from the mouse
-    const viewTransform = gameState.UI?.mouse?.getViewTransform()
-    if (viewTransform) {
-      updateViewport(viewTransform)
-    }
+  // Sets to track sprites that should be visible this frame
+  const visibleBackgroundSprites = new Set()
+  const visibleTerrainSprites = new Set()
 
-    // Draw only visible map tiles plus buffer area
-    const startX = viewport.startX || 0
-    const startY = viewport.startY || 0
-    const endX = viewport.endX || width
-    const endY = viewport.endY || height
-  
-    // Draw all map tiles
-    for (let x = startX; x < endX; x++) {
-      for (let y = startY; y < endY; y++) {
-        const tileKey = map[x][y].uid
+  // Get current viewport from the mouse
+  const viewTransform = gameState.UI?.mouse?.getViewTransform()
+  if (viewTransform) {
+    updateViewport(viewTransform)
+  }
 
-        // Draw background (grass under objects)
-        if (map[x][y].back) {
-          const backKey = tileKey * 10 | 0
-          visibleBackgroundSprites.add(backKey)
+  // Draw only visible map tiles plus buffer area
+  const startX = viewport.startX || 0
+  const startY = viewport.startY || 0
+  const endX = viewport.endX || width
+  const endY = viewport.endY || height
 
-          // Get existing sprite or create a new one
-          let backSprite = backgroundSpriteMap.get(backKey)
+  // Draw all map tiles
+  for (let x = startX; x < endX; x++) {
+    for (let y = startY; y < endY; y++) {
+      const tileKey = map[x][y].uid
 
-          if (!backSprite || backSprite.textureKey !== map[x][y].back.uid) {
-            // Remove old sprite if texture changed
-            if (backSprite) {
-                containers.background.removeChild(backSprite)
-            }
-            
-            // Create new sprite
-            const backTexture = PIXI.Texture.from(map[x][y].back)
-            backSprite = getCachedSprite(backTexture, map[x][y].back.uid)
-            backSprite.textureKey = map[x][y].back.uid
-            backSprite.x = x * SPRITE_SIZE
-            backSprite.y = y * SPRITE_SIZE
-            backgroundSpriteMap.set(backKey, backSprite)
-            containers.background.addChild(backSprite)
-          }
-
-          // Make sprite visible
-          backSprite.visible = true
-        }
-
-        // Handle terrain sprites (main tile visuals)
-        visibleTerrainSprites.add(tileKey)
+      // Draw background (grass under objects)
+      if (map[x][y].back) {
+        const backKey = tileKey * 10 | 0
+        visibleBackgroundSprites.add(backKey)
 
         // Get existing sprite or create a new one
-        let terrainSprite = terrainSpriteMap.get(tileKey)
+        let backSprite = backgroundSpriteMap.get(backKey)
+
+        if (!backSprite || backSprite.textureKey !== map[x][y].back.uid) {
+          // Remove old sprite if texture changed
+          if (backSprite) {
+              containers.background.removeChild(backSprite)
+          }
           
-        if (!terrainSprite || terrainSprite.textureKey !== map[x][y].sprite.uid) {
-            // Remove old sprite if texture changed
-            if (terrainSprite) {
-                containers.terrain.removeChild(terrainSprite)
-            }
-            
-            // Create new sprite
-            const terrainTexture = PIXI.Texture.from(map[x][y].sprite)
-            terrainSprite = getCachedSprite(terrainTexture, map[x][y].sprite.uid)
-            terrainSprite.textureKey = map[x][y].sprite.uid
-            terrainSprite.x = x * SPRITE_SIZE
-            terrainSprite.y = y * SPRITE_SIZE
-            terrainSpriteMap.set(tileKey, terrainSprite)
-            containers.terrain.addChild(terrainSprite)
+          // Create new sprite
+          const backTexture = PIXI.Texture.from(map[x][y].back)
+          backSprite = getCachedSprite(backTexture, map[x][y].back.uid)
+          backSprite.textureKey = map[x][y].back.uid
+          backSprite.x = x * SPRITE_SIZE
+          backSprite.y = y * SPRITE_SIZE
+          backgroundSpriteMap.set(backKey, backSprite)
+          containers.background.addChild(backSprite)
         }
-        
+
         // Make sprite visible
-        terrainSprite.visible = true
+        backSprite.visible = true
       }
-    }
 
-    // Define extended viewport for memory management
-    const extendedBuffer = viewport.buffer * 3
-    const farStartX = Math.max(0, viewport.x - extendedBuffer)
-    const farStartY = Math.max(0, viewport.y - extendedBuffer)
-    const farEndX = Math.min(width, viewport.x + viewport.width + extendedBuffer)
-    const farEndY = Math.min(height, viewport.y + viewport.height + extendedBuffer)
+      // Handle terrain sprites (main tile visuals)
+      visibleTerrainSprites.add(tileKey)
 
-    // Hide or remove background sprites outside viewport
-    for (const [key, sprite] of backgroundSpriteMap.entries()) {
-        if (!visibleBackgroundSprites.has(key)) {
-            // Extract coordinates from key (format: (y * MAP_WIDTH + x) * 10)
-            const y = Math.floor(key / 10 / width)
-            const x = (key / 10) % width
-            
-            // If sprite is far from viewport, remove it to save memory
-            if (x < farStartX || x >= farEndX || y < farStartY || y >= farEndY) {
-                containers.background.removeChild(sprite)
-                backgroundSpriteMap.delete(key)
-            } else {
-                // Just hide sprites near viewport (for quick reuse when scrolling)
-                sprite.visible = false
-            }
-        }
-    }
-    
-    // Hide or remove terrain sprites outside viewport
-    for (const [key, sprite] of terrainSpriteMap.entries()) {
-        if (!visibleTerrainSprites.has(key)) {
-            // Extract coordinates from key (format: y * MAP_WIDTH + x)
-            const y = Math.floor(key / width)
-            const x = key % width
-            
-            // If sprite is far from viewport, remove it to save memory
-            if (x < farStartX || x >= farEndX || y < farStartY || y >= farEndY) {
-                containers.terrain.removeChild(sprite)
-                terrainSpriteMap.delete(key)
-            } else {
-                // Just hide sprites near viewport (for quick reuse when scrolling)
-                sprite.visible = false
-            }
-        }
-    }
-
-    // Debug: draw unit paths
-    if (DEBUG() && Math.random() > 0.8) {
-      // const debugBatch = new PIXI.Container()
+      // Get existing sprite or create a new one
+      let terrainSprite = terrainSpriteMap.get(tileKey)
+        
+      if (!terrainSprite || terrainSprite.textureKey !== map[x][y].sprite.uid) {
+          // Remove old sprite if texture changed
+          if (terrainSprite) {
+              containers.terrain.removeChild(terrainSprite)
+          }
+          
+          // Create new sprite
+          const terrainTexture = PIXI.Texture.from(map[x][y].sprite)
+          terrainSprite = getCachedSprite(terrainTexture, map[x][y].sprite.uid)
+          terrainSprite.textureKey = map[x][y].sprite.uid
+          terrainSprite.x = x * SPRITE_SIZE
+          terrainSprite.y = y * SPRITE_SIZE
+          terrainSpriteMap.set(tileKey, terrainSprite)
+          containers.terrain.addChild(terrainSprite)
+      }
       
-      // if (gameState.humanPlayer) {
-      //   gameState.humanPlayer.getUnits().forEach((unit) => {
-      //     for (var i = 1; i < (unit.path || []).length; i++) {
-      //       const pathTexture = PIXI.Texture.from(offscreenSprite(sprites[spriteCoords_Path.x][spriteCoords_Path.y], SPRITE_SIZE))
-      //       pathTexture.source.scaleMode = PIXI.SCALE_MODES.NEAREST
-      //       const pathSprite = new PIXI.Sprite(pathTexture)
-      //       pathSprite.x = unit.path[i].x * SPRITE_SIZE
-      //       pathSprite.y = unit.path[i].y * SPRITE_SIZE
-      //       debugBatch.addChild(pathSprite)
-      //     }
-      //   })
-      // }
-      
-      // containers.debug.addChild(debugBatch)
-
-      // console.log(`Viewport tiles: ${(endX-startX)*(endY-startY)} of ${MAP_WIDTH*MAP_HEIGHT}`)
-      // console.log(`Background sprites: ${backgroundSpriteMap.size}, Terrain sprites: ${terrainSpriteMap.size}`)
-      console.log(`Background rendering: ${performance.now() - start}ms`)
+      // Make sprite visible
+      terrainSprite.visible = true
     }
+  }
+
+  // Define extended viewport for memory management
+  const extendedBuffer = viewport.buffer * 3
+  const farStartX = Math.max(0, viewport.x - extendedBuffer)
+  const farStartY = Math.max(0, viewport.y - extendedBuffer)
+  const farEndX = Math.min(width, viewport.x + viewport.width + extendedBuffer)
+  const farEndY = Math.min(height, viewport.y + viewport.height + extendedBuffer)
+
+  // Hide or remove background sprites outside viewport
+  for (const [key, sprite] of backgroundSpriteMap.entries()) {
+      if (!visibleBackgroundSprites.has(key)) {
+          // Extract coordinates from key (format: (y * MAP_WIDTH + x) * 10)
+          const y = Math.floor(key / 10 / width)
+          const x = (key / 10) % width
+          
+          // If sprite is far from viewport, remove it to save memory
+          if (x < farStartX || x >= farEndX || y < farStartY || y >= farEndY) {
+              containers.background.removeChild(sprite)
+              backgroundSpriteMap.delete(key)
+          } else {
+              // Just hide sprites near viewport (for quick reuse when scrolling)
+              sprite.visible = false
+          }
+      }
+  }
+  
+  // Hide or remove terrain sprites outside viewport
+  for (const [key, sprite] of terrainSpriteMap.entries()) {
+      if (!visibleTerrainSprites.has(key)) {
+          // Extract coordinates from key (format: y * MAP_WIDTH + x)
+          const y = Math.floor(key / width)
+          const x = key % width
+          
+          // If sprite is far from viewport, remove it to save memory
+          if (x < farStartX || x >= farEndX || y < farStartY || y >= farEndY) {
+              containers.terrain.removeChild(sprite)
+              terrainSpriteMap.delete(key)
+          } else {
+              // Just hide sprites near viewport (for quick reuse when scrolling)
+              sprite.visible = false
+          }
+      }
+  }
+
+  // Debug: draw unit paths
+  if (DEBUG() && Math.random() > 0.8) {
+    // const debugBatch = new PIXI.Container()
     
-    backDrawn()
+    // if (gameState.humanPlayer) {
+    //   gameState.humanPlayer.getUnits().forEach((unit) => {
+    //     for (var i = 1; i < (unit.path || []).length; i++) {
+    //       const pathTexture = PIXI.Texture.from(offscreenSprite(sprites[spriteCoords_Path.x][spriteCoords_Path.y], SPRITE_SIZE))
+    //       pathTexture.source.scaleMode = PIXI.SCALE_MODES.NEAREST
+    //       const pathSprite = new PIXI.Sprite(pathTexture)
+    //       pathSprite.x = unit.path[i].x * SPRITE_SIZE
+    //       pathSprite.y = unit.path[i].y * SPRITE_SIZE
+    //       debugBatch.addChild(pathSprite)
+    //     }
+    //   })
+    // }
+    
+    // containers.debug.addChild(debugBatch)
+
+    // console.log(`Viewport tiles: ${(endX-startX)*(endY-startY)} of ${MAP_WIDTH*MAP_HEIGHT}`)
+    // console.log(`Background sprites: ${backgroundSpriteMap.size}, Terrain sprites: ${terrainSpriteMap.size}`)
+    console.log(`Background rendering: ${performance.now() - start}ms`)
+  }
+  
+  backDrawn()
 }
 
 /**

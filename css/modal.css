@@ -230,7 +230,6 @@
 }
 
 
-/* Add to your CSS */
 .option-group {
   margin-bottom: 20px;
 }
@@ -285,4 +284,20 @@
 
 #closeOptions, #closeScenarii {
   background-color: #333;
+}
+
+/** In-game menu */
+#gameMenuSection .menu-button {
+  margin: 15px auto;
+  width: 80%;
+  max-width: 200px;
+  display: block;
+}
+
+#resumeGame {
+  background-color: forestgreen;
+}
+
+#quitToHome {
+  background-color: rgba(139, 0, 0, 0.7);
 }
