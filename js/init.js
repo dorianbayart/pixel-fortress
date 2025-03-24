@@ -29,7 +29,7 @@ async function initializeGame() {
   const mouseModule = await import('mouse')
   
   // Load the custom font
-  loadGameFont()
+  const fontPromise = loadGameFont()
 
   // Listen for state changes
   gameState.events.on('game-status-changed', async (status) => {
@@ -38,6 +38,10 @@ async function initializeGame() {
     if (status === 'initialize') {
       // Small delay before reinitialization
       setTimeout(async () => {
+        
+        // Load game sprites
+        const assetsPromise = loadSprites()
+        
         // Clear game stateif any
         gameState.map = null
         gameState.clearHumanPlayer()
@@ -54,8 +58,8 @@ async function initializeGame() {
         mouseInstance.initMouse(document.getElementById('canvas'), getTileSize())
         await initUI(mouseInstance)
 
-        // Load game sprites
-        await loadSprites()
+        // Wait for essential assets to load
+        await Promise.all([assetsPromise, fontPromise])
 
         // Start game
         startGame()
@@ -132,24 +136,13 @@ async function handleWindowResize() {
 
 // Load the custom font
 async function loadGameFont() {
-  const font = new FontFace('Jacquarda-Bastarda-9', `url('assets/fonts/Jacquarda-Bastarda-9.woff2')`)
-  console.log('Loading font: ' + font.family)
-  
   try {
-    const fontLoaded = await font.load()
+    const font = await document.fonts.values().next().value.loaded
     console.log('Font loaded!')
-    document.fonts.add(font)
     
-    // Make font-loaded elements visible
-    document.querySelectorAll('.font-to-load').forEach((element) => element.classList.remove('font-to-load'))
-    
-    return true
+    return font.family === 'Jacquarda-Bastarda-9'
   } catch (err) {
     console.error('Error loading font:', err)
-    
-    // Make elements visible anyway in case of font error
-    document.querySelectorAll('.font-to-load').forEach((element) => element.classList.remove('font-to-load'))
-    
     return false
   }
 }

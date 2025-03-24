@@ -58,9 +58,10 @@
     }
 
     * {
+      box-sizing: border-box;
       user-select: none;
       transition: all 350ms ease-in-out;
-      box-sizing: border-box;
+      transition-behavior: allow-discrete;
     }
 
     .font-to-load {
@@ -137,7 +138,7 @@
     /* Add subtle animation to the game logo */
     @keyframes pulse {
       0% { transform: scale(1); }
-      50% { transform: scale(1.05); }
+      50% { transform: scale(1.1); }
       100% { transform: scale(1); }
     }
 
@@ -147,14 +148,16 @@
 
     #gameLogo img {
       animation: pulse 3s infinite ease-in-out;
-      filter: drop-shadow(0 0 10px forestgreen);
+      filter: drop-shadow(0 0 20px var(--font-color));
     }
 
     /* Make the title more prominent */
     #homeMenu h1 {
+      opacity: 0;
       font-size: clamp(2.5rem, 5vw, 4rem);
       margin: 1.5dvh;
       text-shadow: 0 0 10px forestgreen, 0 0 20px forestgreen;
+      filter: drop-shadow(0 0 1px var(--font-color));
     }
 
     #homeMenu h2 {
@@ -169,6 +172,10 @@
 
     #homeMenu h2:hover {
       text-decoration: underline;
+    }
+
+    #menuOptions {
+      opacity: 0;
     }
 
     .menu-button {
@@ -200,18 +207,23 @@
     }
 
     #progressBar {
-      position: relative;
-      top: 50dvh;
+      z-index: 100; /* Above everything else */
+      position: absolute;
+      top: 60dvh;
       left: 50dvw;
       transform: translate(-50%, -50%);
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
+      min-width: max-content;
+      background: rgba(0, 0, 0, 0.7);
+      border-radius: 10px;
+      padding: 20px;
     }
 
     #progressBar label {
-      font-family: var(--font-base);
+      font-family: fantasy, monospace, system-ui, Arial;
       font-size: x-large;
       color: gold;
       /* text-shadow: 3px 4px 4px #000000; */
@@ -219,7 +231,7 @@
     }
 
     #progressBar progress {
-      width: max(20dvw, 180px);
+      /* width: max(20dvw, 180px); */
     }
 
     /* button {
@@ -233,6 +245,23 @@
       display: none;
     } */
   </style>
+
+  <script>
+    // Font loading first
+    const font = new FontFace('Jacquarda-Bastarda-9', `url('assets/fonts/Jacquarda-Bastarda-9.woff2')`)
+    font.load().then(f => document.fonts.add(f)).catch(e => console.log(e))
+    font.load().then((f) => {
+      // Add Font to document
+      document.fonts.add(f)
+      // Hide loader when fonts are ready
+      document.getElementById('progressBar').style.opacity = 0
+      document.getElementById('gameName').style.opacity = 1
+      setTimeout(() => {
+        document.getElementById('progressBar').style.display = 'none'
+        document.getElementById('menuOptions').style.opacity = 1
+      }, 350)
+    }).catch(e => console.log('Error loading font:', e))
+  </script>
 
   <link rel="stylesheet" href="css/modal.css">
 
@@ -270,22 +299,27 @@
 <body>
   
   <div id="homeMenu">
-    <h1 id="gameName" class="font-to-load">Pixel Fortress</h1>
+    <h1 id="gameName">Pixel Fortress</h1>
 
     <div id="gameLogo">
       <img src="assets/base_192_pixelated.png" alt="Game Logo" width="48" height="48">
     </div>
 
-    <div class="menu-options">
-      <button id="scenarii" class="menu-button font-to-load">Scenarii</button>
-      <button id="generated" class="menu-button font-to-load">Random Map</button>
-      <button id="options" class="menu-button font-to-load">Options</button>
-      <button id="about" class="menu-button font-to-load">About</button>
+    <div id="menuOptions" class="menu-options">
+      <button id="scenarii" class="menu-button">Scenarii</button>
+      <button id="generated" class="menu-button">Random Map</button>
+      <button id="options" class="menu-button">Options</button>
+      <button id="about" class="menu-button">About</button>
     </div>
   </div>
 
   
   <canvas id="canvas" width="100" height="100"></canvas>
+
+  <div id="progressBar">
+    <label>Loading game assets...</label>
+    <progress></progress>
+  </div>
 </body>
 
 </html>
