@@ -6,6 +6,7 @@ import CONSTANTS from 'constants'
 import { getCanvasDimensions, getMapDimensions, getTileSize } from 'dimensions'
 import { app } from 'renderer'
 import { loadAndSplitImage, offscreenSprite } from 'sprites'
+import gameState from 'state'
 
 
 const ZOOM = {
@@ -37,6 +38,9 @@ class Mouse {
     this.sprite = null
     this.zoomChanged = false
 
+    // Keyboard movement speed
+    this.keyboardMoveSpeed = 10
+
     // Store view transformation for zoom calculation
     this.viewTransform = {
       scale: null,
@@ -65,6 +69,11 @@ class Mouse {
     // Load cursor sprite
     const mouseSprite = (await loadAndSplitImage('assets/ui/crosshair.png', 9))[0][0]
     this.sprite = offscreenSprite(mouseSprite, 9, 'cursor')
+
+    // Add keyboard event handling for arrow keys
+    window.addEventListener('keydown', (e) => {
+      this.handleKeyboardMovement(e)
+    })
 
     // Use this method to update mouse position from event handlers
     this.updatePosition = (clientX, clientY) => {
@@ -366,6 +375,48 @@ class Mouse {
     pixiView.addEventListener('contextmenu', (e) => {
       e.preventDefault()
     })
+  }
+
+  handleKeyboardMovement(e) {
+    // Skip if game is not in playing state
+    if (gameState.gameStatus !== 'playing') return
+    
+    // Calculate movement based on arrow keys
+    let dx = 0
+    let dy = 0
+    
+    switch (e.key) {
+        case 'ArrowUp':
+            dy = -this.keyboardMoveSpeed
+            break
+        case 'ArrowDown':
+            dy = this.keyboardMoveSpeed
+            break
+        case 'ArrowLeft':
+            dx = -this.keyboardMoveSpeed
+            break
+        case 'ArrowRight':
+            dx = this.keyboardMoveSpeed
+            break
+        default:
+            return // Exit if not arrow key
+    }
+    
+    // No movement needed
+    if (dx === 0 && dy === 0) return
+    
+    // Move viewport by applying the calculated movement
+    this.viewTransform.x += dx / this.viewTransform.scale
+    this.viewTransform.y += dy / this.viewTransform.scale
+    
+    // Apply boundary constraints
+    this.applyBoundaryConstraints()
+    
+    // Flag that view has changed to trigger redraw
+    this.zoomChanged = true
+    
+    // Prevent default to avoid scrolling the page
+    e.preventDefault()
   }
 
   /**
