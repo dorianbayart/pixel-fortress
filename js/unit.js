@@ -165,7 +165,7 @@ class Unit {
       this.timeSinceLastTask = 0
     }
 
-    if(!this.path /*|| (distToNextNode < 0.5 && mathPathLength > 1) */|| updatePath) {
+    if(!this.path || updatePath) {
       this.lastPathUpdate = time
       this.findPath()
     }
