@@ -142,7 +142,7 @@ function aStar(startX, startY, endX, endY) {
       { x: x, y: y + 1 },
     ] // E W N S
 
-    if ((x + y) % 2 == 0) neighbors.reverse() // S N W E
+    // if ((x + y) % 2 == 0) neighbors.reverse() // S N W E
 
     return neighbors.filter(
       (neighbor) => {

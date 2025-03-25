@@ -201,7 +201,11 @@ class Unit {
    * Find the best path to the goal
    */
   findPath() {
-    this.path = searchPath(this.currentNode.x, this.currentNode.y, this.goal.x, this.goal.y)
+    if(this.nextNode) {
+      this.path = [this.currentNode, ...searchPath(this.nextNode.x, this.nextNode.y, this.goal.x, this.goal.y)]
+    } else {
+      this.path = searchPath(this.currentNode.x, this.currentNode.y, this.goal.x, this.goal.y)
+    }
   }
 
   /**
@@ -620,7 +624,7 @@ class CombatUnit extends Unit {
 
     switch(this.task) {
       case 'idle':
-        if(!this.path || time - this.lastPathUpdate > Math.log(this.path?.length - 0.25) * 300) {
+        if(!this.path || !this.goal || time - this.lastPathUpdate > Math.log(this.path?.length - 0.25) * 300) {
           this.path = this.pathToNearestEnemy()
           this.lastPathUpdate = time
         }
@@ -646,10 +650,10 @@ class CombatUnit extends Unit {
     enemies.forEach((enemy) => {
       let temp
       if(enemy instanceof Unit) {
-        temp = searchPath(this.currentNode.x, this.currentNode.y, enemy.currentNode.x, enemy.currentNode.y)
+        temp = searchPath(this.nextNextNode?.x ?? (this.nextNode?.x ?? this.currentNode.x), this.nextNextNode?.y ?? (this.nextNode?.y ?? this.currentNode.y), enemy.nextNode?.x ?? enemy.currentNode.x, enemy.nextNode?.y ?? enemy.currentNode.y)
       } else {
         // Buildings are not using CurrentNode
-        temp = searchPath(this.currentNode.x, this.currentNode.y, enemy.x, enemy.y)
+        temp = searchPath(this.nextNextNode?.x ?? (this.nextNode?.x ?? this.currentNode.x), this.nextNextNode?.y ?? (this.nextNode?.y ?? this.currentNode.y), enemy.x, enemy.y)
       }
 
       if(temp?.length < pathLength) {
@@ -661,6 +665,8 @@ class CombatUnit extends Unit {
       temp = null
     })
 
+    if(this.nextNode) return [this.currentNode, this.nextNode, ...path]
+    if(this.currentNode) return [this.currentNode, ...path]
     return path
   }
 
