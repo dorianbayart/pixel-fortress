@@ -53,6 +53,10 @@ class Building {
           icon: "⛏️",
           costs: { wood: 25, stone: 5 },
           description: "Mines gold",
+          sprite_coords: {
+            cyan: { x: 6, y: 33 },
+            red: { x: 16, y: 33 },
+          },
           sprite: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAACLUlEQVR4nO2ZsUscQRSHt9DmOksbq32XmYju71hJPA5yAYsUFoIgXmFhSOAOjjuIIJjUSRHSJYVJk6Q4FLQStFBI/h/Bq2wMCYzsycmxybqr3uRmdt4Hrxv2lo+Z39t553kMwzAaAUmlowKSfwJfrnmuCoAtEqBRgBUSoFmA8RIQe9nXRyf3rufvPqjSg2k7JECDAKskQJMAayRAowArJCAmoPFxW20dHg9Vwvrb939L8MXv2aJcNbILzM+V1dKLump8+pz/nYCUFlZ+XFHLjZZqfevkU0JAYjvw5VmWfl5deKZqm2/Uxu5+vo5DGIbjAYlFkOjAF+dpIkrFhyor1kjoE06GhRKJWkDiAL74lSThPgJukuCZxMzUzASK4iVI/owL6Lae3FhpAvoS4s/1TAUaBETFAoh3gOIjQJwBypgQRMYhR25DECxADm0UFn0xvtrZy+cOQMaK7g5WC+jGzvZtBUQXKKcFgKRqf++YJwB3DLssLwxf/Bhcs9LecExAsXeBul5TqTy1VwBSKvEWSfJicF3zy1d3BET05gkD65brTbMFdO8YdknPj4Yqg+vKj8r/nDbnVkA4GRbi47Vo5P7fBUBj2KX/tugM60hZKeBq0GqJAGh4sWq1OgYSp84K6P/vYJSA7pDDznjgigCMMOyMACxAjjTsRg5YgHQj7JLgtCdOe8XtjjjtFYcdcdorbneUg76eBFxpd0nAlW/7JMACJO8AuHwEGIbxXOIScpe5PQPthBcAAAAASUVORK5CYII='
         },
         QUARRY: {
@@ -60,6 +64,10 @@ class Building {
           icon: "🪨",
           costs: { wood: 20 },
           description: "Extracts stone",
+          sprite_coords: {
+            cyan: { x: 6, y: 33 },
+            red: { x: 16, y: 33 },
+          },
           sprite: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAABq0lEQVR4nO1ayW3DMBBcHy0wHfAVN+B8XIVqoB+xsUoDLECqJF/Lqc7gBkIgQCFsMYwO65gB5iMIC+5gZkkdRAAAAAAwOPhkbnwyriIRrWhJ4J/GpaK1dk1LAkMAM28HsJfxOxSPTfdOb0bw/Sb/zck5hCGAmbcDOD7jbTmuGcH9NDkdhzAEMPN2AA+f8XHNCB5nk8M5hCGAWZYDCv16u+idq1FmxnpvTvyZcNE7V+idLIWW6LcjIICGA9yzbYkIaMwAwRDUT9oFhGhVXqyYqb3L1V7mQku0rfcXPApn8xMg7lkggwB7OCAfgXURAYUZIBiCCruAYBtUOAcIDkJqwJOgRD4bpO9G0tNjZpELblvvk5JN1Nk/hKAAgbey+ctbnAAt63XSdB0QQMEBrimj16Jo5Mf52Jjhruv1HoHUy2S5qK/r9SFDGe66HgQgOGDdaQTEOxf4X49jLWsPh22f9ahvcNsFe19ru64HAfoGL90BVM4Ea9cV0/Ox8YeKJEk29ftD9UpB0nKvf8A/1BsWHPijJHaRXdfrHQwBzLIdQF6GfY6gHgAAAEAevgEc3qOLmwTvWAAAAABJRU5ErkJggg=='
         },
         WELL: {
@@ -67,6 +75,10 @@ class Building {
           icon: "🧱",
           costs: { wood: 10, stone: 10 },
           description: "Produces water",
+          sprite_coords: {
+            cyan: { x: 4, y: 37 },
+            red: { x: 14, y: 37 },
+          },
           sprite: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAABxklEQVR4nO1aQU7DMBDcBqm8oPlLuZMf8AXKJVZ7orc0Fzi0L+EGivOs+gXJIguCEguUrOIEV52R5tSuHI9mdu20RAAAAAAwGOc8rc4HVTc8rdYs4eblvW5TWn8+pD9rW9LcMLniNk+xUIDXjw6P8Z2o3l2fmRYQYE4YOEAFFYFjvK6Pq7/J5DkiJjAB+tbPiCII4BMGDlBBReDtgW6szRva3F9VBNg5B0CAFRxQzxoBFh5F3QgQs6g+uAgwBCA4gAS4+ggsk311m+y5IWVZNGUP8H43MCN7wPL+uVome244tQDe7wYGAig4wAgi0Gd5aST6HGgz3r4buBxl/0sQYHIYCKDgACOw4OPX+39usfO7gPMZ+3agdxjhA7gnvz72XY4gQA4HMCKQowcwmmCOKcCzjMFS66rUmodym27qNiW1Puoz4fV6CgE61EXBc9ZDgAwOiMgnSkRAoweUaIL6eqfANt3UO/XEQ+luQFI7tt5+3+vmLdwHCp3k+09R2wA2BQHSf3SALorOFHBzKm1SY+vdDc9+FN45G5BeVsbW900JCJDBAREi4BMleoBGEywFY2jsGAtuCvyChV2kIV1ePQAAAEDf+AQS3+go4fDeQAAAAABJRU5ErkJggg=='
         },
         BARRACKS: {
