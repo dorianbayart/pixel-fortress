@@ -313,10 +313,16 @@ class Lumberjack extends WorkerBuilding {
             
             // Check if conversion is complete
             if (this.productionTimer >= this.productionCooldown) {
+                this.findAndOrderNearbyTrees()
                 this.completeWorkerConversion()
                 this.productionTimer = 0
                 this.convertingWorker = null
             }
+        }
+
+        if (Math.random() > 0.999) {
+          // Sometimes refresh the tree list
+          this.findAndOrderNearbyTrees()
         }
     }
 
@@ -348,19 +354,22 @@ class Lumberjack extends WorkerBuilding {
                         // Use geometric distance for initial filtering
                         const geoDist = Math.sqrt(dx * dx + dy * dy)
                         if (geoDist <= this.treeSearchRadius) {
-                            this.treeProcessingQueue.push({ x: tileX, y: tileY })
+                            this.treeProcessingQueue.push({ x: tileX, y: tileY, geoDist })
                         }
                     }
                 }
             }
         }
 
+        // Sort by geometric distance
+        this.treeProcessingQueue.sort((a, b) => a.geoDist - b.geoDist)
+
         // Initialize the tree list
         this.nearbyTrees = []
 
-        // Process remaining trees in the background
+        // Process trees in background
         if (this.treeProcessingQueue.length > 0) {
-            setTimeout(() => this.processNextTreeInQueue(), 5)
+            this.processNextTreeInQueue()
         } else {
             this.treeProcessingInProgress = false
         }
@@ -388,7 +397,7 @@ class Lumberjack extends WorkerBuilding {
     /**
      * Process next tree in the queue without blocking the main thread
      */
-    processNextTreeInQueue() {
+    async processNextTreeInQueue() {
         // If building is destroyed or no more trees to process, stop
         if (!this.owner || this.health <= 0 || this.treeProcessingQueue.length === 0) {
             this.treeProcessingInProgress = false
@@ -398,8 +407,8 @@ class Lumberjack extends WorkerBuilding {
         
         // Get next tree from queue
         const tree = this.treeProcessingQueue.shift()
-        const startX = this.x
-        const startY = this.y
+        const startX = this.assignedWorkers[0]?.currentNode?.x ?? this.x
+        const startY = this.assignedWorkers[0]?.currentNode?.y ?? this.y
         
         // Calculate path
         const path = searchPath(startX, startY, tree.x, tree.y)
@@ -417,7 +426,7 @@ class Lumberjack extends WorkerBuilding {
         }
         
         // Process next tree after a small delay
-        setTimeout(() => this.processNextTreeInQueue(), 5)
+        setTimeout(() => this.processNextTreeInQueue(), 1)
     }
 
 
@@ -484,7 +493,7 @@ class Lumberjack extends WorkerBuilding {
         //}
 
         // Get all the owner's regular workers
-        const regularWorkers = this.owner.getUnits().filter(unit => unit instanceof Peon && !(unit instanceof LumberjackWorker))
+        const regularWorkers = this.owner.getUnits().filter(unit => unit instanceof Peon && unit.task !== 'assigned' && !(unit instanceof LumberjackWorker))
 
         // Find the closest worker
         let closestWorker = null

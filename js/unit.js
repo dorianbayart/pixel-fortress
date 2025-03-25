@@ -154,8 +154,8 @@ class Unit {
   updatePath(delay, time) {
     if (this.isAtGoal()) return
 
-    const mathPathLength = this.path?.length - 1 || 1
-    const maxTime = (Math.log(mathPathLength) + mathPathLength) * 250
+    const mathPathLength = this.path?.length || 1
+    const maxTime = Math.min(4500, mathPathLength * 400)
     const updatePath = time - this.lastPathUpdate > maxTime
     const distToNextNode = distance(this.currentNode, this.nextNode) || 0
 
@@ -202,7 +202,8 @@ class Unit {
    */
   findPath() {
     if(this.nextNode) {
-      this.path = [this.currentNode, ...searchPath(this.nextNode.x, this.nextNode.y, this.goal.x, this.goal.y)]
+      const path = searchPath(this.nextNode.x, this.nextNode.y, this.goal.x, this.goal.y)
+      this.path = path ? [this.currentNode, ...path] : [this.currentNode]
     } else {
       this.path = searchPath(this.currentNode.x, this.currentNode.y, this.goal.x, this.goal.y)
     }
@@ -445,7 +446,7 @@ class LumberjackWorker extends WorkerUnit {
   }
 
   handleTasks(delay, time) {
-    if(this.task === 'idle') return
+    // if(this.task === 'idle') return
 
     // Store previous task to detect changes
     const previousTask = this.task
@@ -624,7 +625,7 @@ class CombatUnit extends Unit {
 
     switch(this.task) {
       case 'idle':
-        if(!this.path || !this.goal || time - this.lastPathUpdate > Math.log(this.path?.length - 0.25) * 300) {
+        if(!this.path || !this.goal || time - this.lastPathUpdate > Math.min(4500, this.path?.length * 250)) {
           this.path = this.pathToNearestEnemy()
           this.lastPathUpdate = time
         }
@@ -645,7 +646,14 @@ class CombatUnit extends Unit {
     const { width: MAP_WIDTH, height: MAP_HEIGHT } = getMapDimensions()
     let path, pathLength = MAP_WIDTH * MAP_HEIGHT
     this.goal = null
-    const enemies = this.owner.getEnemies()
+    const enemies = this.owner.getEnemies().map(enemy => {
+            const distance = Math.abs(enemy.currentNode?.x - this.currentNode?.x) + 
+                             Math.abs(enemy.currentNode?.y - this.currentNode?.y)
+                             || 1
+            return { enemy, distance }
+          }).sort((a, b) => a.distance - b.distance)
+          .slice(0, 3) // Keep only 3 nearest enemies
+          .map(item => item.enemy)
 
     enemies.forEach((enemy) => {
       let temp
