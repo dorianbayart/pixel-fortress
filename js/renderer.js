@@ -597,12 +597,12 @@ function updateProgressIndicator(entity, progress) {
   // Position above entity (different for units vs buildings)
   if (entity.currentNode) {
     // Unit
-    indicator.x = entity.x - SPRITE_SIZE/4
-    indicator.y = entity.y - SPRITE_SIZE/2 - 4
+    indicator.x = entity.x + 3
+    indicator.y = entity.y - 8
   } else {
     // Building
-    indicator.x = entity.x * SPRITE_SIZE + SPRITE_SIZE/4
-    indicator.y = entity.y * SPRITE_SIZE - 4
+    indicator.x = entity.x * SPRITE_SIZE + SPRITE_SIZE/4 - 1
+    indicator.y = entity.y * SPRITE_SIZE - 5
   }
   
   // Update progress bar width (max width is background width minus 2px for border)
