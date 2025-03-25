@@ -152,21 +152,49 @@ class Unit {
    * @param {number} time - The current time (ms)
    */
   updatePath(delay, time) {
-    const mathPathLength = this.path?.length || 1
+    if (this.isAtGoal()) return
+
+    const mathPathLength = this.path?.length - 1 || 1
     const maxTime = Math.log(mathPathLength) * 150 + mathPathLength * 50
     const updatePath = time - this.lastPathUpdate > maxTime
     const distToNextNode = distance(this.currentNode, this.nextNode) || 0
 
-    // Update Path
-    if(!this.path || distToNextNode < 1 || updatePath) {
-      if(updatePath) {
+    // Update Path if necessary
+    if(!this.path || (distToNextNode < 0.5 && mathPathLength > 1) || updatePath) {
+      if(updatePath && !this.isNearGoal()) {
         this.lastPathUpdate = time
         this.findPath()
       } else if(distToNextNode < 1 && mathPathLength > 1) {
+        // Just trim the path if we've reached the next node
         this.path.splice(0, 1)
       }
       this.timeSinceLastTask = 0
     }
+  }
+
+  /**
+   * Check if unit is at goal or very close to it
+   * @returns {boolean} True if the unit is at or very close to its goal
+   */
+  isAtGoal() {
+    if (!this.goal) return false;
+    const goalX = this.goal.currentNode?.x || this.goal.x;
+    const goalY = this.goal.currentNode?.y || this.goal.y;
+    const dist = distance({ x: this.currentNode.x, y: this.currentNode.y }, { x: goalX, y: goalY });
+    return dist <= (this.range / getTileSize());
+  }
+
+  /**
+   * Check if unit is near its goal
+   * @returns {boolean} True if the unit is near its goal
+   */
+  isNearGoal() {
+    if (!this.goal) return false;
+    const goalX = this.goal.currentNode?.x || this.goal.x;
+    const goalY = this.goal.currentNode?.y || this.goal.y;
+    const dist = distance({ x: this.currentNode.x, y: this.currentNode.y }, { x: goalX, y: goalY });
+    // Consider "near" as within 5 tiles or the unit's range, whichever is larger
+    return dist <= Math.max(5, this.range / getTileSize() * 2);
   }
 
   /**
