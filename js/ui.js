@@ -13,6 +13,7 @@ import { app, containers, updateZoom } from 'renderer'
 import { offscreenSprite, sprites } from 'sprites'
 import gameState from 'state'
 import { getCachedSprite } from 'utils'
+import { createParticleEmitter, ParticleEffect } from 'particles'
 
 const UI_FONTS = {
   PRIMARY: "system-ui, 'Open Sans', Arial, sans-serif",
@@ -674,6 +675,7 @@ async function createBuildingSlots() {
     slotBg.on('pointerup', (e) => {
       e.stopPropagation()
       handleBuildingSelect(i)
+      addButtonSparkles(e)
     })
     slotBg.on('pointerdown', (e) => {
       e.stopPropagation()  // Prevent event bubbling
@@ -977,6 +979,23 @@ function hideTooltip() {
 }
 
 
+
+/**
+ * Add sparkle effect at button position
+ * @param {Object} event - The click/touch event
+ */
+function addButtonSparkles(event) {
+  // Get click coordinates
+  const x = event.clientX || (event.touches ? event.touches[0].clientX : 0)
+  const y = event.clientY || (event.touches ? event.touches[0].clientY : 0)
+  
+  // Create sparkle effect at the click position
+  createParticleEmitter(ParticleEffect.UI_BUTTON_CLICK, {
+    x: x,
+    y: y,
+    duration: 500
+  })
+}
 
 
 /**

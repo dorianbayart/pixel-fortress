@@ -23,7 +23,8 @@ const ParticleEffect = {
   WOOD_HARVEST: 'wood_harvest',
   BUILDING_PLACE: 'building_place',
   UNIT_ATTACK: 'unit_attack',
-  UNIT_DEATH: 'unit_death'
+  UNIT_DEATH: 'unit_death',
+  UI_BUTTON_CLICK: 'ui_button_click'
 }
 
 /**
@@ -84,6 +85,9 @@ function createParticleEmitter(effectType, options = {}) {
       break
     case ParticleEffect.UNIT_DEATH:
       createDeathParticles(emitter)
+      break
+    case ParticleEffect.UI_BUTTON_CLICK: // Add this new case
+      createButtonClickParticles(emitter)
       break
   }
   
@@ -322,12 +326,74 @@ function createDeathParticles(emitter) {
 }
 
 /**
+ * Create button click sparkle particles
+ * @param {Object} emitter - The emitter to add particles to
+ */
+function createButtonClickParticles(emitter) {
+    const particleCount = 10 + Math.random() * 8 | 0
+    
+    // Use gold, white, and light blue colors for a magical sparkle effect
+    const colors = [0xFFD700, 0xFFFFFF, 0x87CEFA]
+    
+    for (let i = 0; i < particleCount; i++) {
+      // Create a small sparkle for each particle
+      const graphics = new PIXI.Graphics()
+      graphics.beginFill(colors[Math.floor(Math.random() * colors.length)])
+      
+      // Create different sparkle shapes
+      if (Math.random() > 0.7) {
+        // Small square
+        graphics.drawRect(0, 0, 2, 2)
+      } else if (Math.random() > 0.4) {
+        // Small star (really just a dot for pixel aesthetic)
+        graphics.drawRect(0, 0, 1, 1)
+      } else {
+        // Small line for streaking effect
+        graphics.drawRect(0, 0, 3, 1)
+      }
+      graphics.endFill()
+      
+      // Convert to texture
+      const canvas = app.renderer.extract.canvas(graphics)
+      const texture = PIXI.Texture.from(canvas)
+      
+      // Create sprite from texture
+      const sprite = new PIXI.Sprite(texture)
+      sprite.anchor.set(0.5)
+      
+      // Explosion effect radiating outward
+      const angle = Math.random() * Math.PI * 2
+      const speed = 0.5 + Math.random() * 2
+      
+      // Add to container - for UI elements, add to UI container to ensure they stay on top
+      containers.ui.addChild(sprite)
+      
+      // Particle properties - faster decay for UI elements
+      const particle = {
+        sprite,
+        x: emitter.x,
+        y: emitter.y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        gravity: -0.02, // Slightly float upward for UI elements
+        rotation: Math.random() * Math.PI * 2,
+        rotationSpeed: (Math.random() - 0.5) * 0.2,
+        life: 1,
+        decay: 0.03 + Math.random() * 0.03, // Faster decay
+        uiParticle: true // Flag for special handling
+      }
+      
+      emitter.particles.push(particle)
+    }
+  }
+
+/**
  * Update all particle emitters
  * @param {number} delay - Time elapsed since last update (ms)
  */
 function updateAllParticles(delay) {
   // Skip if game is paused
-  if (gameState.gameStatus !== 'playing') return
+  if (gameState.gameStatus !== 'playing' && gameState.gameStatus !== 'menu') return
   
   // Get view transform for culling
   const viewTransform = gameState.UI?.mouse?.getViewTransform()
