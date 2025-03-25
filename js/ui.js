@@ -275,6 +275,7 @@ function handleMouseInteraction(map, player) {
   // Handle zoom changes
   if (mouse?.zoomChanged) {
     updateZoom()
+    updateBottomBarPosition()
 
     // Remove preview sprite if it exists
     if (buildingPreviewSprite && buildingPreviewSprite.parent) {
@@ -548,11 +549,6 @@ async function createBottomBar() {
       createBuildingSlots()
     })
   }
-
-  // Subscribe to relevant events
-  gameState.events.on('draw-back-requested-changed', () => {
-    updateBottomBarPosition()
-  })
 }
 
 function updateBottomBarPosition() {
