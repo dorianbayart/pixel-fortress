@@ -126,13 +126,13 @@ class Unit {
 
     if(!this.goal) return
 
-    this.updatePath(delay, time)
-
-    if(distance(this.currentNode, this.goal.currentNode ?? this.goal) <= this.range / getTileSize()) {
+    if(distance(this.currentNode, this.goal.currentNode ?? this.goal) > (this.range + 0.25) / getTileSize()) {
+      this.updatePath(delay, time)
+    } else {
       this.goalReached(delay, time)
-      //this.nextNode = null
       this.timeSinceLastTask = 0
     }
+    
     
     this.updateMovement(delay, time)
   }
@@ -155,21 +155,21 @@ class Unit {
     if (this.isAtGoal()) return
 
     const mathPathLength = this.path?.length - 1 || 1
-    const maxTime = Math.log(mathPathLength) * 150 + mathPathLength * 50
+    const maxTime = (Math.log(mathPathLength) + mathPathLength) * 250
     const updatePath = time - this.lastPathUpdate > maxTime
     const distToNextNode = distance(this.currentNode, this.nextNode) || 0
 
-    // Update Path if necessary
-    if(!this.path || (distToNextNode < 0.5 && mathPathLength > 1) || updatePath) {
-      if(updatePath && !this.isNearGoal()) {
-        this.lastPathUpdate = time
-        this.findPath()
-      } else if(distToNextNode < 1 && mathPathLength > 1) {
-        // Just trim the path if we've reached the next node
-        this.path.splice(0, 1)
-      }
+    if(distToNextNode < 1 && mathPathLength > 1) {
+      // Just trim the path if we've reached the next node
+      this.path.splice(0, 1)
       this.timeSinceLastTask = 0
     }
+
+    if(!this.path /*|| (distToNextNode < 0.5 && mathPathLength > 1) */|| updatePath) {
+      this.lastPathUpdate = time
+      this.findPath()
+    }
+
   }
 
   /**
@@ -289,38 +289,6 @@ class Unit {
   }
 
   /**
-   * Find path to nearest enemy
-   * @param {Array} enemies - Array of enemy units
-   * @returns {Array|null} Path to nearest enemy or null if no path found
-   */
-  pathToNearestEnemy() {
-    const { width: MAP_WIDTH, height: MAP_HEIGHT } = getMapDimensions()
-    let path, pathLength = MAP_WIDTH * MAP_HEIGHT
-    this.goal = null
-    const enemies = this.owner.getEnemies()
-
-    enemies.forEach((enemy) => {
-      let temp
-      if(enemy instanceof Unit) {
-        temp = searchPath(this.currentNode.x, this.currentNode.y, enemy.currentNode.x, enemy.currentNode.y)
-      } else {
-        // Buildings are not using CurrentNode
-        temp = searchPath(this.currentNode.x, this.currentNode.y, enemy.x, enemy.y)
-      }
-
-      if(temp?.length < pathLength) {
-        path = temp
-        pathLength = path.length
-        this.goal = enemy
-      }
-
-      temp = null
-    })
-
-    return path
-  }
-
-  /**
    * Move unit based on current path
    * @param {number} delay - Time elapsed since last update (ms)
    */
@@ -335,7 +303,7 @@ class Unit {
     let vy = this.speed * (delay/1000) * Math.sin(theta) * speedFactor * SPRITE_SIZE
 
     let type = 'static'
-    if (distance(this.currentNode, this.goal) <= this.range/getTileSize()) {
+    if (distance(this.currentNode, this.goal) <= (this.range + 0.25)/getTileSize()) {
       // Stop walking if arrived at goal
       vx = vy = 0
     }
@@ -652,13 +620,48 @@ class CombatUnit extends Unit {
 
     switch(this.task) {
       case 'idle':
-        this.path = this.pathToNearestEnemy()
-        this.lastPathUpdate = time
+        if(!this.path || time - this.lastPathUpdate > Math.log(this.path?.length - 0.25) * 300) {
+          this.path = this.pathToNearestEnemy()
+          this.lastPathUpdate = time
+        }
         break
       case 'attack':
         this.attack = true
         break
     }
+  }
+
+
+  /**
+   * Find path to nearest enemy
+   * @param {Array} enemies - Array of enemy units
+   * @returns {Array|null} Path to nearest enemy or null if no path found
+   */
+  pathToNearestEnemy() {
+    const { width: MAP_WIDTH, height: MAP_HEIGHT } = getMapDimensions()
+    let path, pathLength = MAP_WIDTH * MAP_HEIGHT
+    this.goal = null
+    const enemies = this.owner.getEnemies()
+
+    enemies.forEach((enemy) => {
+      let temp
+      if(enemy instanceof Unit) {
+        temp = searchPath(this.currentNode.x, this.currentNode.y, enemy.currentNode.x, enemy.currentNode.y)
+      } else {
+        // Buildings are not using CurrentNode
+        temp = searchPath(this.currentNode.x, this.currentNode.y, enemy.x, enemy.y)
+      }
+
+      if(temp?.length < pathLength) {
+        path = temp
+        pathLength = path.length
+        this.goal = enemy
+      }
+
+      temp = null
+    })
+
+    return path
   }
 
   /**
