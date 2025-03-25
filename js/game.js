@@ -311,6 +311,8 @@ const gameLoop = () => {
 
   // Handle keyboard movement
   gameState.UI?.mouse?.applyKeyboardMovement(delay)
+  // Handle drag momentum
+  gameState.UI?.mouse?.applyDragMomentum(delay)
 
   // Handle mouse interaction
   handleMouseInteraction(gameState.map, gameState.humanPlayer)

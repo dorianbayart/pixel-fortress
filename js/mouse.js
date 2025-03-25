@@ -50,6 +50,12 @@ class Mouse {
       ArrowRight: false
     }
 
+    // Mouse drag physics
+    this.dragVelocity = { x: 0, y: 0 }
+    this.previousDragPosition = { x: 0, y: 0 }
+    this.dragTime = 0
+    this.isDraggingMomentum = false
+
     // Movement physics for smooth transitions
     this.velocity = { x: 0, y: 0 }
     this.maxVelocity = this.keyboardMoveSpeed // Maximum velocity
@@ -144,17 +150,30 @@ class Mouse {
         this.dragStartY = e.clientY
         this._needWorldCoords = true
         this.updatePosition(e.clientX, e.clientY)
+
+        // Reset drag velocity when starting a new drag
+        this.dragVelocity = { x: 0, y: 0 }
+        this.previousDragPosition = { x: e.clientX, y: e.clientY }
+        this.dragTime = performance.now()
+        this.isDraggingMomentum = false
       }
     })
 
     pixiView.addEventListener('pointerup', (e) => {
       if (e.button === 0) { // Primary button
-          // If barely moved, treat as a click
-          const dx = Math.abs(e.clientX - this.dragStartX)
-          const dy = Math.abs(e.clientY - this.dragStartY)
-          if (dx < 5 && dy < 5 && e.clientY < getCanvasDimensions().height - 80) {
-              this.clicked = true
+        // If barely moved, treat as a click
+        const dx = Math.abs(e.clientX - this.dragStartX)
+        const dy = Math.abs(e.clientY - this.dragStartY)
+        if (dx < 5 && dy < 5 && e.clientY < getCanvasDimensions().height - 80) {
+            this.clicked = true
+        } else {
+          // Enable momentum scrolling if we were dragging with significant velocity
+          const dragSpeed = Math.sqrt(this.dragVelocity.x * this.dragVelocity.x + this.dragVelocity.y * this.dragVelocity.y)
+          
+          if (dragSpeed > 1) {
+            this.isDraggingMomentum = true
           }
+        }
           
         this.isDragging = false
         this._needWorldCoords = true
@@ -216,6 +235,19 @@ class Mouse {
     pixiView.addEventListener('pointermove', (e) => {
       // Handle dragging (panning the view)
       if (this.isDragging) {
+        const now = performance.now()
+        const dt = now - this.dragTime
+
+        // Calculate velocity from movement
+        if (dt > 0) {
+          this.dragVelocity.x = (e.clientX - this.previousDragPosition.x) / dt * 16 // Scale to roughly match 60fps
+          this.dragVelocity.y = (e.clientY - this.previousDragPosition.y) / dt * 16
+          
+          // Store current position and time for next frame
+          this.previousDragPosition = { x: e.clientX, y: e.clientY }
+          this.dragTime = now
+        }
+        
         const dx = (e.clientX - this.lastX) / this.viewTransform.scale
         const dy = (e.clientY - this.lastY) / this.viewTransform.scale
         
@@ -456,6 +488,41 @@ class Mouse {
     drawBack()
     
     // Movement was applied
+    return true
+  }
+
+  applyDragMomentum(deltaTime) {
+    if (!this.isDraggingMomentum) return false
+    
+    // Skip if game is not in playing state
+    if (gameState.gameStatus !== 'playing') {
+        this.isDraggingMomentum = false
+        return false
+    }
+    
+    // Apply friction to slow down momentum
+    this.dragVelocity.x *= this.friction
+    this.dragVelocity.y *= this.friction
+    
+    // Stop momentum if velocity is very small
+    if (Math.abs(this.dragVelocity.x) < 0.1 && Math.abs(this.dragVelocity.y) < 0.1) {
+        this.isDraggingMomentum = false
+        return false
+    }
+    
+    // Apply velocity
+    const dx = this.dragVelocity.x * (deltaTime / 16) / this.viewTransform.scale
+    const dy = this.dragVelocity.y * (deltaTime / 16) / this.viewTransform.scale
+    
+    this.viewTransform.x -= dx
+    this.viewTransform.y -= dy
+    
+    // Apply boundary constraints
+    this.applyBoundaryConstraints()
+
+    updateZoom()
+    drawBack()
+    
     return true
   }
 
