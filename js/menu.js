@@ -95,7 +95,7 @@ async function setupScenariiSection() {
       // Slight delay to ensure the display change registers before adding the show class
       setTimeout(() => {
           scenariiSection.classList.add('show')
-      }, 10)
+      }, 20)
   }
   
   // Function to close the modal
@@ -173,7 +173,7 @@ async function setupOptionsSection() {
       // Slight delay to ensure the display change registers before adding the show class
       setTimeout(() => {
           optionsSection.classList.add('show')
-      }, 10)
+      }, 20)
   }
   
   // Function to close the modal
@@ -265,7 +265,7 @@ async function setupAboutSection() {
     // Slight delay to ensure the display change registers before adding the show class
     setTimeout(() => {
       aboutSection.classList.add('show')
-    }, 10)
+    }, 20)
   }
   
   // Function to close the modal

@@ -2,11 +2,11 @@ export { getTile, loadPredefinedMap }
 
 'use strict'
 
-import { getCanvasDimensions } from 'dimensions'
+// import { getCanvasDimensions } from 'dimensions'
 import gameState from 'state'
 
 // Get map dimensions from centralized system
-const { width: MAP_WIDTH, height: MAP_HEIGHT, maxWeight: MAX_WEIGHT } = getCanvasDimensions()
+// const { width: MAP_WIDTH, height: MAP_HEIGHT, maxWeight: MAX_WEIGHT } = getCanvasDimensions()
 
 /**
  * Returns the tile at the specified coordinates.

@@ -65,7 +65,7 @@ class GameState {
     this._map = null
     
     // Game status
-    this._gameStatus = 'menu' // 'menu', 'playing', 'paused', 'gameOver'
+    this._gameStatus = 'menu' // 'menu', 'initialize', 'playing', 'paused', 'gameOver'
     
     // Game settings
     this._settings = {

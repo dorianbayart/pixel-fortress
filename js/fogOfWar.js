@@ -4,7 +4,6 @@ export { updateVisibility, initFogOfWar, renderFog, isPositionVisible, isPositio
 'use strict'
 
 import { getMapDimensions, getTileSize } from 'dimensions'
-import { drawBack } from 'globals'
 import * as PIXI from 'pixijs'
 import { app, containers } from 'renderer'
 import gameState from 'state'
