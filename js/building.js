@@ -222,9 +222,10 @@ class Tent extends WorkerBuilding {
     this.maxHealth = 200
     this.productionCooldown = 10000 // 10 seconds
 
-    this.showProgressIndicator = true
-
-    createProgressIndicator(this, 10, color)
+    if(owner === gameState.humanPlayer) {
+      this.showProgressIndicator = true
+      createProgressIndicator(this, 10, color)
+    }
   }
 
   /**

@@ -321,7 +321,7 @@ function drawMain(player, AIs) {
     // Handle progress indicators for units
     if (unit.showProgressIndicator) {
       let indicator = indicatorMap.get(unit.uid)
-      if (!indicator) {
+      if (!indicator && unit.owner === gameState.humanPlayer) {
         indicator = createProgressIndicator(unit, 10, unit.indicatorColor || 0x00FF00)
       }
       
