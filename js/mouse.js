@@ -4,7 +4,8 @@ export { Mouse }
 
 import CONSTANTS from 'constants'
 import { getCanvasDimensions, getMapDimensions, getTileSize } from 'dimensions'
-import { app } from 'renderer'
+import { drawBack } from 'globals'
+import { app, updateZoom } from 'renderer'
 import { loadAndSplitImage, offscreenSprite } from 'sprites'
 import gameState from 'state'
 
@@ -39,7 +40,15 @@ class Mouse {
     this.zoomChanged = false
 
     // Keyboard movement speed
-    this.keyboardMoveSpeed = 10
+    this.keyboardMoveSpeed = 20
+
+    // Key tracking
+    this.keysPressed = {
+      ArrowUp: false,
+      ArrowDown: false,
+      ArrowLeft: false,
+      ArrowRight: false
+    }
 
     // Store view transformation for zoom calculation
     this.viewTransform = {
@@ -70,9 +79,18 @@ class Mouse {
     const mouseSprite = (await loadAndSplitImage('assets/ui/crosshair.png', 9))[0][0]
     this.sprite = offscreenSprite(mouseSprite, 9, 'cursor')
 
-    // Add keyboard event handling for arrow keys
+    // Update keyboard event handling for continuous movement
     window.addEventListener('keydown', (e) => {
-      this.handleKeyboardMovement(e)
+      if (this.keysPressed.hasOwnProperty(e.key)) {
+        this.keysPressed[e.key] = true
+        e.preventDefault()
+      }
+    })
+    
+    window.addEventListener('keyup', (e) => {
+      if (this.keysPressed.hasOwnProperty(e.key)) {
+        this.keysPressed[e.key] = false
+      }
     })
 
     // Use this method to update mouse position from event handlers
@@ -377,46 +395,45 @@ class Mouse {
     })
   }
 
-  handleKeyboardMovement(e) {
+  applyKeyboardMovement(deltaTime) {
     // Skip if game is not in playing state
-    if (gameState.gameStatus !== 'playing') return
+    if (gameState.gameStatus !== 'playing') return false
     
-    // Calculate movement based on arrow keys
+    // Calculate movement based on pressed keys
     let dx = 0
     let dy = 0
     
-    switch (e.key) {
-        case 'ArrowUp':
-            dy = -this.keyboardMoveSpeed
-            break
-        case 'ArrowDown':
-            dy = this.keyboardMoveSpeed
-            break
-        case 'ArrowLeft':
-            dx = -this.keyboardMoveSpeed
-            break
-        case 'ArrowRight':
-            dx = this.keyboardMoveSpeed
-            break
-        default:
-            return // Exit if not arrow key
-    }
+    // Normalize speed based on zoom level and time
+    const moveSpeed = this.keyboardMoveSpeed * (deltaTime / 16) / this.viewTransform.scale
+    
+    if (this.keysPressed.ArrowUp) dy -= moveSpeed
+    if (this.keysPressed.ArrowDown) dy += moveSpeed
+    if (this.keysPressed.ArrowLeft) dx -= moveSpeed
+    if (this.keysPressed.ArrowRight) dx += moveSpeed
     
     // No movement needed
-    if (dx === 0 && dy === 0) return
+    if (dx === 0 && dy === 0) return false
+
+    // Normalize diagonal movement
+    if (dx !== 0 && dy !== 0) {
+      // Apply Pythagorean adjustment to maintain consistent speed in all directions
+      const factor = 1 / Math.sqrt(2)
+      dx *= factor
+      dy *= factor
+    }
     
     // Move viewport by applying the calculated movement
-    this.viewTransform.x += dx / this.viewTransform.scale
-    this.viewTransform.y += dy / this.viewTransform.scale
+    this.viewTransform.x += dx
+    this.viewTransform.y += dy
     
     // Apply boundary constraints
     this.applyBoundaryConstraints()
+
+    updateZoom()
+    drawBack()
     
-    // Flag that view has changed to trigger redraw
-    this.zoomChanged = true
-    
-    // Prevent default to avoid scrolling the page
-    e.preventDefault()
+    // Movement was applied
+    return true
   }
 
   /**

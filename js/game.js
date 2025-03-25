@@ -309,15 +309,17 @@ const gameLoop = () => {
     return
   }
 
+  // Handle keyboard movement
+  gameState.UI?.mouse?.applyKeyboardMovement(delay)
+
+  // Handle mouse interaction
+  handleMouseInteraction(gameState.map, gameState.humanPlayer)
+
   // Background rendering
   if(isDrawBackRequested() || now - elapsedBack > 500) {
     elapsedBack = now
     drawBackground(gameState.map)
   }
-  
-  
-  // Handle mouse interaction
-  handleMouseInteraction(gameState.map, gameState.humanPlayer)
   
   // Track FPS
   if(gameState.debug) {
