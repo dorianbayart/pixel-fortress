@@ -50,6 +50,12 @@ class Mouse {
       ArrowRight: false
     }
 
+    // Movement physics for smooth transitions
+    this.velocity = { x: 0, y: 0 }
+    this.maxVelocity = this.keyboardMoveSpeed // Maximum velocity
+    this.acceleration = 2.5 // Acceleration per frame
+    this.friction = 0.85 // Deceleration factor
+
     // Store view transformation for zoom calculation
     this.viewTransform = {
       scale: null,
@@ -399,32 +405,49 @@ class Mouse {
     // Skip if game is not in playing state
     if (gameState.gameStatus !== 'playing') return false
     
-    // Calculate movement based on pressed keys
-    let dx = 0
-    let dy = 0
+    // Calculate acceleration based on pressed keys
+    let accelX = 0
+    let accelY = 0
+    const timeScaleFactor = deltaTime / 16 // Normalize for 60 FPS
     
-    // Normalize speed based on zoom level and time
-    const moveSpeed = this.keyboardMoveSpeed * (deltaTime / 16) / this.viewTransform.scale
+    if (this.keysPressed.ArrowUp) accelY -= this.acceleration * timeScaleFactor
+    if (this.keysPressed.ArrowDown) accelY += this.acceleration * timeScaleFactor
+    if (this.keysPressed.ArrowLeft) accelX -= this.acceleration * timeScaleFactor
+    if (this.keysPressed.ArrowRight) accelX += this.acceleration * timeScaleFactor
     
-    if (this.keysPressed.ArrowUp) dy -= moveSpeed
-    if (this.keysPressed.ArrowDown) dy += moveSpeed
-    if (this.keysPressed.ArrowLeft) dx -= moveSpeed
-    if (this.keysPressed.ArrowRight) dx += moveSpeed
-    
-    // No movement needed
-    if (dx === 0 && dy === 0) return false
-
-    // Normalize diagonal movement
-    if (dx !== 0 && dy !== 0) {
-      // Apply Pythagorean adjustment to maintain consistent speed in all directions
-      const factor = 1 / Math.sqrt(2)
-      dx *= factor
-      dy *= factor
+    // Normalize diagonal acceleration
+    if (accelX !== 0 && accelY !== 0) {
+        const factor = 1 / Math.sqrt(2)
+        accelX *= factor
+        accelY *= factor
     }
     
-    // Move viewport by applying the calculated movement
-    this.viewTransform.x += dx
-    this.viewTransform.y += dy
+    // Apply acceleration to velocity
+    this.velocity.x += accelX
+    this.velocity.y += accelY
+    
+    // Apply friction when no keys are pressed in that axis
+    if (accelX === 0) this.velocity.x *= this.friction
+    if (accelY === 0) this.velocity.y *= this.friction
+    
+    // Clamp velocity to maximum
+    const velocityMagnitude = Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y)
+    if (velocityMagnitude > this.maxVelocity) {
+        const scaleFactor = this.maxVelocity / velocityMagnitude
+        this.velocity.x *= scaleFactor
+        this.velocity.y *= scaleFactor
+    }
+    
+    // Stop tiny movements (to prevent endless drift)
+    if (Math.abs(this.velocity.x) < 0.01) this.velocity.x = 0
+    if (Math.abs(this.velocity.y) < 0.01) this.velocity.y = 0
+    
+    // No movement needed if velocity is effectively zero
+    if (this.velocity.x === 0 && this.velocity.y === 0) return false
+    
+    // Apply velocity to position, adjusting for zoom level
+    this.viewTransform.x += this.velocity.x / this.viewTransform.scale
+    this.viewTransform.y += this.velocity.y / this.viewTransform.scale
     
     // Apply boundary constraints
     this.applyBoundaryConstraints()
