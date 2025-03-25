@@ -7,6 +7,7 @@ export {
 import { getCanvasDimensions, getMapDimensions, getTileSize } from 'dimensions'
 import { isPositionExplored, isPositionVisible } from 'fogOfWar'
 import { DEBUG, backDrawn } from 'globals'
+import { initParticleSystem } from 'particles'
 import * as PIXI from 'pixijs'
 import { UNIT_SPRITE_SIZE } from 'sprites'
 import gameState from 'state'
@@ -20,6 +21,7 @@ const containers = {
   background: null,
   terrain: null,
   units: null,
+  particles: null,
   indicators: null,
   ui: null,
   debug: null
@@ -150,6 +152,7 @@ async function initCanvases() {
   containers.background = new PIXI.Container()
   containers.terrain = new PIXI.Container()
   containers.units = new PIXI.Container()
+  containers.particles = new PIXI.Container()
   containers.indicators = new PIXI.Container()
   containers.ui = new PIXI.Container()
   containers.debug = new PIXI.Container()
@@ -159,8 +162,12 @@ async function initCanvases() {
   app.stage.addChild(containers.terrain)
   app.stage.addChild(containers.debug)
   app.stage.addChild(containers.units)
+  app.stage.addChild(containers.particles)
   app.stage.addChild(containers.indicators)
   app.stage.addChild(containers.ui)
+
+  // Initialize particle system
+  initParticleSystem()
   
   console.log("Canvas initialized:", app.canvas.width, "x", app.canvas.height, app)
 

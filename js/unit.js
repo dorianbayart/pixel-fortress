@@ -7,8 +7,9 @@ export {
 
 import { getMapDimensions, getTileSize } from 'dimensions'
 import { TERRAIN_TYPES, updateSprite } from 'game'
+import { ParticleEffect, createParticleEmitter } from 'particles'
 import { searchPath } from 'pathfinding'
-import { removeProgressIndicator } from 'renderer'
+import { indicatorMap, removeProgressIndicator } from 'renderer'
 import { UNIT_SPRITE_SIZE, offscreenSprite, unitsSprites, unitsSpritesDescription } from 'sprites'
 import gameState from 'state'
 import { distance } from 'utils'
@@ -110,6 +111,13 @@ class Unit {
       if (indicatorMap?.has(this.uid)) {
         removeProgressIndicator(this.uid)
       }
+
+      // Create death particles
+      createParticleEmitter(ParticleEffect.UNIT_DEATH, {
+        x: this.x + getTileSize()/2,
+        y: this.y + getTileSize()/2,
+        duration: 1000
+      })
       
       return
     }
@@ -210,7 +218,37 @@ class Unit {
    * @param {number} delay - Time elapsed since last update (ms)
    */
   attackEnemy(delay) {
-    if(this.goal) this.goal.life -= this.attack * delay / 1000
+    if(this.goal) {
+      this.goal.life -= this.attack * delay / 1000
+
+      // Add attack particles
+      if (Math.random() < 0.2) { // 30% chance per attack frame
+        const SPRITE_SIZE = getTileSize()
+        let targetX, targetY
+        
+        // Get target position
+        if (this.goal.currentNode) {
+          // Unit target
+          targetX = this.goal.x
+          targetY = this.goal.y
+        } else {
+          // Building target
+          targetX = this.goal.x * SPRITE_SIZE
+          targetY = this.goal.y * SPRITE_SIZE
+        }
+        
+        // Create attack particles
+        createParticleEmitter(ParticleEffect.UNIT_ATTACK, {
+          x: targetX + SPRITE_SIZE/2,
+          y: targetY + SPRITE_SIZE/2,
+          duration: 500,
+          // customProps: {
+          //   targetX: targetX,
+          //   targetY: targetY
+          // }
+        })
+      }
+    }
   }
 
   /**
@@ -495,6 +533,15 @@ class LumberjackWorker extends WorkerUnit {
 
       // Reduce tree's remaining resources
       tree.lifeRemaining -= amountToHarvest
+
+      // Add harvest particles (occasionally, not every frame)
+      if (Math.random() < 0.15) { // 15% chance per frame
+        createParticleEmitter(ParticleEffect.WOOD_HARVEST, {
+          x: this.goal.x * getTileSize() + getTileSize() / 2,
+          y: this.goal.y * getTileSize() + getTileSize() / 2,
+          duration: 800
+        })
+      }
 
       // Check if tree is depleted
       if (tree.lifeRemaining <= 0) {

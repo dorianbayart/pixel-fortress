@@ -6,6 +6,7 @@ import { Building } from 'building'
 import { getMapDimensions, getTileSize } from 'dimensions'
 import { renderFog, updateVisibility } from 'fogOfWar'
 import { drawBack, isDrawBackRequested } from 'globals'
+import { updateAllParticles } from 'particles'
 import { clearPathCache, searchPath } from 'pathfinding'
 import { Player, PlayerType } from 'players'
 import { drawBackground, drawMain } from 'renderer'
@@ -334,6 +335,9 @@ const gameLoop = () => {
   gameState.aiPlayers.forEach(ai => {
     ai.update(delay, gameState.map)
   })
+
+  // Update particles
+  updateAllParticles(delay)
   
   // Update fog of war
   if (gameState.settings.fogOfWar) {

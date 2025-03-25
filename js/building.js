@@ -3,9 +3,10 @@ export { Building, Tent, WorkerBuilding }
 'use strict'
 
 import { getMapDimensions, getTileSize } from 'dimensions'
+import { ParticleEffect, createParticleEmitter } from 'particles'
 import { searchPath } from 'pathfinding'
 import { Player } from 'players'
-import { createProgressIndicator, removeProgressIndicator, updateProgressIndicator } from 'renderer'
+import { createProgressIndicator, indicatorMap, removeProgressIndicator, updateProgressIndicator } from 'renderer'
 import { offscreenSprite, sprites } from 'sprites'
 import gameState from 'state'
 import { LumberjackWorker, Peon } from 'unit'
@@ -145,6 +146,13 @@ class Building {
         removeProgressIndicator(this.uid)
       }
 
+      // Create destroyed particles
+      createParticleEmitter(ParticleEffect.UNIT_DEATH, {
+        x: x * getTileSize() + getTileSize()/2,
+        y: y * getTileSize() + getTileSize()/2,
+        duration: 1000
+      })
+
       return
     }
   }
@@ -167,6 +175,13 @@ class Building {
     const spriteY = building.type.sprite_coords[color].y
     gameState.map[x][y].sprite = offscreenSprite(sprites[spriteX][spriteY], getTileSize())
 
+    // Add building placement particle effect
+    createParticleEmitter(ParticleEffect.BUILDING_PLACE, {
+      x: x * getTileSize() + getTileSize()/2,
+      y: y * getTileSize() + getTileSize()/2,
+      duration: 1500
+    })
+    
     return building
   }
 
