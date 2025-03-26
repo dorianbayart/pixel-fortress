@@ -10,7 +10,7 @@ import { getCanvasDimensions, getMapDimensions, getTileSize } from 'dimensions'
 import { DEBUG, drawBack, toggleDebug } from 'globals'
 import * as PIXI from 'pixijs'
 import { app, containers, updateZoom } from 'renderer'
-import { offscreenSprite, sprites } from 'sprites'
+import { offscreenSprite, sprites, offscreenSpritesSize } from 'sprites'
 import gameState from 'state'
 import { getCachedSprite } from 'utils'
 import { createParticleEmitter, ParticleEffect } from 'particles'
@@ -336,12 +336,15 @@ function drawUI(fps) {
       `Mouse: ${mouse.x}x${mouse.y} (${mouse.worldX.toFixed(0)}, ${mouse.worldY.toFixed(0)})${mouse.isDragging ? ' | clic' : ''}`,
       `Zoom: ${viewTransform.scale.toFixed(2)}x`,
       `World: ${MAP_WIDTH}x${MAP_HEIGHT} (${MAP_WIDTH*SPRITE_SIZE}x${MAP_HEIGHT*SPRITE_SIZE})`,
+
+      `Cached sprites: ${offscreenSpritesSize()}`,
+      `Particles: ${containers.particles.children?.length}`,
       
       `Renderer: ${app.renderer.width}x${app.renderer.height}`,
-      `Screen: ${screen.width}x${screen.height} | Available: ${screen.availWidth}x${screen.availHeight}`,
-      `Window: ${window.innerWidth}x${window.innerHeight}`,
-      `CSS: ${document.documentElement.clientWidth}x${document.documentElement.clientHeight}`,
-      `Canvas: ${app.canvas.style.width} x ${app.canvas.style.height}`
+      `Screen: ${screen.width}x${screen.height} | Avail.: ${screen.availWidth}x${screen.availHeight}`,
+      // `Window: ${window.innerWidth}x${window.innerHeight}`,
+      // `CSS: ${document.documentElement.clientWidth}x${document.documentElement.clientHeight}`,
+      // `Canvas: ${app.canvas.style.width} x ${app.canvas.style.height}`
     ].join('\n')
   }
 }

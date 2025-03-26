@@ -1,9 +1,9 @@
-export { loadAndSplitImage, loadSprites, offscreenSprite, sprites, unitsSprites, unitsSpritesDescription, UNIT_SPRITE_SIZE }
+export { UNIT_SPRITE_SIZE, loadAndSplitImage, loadSprites, offscreenSprite, offscreenSpritesSize, sprites, unitsSprites, unitsSpritesDescription }
 
 'use strict'
 
-import { arrayToHash } from 'utils'
 import { getTileSize } from 'dimensions'
+import { arrayToHash } from 'utils'
 
 const SPRITE_SIZE = getTileSize(), UNIT_SPRITE_SIZE = getTileSize() * 2
 
@@ -12,6 +12,30 @@ const offscreenSprites = new Map()
 
 /** Exposed variables that stores the sprites and their descriptor */
 let sprites, unitsSprites, unitsSpritesDescription
+
+
+
+/**
+ * Utility to get offscreen sprites cache size
+ * @returns {number}
+ *
+ */
+const offscreenSpritesSize = () => offscreenSprites.size
+
+/**
+ * Utility to clean cache periodically
+ * @returns {void}
+ *
+ */
+const offscreenSpritesMapCleanup = () => {
+  if(offscreenSpritesSize()) {
+    // Delete the oldest entry - Clean Cache
+    offscreenSprites.delete(offscreenSprites.keys().next().value)
+  }
+  setTimeout(offscreenSpritesMapCleanup, 1500)
+}
+offscreenSpritesMapCleanup()
+
 
 /**
  * Sprite loader
@@ -53,7 +77,7 @@ const loadAndSplitImage = (url, spriteSize) => {
       const ctx = canvas.getContext('2d', { willReadFrequently: false })
       ctx.drawImage(image, 0, 0)
 
-      const spriteSheet = ctx.getImageData(0, 0, image.width, image.height)
+      // const spriteSheet = ctx.getImageData(0, 0, image.width, image.height)
       const sprites = Array.from(
         { length: Math.round(image.width / spriteSize) },
         (_, i) =>

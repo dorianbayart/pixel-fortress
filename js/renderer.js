@@ -298,11 +298,21 @@ function drawMain(player, AIs) {
     // Get existing sprite or create a new one
     let sprite = unitSpriteMap.get(unit.uid)
 
+    // Check if sprite is still valid (textures may be GC'd on mobile)
+    if (sprite && !isSpriteValid(sprite)) {
+      // Sprite is no longer valid, remove it
+      containers.units.removeChild(sprite)
+      unitSpriteMap.delete(unit.uid)
+      sprite = null
+    }
+
     // If no sprite exists or texture changed, create a new one
     if (!sprite || sprite.textureKey !== unit.sprite.uid) {
       // Remove old sprite if exists
       if (sprite) {
-          containers.units.removeChild(sprite)
+        containers.units.removeChild(sprite)
+        unitSpriteMap.delete(unit.uid)
+        sprite = null
       }
       
       // Create new sprite
@@ -393,10 +403,20 @@ function drawBackground(map) {
         // Get existing sprite or create a new one
         let backSprite = backgroundSpriteMap.get(backKey)
 
+        // Check if sprite is still valid (textures may be GC'd on mobile)
+        if (backSprite && !isSpriteValid(backSprite)) {
+          // Sprite is no longer valid, remove it
+          containers.background.removeChild(backSprite)
+          backgroundSpriteMap.delete(backKey)
+          backSprite = null
+        }
+
         if (!backSprite || backSprite.textureKey !== map[x][y].back.uid) {
           // Remove old sprite if texture changed
           if (backSprite) {
               containers.background.removeChild(backSprite)
+              backgroundSpriteMap.delete(backKey)
+              backSprite = null
           }
           
           // Create new sprite
@@ -418,6 +438,14 @@ function drawBackground(map) {
 
       // Get existing sprite or create a new one
       let terrainSprite = terrainSpriteMap.get(tileKey)
+
+      // Check if sprite is still valid (textures may be GC'd on mobile)
+      if (terrainSprite && !isSpriteValid(terrainSprite)) {
+        // Sprite is no longer valid, remove it
+        containers.terrain.removeChild(terrainSprite)
+        terrainSpriteMap.delete(tileKey)
+        terrainSprite = null
+      }
         
       if (!terrainSprite || terrainSprite.textureKey !== map[x][y].sprite.uid) {
           // Remove old sprite if texture changed
@@ -631,4 +659,18 @@ function removeProgressIndicator(entityUid) {
     containers.indicators.removeChild(indicator)
     indicatorMap.delete(entityUid)
   }
+}
+
+/**
+ * Check if a sprite's texture is still valid
+ * Mobile browsers may discard textures under memory pressure
+ * @param {PIXI.Sprite} sprite - The sprite to check
+ * @returns {boolean} True if the sprite is valid
+ */
+function isSpriteValid(sprite) {
+  return sprite && 
+         sprite.texture && 
+         sprite.texture.valid && 
+         sprite.texture.baseTexture && 
+         sprite.texture.baseTexture.valid
 }

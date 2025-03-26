@@ -15,8 +15,8 @@ class Player {
   constructor(type = PlayerType.HUMAN) {
 
     this.type = type
-    this.units = new Array()
-    this.buildings = new Array()
+    this.units = []
+    this.buildings = []
 
     this.resources = {
       wood: 10 + 5,
