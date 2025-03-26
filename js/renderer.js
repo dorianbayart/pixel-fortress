@@ -615,7 +615,7 @@ function updateProgressIndicator(entity, progress) {
   const progressBar = indicator.getChildAt(1)
   
   progressBar.clear()
-  progressBar.beginFill(progressBar.fill?.color || 0x00FF00, 1)
+  progressBar.beginFill(entity.indicatorColor|| 0x00FF00, 1)
   const maxWidth = background.width - 2
   progressBar.drawRect(1, 1, maxWidth * Math.min(1, Math.max(0, progress)), 1)
   progressBar.endFill()

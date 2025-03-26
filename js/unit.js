@@ -440,6 +440,7 @@ class LumberjackWorker extends WorkerUnit {
     this.assignedBuilding = null // Reference to lumberjack building
 
     this.showProgressIndicator = true
+    this.indicatorColor = 0x804729 // Brown for wood
 
     this.task = 'gathering'
   }
@@ -610,7 +611,7 @@ class QuarryMiner extends WorkerUnit {
     this.assignedBuilding = null // Reference to quarry building
 
     this.showProgressIndicator = true
-    this.indicatorColor = 0x888888 // Gray color for stone
+    this.indicatorColor = 0xAAAAAA // Gray color for stone
 
     this.task = 'mining'
     this.timeSinceLastTask = 0
