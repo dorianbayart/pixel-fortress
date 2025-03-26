@@ -13,7 +13,7 @@ Details: Worker units automatically locate and gather resources.
 Details: Buildings can produce different kind of units.
 - [ ] **Unit Production:** Implement automated unit production from buildings. *(Planned)*  
 Details: Buildings generate worker units (gather resources) and combat units (attack).
-- [ ] **Enemy Spawning:** Generate enemies that move towards the player's base. *(In Progress)*
+- [x] **Enemy Spawning:** Generate enemies that move towards the player's base.
 - [x] **Combat:** Implement combat AI for units.  
 Details: Combat units automatically engage and attack enemy units and buildings.
 - [ ] **Game Over Condition:** Handling game over scenarios (base health reaches zero). *(Not Planned)*
