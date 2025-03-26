@@ -689,7 +689,7 @@ class QuarryMiner extends WorkerUnit {
 
     // Add mining particles (occasionally, not every frame)
     if (Math.random() < 0.15) { // 15% chance per frame
-      createParticleEmitter(ParticleEffect.WOOD_HARVEST, {
+      createParticleEmitter(ParticleEffect.STONE_MINE, {
         x: this.goal.x * getTileSize() + getTileSize() / 2,
         y: this.goal.y * getTileSize() + getTileSize() / 2,
         duration: 800
@@ -861,7 +861,7 @@ class WaterCarrier extends WorkerUnit {
 
     // Add collection particles (occasionally)
     if (Math.random() < 0.15) { // 15% chance per frame
-      createParticleEmitter(ParticleEffect.WOOD_HARVEST, {  // Reusing wood harvest particle effect
+      createParticleEmitter(ParticleEffect.WATER_COLLECT, {
         x: this.goal.x * getTileSize() + getTileSize() / 2,
         y: this.goal.y * getTileSize() + getTileSize() / 2,
         duration: 800

@@ -21,6 +21,8 @@ const particleContainer = new PIXI.ParticleContainer(1000, {
 // Predefined particle effects
 const ParticleEffect = {
   WOOD_HARVEST: 'wood_harvest',
+  STONE_MINE: 'stone_mine',
+  WATER_COLLECT: 'water_collect',
   BUILDING_PLACE: 'building_place',
   UNIT_ATTACK: 'unit_attack',
   UNIT_DEATH: 'unit_death',
@@ -76,6 +78,12 @@ function createParticleEmitter(effectType, options = {}) {
   switch (effectType) {
     case ParticleEffect.WOOD_HARVEST:
       createWoodHarvestParticles(emitter)
+      break
+    case ParticleEffect.STONE_MINE:
+      createStoneMineParticles(emitter)
+      break
+    case ParticleEffect.WATER_COLLECT:
+      createWaterCollectParticles(emitter)
       break
     case ParticleEffect.BUILDING_PLACE:
       createBuildingPlaceParticles(emitter)
@@ -147,6 +155,110 @@ function createWoodHarvestParticles(emitter) {
     
     emitter.particles.push(particle)
   }
+}
+
+/**
+ * Create stone mining particles
+ * @param {Object} emitter - The emitter to add particles to
+ */
+function createStoneMineParticles(emitter) {
+    const SPRITE_SIZE = getTileSize()
+    const particleCount = 1 + Math.random() * 2 | 0
+
+    // Use gray/rock tones for stone chunks
+    const colors = [0x888888, 0xAAAAAA, 0x777777, 0x666666]
+
+    for (let i = 0; i < particleCount; i++) {
+        // Create a small colored square for each particle
+        const graphics = new PIXI.Graphics()
+        graphics.beginFill(colors[Math.floor(Math.random() * colors.length)])
+        const size = (1 + Math.random() * 1) | 0 // Pixel size from 1-2px
+        graphics.drawRect(0, 0, size, size)
+        graphics.endFill()
+        
+        // Convert to texture
+        const canvas = app.renderer.extract.canvas(graphics)
+        const texture = PIXI.Texture.from(canvas)
+        
+        // Create sprite from texture
+        const sprite = new PIXI.Sprite(texture)
+        sprite.anchor.set(0.5)
+        
+        // Initial position with slight randomization
+        const offsetX = (Math.random() - 0.5) * SPRITE_SIZE / 2
+        const offsetY = (Math.random() - 0.5) * SPRITE_SIZE / 2
+        
+        // Add to container
+        containers.particles.addChild(sprite)
+        
+        // Particle properties
+        const particle = {
+        sprite,
+        x: emitter.x + offsetX,
+        y: emitter.y + offsetY,
+        vx: (Math.random() - 0.5),
+        vy: -0.7 - Math.random(),
+        gravity: 0.05 + Math.random() * 0.1,
+        rotation: Math.random() * Math.PI * 2,
+        rotationSpeed: (Math.random() - 0.5) * 0.2,
+        life: 1,
+        decay: 0.02 + Math.random() * 0.02
+        }
+        
+        emitter.particles.push(particle)
+    }
+}
+
+/**
+ * Create water collection particles
+ * @param {Object} emitter - The emitter to add particles to
+ */
+function createWaterCollectParticles(emitter) {
+    const SPRITE_SIZE = getTileSize()
+    const particleCount = 1 + Math.random() * 2 | 0
+
+    // Use blue/water tones for water droplets
+    const colors = [0x0088FF, 0x0066CC, 0x00AAFF, 0x66CCFF]
+
+    for (let i = 0; i < particleCount; i++) {
+        // Create a small colored square for each particle
+        const graphics = new PIXI.Graphics()
+        graphics.beginFill(colors[Math.floor(Math.random() * colors.length)])
+        const size = (1 + Math.random() * 1) | 0 // Pixel size from 1-2px
+        graphics.drawRect(0, 0, size, size)
+        graphics.endFill()
+        
+        // Convert to texture
+        const canvas = app.renderer.extract.canvas(graphics)
+        const texture = PIXI.Texture.from(canvas)
+        
+        // Create sprite from texture
+        const sprite = new PIXI.Sprite(texture)
+        sprite.anchor.set(0.5)
+        
+        // Initial position with slight randomization
+        const offsetX = (Math.random() - 0.5) * SPRITE_SIZE / 2
+        const offsetY = (Math.random() - 0.5) * SPRITE_SIZE / 2
+        
+        // Add to container
+        containers.particles.addChild(sprite)
+        
+        // Particle properties - make water particles move differently
+        const particle = {
+        sprite,
+        x: emitter.x + offsetX,
+        y: emitter.y + offsetY,
+        vx: (Math.random() - 0.5) * 0.8, // Slower horizontal movement
+        vy: -0.5 - Math.random() * 0.8,  // Slower vertical movement
+        gravity: 0.04 + Math.random() * 0.08, // Slightly less gravity
+        rotation: Math.random() * Math.PI * 2,
+        rotationSpeed: (Math.random() - 0.5) * 0.1, // Less rotation
+        life: 1,
+        decay: 0.015 + Math.random() * 0.015 // Slower decay for water drops
+        }
+        
+        emitter.particles.push(particle)
+    }
 }
 
 /**
