@@ -8,12 +8,12 @@ import { Building } from 'building'
 import CONSTANTS from 'constants'
 import { getCanvasDimensions, getMapDimensions, getTileSize } from 'dimensions'
 import { DEBUG, drawBack, toggleDebug } from 'globals'
+import { ParticleEffect, createParticleEmitter } from 'particles'
 import * as PIXI from 'pixijs'
 import { app, containers, updateZoom } from 'renderer'
-import { offscreenSprite, sprites, offscreenSpritesSize } from 'sprites'
+import { offscreenSprite, offscreenSpritesSize, sprites } from 'sprites'
 import gameState from 'state'
-import { getCachedSprite } from 'utils'
-import { createParticleEmitter, ParticleEffect } from 'particles'
+import { SCALE_MODE, getCachedSprite } from 'utils'
 
 const UI_FONTS = {
   PRIMARY: "system-ui, 'Open Sans', Arial, sans-serif",
@@ -111,18 +111,19 @@ async function initUI(mouseInstance) {
   // Create debug stats text
   statsText = new PIXI.Text({
     text: '',
-    fontFamily: UI_FONTS.MONOSPACE,
-    fontSize: 10,
+    style: {
+      fontFamily: UI_FONTS.MONOSPACE,
+      fontSize: 14 * (window.devicePixelRatio || 1),
+    },
     resolution: window.devicePixelRatio || 1,
     fill: 0xffffff,
     stroke: 0x000000,
     strokeThickness: 2
   })
   statsText.position.set(10, 38)
-  statsText.scale.set(1, 1)
+  statsText.scale.set(1 / (window.devicePixelRatio || 1))
   statsText.visible = DEBUG()
   containers.ui.addChild(statsText)
-  
 }
 
 /**
@@ -141,7 +142,7 @@ async function createTextureFromOffscreenCanvas(canvas) {
       loadParser: 'loadTextures',
     })
 
-    texture.source.scaleMode = PIXI.SCALE_MODES.NEAREST
+    texture.source.scaleMode = SCALE_MODE
 
     // Clean up the URL when the texture is loaded
     texture.source.once('loaded', () => {
@@ -161,7 +162,7 @@ async function createTextureFromOffscreenCanvas(canvas) {
           loadParser: 'loadTextures',
         })
         
-        texture.source.scaleMode = PIXI.SCALE_MODES.NEAREST
+        texture.source.scaleMode = SCALE_MODE
 
         texture.source.once('loaded', () => {
           URL.revokeObjectURL(url)
@@ -277,6 +278,10 @@ function handleMouseInteraction(map, player) {
     updateZoom()
     updateBottomBarPosition()
 
+    statsText.style.fontSize = 14 * (window.devicePixelRatio || 1)
+    statsText.resolution = window.devicePixelRatio || 1
+    statsText.scale.set(1 / (window.devicePixelRatio || 1))
+
     // Remove preview sprite if it exists
     if (buildingPreviewSprite && buildingPreviewSprite.parent) {
       buildingPreviewSprite.parent.removeChild(buildingPreviewSprite)
@@ -371,10 +376,9 @@ async function createTopBar() {
   
   // Create background
   const background = new PIXI.Graphics()
-  background.beginFill(0x114611, 0.85) // Dark green with transparency
-  background.lineStyle(2, 0xFFD700, 0.5) // Gold border
-  background.drawRect(0, 0, width, barHeight)
-  background.endFill()
+    .rect(0, 0, width, barHeight)
+    .fill({ color: 0x114611, alpha: 0.85 }) // Dark green with transparency
+    .stroke({ width: 2, color: 0xFFD700, alpha: 0.5}) // Gold border
   topBarContainer.addChild(background)
 
   // Get resources from the human player
@@ -431,19 +435,17 @@ async function createTopBar() {
 
   // Create button background
   const menuButtonBg = new PIXI.Graphics()
-  menuButtonBg.beginFill(0x114611, 0.7)
-  menuButtonBg.lineStyle(1, 0xFFD700, 0.8)
-  menuButtonBg.drawRoundedRect(0, 0, 36, 26, 4)
-  menuButtonBg.endFill()
+    .roundRect(0, 0, 36, 26, 4)
+    .fill({ color: 0x114611, alpha: 0.7 })
+    .stroke({ width: 1, color: 0xFFD700, alpha: 0.8 })
   menuButton.addChild(menuButtonBg)
 
   // Create hamburger menu icon (three lines)
   const menuIcon = new PIXI.Graphics()
-  menuIcon.beginFill(0xFFD700)
-  menuIcon.drawRect(8, 7, 20, 2)  // Top line
-  menuIcon.drawRect(8, 13, 20, 2) // Middle line
-  menuIcon.drawRect(8, 19, 20, 2) // Bottom line
-  menuIcon.endFill()
+    .rect(8, 7, 20, 2)  // Top line
+    .rect(8, 13, 20, 2) // Middle line
+    .rect(8, 19, 20, 2) // Bottom line
+    .fill({ color: 0xFFD700 })
   menuButton.addChild(menuIcon)
 
   // Make button interactive
@@ -480,12 +482,11 @@ function updateTopBarPosition() {
   const barHeight = 32
   
   // Update background
-  const background = topBarContainer.getChildAt(0)
-  background.clear()
-  background.beginFill(0x114611, 0.85)
-  background.lineStyle(2, 0xFFD700, 0.5)
-  background.drawRect(0, 0, width, barHeight)
-  background.endFill()
+  topBarContainer.getChildAt(0)
+    .clear()
+    .rect(0, 0, width, barHeight)
+    .fill({ color: 0x114611, alpha: 0.85 })
+    .stroke({ width: 2, color: 0xFFD700, alpha: 0.5 })
   
   // Update resource positions
   const resources = Object.keys(resourceTexts)
@@ -512,10 +513,9 @@ async function createBottomBar() {
   
   // Create background
   const background = new PIXI.Graphics()
-  background.beginFill(0x114611, 0.85) // Dark green with transparency
-  background.lineStyle(2, 0xFFD700, 0.5) // Gold border
-  background.drawRect(0, 0, width, barHeight)
-  background.endFill()
+    .rect(0, 0, width, barHeight)
+    .fill({ color: 0x114611, alpha: 0.85 }) // Dark green with transparency
+    .stroke({ width: 2, color: 0xFFD700, alpha: 0.5 }) // Gold border
   bottomBarContainer.addChild(background)
 
   // Position at bottom of screen
@@ -567,12 +567,11 @@ function updateBottomBarPosition() {
   bottomBarContainer.hitArea = new PIXI.Rectangle(0, 0, width, barHeight)
 
   // Update background
-  const background = bottomBarContainer.getChildAt(0)
-  background.clear()
-  background.beginFill(0x114611, 0.85)
-  background.lineStyle(2, 0xFFD700, 0.5)
-  background.drawRect(0, 0, width, barHeight)
-  background.endFill()
+  bottomBarContainer.getChildAt(0)
+    .clear()
+    .rect(0, 0, width, barHeight)
+    .fill({ color: 0x114611, alpha: 0.85 })
+    .stroke({ width: 2, color: 0xFFD700, alpha: 0.5 })
   
   // Hide tooltip when resizing
   hideTooltip()
@@ -621,10 +620,9 @@ async function createBuildingSlots() {
 
     // Slot background
     const slotBg = new PIXI.Graphics()
-    slotBg.beginFill(0x333333, 0.7)
-    slotBg.lineStyle(1, 0xFFD700, 0.8)
-    slotBg.drawRect(0, 0, slotSize, slotSize)
-    slotBg.endFill()
+      .rect(0, 0, slotSize, slotSize)
+      .fill({ color: 0x333333, alpha: 0.7 })
+      .stroke({ width: 1, color: 0xFFD700, alpha: 0.8})
     slot.addChild(slotBg)
     
     // Building icon
@@ -703,13 +701,11 @@ async function createBuildingSlots() {
 function handleBuildingSelect(index) {
   // Deselect previous selection
   if (selectedBuildingIndex >= 0 && selectedBuildingIndex < buildingSlots.length) {
-    const prevSlot = buildingSlots[selectedBuildingIndex]
-    const prevBg = prevSlot.getChildAt(0)
-    prevBg.clear()
-    prevBg.beginFill(0x333333, 0.7)
-    prevBg.lineStyle(1, 0xFFD700, 0.8)
-    prevBg.drawRect(0, 0, 64, 64)
-    prevBg.endFill()
+    buildingSlots[selectedBuildingIndex].getChildAt(0)
+      .clear()
+      .rect(0, 0, 64, 64)
+      .fill({ color: 0x333333, alpha: 0.7 })
+      .stroke({ width: 1, color: 0xFFD700, alpha: 0.8 })
   }
   
   // If clicking same building, deselect it
@@ -727,15 +723,13 @@ function handleBuildingSelect(index) {
   
   // Select new building
   selectedBuildingIndex = index
-  const slot = buildingSlots[index]
-  const bg = slot.getChildAt(0)
-  
   // Highlight selected building
-  bg.clear()
-  bg.beginFill(0x555555, 0.9)
-  bg.lineStyle(2, 0xFFFFFF, 1)
-  bg.drawRect(0, 0, 64, 64)
-  bg.endFill()
+  const slot = buildingSlots[index]
+  slot.getChildAt(0)
+    .clear()
+    .rect(0, 0, 64, 64)
+    .fill({ color: 0x555555, alpha: 0.9 })
+    .stroke({ width: 2, color: 0xFFFFFF, alpha: 1 })
   
   // Store the selected building type
   selectedBuildingType = slot.buildingData
@@ -864,10 +858,9 @@ function createBuildingTooltip() {
   
   // Background for the tooltip
   const background = new PIXI.Graphics()
-  background.beginFill(0x333333, 0.9)
-  background.lineStyle(2, 0xFFD700, 0.8)
-  background.drawRoundedRect(0, 0, 275, 140, 8)
-  background.endFill()
+    .roundRect(0, 0, 275, 140, 8)
+    .fill({ color: 0x333333, alpha: 0.9 })
+    .stroke({ width: 2, color: 0xFFD700, alpha: 0.8 })
   tooltipContainer.addChild(background)
   
   // Add placeholder text elements that will be updated on hover

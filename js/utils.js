@@ -1,4 +1,4 @@
-export { PerlinNoise, arrayToHash, distance, getCachedSprite, textureCache, throttle }
+export { PerlinNoise, arrayToHash, distance, getCachedSprite, textureCache, throttle, SCALE_MODE }
 
 'use strict'
 

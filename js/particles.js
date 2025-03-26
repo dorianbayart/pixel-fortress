@@ -118,11 +118,10 @@ function createWoodHarvestParticles(emitter) {
   
   for (let i = 0; i < particleCount; i++) {
     // Create a small colored square for each particle
-    const graphics = new PIXI.Graphics()
-    graphics.beginFill(colors[Math.floor(Math.random() * colors.length)])
     const size = (1 + Math.random() * 1) | 0 // Pixel size from 1-2px
-    graphics.drawRect(0, 0, size, size)
-    graphics.endFill()
+    const graphics = new PIXI.Graphics()
+        .rect(0, 0, size, size)
+        .fill({ color: colors[Math.floor(Math.random() * colors.length)] })
     
     // Convert to texture
     const canvas = app.renderer.extract.canvas(graphics)
@@ -170,11 +169,10 @@ function createStoneMineParticles(emitter) {
 
     for (let i = 0; i < particleCount; i++) {
         // Create a small colored square for each particle
-        const graphics = new PIXI.Graphics()
-        graphics.beginFill(colors[Math.floor(Math.random() * colors.length)])
         const size = (1 + Math.random() * 1) | 0 // Pixel size from 1-2px
-        graphics.drawRect(0, 0, size, size)
-        graphics.endFill()
+        const graphics = new PIXI.Graphics()
+            .rect(0, 0, size, size)
+            .fill({ color: colors[Math.floor(Math.random() * colors.length)] })
         
         // Convert to texture
         const canvas = app.renderer.extract.canvas(graphics)
@@ -222,11 +220,10 @@ function createWaterCollectParticles(emitter) {
 
     for (let i = 0; i < particleCount; i++) {
         // Create a small colored square for each particle
-        const graphics = new PIXI.Graphics()
-        graphics.beginFill(colors[Math.floor(Math.random() * colors.length)])
         const size = (1 + Math.random() * 1) | 0 // Pixel size from 1-2px
-        graphics.drawRect(0, 0, size, size)
-        graphics.endFill()
+        const graphics = new PIXI.Graphics()
+            .rect(0, 0, size, size)
+            .fill({ color: colors[Math.floor(Math.random() * colors.length)] })
         
         // Convert to texture
         const canvas = app.renderer.extract.canvas(graphics)
@@ -275,9 +272,8 @@ function createBuildingPlaceParticles(emitter) {
   for (let i = 0; i < particleCount; i++) {
     // Create a small colored pixel for each particle
     const graphics = new PIXI.Graphics()
-    graphics.beginFill(colors[Math.floor(Math.random() * colors.length)])
-    graphics.drawRect(0, 0, 2, 2) // 2x2 pixel
-    graphics.endFill()
+        .rect(0, 0, 2, 2) // 2x2 pixel
+        .fill({ color: colors[Math.floor(Math.random() * colors.length)] })
     
     // Convert to texture
     const canvas = app.renderer.extract.canvas(graphics)
@@ -328,17 +324,17 @@ function createAttackParticles(emitter) {
   for (let i = 0; i < particleCount; i++) {
     // Create a small colored spark for each particle
     const graphics = new PIXI.Graphics()
-    graphics.beginFill(colors[Math.floor(Math.random() * colors.length)])
     
     // Create different spark shapes
     if (Math.random() > 0.5) {
       // Small square
-      graphics.drawRect(0, 0, 2, 2)
+      graphics.rect(0, 0, 2, 2)
     } else {
       // Small line
-      graphics.drawRect(0, 0, 3, 1)
+      graphics.rect(0, 0, 3, 1)
     }
-    graphics.endFill()
+
+    graphics.fill({ color: colors[Math.floor(Math.random() * colors.length)] })
     
     // Convert to texture
     const canvas = app.renderer.extract.canvas(graphics)
@@ -396,13 +392,12 @@ function createDeathParticles(emitter) {
   
   for (let i = 0; i < particleCount; i++) {
     // Create a small colored splash for each particle
+    const size = 1 + Math.random() | 0 // Small square
     const graphics = new PIXI.Graphics()
-    graphics.beginFill(colors[Math.floor(Math.random() * colors.length)])
+        .rect(0, 0, size, size)
+        .fill({ color: colors[Math.floor(Math.random() * colors.length)] })
 
-    // Small square
-    const size = 1 + Math.random() | 0
-    graphics.drawRect(0, 0, size, size)
-    graphics.endFill()
+    
     
     // Convert to texture
     const canvas = app.renderer.extract.canvas(graphics)
@@ -450,20 +445,20 @@ function createButtonClickParticles(emitter) {
     for (let i = 0; i < particleCount; i++) {
       // Create a small sparkle for each particle
       const graphics = new PIXI.Graphics()
-      graphics.beginFill(colors[Math.floor(Math.random() * colors.length)])
       
       // Create different sparkle shapes
       if (Math.random() > 0.7) {
         // Small square
-        graphics.drawRect(0, 0, 2, 2)
+        graphics.rect(0, 0, 2, 2)
       } else if (Math.random() > 0.4) {
         // Small star (really just a dot for pixel aesthetic)
-        graphics.drawRect(0, 0, 1, 1)
+        graphics.rect(0, 0, 1, 1)
       } else {
         // Small line for streaking effect
-        graphics.drawRect(0, 0, 3, 1)
+        graphics.rect(0, 0, 3, 1)
       }
-      graphics.endFill()
+      
+      graphics.fill({ color: colors[Math.floor(Math.random() * colors.length)] })
       
       // Convert to texture
       const canvas = app.renderer.extract.canvas(graphics)

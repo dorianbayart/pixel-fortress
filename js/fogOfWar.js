@@ -218,15 +218,13 @@ function renderFog(delay) {
       
       // If explored but not visible, draw partial fog
       if (fogValue > 0.9) {
-        fogGraphics.beginFill(FOG_COLOR, FOG_ALPHA_EXPLORED)
-        fogGraphics.drawRect(x * tileSize, y * tileSize, tileSize, tileSize)
-        fogGraphics.endFill()
+        fogGraphics.rect(x * tileSize, y * tileSize, tileSize, tileSize)
+        fogGraphics.fill({ color: FOG_COLOR, alpha: FOG_ALPHA_EXPLORED })
       }
       // If currently visible but partially fogged, draw gradient fog
       else if (fogValue > 0.1) {
-        fogGraphics.beginFill(FOG_COLOR, fogValue * FOG_ALPHA_EXPLORED)
-        fogGraphics.drawRect(x * tileSize, y * tileSize, tileSize, tileSize)
-        fogGraphics.endFill()
+        fogGraphics.rect(x * tileSize, y * tileSize, tileSize, tileSize)
+        fogGraphics.fill({ color: FOG_COLOR, alpha: fogValue * FOG_ALPHA_EXPLORED })
       }
       // Completely visible tiles don't need fog
     }

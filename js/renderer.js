@@ -11,7 +11,7 @@ import { initParticleSystem } from 'particles'
 import * as PIXI from 'pixijs'
 import { UNIT_SPRITE_SIZE, offscreenSprite, sprites } from 'sprites'
 import gameState from 'state'
-import { getCachedSprite, textureCache } from 'utils'
+import { SCALE_MODE, getCachedSprite, textureCache } from 'utils'
 
 // Pixi.js Application
 let app = null
@@ -74,7 +74,7 @@ function loadTextureFromCanvas(canvas, key) {
   // Load the texture from the URL
   const texture = PIXI.Texture.from(url)
   texture.source.resolution = getCanvasDimensions().dpr
-  texture.source.scaleMode = PIXI.SCALE_MODES.NEAREST
+  texture.source.scaleMode = SCALE_MODE
   
   // Store in cache
   textureCache.set(key, texture)
@@ -520,7 +520,7 @@ function drawBackground(map) {
         gameState.humanPlayer.getUnits().forEach((unit) => {
           for (var i = 1; i < (unit.path || []).length; i++) {
             const pathTexture = PIXI.Texture.from(offscreenSprite(sprites[spriteCoords_Path.x][spriteCoords_Path.y], SPRITE_SIZE))
-            pathTexture.source.scaleMode = PIXI.SCALE_MODES.NEAREST
+            pathTexture.source.scaleMode = SCALE_MODE
             const pathSprite = new PIXI.Sprite(pathTexture)
             pathSprite.x = unit.path[i].x * SPRITE_SIZE
             pathSprite.y = unit.path[i].y * SPRITE_SIZE
@@ -596,15 +596,13 @@ function createProgressIndicator(entity, width = 10, color = 0x00FF00) {
   
   // Create pixelated background (dark border)
   const background = new PIXI.Graphics()
-  background.beginFill(0x000000, 0.6)
-  background.drawRect(0, 0, width, 3)
-  background.endFill()
+    .rect(0, 0, width, 3)
+    .fill({ color: 0x000000, alpha: 0.6 })
   
   // Create progress bar (initially empty)
   const progressBar = new PIXI.Graphics()
-  progressBar.beginFill(color, 1)
-  progressBar.drawRect(1, 1, 0, 1) // 1px border around progress
-  progressBar.endFill()
+    .rect(1, 1, 0, 1) // 1px border around progress
+    .fill({ color: color, alpha: 1 })
   
   indicator.addChild(background)
   indicator.addChild(progressBar)
@@ -640,13 +638,10 @@ function updateProgressIndicator(entity, progress) {
   
   // Update progress bar width (max width is background width minus 2px for border)
   const background = indicator.getChildAt(0)
-  const progressBar = indicator.getChildAt(1)
-  
-  progressBar.clear()
-  progressBar.beginFill(entity.indicatorColor|| 0x00FF00, 1)
-  const maxWidth = background.width - 2
-  progressBar.drawRect(1, 1, maxWidth * Math.min(1, Math.max(0, progress)), 1)
-  progressBar.endFill()
+  indicator.getChildAt(1)
+    .clear()
+    .rect(1, 1, (background.width - 2) * Math.min(1, Math.max(0, progress)), 1)
+    .fill({ color: entity.indicatorColor|| 0x00FF00, alpha: 1 })
 }
 
 /**
