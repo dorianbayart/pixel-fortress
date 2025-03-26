@@ -1,6 +1,5 @@
 export {
-  CombatUnit, HumanSoldier, LumberjackWorker,
-  Mage, MeleeUnit, Peon, PeonSoldier, RangedUnit, Soldier, Unit, Warrior, WorkerUnit
+  CombatUnit, HumanSoldier, LumberjackWorker, Mage, MeleeUnit, Peon, PeonSoldier, QuarryMiner, RangedUnit, Soldier, Unit, Warrior, WorkerUnit
 }
 
 'use strict'
@@ -587,6 +586,120 @@ class LumberjackWorker extends WorkerUnit {
       }
     } else {
       // Assigned building as been probably destroyed
+      this.task = 'idle'
+    }
+
+    this.goal = null
+    this.path = null
+  }
+}
+
+
+/**
+ * Specialized worker for extracting stone from rock
+ * Similar to LumberjackWorker but for stone quarrying
+ */
+class QuarryMiner extends WorkerUnit {
+  constructor(x, y, owner) {
+    super(x, y, owner)
+    this.spriteName = 'human-worker-' + this.owner.getColor()
+    this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
+    
+    // Specialized properties
+    this.miningRate = 0.1 // Stone per second
+    this.maxResources = 1
+    this.assignedBuilding = null // Reference to quarry building
+
+    this.showProgressIndicator = true
+    this.indicatorColor = 0x888888 // Gray color for stone
+
+    this.task = 'mining'
+    this.timeSinceLastTask = 0
+  }
+
+  handleTasks(delay, time) {
+    // Store previous task to detect changes
+    const previousTask = this.task
+    
+    if(this.resources < this.maxResources) {
+      this.task = 'mining'
+    } else {
+      this.task = 'returning'
+    }
+
+    // If task has changed, clear path to force recalculation
+    if(previousTask !== this.task) {
+      this.path = null;
+      this.lastPathUpdate = 0; // Force immediate path recalculation
+    }
+
+    switch(this.task) {
+      case 'mining':
+        this.goal = this.assignedBuilding
+        break
+      case 'returning':
+        this.goal = this.assignedBuilding.owner.getTents()[0]
+        break
+    }
+
+    this.timeSinceLastTask = 0
+  }
+
+  /**
+   * Do action when goal is reached
+   * @param {number} delay - Time elapsed since last update (ms)
+   * @param {number} time - The current time (ms)
+   */
+  goalReached(delay, time) {
+    switch(this.task) {
+      case 'mining':
+        this.mine(delay)
+        break
+      case 'returning':
+        this.depositResources()
+        break
+    }
+  }
+  
+  /**
+   * Mine stone from rock
+   */
+  mine(delay) {
+    // Calculate how much to mine
+    const amountToMine = Math.min(
+      this.miningRate * delay / 1000,
+      this.maxResources - this.resources
+    )
+
+    // Add to worker's carried resources
+    this.resources += amountToMine
+
+    // Update progress for indicator
+    this.progress = this.resources / this.maxResources
+
+    // Add mining particles (occasionally, not every frame)
+    if (Math.random() < 0.15) { // 15% chance per frame
+      createParticleEmitter(ParticleEffect.WOOD_HARVEST, {
+        x: this.goal.x * getTileSize() + getTileSize() / 2,
+        y: this.goal.y * getTileSize() + getTileSize() / 2,
+        duration: 800
+      })
+    }
+  }
+  
+  /**
+   * Deposit collected resources at quarry building
+   */
+  depositResources() {
+    // If we're close to the building, deposit resources
+    if (this.assignedBuilding) {
+      if (this.resources > 0) {
+          this.assignedBuilding.owner.addResource('stone', this.resources | 0)
+          this.resources = 0
+          this.progress = 0 // Reset progress after depositing
+      }
+    } else {
+      // Assigned building has been probably destroyed
       this.task = 'idle'
     }
 

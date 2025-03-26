@@ -763,7 +763,12 @@ function isValidBuildingPosition(x, y) {
   // Check if coordinates are in bounds
   if (!gameState.map[x] || !gameState.map[x][y]) return false
   
-  // For now, only allow building on grass or sand tiles
+  // For quarry, check if it's placed on ROCK tile
+  if (selectedBuildingType === Building.TYPES.QUARRY) {
+    return gameState.map[x][y].type === 'ROCK';
+  }
+
+  // For other buildings, only allow building on grass or sand tiles
   return ['GRASS', 'SAND'].includes(gameState.map[x][y].type)
 }
 

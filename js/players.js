@@ -4,7 +4,7 @@ export { Player, PlayerType }
 
 import { Building } from 'building'
 import gameState, { EventSystem } from 'state'
-import { HumanSoldier, LumberjackWorker, Peon, PeonSoldier, WorkerUnit } from 'unit'
+import { HumanSoldier, LumberjackWorker, Peon, PeonSoldier, QuarryMiner, WorkerUnit } from 'unit'
 
 const PlayerType = {
   HUMAN: 'human',
@@ -47,6 +47,10 @@ class Player {
 
   getBuildings() {
     return this.buildings
+  }
+
+  getTents() {
+    return this.buildings.filter(building => building.type === Building.TYPES.TENT)
   }
 
   getColor() {
@@ -137,6 +141,19 @@ class Player {
     
     this.units.push(worker)
     return worker
+  }
+
+  addQuarryMiner(x, y, assignedBuilding) {
+    const miner = new QuarryMiner(x, y, this)
+    
+    if (assignedBuilding) {
+      // Assign the miner to the building
+      miner.assignedBuilding = assignedBuilding
+      assignedBuilding.assignedWorkers.push(miner)
+    }
+    
+    this.units.push(miner)
+    return miner
   }
 
   addPeonSoldier(x, y) {
