@@ -4,7 +4,7 @@ export { Player, PlayerType }
 
 import { Building } from 'building'
 import gameState, { EventSystem } from 'state'
-import { HumanSoldier, LumberjackWorker, Peon, PeonSoldier, QuarryMiner, WorkerUnit } from 'unit'
+import { HumanSoldier, LumberjackWorker, Peon, PeonSoldier, QuarryMiner, WaterCarrier, WorkerUnit } from 'unit'
 
 const PlayerType = {
   HUMAN: 'human',
@@ -154,6 +154,19 @@ class Player {
     
     this.units.push(miner)
     return miner
+  }
+
+  addWaterCarrier(x, y, assignedBuilding) {
+    const carrier = new WaterCarrier(x, y, this)
+    
+    if (assignedBuilding) {
+      // Assign the worker to the building
+      carrier.assignedBuilding = assignedBuilding
+      assignedBuilding.assignedWorkers.push(carrier)
+    }
+    
+    this.units.push(carrier)
+    return carrier
   }
 
   addPeonSoldier(x, y) {

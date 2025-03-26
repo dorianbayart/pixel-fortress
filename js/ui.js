@@ -768,6 +768,30 @@ function isValidBuildingPosition(x, y) {
     return gameState.map[x][y].type === 'ROCK';
   }
 
+  // For well, check if it's placed next to WATER tile
+  if (selectedBuildingType === Building.TYPES.WELL) {
+    // Check orthogonal and diagonal neighbors for water
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
+        if (dx === 0 && dy === 0) continue // Skip the center tile
+        
+        const nx = x + dx
+        const ny = y + dy
+        
+        // Check bounds
+        if (nx >= 0 && nx < getMapDimensions().width && 
+            ny >= 0 && ny < getMapDimensions().height) {
+          // Check if this neighbor is water
+          if (gameState.map[nx][ny].type === 'WATER') {
+            // Target tile must be grass or sand
+            return ['GRASS', 'SAND'].includes(gameState.map[x][y].type)
+          }
+        }
+      }
+    }
+    return false // No adjacent water found
+  }
+
   // For other buildings, only allow building on grass or sand tiles
   return ['GRASS', 'SAND'].includes(gameState.map[x][y].type)
 }

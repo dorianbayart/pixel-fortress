@@ -1,4 +1,4 @@
-export { Building, Quarry, Tent, WorkerBuilding }
+export { Building, Quarry, Tent, Well, WorkerBuilding }
 
 'use strict'
 
@@ -9,7 +9,7 @@ import { Player } from 'players'
 import { createProgressIndicator, indicatorMap, removeProgressIndicator, updateProgressIndicator } from 'renderer'
 import { offscreenSprite, sprites } from 'sprites'
 import gameState from 'state'
-import { LumberjackWorker, Peon, QuarryMiner } from 'unit'
+import { LumberjackWorker, Peon, QuarryMiner, WaterCarrier } from 'unit'
 import { distance } from 'utils'
 
 
@@ -180,6 +180,9 @@ class Building {
             break
         case Building.TYPES.QUARRY:
           building = new Quarry(x, y, color, owner)
+          break
+        case Building.TYPES.WELL:
+          building = new Well(x, y, color, owner)
           break
     }
 
@@ -685,5 +688,132 @@ class Quarry extends WorkerBuilding {
       if (workerIndex > -1) {
           this.owner.units.splice(workerIndex, 1)
       }
+  }
+}
+
+/**
+ * Well building for water collection
+ * Converts regular idle workers to specialized water carriers
+ * Identifies water sources in the vicinity and assigns workers to them
+ */
+class Well extends WorkerBuilding {
+  constructor(x, y, color, owner) {
+    super(x, y, color, owner)
+    this.type = Building.TYPES.WELL
+    this.health = 150
+    this.maxHealth = 150
+    this.level = 1
+    this.maxWorkers = this.level // Level 1 can handle 1 worker
+    this.assignedWorkers = []
+
+    // Production timer for converting workers
+    this.productionTimer = 0
+    this.productionCooldown = 1000 // Small delay to convert a worker
+    this.convertingWorker = null
+  }
+
+  /**
+   * Update building state and convert workers
+   */
+  update(delay) {
+    super.update(delay)
+
+    this.assignedWorkers = this.assignedWorkers.filter(unit => unit.life > 0)
+
+    // If we're not at max capacity and not already converting
+    if (this.assignedWorkers.filter(unit => unit instanceof WaterCarrier).length < this.maxWorkers && !this.convertingWorker) {
+      // Look for nearby workers to convert
+      this.findWorkerToConvert()
+    }
+
+    // If we're converting a worker
+    if (this.convertingWorker) {
+      this.productionTimer += delay
+      
+      // Check if conversion is complete
+      if (this.productionTimer >= this.productionCooldown) {
+        this.completeWorkerConversion()
+        this.productionTimer = 0
+        this.convertingWorker = null
+      }
+    }
+  }
+
+  /**
+   * Find a nearby regular worker to convert
+   */
+  findWorkerToConvert() {
+    if (!this.owner) return
+
+    const regularWorker = this.assignedWorkers.find(unit => unit instanceof Peon)
+    if(regularWorker) {
+      const d = distance(
+        regularWorker.currentNode, this
+      )
+
+      if (d < 2) {
+        this.convertingWorker = regularWorker
+      } else {
+        this.convertingWorker = null
+        this.productionTimer = 0
+      }
+      return
+    }
+
+    // Get all the owner's regular workers
+    const regularWorkers = this.owner.getUnits().filter(unit => 
+      unit instanceof Peon && unit.task !== 'assigned' && !(unit instanceof WaterCarrier)
+    )
+
+    // Find the closest worker
+    let closestWorker = null
+    let closestDistance = Infinity
+    let shortestPath = null
+
+    for (const worker of regularWorkers) {
+      const path = searchPath(
+        worker.currentNode.x, 
+        worker.currentNode.y,
+        this.x,
+        this.y
+      )
+      
+      if (path?.length < closestDistance) {
+        closestDistance = path.length
+        shortestPath = path
+        closestWorker = worker
+      }
+    }
+
+    // If we found a close worker
+    if(closestWorker) {
+      // Move the worker to the building
+      closestWorker.assignPath(shortestPath)
+      this.assignedWorkers.push(closestWorker)
+    }
+  }
+
+  /**
+   * Complete worker conversion
+   */
+  completeWorkerConversion() {
+    if (!this.convertingWorker || !this.owner) return
+
+    // Create a water carrier
+    const waterCarrier = this.owner.addWaterCarrier(
+      this.convertingWorker.currentNode.x,
+      this.convertingWorker.currentNode.y,
+      this
+    )
+
+    // Remove the regular worker
+    const assignedWorkerIndex = this.assignedWorkers.indexOf(this.convertingWorker)
+    if (assignedWorkerIndex > -1) {
+      this.assignedWorkers.splice(assignedWorkerIndex, 1)
+    }
+    const workerIndex = this.owner.units.indexOf(this.convertingWorker)
+    if (workerIndex > -1) {
+      this.owner.units.splice(workerIndex, 1)
+    }
   }
 }

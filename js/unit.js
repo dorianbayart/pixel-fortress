@@ -1,5 +1,5 @@
 export {
-  CombatUnit, HumanSoldier, LumberjackWorker, Mage, MeleeUnit, Peon, PeonSoldier, QuarryMiner, RangedUnit, Soldier, Unit, Warrior, WorkerUnit
+  CombatUnit, HumanSoldier, LumberjackWorker, Mage, MeleeUnit, Peon, PeonSoldier, QuarryMiner, RangedUnit, Soldier, Unit, Warrior, WaterCarrier, WorkerUnit
 }
 
 'use strict'
@@ -597,7 +597,6 @@ class LumberjackWorker extends WorkerUnit {
 
 /**
  * Specialized worker for extracting stone from rock
- * Similar to LumberjackWorker but for stone quarrying
  */
 class QuarryMiner extends WorkerUnit {
   constructor(x, y, owner) {
@@ -738,6 +737,179 @@ class QuarryMiner extends WorkerUnit {
       }
     } else {
       // Assigned building has been probably destroyed
+      this.task = 'idle'
+    }
+
+    this.goal = null
+    this.path = null
+  }
+}
+
+/**
+ * Specialized worker for collecting water
+ */
+class WaterCarrier extends WorkerUnit {
+  constructor(x, y, owner) {
+    super(x, y, owner)
+    this.spriteName = 'human-worker-' + this.owner.getColor()
+    this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
+    
+    // Specialized properties
+    this.collectionRate = 0.1 // Water per second
+    this.maxResources = 1
+    this.assignedBuilding = null // Reference to well building
+
+    this.showProgressIndicator = true
+    this.indicatorColor = 0x0088FF // Blue color for water
+
+    this.task = 'collecting'
+    this.timeSinceLastTask = 0
+    this.waterSource = null
+  }
+
+  handleTasks(delay, time) {
+    // Store previous task to detect changes
+    const previousTask = this.task
+    
+    if(this.resources < this.maxResources) {
+      this.task = 'collecting'
+    } else {
+      this.task = 'returning'
+    }
+
+    // If task has changed, clear path to force recalculation
+    if(previousTask !== this.task) {
+      this.path = null
+      this.lastPathUpdate = 0 // Force immediate path recalculation
+    }
+
+    switch(this.task) {
+      case 'collecting':
+        // this.findWaterSource()
+        this.goal = this.assignedBuilding
+        break
+      case 'returning':
+        this.goal = this.findNearestTent()
+        break
+    }
+
+    this.timeSinceLastTask = 0
+  }
+
+  /**
+   * Do action when goal is reached
+   * @param {number} delay - Time elapsed since last update (ms)
+   * @param {number} time - The current time (ms)
+   */
+  goalReached(delay, time) {
+    switch(this.task) {
+      case 'collecting':
+        this.collectWater(delay)
+        break
+      case 'returning':
+        this.depositResources()
+        break
+    }
+  }
+  
+  /**
+   * Find a water source to collect from
+   */
+  findWaterSource() {
+    if (this.goal) return
+    
+    // If we don't have a water source yet, find one
+    if (!this.waterSource) {
+      this.waterSource = this.assignedBuilding?.findNearestWaterTile()
+    }
+    
+    if (this.waterSource) {
+      this.path = searchPath(this.currentNode.x, this.currentNode.y, this.waterSource.x, this.waterSource.y)
+      if (this.path) this.goal = this.waterSource
+    } else {
+      // No water source found, stay idle
+      this.task = 'idle'
+    }
+  }
+  
+  /**
+   * Collect water from a water source
+   */
+  collectWater(delay) {
+    // Calculate how much to collect
+    const amountToCollect = Math.min(
+      this.collectionRate * delay / 1000,
+      this.maxResources - this.resources
+    )
+
+    // Add to worker's carried resources
+    this.resources += amountToCollect
+
+    // Update progress for indicator
+    this.progress = this.resources / this.maxResources
+
+    // Add collection particles (occasionally)
+    if (Math.random() < 0.15) { // 15% chance per frame
+      createParticleEmitter(ParticleEffect.WOOD_HARVEST, {  // Reusing wood harvest particle effect
+        x: this.goal.x * getTileSize() + getTileSize() / 2,
+        y: this.goal.y * getTileSize() + getTileSize() / 2,
+        duration: 800
+      })
+    }
+  }
+
+  /**
+   * Find the nearest tent to return water to
+   * @returns {Object|null} The nearest tent or null if none found
+   */
+  findNearestTent() {
+    const tents = this.assignedBuilding.owner.getTents()
+    
+    // If there's only one tent, return it immediately
+    if (tents.length === 1) {
+      return tents[0]
+    } 
+    // If we have multiple tents, find the nearest one
+    else if (tents.length > 1) {
+      let nearestTent = null
+      let shortestDistance = Infinity
+      
+      for (const tent of tents) {
+        // Calculate path to this tent
+        const path = searchPath(
+          this.currentNode.x, 
+          this.currentNode.y,
+          tent.x,
+          tent.y
+        )
+        
+        // If path exists and is shorter than current shortest
+        if (path && path.length < shortestDistance) {
+          shortestDistance = path.length
+          nearestTent = tent
+        }
+      }
+      
+      // Return nearest tent, or first tent if no path found
+      return nearestTent || tents[0]
+    }
+    
+    return null
+  }
+  
+  /**
+   * Deposit collected water resources
+   */
+  depositResources() {
+    // If we're close to a tent, deposit resources
+    if (this.goal) {
+      if (this.resources > 0) {
+        this.assignedBuilding.owner.addResource('water', this.resources | 0)
+        this.resources = 0
+        this.progress = 0 // Reset progress after depositing
+      }
+    } else {
+      // Tent has been probably destroyed
       this.task = 'idle'
     }
 

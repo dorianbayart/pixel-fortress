@@ -322,7 +322,7 @@ function drawMain(player, AIs) {
     if (unit.showProgressIndicator) {
       let indicator = indicatorMap.get(unit.uid)
       if (!indicator && unit.owner === gameState.humanPlayer) {
-        indicator = createProgressIndicator(unit, 10, unit.indicatorColor || 0x00FF00)
+        indicator = createProgressIndicator(unit, 10, unit.indicatorColor)
       }
       
       updateProgressIndicator(unit, unit.progress || 0)
