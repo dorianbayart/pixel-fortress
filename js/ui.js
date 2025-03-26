@@ -765,6 +765,11 @@ function isValidBuildingPosition(x, y) {
     return gameState.map[x][y].type === 'ROCK';
   }
 
+  // For gold mine, check if it's placed on GOLD tile
+  if (selectedBuildingType === Building.TYPES.GOLD_MINE) {
+    return gameState.map[x][y].type === 'GOLD';
+  }
+
   // For well, check if it's placed next to WATER tile
   if (selectedBuildingType === Building.TYPES.WELL) {
     // Check orthogonal and diagonal neighbors for water

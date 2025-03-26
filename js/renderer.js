@@ -467,7 +467,7 @@ function drawBackground(map) {
 
 
       // Add special effect on Gold tiles
-      if (gameState.map[x]?.[y]?.type === TERRAIN_TYPES.GOLD.type && Math.random() > 0.925) {
+      if (gameState.map[x]?.[y]?.type === TERRAIN_TYPES.GOLD.type && Math.random() > 0.945) {
         // Create sparkle effect
         createParticleEmitter(ParticleEffect.GOLD_SPARKLE, {
           x: x * getTileSize() + getTileSize()/2,

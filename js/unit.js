@@ -1,5 +1,5 @@
 export {
-  CombatUnit, HumanSoldier, LumberjackWorker, Mage, MeleeUnit, Peon, PeonSoldier, QuarryMiner, RangedUnit, Soldier, Unit, Warrior, WaterCarrier, WorkerUnit
+  CombatUnit, GoldMiner, HumanSoldier, LumberjackWorker, Mage, MeleeUnit, Peon, PeonSoldier, QuarryMiner, RangedUnit, Soldier, Unit, Warrior, WaterCarrier, WorkerUnit
 }
 
 'use strict'
@@ -916,6 +916,166 @@ class WaterCarrier extends WorkerUnit {
     if (this.goal) {
       if (this.resources > 0) {
         this.assignedBuilding.owner.addResource('water', this.resources | 0)
+        this.resources = 0
+        this.progress = 0 // Reset progress after depositing
+      }
+    } else {
+      // Tent has been probably destroyed
+      this.task = 'idle'
+    }
+
+    this.goal = null
+    this.path = null
+  }
+}
+
+/**
+ * Specialized worker for extracting gold from gold deposits
+ */
+class GoldMiner extends WorkerUnit {
+  constructor(x, y, owner) {
+    super(x, y, owner)
+    this.spriteName = 'human-worker-' + this.owner.getColor()
+    this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
+    
+    // Specialized properties
+    this.miningRate = 0.1 // Gold per second
+    this.maxResources = 1
+    this.assignedBuilding = null // Reference to gold mine building
+
+    this.showProgressIndicator = true
+    this.indicatorColor = 0xFFD700 // Gold color
+
+    this.task = 'mining'
+    this.timeSinceLastTask = 0
+  }
+
+  handleTasks(delay, time) {
+    // Store previous task to detect changes
+    const previousTask = this.task
+    
+    if(this.resources < this.maxResources) {
+      this.task = 'mining'
+
+      // Hide the miner when mining at the gold mine
+      if (this.isAtGoal() && this.goal === this.assignedBuilding) {
+        this.visible = false
+      }
+    } else {
+      this.task = 'returning'
+
+      // Always make the miner visible when returning
+      this.visible = true
+    }
+
+    // If task has changed, clear path to force recalculation
+    if(previousTask !== this.task) {
+      this.path = null
+      this.lastPathUpdate = 0 // Force immediate path recalculation
+    }
+
+    switch(this.task) {
+      case 'mining':
+        this.goal = this.assignedBuilding
+        break
+      case 'returning':
+        this.goal = this.findNearestTent()
+        break
+    }
+
+    this.timeSinceLastTask = 0
+  }
+
+  /**
+   * Do action when goal is reached
+   * @param {number} delay - Time elapsed since last update (ms)
+   * @param {number} time - The current time (ms)
+   */
+  goalReached(delay, time) {
+    switch(this.task) {
+      case 'mining':
+        this.mine(delay)
+        this.visible = false
+        break
+      case 'returning':
+        this.depositResources()
+        break
+    }
+  }
+  
+  /**
+   * Mine gold from deposit
+   */
+  mine(delay) {
+    // Calculate how much to mine (gold never gets depleted)
+    const amountToMine = Math.min(
+      this.miningRate * delay / 1000,
+      this.maxResources - this.resources
+    )
+
+    // Add to worker's carried resources
+    this.resources += amountToMine
+
+    // Update progress for indicator
+    this.progress = this.resources / this.maxResources
+
+    // Add mining particles (occasionally, not every frame)
+    if (Math.random() < 0.15) { // 15% chance per frame
+      createParticleEmitter(ParticleEffect.GOLD_SPARKLE, {
+        x: this.goal.x * getTileSize() + getTileSize() / 2,
+        y: this.goal.y * getTileSize() + getTileSize() / 2,
+        duration: 800
+      })
+    }
+  }
+
+  /**
+   * Find the nearest tent to return gold to
+   * @returns {Object|null} The nearest tent or null if none found
+   */
+  findNearestTent() {
+    const tents = this.assignedBuilding.owner.getTents()
+    
+    // If there's only one tent, return it immediately
+    if (tents.length === 1) {
+      return tents[0]
+    } 
+    // If we have multiple tents, find the nearest one
+    else if (tents.length > 1) {
+      let nearestTent = null
+      let shortestDistance = Infinity
+      
+      for (const tent of tents) {
+        // Calculate path to this tent
+        const path = searchPath(
+          this.currentNode.x, 
+          this.currentNode.y,
+          tent.x,
+          tent.y
+        )
+        
+        // If path exists and is shorter than current shortest
+        if (path && path.length < shortestDistance) {
+          shortestDistance = path.length
+          nearestTent = tent
+        }
+      }
+      
+      // Return nearest tent, or first tent if no path found
+      return nearestTent || tents[0]
+    }
+    
+    return null
+  }
+  
+  /**
+   * Deposit collected gold resources
+   */
+  depositResources() {
+    // If we're close to a tent, deposit resources
+    if (this.goal) {
+      if (this.resources > 0) {
+        this.assignedBuilding.owner.addResource('gold', this.resources | 0)
         this.resources = 0
         this.progress = 0 // Reset progress after depositing
       }
