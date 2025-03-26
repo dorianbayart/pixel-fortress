@@ -638,7 +638,7 @@ class QuarryMiner extends WorkerUnit {
         this.goal = this.assignedBuilding
         break
       case 'returning':
-        this.goal = this.assignedBuilding.owner.getTents()[0]
+        this.goal = this.findNearestTent()
         break
     }
 
@@ -686,13 +686,51 @@ class QuarryMiner extends WorkerUnit {
       })
     }
   }
-  
+
   /**
    * Deposit collected resources at quarry building
    */
+  findNearestTent() {
+    const tents = this.assignedBuilding.owner.getTents()
+    
+    // If there's only one tent, return it immediately
+    if (tents.length === 1) {
+      return tents[0]
+    } 
+    // If we have multiple tents, find the nearest one
+    else if (tents.length > 1) {
+      let nearestTent = null
+      let shortestDistance = Infinity
+      
+      for (const tent of tents) {
+        // Calculate path to this tent
+        const path = searchPath(
+          this.assignedBuilding.x, 
+          this.assignedBuilding.y,
+          tent.x,
+          tent.y
+        )
+        
+        // If path exists and is shorter than current shortest
+        if (path && path.length < shortestDistance) {
+          shortestDistance = path.length
+          nearestTent = tent
+        }
+      }
+      
+      // Return nearest tent, or first tent if no path found
+      return nearestTent || tents[0]
+    }
+    
+    return null
+  }
+  
+  /**
+   * Deposit collected resources
+   */
   depositResources() {
     // If we're close to the building, deposit resources
-    if (this.assignedBuilding) {
+    if (this.goal) {
       if (this.resources > 0) {
           this.assignedBuilding.owner.addResource('stone', this.resources | 0)
           this.resources = 0
