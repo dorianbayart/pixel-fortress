@@ -314,7 +314,7 @@ function drawMain(player, AIs) {
     }
 
     // Update sprite position and make it visible
-    sprite.visible = true
+    sprite.visible = unit.visible !== false
     sprite.x = unit.x - UNIT_SPRITE_SIZE/4
     sprite.y = unit.y - UNIT_SPRITE_SIZE/4 - 2
 

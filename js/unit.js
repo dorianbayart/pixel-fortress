@@ -66,6 +66,7 @@ class Unit {
     this.nextNode = { x: this.x/SPRITE_SIZE, y: this.y/SPRITE_SIZE }
     this.nextNextNode = { x: this.x/SPRITE_SIZE, y: this.y/SPRITE_SIZE }
     this.angle = -PI/2
+    this.visible = true
 
     // Tasks management
     this.task = 'idle'
@@ -623,14 +624,22 @@ class QuarryMiner extends WorkerUnit {
     
     if(this.resources < this.maxResources) {
       this.task = 'mining'
+
+      // Hide the miner when mining at the quarry
+      if (this.isAtGoal() && this.goal === this.assignedBuilding) {
+        this.visible = false
+      }
     } else {
       this.task = 'returning'
+
+      // Always make the miner visible when returning
+      this.visible = true
     }
 
     // If task has changed, clear path to force recalculation
     if(previousTask !== this.task) {
-      this.path = null;
-      this.lastPathUpdate = 0; // Force immediate path recalculation
+      this.path = null
+      this.lastPathUpdate = 0 // Force immediate path recalculation
     }
 
     switch(this.task) {
@@ -654,6 +663,7 @@ class QuarryMiner extends WorkerUnit {
     switch(this.task) {
       case 'mining':
         this.mine(delay)
+        this.visible = false
         break
       case 'returning':
         this.depositResources()
