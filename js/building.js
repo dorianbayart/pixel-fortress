@@ -170,6 +170,12 @@ class Building {
   }
 
   static create(buildingType, x, y, color, owner) {
+    // Store the original terrain sprite as background if it's grass or sand
+    if (['GRASS', 'SAND'].includes(gameState.map[x][y].type)) {
+      // Save the original sprite as background before replacing it
+      gameState.map[x][y].back = gameState.map[x][y].sprite;
+    }
+    
     let building
     switch (buildingType) {
         case Building.TYPES.LUMBERJACK:
