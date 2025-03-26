@@ -485,27 +485,29 @@ function drawBackground(map) {
 
   // Debug: draw unit paths
   if (DEBUG()) {
-    const debugBatch = new PIXI.Container()
-    
-    if (gameState.humanPlayer) {
-      gameState.humanPlayer.getUnits().forEach((unit) => {
-        for (var i = 1; i < (unit.path || []).length; i++) {
-          const pathTexture = PIXI.Texture.from(offscreenSprite(sprites[spriteCoords_Path.x][spriteCoords_Path.y], SPRITE_SIZE))
-          pathTexture.source.scaleMode = PIXI.SCALE_MODES.NEAREST
-          const pathSprite = new PIXI.Sprite(pathTexture)
-          pathSprite.x = unit.path[i].x * SPRITE_SIZE
-          pathSprite.y = unit.path[i].y * SPRITE_SIZE
-          debugBatch.addChild(pathSprite)
-        }
-      })
-    }
-    
-    containers.debug.removeChildren()
-    containers.debug.addChild(debugBatch)
+    if(Math.random() > 0.5) {
+      const debugBatch = new PIXI.Container()
+      
+      if (gameState.humanPlayer) {
+        gameState.humanPlayer.getUnits().forEach((unit) => {
+          for (var i = 1; i < (unit.path || []).length; i++) {
+            const pathTexture = PIXI.Texture.from(offscreenSprite(sprites[spriteCoords_Path.x][spriteCoords_Path.y], SPRITE_SIZE))
+            pathTexture.source.scaleMode = PIXI.SCALE_MODES.NEAREST
+            const pathSprite = new PIXI.Sprite(pathTexture)
+            pathSprite.x = unit.path[i].x * SPRITE_SIZE
+            pathSprite.y = unit.path[i].y * SPRITE_SIZE
+            debugBatch.addChild(pathSprite)
+          }
+        })
+      }
+      
+      containers.debug.removeChildren()
+      containers.debug.addChild(debugBatch)
 
-    // console.log(`Viewport tiles: ${(endX-startX)*(endY-startY)} of ${MAP_WIDTH*MAP_HEIGHT}`)
-    // console.log(`Background sprites: ${backgroundSpriteMap.size}, Terrain sprites: ${terrainSpriteMap.size}`)
-    console.log(`Background rendering: ${performance.now() - start}ms`)
+      // console.log(`Viewport tiles: ${(endX-startX)*(endY-startY)} of ${MAP_WIDTH*MAP_HEIGHT}`)
+      // console.log(`Background sprites: ${backgroundSpriteMap.size}, Terrain sprites: ${terrainSpriteMap.size}`)
+      // console.log(`Background rendering: ${performance.now() - start}ms`)
+    }
   } else if (containers.debug.children?.length) {
     containers.debug.removeChildren()
   }
