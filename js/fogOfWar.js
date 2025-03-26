@@ -1,9 +1,10 @@
 // js/fogOfWar.js
-export { updateVisibility, initFogOfWar, renderFog, isPositionVisible, isPositionExplored }
+export { initFogOfWar, isPositionExplored, isPositionVisible, renderFog, updateVisibility }
 
 'use strict'
 
 import { getMapDimensions, getTileSize } from 'dimensions'
+import { drawBack } from 'globals'
 import * as PIXI from 'pixijs'
 import { app, containers } from 'renderer'
 import gameState from 'state'
@@ -61,8 +62,9 @@ function initFogOfWar() {
  * @param {boolean} force - Force update regardless of interval
  */
 function updateVisibility(delay, force = false) {
-  fogTime += delay
   lastFogUpdate += delay
+
+  if (!fogGraphics || !fogContainer) return
   
   // Only update at set intervals to save performance
   if (!force && lastFogUpdate < FOG_UPDATE_INTERVAL) {
@@ -123,7 +125,7 @@ function updateVisibility(delay, force = false) {
   }
   
   // Mark that we need to render the fog
-  renderFog(0)
+  renderFog(delay)
 }
 
 /**
@@ -229,6 +231,8 @@ function renderFog(delay) {
       // Completely visible tiles don't need fog
     }
   }
+
+  drawBack()
 }
 
 /**

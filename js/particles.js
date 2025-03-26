@@ -23,6 +23,7 @@ const ParticleEffect = {
   WOOD_HARVEST: 'wood_harvest',
   STONE_MINE: 'stone_mine',
   WATER_COLLECT: 'water_collect',
+  GOLD_SPARKLE: 'gold_sparkle',
   BUILDING_PLACE: 'building_place',
   UNIT_ATTACK: 'unit_attack',
   UNIT_DEATH: 'unit_death',
@@ -84,6 +85,9 @@ function createParticleEmitter(effectType, options = {}) {
       break
     case ParticleEffect.WATER_COLLECT:
       createWaterCollectParticles(emitter)
+      break
+    case ParticleEffect.GOLD_SPARKLE:
+      createGoldSparkleParticles(emitter)
       break
     case ParticleEffect.BUILDING_PLACE:
       createBuildingPlaceParticles(emitter)
@@ -256,6 +260,57 @@ function createWaterCollectParticles(emitter) {
         
         emitter.particles.push(particle)
     }
+}
+
+/**
+ * Create gold collection particles
+ * @param {Object} emitter - The emitter to add particles to
+ */
+function createGoldSparkleParticles(emitter) {
+  const SPRITE_SIZE = getTileSize()
+  const particleCount = 1 + Math.random() * 2 | 0
+  
+  // Gold colors
+  const colors = [0xFFD700, 0xFFA500, 0xDAA520]
+  
+  for (let i = 0; i < particleCount; i++) {
+    // Create a small gold particle
+    const size = (1 + Math.random() * 1) | 0
+    const graphics = new PIXI.Graphics()
+        .rect(0, 0, size, size)
+        .fill({ color: colors[Math.floor(Math.random() * colors.length)] })
+    
+    // Convert to texture
+    const canvas = app.renderer.extract.canvas(graphics)
+    const texture = PIXI.Texture.from(canvas)
+    
+    // Create sprite from texture
+    const sprite = new PIXI.Sprite(texture)
+    sprite.anchor.set(0.5)
+    
+    // Initial position with slight randomization
+    const offsetX = (Math.random() - 0.5) * SPRITE_SIZE / 3
+    const offsetY = (Math.random() - 0.5) * SPRITE_SIZE / 3
+    
+    // Add to container
+    containers.particles.addChild(sprite)
+    
+    // Particle properties - rising gold sparkles
+    const particle = {
+      sprite,
+      x: emitter.x + offsetX,
+      y: emitter.y + offsetY,
+      vx: (Math.random() - 0.5) * 0.5,
+      vy: -0.2 - Math.random() * 0.3, // Slower upward movement
+      gravity: 0.01, // Very light gravity
+      rotation: Math.random() * Math.PI * 2,
+      rotationSpeed: (Math.random() - 0.5) * 0.1,
+      life: 1,
+      decay: 0.01 + Math.random() * 0.01 // Slower decay for longer-lasting particles
+    }
+    
+    emitter.particles.push(particle)
+  }
 }
 
 /**

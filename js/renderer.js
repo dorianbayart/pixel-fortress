@@ -6,8 +6,9 @@ export {
 
 import { getCanvasDimensions, getMapDimensions, getTileSize } from 'dimensions'
 import { isPositionExplored, isPositionVisible } from 'fogOfWar'
+import { TERRAIN_TYPES } from 'game'
 import { DEBUG, backDrawn } from 'globals'
-import { initParticleSystem } from 'particles'
+import { ParticleEffect, createParticleEmitter, initParticleSystem } from 'particles'
 import * as PIXI from 'pixijs'
 import { UNIT_SPRITE_SIZE, offscreenSprite, sprites } from 'sprites'
 import gameState from 'state'
@@ -463,6 +464,18 @@ function drawBackground(map) {
           containers.terrain.addChild(terrainSprite)
       }
       
+
+
+      // Add special effect on Gold tiles
+      if (gameState.map[x]?.[y]?.type === TERRAIN_TYPES.GOLD.type && Math.random() > 0.925) {
+        // Create sparkle effect
+        createParticleEmitter(ParticleEffect.GOLD_SPARKLE, {
+          x: x * getTileSize() + getTileSize()/2,
+          y: y * getTileSize() + getTileSize()/2,
+          duration: 1000
+        })
+      }
+
       // Make sprite visible
       terrainSprite.visible = true
     }

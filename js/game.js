@@ -25,7 +25,8 @@ const ZOOM = {
 
 const TERRAIN_TYPES = {
   WATER: { type: 'WATER', weight: 5, spriteRange: { x: [0, 0], y: [17, 17] } },
-  ROCK: { type: 'ROCK', weight: getMapDimensions().maxWeight, spriteRange: { x: [0, 1], y: [26, 26] } },
+  ROCK: { type: 'ROCK', weight: getMapDimensions().maxWeight, spriteRange: { x: [0], y: [26] } },
+  GOLD: { type: 'GOLD', weight: getMapDimensions().maxWeight, spriteRange: { x: [1], y: [26] } },
   TREE: { type: 'TREE', weight: 1024, spriteRange: { x: [2, 3], y: [26, 27] } },
   DEPLETED_TREE: { type: 'DEPLETED_TREE', weight: 2.5, spriteRange: { x: [1], y: [27] } },
   GRASS: { type: 'GRASS', weight: 1, spriteRange: { x: [0, 2], y: [0, 2] } },
@@ -95,6 +96,7 @@ const generateMap = async () => {
     GRASS_NEXT_TO_WATER: 0.45,
     SAND: 0.47,
     GRASS: 0.56,
+    GOLD: 0.8,
     TREE: 1,
   }
 
@@ -111,6 +113,16 @@ const generateMap = async () => {
         else if (noiseValue < TERRAIN_THRESHOLD.SAND) terrainType = TERRAIN_TYPES.SAND
         else if (noiseValue < TERRAIN_THRESHOLD.GRASS) terrainType = TERRAIN_TYPES.GRASS
         else if (noiseValue < TERRAIN_THRESHOLD.TREE) terrainType = TERRAIN_TYPES.TREE
+
+        if (terrainType.type === 'GRASS') {  // Only place on grass to avoid confusion with actual sand
+          // Use a different offset and scale for secondary noise to get different distribution
+          const goldNoise = (noise.noise((x + 500) * NOISE_SCALE * 3, (y + 500) * NOISE_SCALE * 3) + 1) / 2
+          
+          // Only place gold if secondary noise is above threshold (making it rare)
+          if (goldNoise > TERRAIN_THRESHOLD.GOLD) {
+            terrainType = TERRAIN_TYPES.GOLD
+          }
+        }
 
         if (terrainType.type === 'TREE') {
           gameState.map[x][y] = {
@@ -226,24 +238,21 @@ const assignSpritesOnMap = async () => {
           gameState.map[x][y].sprite = offscreenSprite(sprites[spriteX][spriteY], SPRITE_SIZE)
           gameState.map[x][y].back = offscreenSprite(grassSprite, SPRITE_SIZE)
           break
-        case TERRAIN_TYPES.TREE.type:
-          spriteX = Math.floor(Math.random() * 
-              (terrainType.spriteRange.x[1] - terrainType.spriteRange.x[0] + 1)) + 
-              terrainType.spriteRange.x[0]
-          spriteY = Math.floor(Math.random() * 
-              (terrainType.spriteRange.y[1] - terrainType.spriteRange.y[0] + 1)) + 
-              terrainType.spriteRange.y[0]
+        case TERRAIN_TYPES.ROCK.type:
+          spriteX = terrainType.spriteRange.x[0]
+          spriteY = terrainType.spriteRange.y[0]
           gameState.map[x][y].sprite = offscreenSprite(sprites[spriteX][spriteY], SPRITE_SIZE)
           gameState.map[x][y].back = offscreenSprite(grassSprite, SPRITE_SIZE)
           break
-        case TERRAIN_TYPES.ROCK.type:
-          spriteX = Math.floor(Math.random() * 
-              (terrainType.spriteRange.x[1] - terrainType.spriteRange.x[0] + 1)) + 
-              terrainType.spriteRange.x[0]
-          spriteY = Math.floor(Math.random() * 
-              (terrainType.spriteRange.y[1] - terrainType.spriteRange.y[0] + 1)) + 
-              terrainType.spriteRange.y[0]
-          gameState.map[x][y].sprite = offscreenSprite(sprites[spriteX][spriteY], SPRITE_SIZE)
+        case TERRAIN_TYPES.GOLD.type:
+          spriteX = terrainType.spriteRange.x[0]
+          spriteY = terrainType.spriteRange.y[0]
+          const goldRawCanvas = offscreenSprite(sprites[spriteX][spriteY], SPRITE_SIZE, 'gold_raw')
+          goldRawCanvas.getContext('2d').globalCompositeOperation = 'source-atop'
+          goldRawCanvas.getContext('2d').fillStyle = 'rgba(255, 215, 0, 0.5)' // Gold color with 50% opacity
+          goldRawCanvas.getContext('2d').fillRect(0, 0, SPRITE_SIZE, SPRITE_SIZE)
+          const goldSpriteData = goldRawCanvas.getContext('2d').getImageData(0, 0, SPRITE_SIZE, SPRITE_SIZE)
+          gameState.map[x][y].sprite = offscreenSprite(goldSpriteData, SPRITE_SIZE, 'gold')
           gameState.map[x][y].back = offscreenSprite(grassSprite, SPRITE_SIZE)
           break
         case TERRAIN_TYPES.SAND.type:
@@ -318,7 +327,7 @@ const gameLoop = () => {
   handleMouseInteraction(gameState.map, gameState.humanPlayer)
 
   // Background rendering
-  if(isDrawBackRequested() || now - elapsedBack > 500) {
+  if(isDrawBackRequested() && now - elapsedBack > 40 || now - elapsedBack > 400) {
     elapsedBack = now
     drawBackground(gameState.map)
   }
