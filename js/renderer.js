@@ -278,9 +278,9 @@ function drawMain(player, AIs) {
     const unitTileY = Math.floor(unit.y / SPRITE_SIZE)
 
     if (viewTransform && (
-      unitTileX < viewport.startX && 
-      unitTileX > viewport.endX && 
-      unitTileY < viewport.startY && 
+      unitTileX < viewport.startX || 
+      unitTileX > viewport.endX || 
+      unitTileY < viewport.startY || 
       unitTileY > viewport.endY
     )) {
       // Store the ID so we keep track of it even when not rendered
