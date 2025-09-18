@@ -175,6 +175,15 @@ async function initCanvases() {
   // Reset cached sprite maps
   backgroundSpriteMap.clear()
   terrainSpriteMap.clear()
+  // Clean up unit sprites properly
+  for (const [unitId, sprite] of unitSpriteMap.entries()) {
+    if (containers.units && sprite.parent === containers.units) {
+      containers.units.removeChild(sprite)
+    }
+    if (sprite.destroy) {
+      sprite.destroy()
+    }
+  }
   unitSpriteMap.clear()
 }
 
