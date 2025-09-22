@@ -463,15 +463,17 @@ async function createTopBar() {
   
   // Subscribe to resource changes from human player
   if (gameState.humanPlayer) {
+    if(!gameState.humanPlayer.events?.listeners['resources-changed']?.includes(
+      () => { updateResourceDisplay(gameState.humanPlayer.getResources()) })
+    )
     gameState.humanPlayer.events.on('resources-changed', () => {
       updateResourceDisplay(gameState.humanPlayer.getResources())
     })
   }
   
   // Handle window resize to update positioning
-  gameState.events.on('draw-back-requested-changed', () => {
-    updateTopBarPosition()
-  })
+  if(!gameState.events?.listeners['draw-back-requested-changed']?.includes(updateTopBarPosition))
+  gameState.events.on('draw-back-requested-changed', updateTopBarPosition)
 }
 
 
@@ -537,9 +539,6 @@ async function createBottomBar() {
     e.stopPropagation()
   })
   
-  // Add slots for buildings
-  await createBuildingSlots()
-
   // Create tooltip container (initially hidden)
   createBuildingTooltip()
   
@@ -548,9 +547,11 @@ async function createBottomBar() {
   
   // Subscribe to resource changes from human player
   if (gameState.humanPlayer) {
-    gameState.humanPlayer.events.on('resources-changed', () => {
+    if(gameState.humanPlayer.events?.listeners['resources-changed'].includes(createBuildingSlots)) {
       createBuildingSlots()
-    })
+    } else {
+      gameState.humanPlayer.events.on('resources-changed', createBuildingSlots)
+    }
   }
 }
 
@@ -613,7 +614,7 @@ async function createBuildingSlots() {
 
     const slot = new PIXI.Container()
     slot.position.set(startX + i * (slotSize + padding), 12)
-    slot.alpha = canAfford ? 1 : 0.5
+    slot.alpha = canAfford ? 1 : 0.2
     
     // Store position for tooltip
     buildings[i].slotPosition = { x: slot.position.x, y: slot.position.y }
@@ -659,36 +660,35 @@ async function createBuildingSlots() {
     name.position.set(slotSize / 2 + 7, slotSize - 18)
     slot.addChild(name)
 
-    
-    
     // Make slot interactive
-    slotBg.eventMode = 'static'
-    slotBg.cursor = 'pointer'
-    
+    slot.eventMode = 'static'
+    slot.cursor = canAfford ? 'pointer' : 'not-allowed'
+
     // Store the building data with the slot
     slot.buildingData = buildings[i]
     
     // Add click event
-    slotBg.on('pointerup', (e) => {
+    slot.on('pointerup', (e) => {
       e.stopPropagation()
       handleBuildingSelect(i)
       addButtonSparkles(e)
     })
-    slotBg.on('pointerdown', (e) => {
+
+    slot.on('pointerdown', (e) => {
       e.stopPropagation()  // Prevent event bubbling
     })
     
-    slotBg.on('touchend', (e) => {
+    slot.on('touchend', (e) => {
       e.stopPropagation()  // Prevent event bubbling
       //handleBuildingSelect(i)
     })
 
     // Add hover events for tooltip
-    slotBg.on('pointerover', (e) => {
+    slot.on('pointerover', (e) => {
       e.stopPropagation()
       updateTooltip(buildings[i])
     })
-    slotBg.on('pointerout', (e) => {
+    slot.on('pointerout', (e) => {
       e.stopPropagation()
       hideTooltip()
     })
@@ -723,6 +723,7 @@ function handleBuildingSelect(index) {
   
   // Select new building
   selectedBuildingIndex = index
+
   // Highlight selected building
   const slot = buildingSlots[index]
   slot.getChildAt(0)
