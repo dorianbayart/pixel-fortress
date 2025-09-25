@@ -13,6 +13,7 @@ const offscreenSprites = new Map()
 /** Exposed variables that stores the sprites and their descriptor */
 let sprites, unitsSprites, unitsSpritesDescription
 
+let offscreenSpritesMapCleanupTimout
 
 
 /**
@@ -32,9 +33,9 @@ const offscreenSpritesMapCleanup = () => {
     // Delete the oldest entry - Clean Cache
     offscreenSprites.delete(offscreenSprites.keys().next().value)
   }
-  setTimeout(offscreenSpritesMapCleanup, 1500)
+  if(offscreenSpritesMapCleanupTimout) clearTimeout(offscreenSpritesMapCleanupTimout)
+  offscreenSpritesMapCleanupTimout = setTimeout(offscreenSpritesMapCleanup, 2500)
 }
-offscreenSpritesMapCleanup()
 
 
 /**
@@ -65,6 +66,8 @@ const loadSprites = async () => {
       UNIT_SPRITE_SIZE
     )
   }
+
+  offscreenSpritesMapCleanup()
 }
 
 const loadAndSplitImage = (url, spriteSize) => {
