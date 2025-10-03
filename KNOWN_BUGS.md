@@ -4,7 +4,7 @@
 
 
 
-[ ] sprite animation is broken when using Reset Map
+[ ] sprite animation is broken during combat
 
 [ ] UI on mobile is not working properly
 
