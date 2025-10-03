@@ -552,7 +552,7 @@ class Mouse {
     const canvasHeight = app.renderer.height
     
     // Calculate zoom
-    const zoomForPortion = Math.min(canvasWidth / mapPixelWidth, canvasHeight / mapPixelHeight)
+    const zoomForPortion = Math.min(canvasWidth / mapPixelWidth, canvasHeight / mapPixelHeight) * 1.66
     
     // Ensure zoom is within reasonable bounds
     return Math.min(Math.max(zoomForPortion, ZOOM.MIN), ZOOM.MAX)
