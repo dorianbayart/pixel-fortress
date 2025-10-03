@@ -134,7 +134,7 @@ class Unit {
 
     if(!this.goal) return
 
-    if(distance(this.currentNode, this.goal.currentNode ?? this.goal) > (this.range + 0.25) / getTileSize()) {
+    if(distance(this.currentNode, this.goal.currentNode ? { x: this.goal.x / getTileSize(), y: this.goal.y / getTileSize() } : this.goal) > (this.range + 0.25) / getTileSize()) {
       this.updatePath(delay, time)
     } else {
       this.goalReached(delay, time)
@@ -316,7 +316,7 @@ class Unit {
     let vy = this.speed * (delay/1000) * Math.sin(theta) * speedFactor * SPRITE_SIZE
 
     let type = 'static'
-    if (distance(this.currentNode, this.goal) <= (this.range + 0.25)/getTileSize()) {
+    if (distance(this.currentNode, this.goal?.currentNode ? { x: this.goal.x / getTileSize(), y: this.goal.y / getTileSize() } : this.goal) <= (this.range + 0.25)/getTileSize()) {
       // Stop walking if arrived at goal
       vx = vy = 0
     }
