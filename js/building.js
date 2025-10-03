@@ -143,6 +143,15 @@ class Building {
     gameState.map[x][y].weight = Building.WEIGHT
     gameState.map[x][y].type = 'BUILDING'
   }
+
+  /**
+   * Properly cleanup object
+   */
+  destroy() {
+    if (indicatorMap?.has(this.uid)) {
+      removeProgressIndicator(this.uid)
+    }
+  }
   
   /**
    * Update building state
@@ -154,9 +163,8 @@ class Building {
       gameState.map[x][y].weight = 1
       gameState.map[x][y].type = 'GRASS'
 
-      if (indicatorMap?.has(this.uid)) {
-        removeProgressIndicator(this.uid)
-      }
+      // Cleanup
+      this.destroy()
 
       // Create destroyed particles
       createParticleEmitter(ParticleEffect.UNIT_DEATH, {

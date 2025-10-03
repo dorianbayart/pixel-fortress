@@ -40,6 +40,13 @@ class EventSystem {
       this.listeners[event].forEach(callback => callback(data))
     }
   }
+
+  /**
+   * Reset all listeners
+   */
+  removeAllListeners() {
+    this.listeners = {}
+  }
 }
 
 /**

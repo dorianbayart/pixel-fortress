@@ -314,7 +314,7 @@ const gameLoop = () => {
     return
   }
 
-  if(gameState.gameStatus === 'menu') {
+  if(gameState.gameStatus === 'menu' || gameState.gameStatus === 'initialize') {
     return
   }
 

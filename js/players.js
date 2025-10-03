@@ -37,8 +37,22 @@ class Player {
   }
 
   clear() {
-    this.units = null
-    this.buildings = null
+    if (this.units) {
+      this.units.forEach(unit => {
+        unit.destroy()
+      })
+      this.units = []
+    }
+    if (this.buildings) {
+      this.buildings.forEach(building => {
+        building.destroy()
+      })
+      this.buildings = []
+    }
+
+    if (this.events) {
+      this.events.removeAllListeners()
+    }
   }
 
   getUnits() {

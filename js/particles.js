@@ -30,19 +30,35 @@ const ParticleEffect = {
   UI_BUTTON_CLICK: 'ui_button_click'
 }
 
+
+export function cleanupParticleSystem() {
+  // Destroy active particles
+  activeEmitters?.forEach(emitter => {
+    emitter.particles?.forEach(particle => {
+      if (particle.sprite?.parent) {
+        particle.sprite.parent.removeChild(particle.sprite)
+      }
+      if (particle.sprite?.destroy) {
+        particle.sprite.destroy({ texture: true, baseTexture: true })
+      }
+    })
+    emitter.particles = []
+  })
+  activeEmitters.clear()
+  
+  // Cleanup container
+  containers.particles?.removeChildren()
+}
+
 /**
  * Initialize particle system
  */
 export function initParticleSystem() {
   // Clear any existing particles
-  activeEmitters.clear()
+  cleanupParticleSystem()
   
-  // Create particle container if needed
-  if (containers.particles) {
-    containers.particles.removeChildren()
-  } else {
-    containers.particles = new PIXI.Container()
-  }
+  // Create particle container
+  containers.particles = new PIXI.Container()
   
   // Add particle container to stage (between units and UI)
   if (app?.stage) {
@@ -569,8 +585,11 @@ function updateAllParticles(delay) {
     if (emitter.age >= emitter.duration) {
       // Clean up remaining particles
       for (const particle of emitter.particles) {
-        if (particle.sprite.parent) {
+        if (particle.sprite?.parent) {
           particle.sprite.parent.removeChild(particle.sprite)
+        }
+        if (particle.sprite?.destroy) {
+          particle.sprite.destroy({ texture: true, baseTexture: true })
         }
       }
       activeEmitters.delete(emitter)

@@ -32,14 +32,19 @@ function initFogOfWar() {
   fogGrid = Array(width).fill().map(() => Array(height).fill(1)) // 1 = fully fogged
   exploredGrid = Array(width).fill().map(() => Array(height).fill(false)) // false = not explored
   
-  // Create fog container
+  // Cleanup fog container
   if (fogContainer) {
-    containers.ui.removeChild(fogContainer)
+    containers.ui?.removeChild(fogContainer)
+    fogContainer.destroy({ children: true })
   }
-  
+  // Create fog container
   fogContainer = new PIXI.Container()
   fogContainer.sortableChildren = true
   
+  // Cleanup fog graphics if any
+  if (fogGraphics) {
+    fogGraphics.destroy(!!fogGraphics.context)
+  }
   // Create fog graphics object
   fogGraphics = new PIXI.Graphics()
   fogContainer.addChild(fogGraphics)

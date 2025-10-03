@@ -96,6 +96,19 @@ class Unit {
   }
 
   /**
+   * Properly cleanup object
+   */
+  destroy() {
+    this.path = null
+    this.goal = null
+    this.sprite = null
+    
+    if (indicatorMap?.has(this.uid)) {
+      removeProgressIndicator(this.uid)
+    }
+  }
+
+  /**
    * Update unit state
    * @param {number} delay - Time elapsed since last update (ms)
    */
@@ -105,12 +118,7 @@ class Unit {
 
     if(this.life <= 0) {
       // Cleanup unit
-      this.path = null
-      this.sprite = null
-
-      if (indicatorMap?.has(this.uid)) {
-        removeProgressIndicator(this.uid)
-      }
+      this.destroy()
 
       // Create death particles
       createParticleEmitter(ParticleEffect.UNIT_DEATH, {

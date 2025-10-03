@@ -313,7 +313,7 @@ function updateUI(fps) {
   const now = performance.now()
 
   // Only update UI when necessary
-  if ((DEBUG() && now - elapsedUI > 200)) {
+  if ((DEBUG() && now - elapsedUI > 500)) {
     drawUI(fps)
     elapsedUI = now
   }
@@ -327,8 +327,8 @@ function drawUI(fps) {
   // Update debug stats text
   if (DEBUG()) {
     const currentFps = (1000 * fps.length / fps.reduce((res, curr) => res + curr, 0)).toFixed(1)
-    const unitsCount = gameState.humanPlayer.getUnits().length
-    const aiUnitsCount = gameState.aiPlayers.reduce((sum, ai) => sum + ai.getUnits().length, 0)
+    const unitsCount = gameState.humanPlayer?.getUnits().length
+    const aiUnitsCount = gameState.aiPlayers?.reduce((sum, ai) => sum + ai.getUnits().length, 0)
     const viewTransform = mouse.getViewTransform()
 
     const { width: MAP_WIDTH, height: MAP_HEIGHT } = getMapDimensions()
@@ -339,7 +339,7 @@ function drawUI(fps) {
       `Game Status: ${gameState.gameStatus}`,
       `Units: ${unitsCount} human, ${aiUnitsCount} AI`,
       `Mouse: ${mouse.x}x${mouse.y} (${mouse.worldX.toFixed(0)}, ${mouse.worldY.toFixed(0)})${mouse.isDragging ? ' | clic' : ''}`,
-      `Zoom: ${viewTransform.scale.toFixed(2)}x`,
+      `Zoom: ${viewTransform.scale?.toFixed(2)}x`,
       `World: ${MAP_WIDTH}x${MAP_HEIGHT} (${MAP_WIDTH*SPRITE_SIZE}x${MAP_HEIGHT*SPRITE_SIZE})`,
 
       `Cached sprites: ${offscreenSpritesSize()}`,

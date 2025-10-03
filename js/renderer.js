@@ -128,7 +128,6 @@ async function initCanvases() {
       if (container) {
         for (const subcontainer of Object.values(container)) {
           if (subcontainer) {
-            console.log(subcontainer)
             // Remove all children but keep the container itself
             if(subcontainer.removeChildren && subcontainer.children) subcontainer.removeChildren()
             //if(subcontainer.destroy) subcontainer.destroy()
