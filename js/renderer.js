@@ -655,8 +655,15 @@ function updateProgressIndicator(entity, progress) {
   // Position above entity (different for units vs buildings)
   if (entity.currentNode) {
     // Unit
-    indicator.x = entity.x + 3
-    indicator.y = entity.y - 8
+    if (entity.assignedBuilding && !entity.visible) {
+      // Unit is hidden in a building, position indicator on the building
+      indicator.x = entity.assignedBuilding.x * SPRITE_SIZE + SPRITE_SIZE/4 - 1
+      indicator.y = entity.assignedBuilding.y * SPRITE_SIZE - 5
+    } else {
+      // Unit is visible, position indicator on the unit
+      indicator.x = entity.x + 3
+      indicator.y = entity.y - 8
+    }
   } else {
     // Building
     indicator.x = entity.x * SPRITE_SIZE + SPRITE_SIZE/4 - 1
