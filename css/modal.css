@@ -61,7 +61,7 @@
   overflow: auto;
   background-color: rgba(0, 0, 0, 0.7);
   opacity: 0;
-  transition: opacity 750ms ease-in-out;
+  transition: opacity 0.4s ease-in-out;
   font-size: max(1.75dvh, 13px);
 }
 
