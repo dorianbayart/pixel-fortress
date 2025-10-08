@@ -20,7 +20,7 @@ let app = null
 // Containers for organizing display objects
 const containers = {
   background: null,
-  terrain: null,
+  world: null, // For all depth-sorted game objects (units, buildings, trees, etc.)
   units: null,
   particles: null,
   indicators: null,
@@ -31,7 +31,7 @@ const containers = {
 const indicatorMap = new Map()
 const unitSpriteMap = new Map()
 const backgroundSpriteMap = new Map()
-const terrainSpriteMap = new Map()
+const worldObjectSpriteMap = new Map()
 
 // Sprite coordinates for special tiles
 let spriteCoords_Start = { x: 21, y: 5 }
@@ -150,18 +150,19 @@ async function initCanvases() {
   
   // Set up containers for organizing content
   containers.background = new PIXI.Container()
-  containers.terrain = new PIXI.Container()
-  containers.units = new PIXI.Container()
+  containers.world = new PIXI.Container() // All units, buildings, and trees will go here
   containers.particles = new PIXI.Container()
   containers.indicators = new PIXI.Container()
   containers.ui = new PIXI.Container()
   containers.debug = new PIXI.Container()
+
+  // Enable sorting on the world container
+  containers.world.sortableChildren = true
   
   // Add containers to stage in the correct order
   app.stage.addChild(containers.background)
-  app.stage.addChild(containers.terrain)
-  app.stage.addChild(containers.debug)
-  app.stage.addChild(containers.units)
+  app.stage.addChild(containers.debug) // Debug paths should be above background but below world objects
+  app.stage.addChild(containers.world)
   app.stage.addChild(containers.particles)
   app.stage.addChild(containers.indicators)
   app.stage.addChild(containers.ui)
@@ -173,7 +174,7 @@ async function initCanvases() {
 
   // Reset cached sprite maps
   backgroundSpriteMap.clear()
-  terrainSpriteMap.clear()
+  worldObjectSpriteMap.clear()
   // Clean up unit sprites properly
   for (const [unitId, sprite] of unitSpriteMap.entries()) {
     if (containers.units && sprite.parent === containers.units) {
@@ -312,30 +313,31 @@ function drawMain(player, AIs) {
 
     currentEntityIds.add(entity.uid)
 
-    // --- Sprite Handling (for units only, buildings are part of terrain) ---
+    // --- Sprite Handling (for units only) ---
     if (isUnit) {
       let sprite = unitSpriteMap.get(entity.uid)
 
       if (sprite && !isSpriteValid(sprite)) {
-        containers.units.removeChild(sprite)
+        containers.world.removeChild(sprite) // Remove from world container
         unitSpriteMap.delete(entity.uid)
         sprite = null
       }
 
       if (!sprite || sprite.textureKey !== entity.sprite.uid) {
         if (sprite) {
-          containers.units.removeChild(sprite)
+          containers.world.removeChild(sprite) // Remove from world container
         }
         const texture = PIXI.Texture.from(entity.sprite)
         sprite = getCachedSprite(texture, entity.sprite.uid)
         sprite.textureKey = entity.sprite.uid
         unitSpriteMap.set(entity.uid, sprite)
-        containers.units.addChild(sprite)
+        containers.world.addChild(sprite) // Add directly to world container
       }
 
       sprite.visible = entity.visible !== false
       sprite.x = entity.x - UNIT_SPRITE_SIZE/4
       sprite.y = entity.y - UNIT_SPRITE_SIZE/4 - 2
+      sprite.zIndex = sprite.y + UNIT_SPRITE_SIZE // Set zIndex for sorting based on the visual bottom of the unit sprite
     }
 
     // --- Progress Indicator Handling (for both units and buildings) ---
@@ -356,7 +358,7 @@ function drawMain(player, AIs) {
   // Remove sprites for units that no longer exist
   for (const [unitId, sprite] of unitSpriteMap.entries()) {
     if (!currentEntityIds.has(unitId)) {
-        containers.units.removeChild(sprite)
+        containers.world.removeChild(sprite)
         unitSpriteMap.delete(unitId)
     }
   }
@@ -390,7 +392,7 @@ function drawBackground(map) {
 
   // Sets to track sprites that should be visible this frame
   const visibleBackgroundSprites = new Set()
-  const visibleTerrainSprites = new Set()
+  const visibleWorldObjectSprites = new Set()
 
   // Get current viewport from the mouse
   const viewTransform = gameState.UI?.mouse?.getViewTransform()
@@ -413,32 +415,26 @@ function drawBackground(map) {
       }
 
       const tileKey = map[x][y].uid
+      const tileType = map[x][y].type
+      const isWorldObject = ['TREE', 'DEPLETED_TREE', 'ROCK', 'GOLD', 'BUILDING'].includes(tileType)
 
       // Draw background (grass under objects)
       if (map[x][y].back) {
         const backKey = tileKey * 10 | 0
         visibleBackgroundSprites.add(backKey)
 
-        // Get existing sprite or create a new one
         let backSprite = backgroundSpriteMap.get(backKey)
 
-        // Check if sprite is still valid (textures may be GC'd on mobile)
         if (backSprite && !isSpriteValid(backSprite)) {
-          // Sprite is no longer valid, remove it
           containers.background.removeChild(backSprite)
           backgroundSpriteMap.delete(backKey)
           backSprite = null
         }
 
         if (!backSprite || backSprite.textureKey !== map[x][y].back.uid) {
-          // Remove old sprite if texture changed
           if (backSprite) {
               containers.background.removeChild(backSprite)
-              backgroundSpriteMap.delete(backKey)
-              backSprite = null
           }
-          
-          // Create new sprite
           const backTexture = PIXI.Texture.from(map[x][y].back)
           backSprite = getCachedSprite(backTexture, map[x][y].back.uid)
           backSprite.textureKey = map[x][y].back.uid
@@ -447,55 +443,69 @@ function drawBackground(map) {
           backgroundSpriteMap.set(backKey, backSprite)
           containers.background.addChild(backSprite)
         }
-
-        // Make sprite visible
         backSprite.visible = true
       }
 
-      // Handle terrain sprites (main tile visuals)
-      visibleTerrainSprites.add(tileKey)
+      // Handle terrain sprites
+      if (isWorldObject) {
+        // This is a tree, rock, or building - add it to the sortable world container
+        visibleWorldObjectSprites.add(tileKey)
+        let worldSprite = worldObjectSpriteMap.get(tileKey)
 
-      // Get existing sprite or create a new one
-      let terrainSprite = terrainSpriteMap.get(tileKey)
-
-      // Check if sprite is still valid (textures may be GC'd on mobile)
-      if (terrainSprite && !isSpriteValid(terrainSprite)) {
-        // Sprite is no longer valid, remove it
-        containers.terrain.removeChild(terrainSprite)
-        terrainSpriteMap.delete(tileKey)
-        terrainSprite = null
-      }
+        if (worldSprite && !isSpriteValid(worldSprite)) {
+          containers.world.removeChild(worldSprite)
+          worldObjectSpriteMap.delete(tileKey)
+          worldSprite = null
+        }
         
-      if (!terrainSprite || terrainSprite.textureKey !== map[x][y].sprite.uid) {
-          // Remove old sprite if texture changed
-          if (terrainSprite) {
-              containers.terrain.removeChild(terrainSprite)
-          }
-          
-          // Create new sprite
-          const terrainTexture = PIXI.Texture.from(map[x][y].sprite)
-          terrainSprite = getCachedSprite(terrainTexture, map[x][y].sprite.uid)
-          terrainSprite.textureKey = map[x][y].sprite.uid
-          terrainSprite.x = x * SPRITE_SIZE
-          terrainSprite.y = y * SPRITE_SIZE
-          terrainSpriteMap.set(tileKey, terrainSprite)
-          containers.terrain.addChild(terrainSprite)
-      }
-      
+        if (!worldSprite || worldSprite.textureKey !== map[x][y].sprite.uid) {
+            if (worldSprite) {
+                containers.world.removeChild(worldSprite)
+            }
+            const texture = PIXI.Texture.from(map[x][y].sprite)
+            worldSprite = getCachedSprite(texture, map[x][y].sprite.uid)
+            worldSprite.textureKey = map[x][y].sprite.uid
+            worldSprite.x = x * SPRITE_SIZE
+            worldSprite.y = y * SPRITE_SIZE
+            worldSprite.zIndex = worldSprite.y + map[x][y].sprite.height // Set zIndex based on visual bottom
+            worldObjectSpriteMap.set(tileKey, worldSprite)
+            containers.world.addChild(worldSprite)
+        }
+        worldSprite.visible = true
+      } else {
+        // This is flat ground - add it to the non-sorted background container
+        visibleBackgroundSprites.add(tileKey)
+        let backSprite = backgroundSpriteMap.get(tileKey)
 
+        if (backSprite && !isSpriteValid(backSprite)) {
+          containers.background.removeChild(backSprite)
+          backgroundSpriteMap.delete(tileKey)
+          backSprite = null
+        }
+        
+        if (!backSprite || backSprite.textureKey !== map[x][y].sprite.uid) {
+            if (backSprite) {
+                containers.background.removeChild(backSprite)
+            }
+            const texture = PIXI.Texture.from(map[x][y].sprite)
+            backSprite = getCachedSprite(texture, map[x][y].sprite.uid)
+            backSprite.textureKey = map[x][y].sprite.uid
+            backSprite.x = x * SPRITE_SIZE
+            backSprite.y = y * SPRITE_SIZE
+            backgroundSpriteMap.set(tileKey, backSprite)
+            containers.background.addChild(backSprite)
+        }
+        backSprite.visible = true
+      }
 
       // Add special effect on Gold tiles
       if (gameState.map[x]?.[y]?.type === TERRAIN_TYPES.GOLD.type && Math.random() > 0.945) {
-        // Create sparkle effect
         createParticleEmitter(ParticleEffect.GOLD_SPARKLE, {
           x: x * getTileSize() + getTileSize()/2,
           y: y * getTileSize() + getTileSize()/2,
           duration: 1000
         })
       }
-
-      // Make sprite visible
-      terrainSprite.visible = true
     }
   }
 
@@ -509,34 +519,28 @@ function drawBackground(map) {
   // Hide or remove background sprites outside viewport
   for (const [key, sprite] of backgroundSpriteMap.entries()) {
       if (!visibleBackgroundSprites.has(key)) {
-          // Extract coordinates from key (format: (y * MAP_WIDTH + x) * 10)
           const y = Math.floor(key / 10 / width)
           const x = (key / 10) % width
           
-          // If sprite is far from viewport, remove it to save memory
           if (x < farStartX || x >= farEndX || y < farStartY || y >= farEndY) {
               containers.background.removeChild(sprite)
               backgroundSpriteMap.delete(key)
           } else {
-              // Just hide sprites near viewport (for quick reuse when scrolling)
               sprite.visible = false
           }
       }
   }
   
-  // Hide or remove terrain sprites outside viewport
-  for (const [key, sprite] of terrainSpriteMap.entries()) {
-      if (!visibleTerrainSprites.has(key)) {
-          // Extract coordinates from key (format: y * MAP_WIDTH + x)
+  // Hide or remove world object sprites outside viewport
+  for (const [key, sprite] of worldObjectSpriteMap.entries()) {
+      if (!visibleWorldObjectSprites.has(key)) {
           const y = Math.floor(key / width)
           const x = key % width
           
-          // If sprite is far from viewport, remove it to save memory
           if (x < farStartX || x >= farEndX || y < farStartY || y >= farEndY) {
-              containers.terrain.removeChild(sprite)
-              terrainSpriteMap.delete(key)
+              containers.world.removeChild(sprite)
+              worldObjectSpriteMap.delete(key)
           } else {
-              // Just hide sprites near viewport (for quick reuse when scrolling)
               sprite.visible = false
           }
       }
@@ -562,10 +566,6 @@ function drawBackground(map) {
       
       containers.debug.removeChildren()
       containers.debug.addChild(debugBatch)
-
-      // console.log(`Viewport tiles: ${(endX-startX)*(endY-startY)} of ${MAP_WIDTH*MAP_HEIGHT}`)
-      // console.log(`Background sprites: ${backgroundSpriteMap.size}, Terrain sprites: ${terrainSpriteMap.size}`)
-      // console.log(`Background rendering: ${performance.now() - start}ms`)
     }
   } else if (containers.debug.children?.length) {
     containers.debug.removeChildren()
@@ -584,17 +584,14 @@ function updateZoom() {
   // Apply transformations to all containers that should be affected by zoom/pan
   const containersToTransform = [
     containers.background,
-    containers.terrain,
-    containers.units,
+    containers.world, // The new world container handles all sorted objects
     containers.indicators,
     containers.debug
   ];
   
   // Apply scale to each container
   containersToTransform.forEach(container => {
-    // Reset transformations
-    //container.setTransform(0, 0, 1, 1, 0, 0, 0, 0, 0);
-    
+    if (!container) return;
     // Apply new scale and position
     container.scale.set(viewTransform.scale, viewTransform.scale)
     
@@ -610,7 +607,6 @@ function updateZoom() {
   updateViewport(viewTransform)
   
   // UI container shouldn't be affected by zoom/pan (for cursor and HUD)
-  // We could leave it as is, but if we want to scale UI elements differently:
   containers.ui.scale.set(1, 1)
   containers.ui.position.set(0, 0)
 }

@@ -61,13 +61,9 @@ export function initParticleSystem() {
   // Clear any existing particles
   cleanupParticleSystem()
   
-  // Create particle container
-  containers.particles = new PIXI.Container()
-  
-  // Add particle container to stage (between units and UI)
-  if (app?.stage) {
-    const index = app.stage.getChildIndex(containers.units) + 1
-    app.stage.addChildAt(containers.particles, index)
+  // Ensure the container is empty, but don't re-create it or add it to stage
+  if (containers.particles) {
+    containers.particles.removeChildren()
   }
 }
 
