@@ -634,8 +634,9 @@ function updateAllParticles(delay) {
   // Skip if game is paused
   if (gameState.gameStatus !== 'playing' && gameState.gameStatus !== 'menu') return
   
-  // Get view transform for culling
+  // Get view transform and dimensions for culling
   const viewTransform = gameState.UI?.mouse?.getViewTransform()
+  const { width: canvasWidth, height: canvasHeight } = getCanvasDimensions()
   
   // Update each emitter
   for (const emitter of activeEmitters) {
@@ -685,6 +686,21 @@ function updateAllParticles(delay) {
         emitter.particles.splice(i, 1)
         continue
       }
+
+      // Culling logic
+      if (viewTransform && !particle.uiParticle) {
+        const screenX = (particle.x - viewTransform.x) * viewTransform.scale
+        const screenY = (particle.y - viewTransform.y) * viewTransform.scale
+        
+        // Check if particle is outside the viewport (with a small buffer)
+        if (screenX < -2 || screenX > canvasWidth + 2 || screenY < -2 || screenY > canvasHeight + 2) {
+          particle.sprite.visible = false
+          continue // Skip rendering updates for offscreen particles
+        }
+      }
+      
+      // Ensure particle is visible if it's onscreen
+      particle.sprite.visible = true
       
       // Update sprite
       particle.sprite.position.set(particle.x, particle.y)
