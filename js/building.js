@@ -159,17 +159,17 @@ class Building {
    */
   update(delay) {
     if(this.health <= 0) {
-      gameState.map[x][y].uid = null
-      gameState.map[x][y].weight = 1
-      gameState.map[x][y].type = 'GRASS'
+      gameState.map[this.x][this.y].uid = null
+      gameState.map[this.x][this.y].weight = 1
+      gameState.map[this.x][this.y].type = 'GRASS'
 
       // Cleanup
       this.destroy()
 
       // Create destroyed particles
       createParticleEmitter(ParticleEffect.UNIT_DEATH, {
-        x: x * getTileSize() + getTileSize()/2,
-        y: y * getTileSize() + getTileSize()/2,
+        x: this.x * getTileSize() + getTileSize()/2,
+        y: this.y * getTileSize() + getTileSize()/2,
         duration: 1000
       })
 

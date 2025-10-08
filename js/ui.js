@@ -1,5 +1,5 @@
 export {
-  handleMouseInteraction, initUI, mouse, setupEventListeners, setupGameMenuEventListeners, showDebugMessage, updateUI
+  handleMouseInteraction, initUI, mouse, setupEventListeners, setupGameMenuEventListeners, showDebugMessage, showModal, updateUI
 }
   
 'use strict'
@@ -77,7 +77,7 @@ async function initUI(mouseInstance) {
         selectedBuildingIndex = -1
       } else if (status === 'menu') {
         // Remove preview sprite if it exists
-        if (buildingPreviewSprite && buildingPreviewSprite.parent) {
+        if (buildingPreviewSprite?.parent) {
           buildingPreviewSprite.parent.removeChild(buildingPreviewSprite)
           buildingPreviewSprite = null
         }
@@ -1113,4 +1113,57 @@ const showDebugMessage = async (message) => {
   setTimeout(() => {
       document.body.removeChild(debugElement)
   }, 3000)
+}
+
+/**
+ * Show a generic modal with a title, message, and a close button.
+ * @param {string} title - The title of the modal.
+ * @param {string} message - The message content of the modal.
+ * @param {string} gameStatus - The game status during opened modal.
+ * @param {string} destinationStatus - The after close new game status.
+ * @param {Function} onCloseCallback - Callback function to execute when the modal is closed.
+ */
+function showModal(title, message, gameStatus, destinationStatus, onCloseCallback) {
+  // Pause the game
+  gameState.gameStatus = gameStatus
+
+  const modalSection = document.getElementById('genericModalSection')
+  const modalTitle = document.getElementById('genericModalTitle')
+  const modalMessage = document.getElementById('genericModalMessage')
+  const genericCloseButton = document.getElementById('genericModalCloseButton')
+  const closeButton = document.getElementById('modalCloseButton')
+
+  modalTitle.textContent = title
+  modalMessage.textContent = message
+
+  // Ensure previous listeners are removed to prevent multiple calls
+  const newCloseHandler = (event) => {
+    event.stopPropagation()
+    closeModal(destinationStatus)
+    if (onCloseCallback) {
+      onCloseCallback()
+    }
+    genericCloseButton.removeEventListener('click', newCloseHandler)
+    closeButton.removeEventListener('click', newCloseHandler)
+  }
+  genericCloseButton.addEventListener('click', newCloseHandler)
+  closeButton.addEventListener('click', newCloseHandler)
+
+  modalSection.style.display = 'block'
+  setTimeout(() => {
+    modalSection.classList.add('show')
+  }, 20)
+}
+
+/**
+ * Close the generic modal and resume the game.
+ */
+function closeModal(destination) {
+  const modalSection = document.getElementById('genericModalSection')
+  modalSection.classList.remove('show')
+
+  setTimeout(() => {
+    modalSection.style.display = 'none'
+    gameState.gameStatus = destination ?? 'playing'
+  }, 500)
 }

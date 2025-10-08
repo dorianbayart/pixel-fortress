@@ -4,6 +4,9 @@ export { DEBUG, backDrawn, drawBack, isDrawBackRequested, toggleDebug }
 
 import gameState from 'state'
 
+// Temporary: Expose gameState for debugging
+// window.gameState = gameState
+
 /****************/
 /*  DEBUG MODE  */
 /****************/

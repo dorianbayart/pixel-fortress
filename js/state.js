@@ -72,7 +72,7 @@ class GameState {
     this._map = null
     
     // Game status
-    this._gameStatus = 'menu' // 'menu', 'initialize', 'playing', 'paused', 'gameOver'
+    this._gameStatus = 'menu' // 'menu', 'initialize', 'playing', 'paused', 'gameOver', 'win'
     
     // Game settings
     this._settings = {
@@ -230,7 +230,7 @@ class GameState {
   }
 
   set gameStatus(status) {
-    if (['menu', 'initialize', 'playing', 'paused', 'gameOver'].includes(status)) {
+    if (['menu', 'initialize', 'playing', 'paused', 'gameOver', 'win'].includes(status)) {
       console.log(status)
       const oldStatus = this._gameStatus
       this._gameStatus = status

@@ -16,7 +16,7 @@ Details: Buildings generate worker units (gather resources) and combat units (at
 - [x] **Enemy Spawning:** Generate enemies that move towards the player's base.
 - [x] **Combat:** Implement combat AI for units.  
 Details: Combat units automatically engage and attack enemy units and buildings.
-- [ ] **Game Over Condition:** Handling game over scenarios (base health reaches zero). *(Not Planned)*
+- [ ] **Game Over Condition:** Handling game over scenarios (base health reaches zero).
 - [ ] **AI Opponent:** Implement AI opponent with automated unit management. *(Not Planned)*  
 Details: The AI builds structures and manages units similarly to the player.
 - [ ] **Tower Placement:** Allow players to strategically place towers. *(Not Planned)*

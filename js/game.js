@@ -12,7 +12,7 @@ import { Player, PlayerType } from 'players'
 import { drawBackground, drawMain } from 'renderer'
 import { offscreenSprite, sprites } from 'sprites'
 import gameState from 'state'
-import { handleMouseInteraction, updateUI } from 'ui'
+import { handleMouseInteraction, updateUI, showModal } from 'ui'
 import { PerlinNoise } from 'utils'
 
 // Zoom configuration
@@ -314,8 +314,8 @@ const gameLoop = () => {
     return
   }
 
-  if(gameState.gameStatus === 'menu' || gameState.gameStatus === 'initialize') {
-    return
+  if(['menu', 'initialize', 'gameOver', 'win'].includes(gameState.gameStatus)) {
+    return // Stop the game loop
   }
 
   // Handle keyboard movement
@@ -343,11 +343,23 @@ const gameLoop = () => {
   const timingStart = performance.now()
   if(gameState.humanPlayer) gameState.humanPlayer.update(delay, gameState.map)
   const timing = performance.now() - timingStart
+
+  // Check for game over condition
+  if (gameState.humanPlayer.getTents().length === 0) {
+    showModal('Game Over', 'Your main building has been destroyed !', 'gameOver', 'menu', () => {})
+    return // Stop the game loop
+  }
   
   // Update AI players
   gameState.aiPlayers.forEach(ai => {
     ai.update(delay, gameState.map)
   })
+
+  // Check for win condition
+  if (!gameState.aiPlayers.some(ai => ai.getTents().length)) {
+    showModal('You Win !', 'You destroyed your opponent\'s main building ! Congrats !', 'win', 'menu', () => {})
+    return // Stop the game loop
+  }
 
   // Update particles
   updateAllParticles(delay)
