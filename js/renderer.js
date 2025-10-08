@@ -258,103 +258,113 @@ function drawMain(player, AIs) {
     updateViewport(viewTransform)
   }
 
-  const currentUnits = [...player.getUnits()]
+  // Combine all visible entities (units and buildings)
+  const allEntities = [...player.getUnits(), ...player.getBuildings()]
 
-  // Only add AI units if they're visible
-  AIs.flatMap(ai => ai.getUnits()).forEach(unit => {
-    const unitTileX = Math.floor(unit.x / SPRITE_SIZE)
-    const unitTileY = Math.floor(unit.y / SPRITE_SIZE)
+  // Add AI entities if they are visible
+  const aiEntities = [...AIs.flatMap(ai => ai.getUnits()), ...AIs.flatMap(ai => ai.getBuildings())]
+  aiEntities.forEach(entity => {
+    const entityX = entity.currentNode ? entity.x : entity.x * SPRITE_SIZE
+    const entityY = entity.currentNode ? entity.y : entity.y * SPRITE_SIZE
+    const tileX = Math.floor(entityX / SPRITE_SIZE)
+    const tileY = Math.floor(entityY / SPRITE_SIZE)
 
     if (viewTransform && (
-      unitTileX >= viewport.startX && 
-      unitTileX <= viewport.endX && 
-      unitTileY >= viewport.startY && 
-      unitTileY <= viewport.endY
+      tileX >= viewport.startX && 
+      tileX <= viewport.endX && 
+      tileY >= viewport.startY && 
+      tileY <= viewport.endY
     )) {
-      // Check if unit is visible through fog of war
-      if (!gameState.settings.fogOfWar || isPositionVisible(unitTileX, unitTileY)) {
-        currentUnits.push(unit)
+      if (!gameState.settings.fogOfWar || isPositionVisible(tileX, tileY)) {
+        allEntities.push(entity)
       }
     }
   })
 
-  const currentUnitIds = new Set()
+  const currentEntityIds = new Set()
 
-  currentUnits.forEach(unit => {
-    // Skip units outside the viewport (with buffer)
-    const unitTileX = Math.floor(unit.x / SPRITE_SIZE)
-    const unitTileY = Math.floor(unit.y / SPRITE_SIZE)
+  allEntities.forEach(entity => {
+    const isUnit = !!entity.currentNode
+    const entityX = isUnit ? entity.x : entity.x * SPRITE_SIZE
+    const entityY = isUnit ? entity.y : entity.y * SPRITE_SIZE
+    const tileX = Math.floor(entityX / SPRITE_SIZE)
+    const tileY = Math.floor(entityY / SPRITE_SIZE)
 
+    // Culling check
     if (viewTransform && (
-      unitTileX < viewport.startX || 
-      unitTileX > viewport.endX || 
-      unitTileY < viewport.startY || 
-      unitTileY > viewport.endY
+      tileX < viewport.startX || 
+      tileX > viewport.endX || 
+      tileY < viewport.startY || 
+      tileY > viewport.endY
     )) {
-      // Store the ID so we keep track of it even when not rendered
-      currentUnitIds.add(unit.uid)
-
-      // If the unit has a sprite already in the container, hide it
-      let sprite = unitSpriteMap.get(unit.uid)
+      currentEntityIds.add(entity.uid)
+      let sprite = unitSpriteMap.get(entity.uid)
       if (sprite) {
         sprite.visible = false
+      }
+      // Also hide indicator if it exists
+      let indicator = indicatorMap.get(entity.uid)
+      if (indicator) {
+        indicator.visible = false
       }
       return
     }
 
-    currentUnitIds.add(unit.uid)
+    currentEntityIds.add(entity.uid)
 
-    // Get existing sprite or create a new one
-    let sprite = unitSpriteMap.get(unit.uid)
+    // --- Sprite Handling (for units only, buildings are part of terrain) ---
+    if (isUnit) {
+      let sprite = unitSpriteMap.get(entity.uid)
 
-    // Check if sprite is still valid (textures may be GC'd on mobile)
-    if (sprite && !isSpriteValid(sprite)) {
-      // Sprite is no longer valid, remove it
-      containers.units.removeChild(sprite)
-      unitSpriteMap.delete(unit.uid)
-      sprite = null
-    }
-
-    // If no sprite exists or texture changed, create a new one
-    if (!sprite || sprite.textureKey !== unit.sprite.uid) {
-      // Remove old sprite if exists
-      if (sprite) {
+      if (sprite && !isSpriteValid(sprite)) {
         containers.units.removeChild(sprite)
-        unitSpriteMap.delete(unit.uid)
+        unitSpriteMap.delete(entity.uid)
         sprite = null
       }
-      
-      // Create new sprite
-      const texture = PIXI.Texture.from(unit.sprite)
-      sprite = getCachedSprite(texture, unit.sprite.uid)
-      sprite.textureKey = unit.sprite.uid
-      unitSpriteMap.set(unit.uid, sprite)
-      containers.units.addChild(sprite)
+
+      if (!sprite || sprite.textureKey !== entity.sprite.uid) {
+        if (sprite) {
+          containers.units.removeChild(sprite)
+        }
+        const texture = PIXI.Texture.from(entity.sprite)
+        sprite = getCachedSprite(texture, entity.sprite.uid)
+        sprite.textureKey = entity.sprite.uid
+        unitSpriteMap.set(entity.uid, sprite)
+        containers.units.addChild(sprite)
+      }
+
+      sprite.visible = entity.visible !== false
+      sprite.x = entity.x - UNIT_SPRITE_SIZE/4
+      sprite.y = entity.y - UNIT_SPRITE_SIZE/4 - 2
     }
 
-    // Update sprite position and make it visible
-    sprite.visible = unit.visible !== false
-    sprite.x = unit.x - UNIT_SPRITE_SIZE/4
-    sprite.y = unit.y - UNIT_SPRITE_SIZE/4 - 2
-
-    // Handle progress indicators for units
-    if (unit.showProgressIndicator) {
-      let indicator = indicatorMap.get(unit.uid)
-      if (!indicator && unit.owner === gameState.humanPlayer) {
-        indicator = createProgressIndicator(unit, 10, unit.indicatorColor)
+    // --- Progress Indicator Handling (for both units and buildings) ---
+    if (entity.showProgressIndicator) {
+      let indicator = indicatorMap.get(entity.uid)
+      if (!indicator) {
+        // Create indicator if it doesn't exist
+        indicator = createProgressIndicator(entity, isUnit ? 10 : 14, entity.indicatorColor)
       }
-      
-      updateProgressIndicator(unit, unit.progress || 0)
-    } else if (indicatorMap.has(unit.uid)) {
-      removeProgressIndicator(unit.uid)
+      indicator.visible = true
+      updateProgressIndicator(entity, entity.progress || 0)
+    } else if (indicatorMap.has(entity.uid)) {
+      // Remove indicator if it's no longer needed
+      removeProgressIndicator(entity.uid)
     }
   })
 
   // Remove sprites for units that no longer exist
   for (const [unitId, sprite] of unitSpriteMap.entries()) {
-    if (!currentUnitIds.has(unitId)) {
+    if (!currentEntityIds.has(unitId)) {
         containers.units.removeChild(sprite)
         unitSpriteMap.delete(unitId)
+    }
+  }
+  
+  // Remove indicators for entities that no longer exist
+  for (const entityId of indicatorMap.keys()) {
+    if (!currentEntityIds.has(entityId)) {
+      removeProgressIndicator(entityId)
     }
   }
   
@@ -363,7 +373,7 @@ function drawMain(player, AIs) {
     drawMainTimings.push((performance.now() - start))
     drawMainTimings.shift()
 
-    if(Math.random() > 0.9975) console.log('Drawing units: ' + (drawMainTimings.reduce((res, curr) => res + curr, 0) / drawMainTimings.length).toFixed(2) + ' ms')
+    if(Math.random() > 0.9975) console.log('Drawing entities: ' + (drawMainTimings.reduce((res, curr) => res + curr, 0) / drawMainTimings.length).toFixed(2) + ' ms')
   }
 }
 
