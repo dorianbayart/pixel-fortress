@@ -85,6 +85,10 @@ Stay tuned for updates as I continue to develop and expand Pixel Fortress!
 
 A detailed roadmap can be found here: [ROADMAP.md](ROADMAP.md)
 
+## 🤖 AI Assistant Guidelines
+
+This project includes a `GEMINI.md` file with detailed context for AI code assistants. If you are using an AI to help with development, please ensure it has access to this file to understand the project's conventions and architecture.
+
 
 
 ## 🙌 Credits
