@@ -9,6 +9,9 @@ import { offscreenSprite } from 'sprites'
 import gameState from 'state'
 import { getCachedSprite } from 'utils'
 
+// Cache for particle textures to avoid re-creating them
+const particleTextureCache = {}
+
 // Track active particle emitters
 const activeEmitters = new Set()
 const particleContainer = new PIXI.ParticleContainer(1000, {
@@ -39,7 +42,8 @@ export function cleanupParticleSystem() {
         particle.sprite.parent.removeChild(particle.sprite)
       }
       if (particle.sprite?.destroy) {
-        particle.sprite.destroy({ texture: true, baseTexture: true })
+        // Only destroy the sprite, not the cached texture
+        particle.sprite.destroy()
       }
     })
     emitter.particles = []
@@ -137,15 +141,22 @@ function createWoodHarvestParticles(emitter) {
   const colors = [0x8B4513, 0xA0522D, 0xCD853F, 0xD2B48C]
   
   for (let i = 0; i < particleCount; i++) {
-    // Create a small colored square for each particle
     const size = (1 + Math.random() * 1) | 0 // Pixel size from 1-2px
-    const graphics = new PIXI.Graphics()
-        .rect(0, 0, size, size)
-        .fill({ color: colors[Math.floor(Math.random() * colors.length)] })
-    
-    // Convert to texture
-    const canvas = app.renderer.extract.canvas(graphics)
-    const texture = PIXI.Texture.from(canvas)
+    const color = colors[Math.floor(Math.random() * colors.length)]
+    const cacheKey = `rect_${size}_${color}`
+
+    let texture = particleTextureCache[cacheKey]
+    if (!texture) {
+      // Create a small colored square for each particle
+      const graphics = new PIXI.Graphics()
+          .rect(0, 0, size, size)
+          .fill({ color: color })
+      
+      // Convert to texture and cache it
+      texture = app.renderer.generateTexture(graphics)
+      particleTextureCache[cacheKey] = texture
+      graphics.destroy()
+    }
     
     // Create sprite from texture
     const sprite = new PIXI.Sprite(texture)
@@ -188,15 +199,22 @@ function createStoneMineParticles(emitter) {
     const colors = [0x888888, 0xAAAAAA, 0x777777, 0x666666]
 
     for (let i = 0; i < particleCount; i++) {
-        // Create a small colored square for each particle
         const size = (1 + Math.random() * 1) | 0 // Pixel size from 1-2px
-        const graphics = new PIXI.Graphics()
-            .rect(0, 0, size, size)
-            .fill({ color: colors[Math.floor(Math.random() * colors.length)] })
-        
-        // Convert to texture
-        const canvas = app.renderer.extract.canvas(graphics)
-        const texture = PIXI.Texture.from(canvas)
+        const color = colors[Math.floor(Math.random() * colors.length)]
+        const cacheKey = `rect_${size}_${color}`
+
+        let texture = particleTextureCache[cacheKey]
+        if (!texture) {
+            // Create a small colored square for each particle
+            const graphics = new PIXI.Graphics()
+                .rect(0, 0, size, size)
+                .fill({ color: color })
+            
+            // Convert to texture and cache it
+            texture = app.renderer.generateTexture(graphics)
+            particleTextureCache[cacheKey] = texture
+            graphics.destroy()
+        }
         
         // Create sprite from texture
         const sprite = new PIXI.Sprite(texture)
@@ -239,15 +257,22 @@ function createWaterCollectParticles(emitter) {
     const colors = [0x0088FF, 0x0066CC, 0x00AAFF, 0x66CCFF]
 
     for (let i = 0; i < particleCount; i++) {
-        // Create a small colored square for each particle
         const size = (1 + Math.random() * 1) | 0 // Pixel size from 1-2px
-        const graphics = new PIXI.Graphics()
-            .rect(0, 0, size, size)
-            .fill({ color: colors[Math.floor(Math.random() * colors.length)] })
-        
-        // Convert to texture
-        const canvas = app.renderer.extract.canvas(graphics)
-        const texture = PIXI.Texture.from(canvas)
+        const color = colors[Math.floor(Math.random() * colors.length)]
+        const cacheKey = `rect_${size}_${color}`
+
+        let texture = particleTextureCache[cacheKey]
+        if (!texture) {
+            // Create a small colored square for each particle
+            const graphics = new PIXI.Graphics()
+                .rect(0, 0, size, size)
+                .fill({ color: color })
+            
+            // Convert to texture and cache it
+            texture = app.renderer.generateTexture(graphics)
+            particleTextureCache[cacheKey] = texture
+            graphics.destroy()
+        }
         
         // Create sprite from texture
         const sprite = new PIXI.Sprite(texture)
@@ -290,15 +315,22 @@ function createGoldSparkleParticles(emitter) {
   const colors = [0xFFD700, 0xFFA500, 0xDAA520]
   
   for (let i = 0; i < particleCount; i++) {
-    // Create a small gold particle
     const size = (1 + Math.random() * 1) | 0
-    const graphics = new PIXI.Graphics()
-        .rect(0, 0, size, size)
-        .fill({ color: colors[Math.floor(Math.random() * colors.length)] })
-    
-    // Convert to texture
-    const canvas = app.renderer.extract.canvas(graphics)
-    const texture = PIXI.Texture.from(canvas)
+    const color = colors[Math.floor(Math.random() * colors.length)]
+    const cacheKey = `rect_${size}_${color}`
+
+    let texture = particleTextureCache[cacheKey]
+    if (!texture) {
+      // Create a small gold particle
+      const graphics = new PIXI.Graphics()
+          .rect(0, 0, size, size)
+          .fill({ color: color })
+      
+      // Convert to texture and cache it
+      texture = app.renderer.generateTexture(graphics)
+      particleTextureCache[cacheKey] = texture
+      graphics.destroy()
+    }
     
     // Create sprite from texture
     const sprite = new PIXI.Sprite(texture)
@@ -341,14 +373,22 @@ function createBuildingPlaceParticles(emitter) {
   const colors = [0xFFD700, 0x228B22, 0xFFFFFF]
   
   for (let i = 0; i < particleCount; i++) {
-    // Create a small colored pixel for each particle
-    const graphics = new PIXI.Graphics()
-        .rect(0, 0, 2, 2) // 2x2 pixel
-        .fill({ color: colors[Math.floor(Math.random() * colors.length)] })
-    
-    // Convert to texture
-    const canvas = app.renderer.extract.canvas(graphics)
-    const texture = PIXI.Texture.from(canvas)
+    const size = 2
+    const color = colors[Math.floor(Math.random() * colors.length)]
+    const cacheKey = `rect_${size}_${color}`
+
+    let texture = particleTextureCache[cacheKey]
+    if (!texture) {
+      // Create a small colored pixel for each particle
+      const graphics = new PIXI.Graphics()
+          .rect(0, 0, size, size) // 2x2 pixel
+          .fill({ color: color })
+      
+      // Convert to texture and cache it
+      texture = app.renderer.generateTexture(graphics)
+      particleTextureCache[cacheKey] = texture
+      graphics.destroy()
+    }
     
     // Create sprite from texture
     const sprite = new PIXI.Sprite(texture)
@@ -393,23 +433,29 @@ function createAttackParticles(emitter) {
   const colors = [0xFF0000, 0xFF4500, 0xFFD700]
   
   for (let i = 0; i < particleCount; i++) {
-    // Create a small colored spark for each particle
-    const graphics = new PIXI.Graphics()
-    
-    // Create different spark shapes
-    if (Math.random() > 0.5) {
-      // Small square
-      graphics.rect(0, 0, 2, 2)
-    } else {
-      // Small line
-      graphics.rect(0, 0, 3, 1)
-    }
+    const color = colors[Math.floor(Math.random() * colors.length)]
+    const shape = Math.random() > 0.5 ? 'rect_2_2' : 'rect_3_1'
+    const cacheKey = `${shape}_${color}`
 
-    graphics.fill({ color: colors[Math.floor(Math.random() * colors.length)] })
-    
-    // Convert to texture
-    const canvas = app.renderer.extract.canvas(graphics)
-    const texture = PIXI.Texture.from(canvas)
+    let texture = particleTextureCache[cacheKey]
+    if (!texture) {
+      // Create a small colored spark for each particle
+      const graphics = new PIXI.Graphics()
+      
+      // Create different spark shapes
+      if (shape === 'rect_2_2') {
+        graphics.rect(0, 0, 2, 2)
+      } else {
+        graphics.rect(0, 0, 3, 1)
+      }
+
+      graphics.fill({ color: color })
+      
+      // Convert to texture and cache it
+      texture = app.renderer.generateTexture(graphics)
+      particleTextureCache[cacheKey] = texture
+      graphics.destroy()
+    }
     
     // Create sprite from texture
     const sprite = new PIXI.Sprite(texture)
@@ -462,17 +508,22 @@ function createDeathParticles(emitter) {
   const colors = [0x8B0000, 0xB22222, 0xDC143C]
   
   for (let i = 0; i < particleCount; i++) {
-    // Create a small colored splash for each particle
     const size = 1 + Math.random() | 0 // Small square
-    const graphics = new PIXI.Graphics()
-        .rect(0, 0, size, size)
-        .fill({ color: colors[Math.floor(Math.random() * colors.length)] })
+    const color = colors[Math.floor(Math.random() * colors.length)]
+    const cacheKey = `rect_${size}_${color}`
 
-    
-    
-    // Convert to texture
-    const canvas = app.renderer.extract.canvas(graphics)
-    const texture = PIXI.Texture.from(canvas)
+    let texture = particleTextureCache[cacheKey]
+    if (!texture) {
+      // Create a small colored splash for each particle
+      const graphics = new PIXI.Graphics()
+          .rect(0, 0, size, size)
+          .fill({ color: color })
+      
+      // Convert to texture and cache it
+      texture = app.renderer.generateTexture(graphics)
+      particleTextureCache[cacheKey] = texture
+      graphics.destroy()
+    }
     
     // Create sprite from texture
     const sprite = new PIXI.Sprite(texture)
@@ -514,26 +565,36 @@ function createButtonClickParticles(emitter) {
     const colors = [0xFFD700, 0xFFFFFF, 0x87CEFA]
     
     for (let i = 0; i < particleCount; i++) {
-      // Create a small sparkle for each particle
-      const graphics = new PIXI.Graphics()
-      
-      // Create different sparkle shapes
-      if (Math.random() > 0.7) {
-        // Small square
-        graphics.rect(0, 0, 2, 2)
-      } else if (Math.random() > 0.4) {
-        // Small star (really just a dot for pixel aesthetic)
-        graphics.rect(0, 0, 1, 1)
+      const color = colors[Math.floor(Math.random() * colors.length)]
+      let shape, size
+      const rand = Math.random()
+      if (rand > 0.7) {
+        shape = 'rect'; size = 2
+      } else if (rand > 0.4) {
+        shape = 'rect'; size = 1
       } else {
-        // Small line for streaking effect
-        graphics.rect(0, 0, 3, 1)
+        shape = 'line'; size = 3
       }
-      
-      graphics.fill({ color: colors[Math.floor(Math.random() * colors.length)] })
-      
-      // Convert to texture
-      const canvas = app.renderer.extract.canvas(graphics)
-      const texture = PIXI.Texture.from(canvas)
+      const cacheKey = `${shape}_${size}_${color}`
+
+      let texture = particleTextureCache[cacheKey]
+      if (!texture) {
+        // Create a small sparkle for each particle
+        const graphics = new PIXI.Graphics()
+        
+        if (shape === 'rect') {
+          graphics.rect(0, 0, size, size)
+        } else {
+          graphics.rect(0, 0, size, 1)
+        }
+        
+        graphics.fill({ color: color })
+        
+        // Convert to texture and cache it
+        texture = app.renderer.generateTexture(graphics)
+        particleTextureCache[cacheKey] = texture
+        graphics.destroy()
+      }
       
       // Create sprite from texture
       const sprite = new PIXI.Sprite(texture)
@@ -589,7 +650,8 @@ function updateAllParticles(delay) {
           particle.sprite.parent.removeChild(particle.sprite)
         }
         if (particle.sprite?.destroy) {
-          particle.sprite.destroy({ texture: true, baseTexture: true })
+          // Only destroy the sprite, not the cached texture
+          particle.sprite.destroy()
         }
       }
       activeEmitters.delete(emitter)
@@ -618,6 +680,8 @@ function updateAllParticles(delay) {
         if (particle.sprite.parent) {
           particle.sprite.parent.removeChild(particle.sprite)
         }
+        // Only destroy the sprite, not the cached texture
+        particle.sprite.destroy()
         emitter.particles.splice(i, 1)
         continue
       }
