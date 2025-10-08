@@ -371,7 +371,7 @@ const gameLoop = () => {
   
   requestAnimationFrame(gameLoop)
 
-  if(gameState.debug && Math.random() > 0.9975) console.log(`Game Loop: ${fps.reduce((a, b) => a + b, 0) / fps.length} ms`)
+  if(gameState.debug && Math.random() > 0.9975) console.log(`Mean Game Loop Time: ${fps.reduce((a, b) => a + b, 0) / fps.length} ms`)
 
 
   if(gameState.debug) {
