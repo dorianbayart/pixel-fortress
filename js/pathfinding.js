@@ -1,4 +1,4 @@
-export { clearPathCache, searchPath }
+export { clearPathCache, pathCache, searchPath }
 
 'use strict'
 

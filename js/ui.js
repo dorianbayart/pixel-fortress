@@ -9,11 +9,12 @@ import CONSTANTS from 'constants'
 import { getCanvasDimensions, getMapDimensions, getTileSize } from 'dimensions'
 import { DEBUG, drawBack, toggleDebug } from 'globals'
 import { ParticleEffect, createParticleEmitter } from 'particles'
+import { pathCache } from 'pathfinding'
 import * as PIXI from 'pixijs'
-import { app, containers, updateZoom } from 'renderer'
 import { offscreenSprite, offscreenSpritesSize, sprites } from 'sprites'
+import { app, containers, indicatorMap, updateZoom, unitSpriteMap, backgroundSpriteMap, worldObjectSpriteMap } from 'renderer'
 import gameState from 'state'
-import { SCALE_MODE, getCachedSprite } from 'utils'
+import { SCALE_MODE, getCachedSprite, textureCache, spriteCache } from 'utils'
 
 const UI_FONTS = {
   PRIMARY: "system-ui, 'Open Sans', Arial, sans-serif",
@@ -343,7 +344,14 @@ function drawUI(fps) {
       `World: ${MAP_WIDTH}x${MAP_HEIGHT} (${MAP_WIDTH*SPRITE_SIZE}x${MAP_HEIGHT*SPRITE_SIZE})`,
 
       `Cached sprites: ${offscreenSpritesSize()}`,
+      `Path Cache Size: ${pathCache.size}`,
       `Particles: ${containers.particles.children?.length}`,
+      `Indicator Map Size: ${indicatorMap.size}`,
+      `Unit Sprite Map Size: ${unitSpriteMap.size}`,
+      `Background Sprite Map Size: ${backgroundSpriteMap.size}`,
+      `World Object Sprite Map Size: ${worldObjectSpriteMap.size}`,
+      `Texture Cache Size: ${textureCache.size}`,
+      `Sprite Cache Size: ${spriteCache.size}`,
       
       `Renderer: ${app.renderer.width}x${app.renderer.height}`,
       `Screen: ${screen.width}x${screen.height} | Avail.: ${screen.availWidth}x${screen.availHeight}`,

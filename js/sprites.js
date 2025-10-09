@@ -1,4 +1,4 @@
-export { UNIT_SPRITE_SIZE, loadAndSplitImage, loadSprites, offscreenSprite, offscreenSpritesSize, sprites, unitsSprites, unitsSpritesDescription }
+export { UNIT_SPRITE_SIZE, loadAndSplitImage, loadSprites, offscreenSprite, offscreenSprites, offscreenSpritesSize, sprites, unitsSprites, unitsSpritesDescription }
 
 'use strict'
 

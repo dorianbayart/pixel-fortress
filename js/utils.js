@@ -1,4 +1,4 @@
-export { PerlinNoise, arrayToHash, distance, getCachedSprite, textureCache, throttle, SCALE_MODE }
+export { PerlinNoise, arrayToHash, distance, getCachedSprite, spriteCache, textureCache, throttle, SCALE_MODE }
 
 'use strict'
 
@@ -76,6 +76,7 @@ function getCachedSprite(source, key) {
     // Create a new sprite
     const sprite = new Sprite(texture)
     sprite.sourceKey = texture.uid // Store the key for future reference
+    sprite.cullable = true
 
     // Cache the sprite
     spriteCache.set(sprite.sourceKey, sprite)

@@ -1,5 +1,19 @@
 export {
-  app, containers, createProgressIndicator, drawBackground, drawMain, indicatorMap, initCanvases, loadTextureFromCanvas, removeProgressIndicator, resizeCanvases, updateProgressIndicator, updateZoom
+  app,
+  backgroundSpriteMap,
+  containers,
+  createProgressIndicator,
+  drawBackground,
+  drawMain,
+  indicatorMap,
+  initCanvases,
+  loadTextureFromCanvas,
+  removeProgressIndicator,
+  resizeCanvases,
+  unitSpriteMap,
+  updateProgressIndicator,
+  updateZoom,
+  worldObjectSpriteMap,
 }
 
 'use strict'
