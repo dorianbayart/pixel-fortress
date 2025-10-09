@@ -115,7 +115,7 @@ class Unit {
    * Update unit state
    * @param {number} delay - Time elapsed since last update (ms)
    */
-  update(delay) {
+  async update(delay) {
     const time = performance.now() | 0
     this.timeSinceLastTask += delay
 
@@ -138,12 +138,11 @@ class Unit {
     if(!this.goal) return
 
     if(distance(this.currentNode, this.goal.currentNode ? { x: this.goal.x / getTileSize(), y: this.goal.y / getTileSize() } : this.goal) > (this.range) / getTileSize()) {
-      this.updatePath(delay, time)
+      await this.updatePath(delay, time)
     } else {
       this.goalReached(delay, time)
       this.timeSinceLastTask = 0
     }
-    
     
     this.updateMovement(delay, time)
   }
@@ -162,7 +161,7 @@ class Unit {
    * @param {number} delay - Time elapsed since last update (ms)
    * @param {number} time - The current time (ms)
    */
-  updatePath(delay, time) {
+  async updatePath(delay, time) {
     if (this.isAtGoal()) return
 
     const mathPathLength = this.path?.length || 1
@@ -178,7 +177,7 @@ class Unit {
 
     if(!this.path || updatePath) {
       this.lastPathUpdate = time
-      this.findPath()
+      await this.findPath()
     }
 
   }
@@ -211,12 +210,12 @@ class Unit {
   /**
    * Find the best path to the goal
    */
-  findPath() {
+  async findPath() {
     if(this.nextNode) {
-      const path = searchPath(this.nextNode.x, this.nextNode.y, this.goal.x, this.goal.y)
+      const path = await searchPath(this.nextNode.x, this.nextNode.y, this.goal.x, this.goal.y)
       this.path = path ? [this.currentNode, ...path] : [this.currentNode]
     } else {
-      this.path = searchPath(this.currentNode.x, this.currentNode.y, this.goal.x, this.goal.y)
+      this.path = await searchPath(this.currentNode.x, this.currentNode.y, this.goal.x, this.goal.y)
     }
   }
 
@@ -457,7 +456,7 @@ class LumberjackWorker extends WorkerUnit {
     this.task = 'gathering'
   }
 
-  handleTasks(delay, time) {
+  async handleTasks(delay, time) {
     // if(this.task === 'idle') return
 
     // Store previous task to detect changes
@@ -477,7 +476,7 @@ class LumberjackWorker extends WorkerUnit {
 
     switch(this.task) {
       case 'gathering':
-        this.findTreeToHarvest(time)
+        await this.findTreeToHarvest(time)
         break
       case 'returning':
         this.goal = this.assignedBuilding
@@ -506,7 +505,7 @@ class LumberjackWorker extends WorkerUnit {
   /**
    * Find and harvest trees
    */
-  findTreeToHarvest(time) {
+  async findTreeToHarvest(time) {
     if (this.goal) return
 
     // Get a tree from the assigned building's list
@@ -514,7 +513,7 @@ class LumberjackWorker extends WorkerUnit {
     
     if (tree) {
       this.lastPathUpdate = time
-      this.path = searchPath(this.currentNode.x, this.currentNode.y, tree.x, tree.y)
+      this.path = await searchPath(this.currentNode.x, this.currentNode.y, tree.x, tree.y)
       if (this.path) this.goal = tree
     } else {
       // No tree found, stay idle
@@ -629,17 +628,12 @@ class QuarryMiner extends WorkerUnit {
     this.timeSinceLastTask = 0
   }
 
-  handleTasks(delay, time) {
+  async handleTasks(delay, time) {
     // Store previous task to detect changes
     const previousTask = this.task
     
     if(this.resources < this.maxResources) {
       this.task = 'mining'
-
-      // Hide the miner when mining at the quarry
-      if (this.isAtGoal() && this.goal === this.assignedBuilding) {
-        this.visible = false
-      }
     } else {
       this.task = 'returning'
 
@@ -658,7 +652,8 @@ class QuarryMiner extends WorkerUnit {
         this.goal = this.assignedBuilding
         break
       case 'returning':
-        this.goal = this.findNearestTent()
+        if(this.goal === this.assignedBuilding) this.goal = null
+        await this.findNearestTent().then(goal => this.goal = goal)
         break
     }
 
@@ -674,7 +669,7 @@ class QuarryMiner extends WorkerUnit {
     switch(this.task) {
       case 'mining':
         this.mine(delay)
-        this.visible = false
+        this.visible = false // Hide the miner when mining at the quarry
         break
       case 'returning':
         this.depositResources()
@@ -711,7 +706,7 @@ class QuarryMiner extends WorkerUnit {
   /**
    * Deposit collected resources at quarry building
    */
-  findNearestTent() {
+  async findNearestTent() {
     const tents = this.assignedBuilding.owner.getTents()
     
     // If there's only one tent, return it immediately
@@ -725,7 +720,7 @@ class QuarryMiner extends WorkerUnit {
       
       for (const tent of tents) {
         // Calculate path to this tent
-        const path = searchPath(
+        const path = await searchPath(
           this.assignedBuilding.x, 
           this.assignedBuilding.y,
           tent.x,
@@ -789,7 +784,7 @@ class WaterCarrier extends WorkerUnit {
     this.waterSource = null
   }
 
-  handleTasks(delay, time) {
+  async handleTasks(delay, time) {
     // Store previous task to detect changes
     const previousTask = this.task
     
@@ -811,7 +806,8 @@ class WaterCarrier extends WorkerUnit {
         this.goal = this.assignedBuilding
         break
       case 'returning':
-        this.goal = this.findNearestTent()
+        if(this.goal === this.assignedBuilding) this.goal = null
+        await this.findNearestTent().then(goal => this.goal = goal)
         break
     }
 
@@ -834,25 +830,25 @@ class WaterCarrier extends WorkerUnit {
     }
   }
   
-  /**
-   * Find a water source to collect from
-   */
-  findWaterSource() {
-    if (this.goal) return
+  // /**
+  //  * Find a water source to collect from
+  //  */
+  // async findWaterSource() {
+  //   if (this.goal) return
     
-    // If we don't have a water source yet, find one
-    if (!this.waterSource) {
-      this.waterSource = this.assignedBuilding?.findNearestWaterTile()
-    }
+  //   // // If we don't have a water source yet, find one
+  //   // if (!this.waterSource) {
+  //   //   this.waterSource = this.assignedBuilding?.findNearestWaterTile()
+  //   // }
     
-    if (this.waterSource) {
-      this.path = searchPath(this.currentNode.x, this.currentNode.y, this.waterSource.x, this.waterSource.y)
-      if (this.path) this.goal = this.waterSource
-    } else {
-      // No water source found, stay idle
-      this.task = 'idle'
-    }
-  }
+  //   if (this.waterSource) {
+  //     this.path = await searchPath(this.currentNode.x, this.currentNode.y, this.waterSource.x, this.waterSource.y)
+  //     if (this.path) this.goal = this.waterSource
+  //   } else {
+  //     // No water source found, stay idle
+  //     this.task = 'idle'
+  //   }
+  // }
   
   /**
    * Collect water from a water source
@@ -884,7 +880,7 @@ class WaterCarrier extends WorkerUnit {
    * Find the nearest tent to return water to
    * @returns {Object|null} The nearest tent or null if none found
    */
-  findNearestTent() {
+  async findNearestTent() {
     const tents = this.assignedBuilding.owner.getTents()
     
     // If there's only one tent, return it immediately
@@ -898,7 +894,7 @@ class WaterCarrier extends WorkerUnit {
       
       for (const tent of tents) {
         // Calculate path to this tent
-        const path = searchPath(
+        const path = await searchPath(
           this.currentNode.x, 
           this.currentNode.y,
           tent.x,
@@ -961,17 +957,12 @@ class GoldMiner extends WorkerUnit {
     this.timeSinceLastTask = 0
   }
 
-  handleTasks(delay, time) {
+  async handleTasks(delay, time) {
     // Store previous task to detect changes
     const previousTask = this.task
     
     if(this.resources < this.maxResources) {
       this.task = 'mining'
-
-      // Hide the miner when mining at the gold mine
-      if (this.isAtGoal() && this.goal === this.assignedBuilding) {
-        this.visible = false
-      }
     } else {
       this.task = 'returning'
 
@@ -990,7 +981,8 @@ class GoldMiner extends WorkerUnit {
         this.goal = this.assignedBuilding
         break
       case 'returning':
-        this.goal = this.findNearestTent()
+        if(this.goal === this.assignedBuilding) this.goal = null
+        await this.findNearestTent().then(goal => this.goal = goal)
         break
     }
 
@@ -1006,7 +998,7 @@ class GoldMiner extends WorkerUnit {
     switch(this.task) {
       case 'mining':
         this.mine(delay)
-        this.visible = false
+        this.visible = false // Hide the miner when mining at the gold mine
         break
       case 'returning':
         this.depositResources()
@@ -1044,7 +1036,7 @@ class GoldMiner extends WorkerUnit {
    * Find the nearest tent to return gold to
    * @returns {Object|null} The nearest tent or null if none found
    */
-  findNearestTent() {
+  async findNearestTent() {
     const tents = this.assignedBuilding.owner.getTents()
     
     // If there's only one tent, return it immediately
@@ -1058,7 +1050,7 @@ class GoldMiner extends WorkerUnit {
       
       for (const tent of tents) {
         // Calculate path to this tent
-        const path = searchPath(
+        const path = await searchPath(
           this.currentNode.x, 
           this.currentNode.y,
           tent.x,
@@ -1120,7 +1112,7 @@ class CombatUnit extends Unit {
     this.task = 'idle' // 'idle', 'attack'
   }
 
-  handleTasks(delay, time) {
+  async handleTasks(delay, time) {
     this.attack = false
 
     if (!this.goal || this.goal.life <= 0) {
@@ -1131,7 +1123,7 @@ class CombatUnit extends Unit {
     switch(this.task) {
       case 'idle':
         if(!this.path || !this.goal || time - this.lastPathUpdate > Math.min(4500, this.path?.length * 250)) {
-          this.path = this.pathToNearestEnemy()
+          this.path = await this.pathToNearestEnemy()
           this.lastPathUpdate = time
         }
         break
@@ -1147,26 +1139,23 @@ class CombatUnit extends Unit {
    * @param {Array} enemies - Array of enemy units
    * @returns {Array|null} Path to nearest enemy or null if no path found
    */
-  pathToNearestEnemy() {
+  async pathToNearestEnemy() {
     const { width: MAP_WIDTH, height: MAP_HEIGHT } = getMapDimensions()
     let path, pathLength = MAP_WIDTH * MAP_HEIGHT
     this.goal = null
     const enemies = this.owner.getEnemies().map(enemy => {
-            const distance = Math.abs(enemy.currentNode?.x - this.currentNode?.x) + 
-                             Math.abs(enemy.currentNode?.y - this.currentNode?.y)
-                             || 1
-            return { enemy, distance }
+            return { enemy, distance: distance(this.currentNode, enemy.currentNode) || 1 }
           }).sort((a, b) => a.distance - b.distance)
           .slice(0, 3) // Keep only 3 nearest enemies
           .map(item => item.enemy)
 
-    enemies.forEach((enemy) => {
+    for (const enemy of enemies) {
       let temp
       if(enemy instanceof Unit) {
-        temp = searchPath(this.nextNextNode?.x ?? (this.nextNode?.x ?? this.currentNode.x), this.nextNextNode?.y ?? (this.nextNode?.y ?? this.currentNode.y), enemy.nextNode?.x ?? enemy.currentNode.x, enemy.nextNode?.y ?? enemy.currentNode.y)
+        temp = await searchPath(this.nextNextNode?.x ?? (this.nextNode?.x ?? this.currentNode.x), this.nextNextNode?.y ?? (this.nextNode?.y ?? this.currentNode.y), enemy.nextNode?.x ?? enemy.currentNode.x, enemy.nextNode?.y ?? enemy.currentNode.y)
       } else {
         // Buildings are not using CurrentNode
-        temp = searchPath(this.nextNextNode?.x ?? (this.nextNode?.x ?? this.currentNode.x), this.nextNextNode?.y ?? (this.nextNode?.y ?? this.currentNode.y), enemy.x, enemy.y)
+        temp = await searchPath(this.nextNextNode?.x ?? (this.nextNode?.x ?? this.currentNode.x), this.nextNextNode?.y ?? (this.nextNode?.y ?? this.currentNode.y), enemy.x, enemy.y)
       }
 
       if(temp?.length < pathLength) {
@@ -1176,7 +1165,7 @@ class CombatUnit extends Unit {
       }
 
       temp = null
-    })
+    }
 
     if(this.nextNode) return [this.currentNode, this.nextNode, ...path]
     if(this.currentNode) return [this.currentNode, ...path]

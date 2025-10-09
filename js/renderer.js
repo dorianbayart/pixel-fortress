@@ -591,7 +591,7 @@ function drawBackground(map) {
 /**
  * Update zoom level
  */
-function updateZoom() {
+async function updateZoom() {
   // Get current view transform
   const viewTransform = gameState.UI?.mouse?.getViewTransform()
   
@@ -660,7 +660,7 @@ function createProgressIndicator(entity, width = 10, color = 0x00FF00) {
  * @param {Object} entity - Unit or building the indicator belongs to
  * @param {number} progress - Progress value (0-1)
  */
-function updateProgressIndicator(entity, progress) {
+async function updateProgressIndicator(entity, progress) {
   const indicator = indicatorMap.get(entity.uid)
   if (!indicator) return
 
@@ -696,7 +696,7 @@ function updateProgressIndicator(entity, progress) {
  * Remove a progress indicator
  * @param {number} entityUid - UID of entity to remove indicator for
  */
-function removeProgressIndicator(entityUid) {
+async function removeProgressIndicator(entityUid) {
   const indicator = indicatorMap.get(entityUid)
   if (indicator) {
     containers.indicators.removeChild(indicator)

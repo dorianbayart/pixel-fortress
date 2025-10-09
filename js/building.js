@@ -398,7 +398,7 @@ class Lumberjack extends WorkerBuilding {
     /**
      * Update building state and convert workers
      */
-    update(delay) {
+    async update(delay) {
         super.update(delay)
 
         this.assignedWorkers = this.assignedWorkers.filter(unit => unit.life > 0)
@@ -406,7 +406,7 @@ class Lumberjack extends WorkerBuilding {
         // If we're not at max capacity and not already converting
         if (this.assignedWorkers.filter(unit => unit instanceof LumberjackWorker).length < this.maxWorkers && !this.convertingWorker) {
             // Look for nearby workers to convert
-            this.findWorkerToConvert()
+            await this.findWorkerToConvert()
         }
 
         // If we're converting a worker
@@ -513,7 +513,7 @@ class Lumberjack extends WorkerBuilding {
         const startY = this.assignedWorkers[0]?.currentNode?.y ?? this.y
         
         // Calculate path
-        const path = searchPath(startX, startY, tree.x, tree.y)
+        const path = await searchPath(startX, startY, tree.x, tree.y)
         
         if (path?.length > 0) {
             this.nearbyTrees.push({
@@ -574,7 +574,7 @@ class Lumberjack extends WorkerBuilding {
     /**
      * Find a nearby regular worker to convert
      */
-    findWorkerToConvert() {
+    async findWorkerToConvert() {
         if (!this.owner) return
 
         //if(this.assignedWorkers.length >= this.maxWorkers) {
@@ -603,14 +603,14 @@ class Lumberjack extends WorkerBuilding {
         let shortestPath = null
 
         for (const worker of regularWorkers) {
-            const path = searchPath(
+            const path = await searchPath(
                 worker.currentNode.x, 
                 worker.currentNode.y,
                 this.x,
                 this.y
               )
             
-            if (path?.length < closestDistance) {
+            if (path?.length < closestDistance && worker.task !== 'assigned') {
                 closestDistance = path.length
                 shortestPath = path
                 closestWorker = worker
@@ -618,7 +618,7 @@ class Lumberjack extends WorkerBuilding {
         }
 
          // If we found a close worker
-        if(closestWorker) {
+        if(closestWorker && closestWorker.task !== 'assigned') {
             // Move the worker to the building
             closestWorker.assignPath(shortestPath)
             this.assignedWorkers.push(closestWorker)
@@ -674,7 +674,7 @@ class Quarry extends WorkerBuilding {
   /**
    * Update building state and convert workers
    */
-  update(delay) {
+  async update(delay) {
       super.update(delay)
 
       this.assignedWorkers = this.assignedWorkers.filter(unit => unit.life > 0)
@@ -682,7 +682,7 @@ class Quarry extends WorkerBuilding {
       // If we're not at max capacity and not already converting
       if (this.assignedWorkers.filter(unit => unit instanceof QuarryMiner).length < this.maxWorkers && !this.convertingWorker) {
           // Look for nearby workers to convert
-          this.findWorkerToConvert()
+          await this.findWorkerToConvert()
       }
 
       // If we're converting a worker
@@ -701,7 +701,7 @@ class Quarry extends WorkerBuilding {
   /**
    * Find a nearby regular worker to convert
    */
-  findWorkerToConvert() {
+  async findWorkerToConvert() {
       if (!this.owner) return
 
       const regularWorker = this.assignedWorkers.find(unit => unit instanceof Peon)
@@ -728,14 +728,14 @@ class Quarry extends WorkerBuilding {
       let shortestPath = null
 
       for (const worker of regularWorkers) {
-          const path = searchPath(
+          const path = await searchPath(
               worker.currentNode.x, 
               worker.currentNode.y,
               this.x,
               this.y
             )
           
-          if (path?.length < closestDistance) {
+          if (path?.length < closestDistance && worker.task !== 'assigned') {
               closestDistance = path.length
               shortestPath = path
               closestWorker = worker
@@ -743,7 +743,7 @@ class Quarry extends WorkerBuilding {
       }
 
       // If we found a close worker
-      if(closestWorker) {
+      if(closestWorker && closestWorker.task !== 'assigned') {
           // Move the worker to the building
           closestWorker.assignPath(shortestPath)
           this.assignedWorkers.push(closestWorker)
@@ -799,7 +799,7 @@ class Well extends WorkerBuilding {
   /**
    * Update building state and convert workers
    */
-  update(delay) {
+  async update(delay) {
     super.update(delay)
 
     this.assignedWorkers = this.assignedWorkers.filter(unit => unit.life > 0)
@@ -807,7 +807,7 @@ class Well extends WorkerBuilding {
     // If we're not at max capacity and not already converting
     if (this.assignedWorkers.filter(unit => unit instanceof WaterCarrier).length < this.maxWorkers && !this.convertingWorker) {
       // Look for nearby workers to convert
-      this.findWorkerToConvert()
+      await this.findWorkerToConvert()
     }
 
     // If we're converting a worker
@@ -826,7 +826,7 @@ class Well extends WorkerBuilding {
   /**
    * Find a nearby regular worker to convert
    */
-  findWorkerToConvert() {
+  async findWorkerToConvert() {
     if (!this.owner) return
 
     const regularWorker = this.assignedWorkers.find(unit => unit instanceof Peon)
@@ -855,14 +855,14 @@ class Well extends WorkerBuilding {
     let shortestPath = null
 
     for (const worker of regularWorkers) {
-      const path = searchPath(
+      const path = await searchPath(
         worker.currentNode.x, 
         worker.currentNode.y,
         this.x,
         this.y
       )
       
-      if (path?.length < closestDistance) {
+      if (path?.length < closestDistance && worker.task !== 'assigned') {
         closestDistance = path.length
         shortestPath = path
         closestWorker = worker
@@ -870,7 +870,7 @@ class Well extends WorkerBuilding {
     }
 
     // If we found a close worker
-    if(closestWorker) {
+    if(closestWorker && closestWorker.task !== 'assigned') {
       // Move the worker to the building
       closestWorker.assignPath(shortestPath)
       this.assignedWorkers.push(closestWorker)
@@ -926,7 +926,7 @@ class GoldMine extends WorkerBuilding {
   /**
    * Update building state and convert workers
    */
-  update(delay, time) {
+  async update(delay, time) {
     super.update(delay)
 
     this.assignedWorkers = this.assignedWorkers.filter(unit => unit.life > 0)
@@ -934,7 +934,7 @@ class GoldMine extends WorkerBuilding {
     // If we're not at max capacity and not already converting
     if (this.assignedWorkers.filter(unit => unit instanceof GoldMiner).length < this.maxWorkers && !this.convertingWorker) {
       // Look for nearby workers to convert
-      this.findWorkerToConvert()
+      await this.findWorkerToConvert()
     }
 
     // If we're converting a worker
@@ -953,7 +953,7 @@ class GoldMine extends WorkerBuilding {
   /**
    * Find a nearby regular worker to convert
    */
-  findWorkerToConvert() {
+  async findWorkerToConvert() {
     if (!this.owner) return
 
     const regularWorker = this.assignedWorkers.find(unit => unit instanceof Peon)
@@ -982,14 +982,14 @@ class GoldMine extends WorkerBuilding {
     let shortestPath = null
 
     for (const worker of regularWorkers) {
-      const path = searchPath(
+      const path = await searchPath(
         worker.currentNode.x, 
         worker.currentNode.y,
         this.x,
         this.y
       )
       
-      if (path?.length < closestDistance) {
+      if (path?.length < closestDistance && worker.task !== 'assigned') {
         closestDistance = path.length
         shortestPath = path
         closestWorker = worker
@@ -997,7 +997,7 @@ class GoldMine extends WorkerBuilding {
     }
 
     // If we found a close worker
-    if(closestWorker) {
+    if(closestWorker && closestWorker.task !== 'assigned') {
       // Move the worker to the building
       closestWorker.assignPath(shortestPath)
       this.assignedWorkers.push(closestWorker)

@@ -106,21 +106,22 @@ class Player {
     }
   }
 
-  update(delay) {
+  async update(delay) {
     // Update all buildings
     for (let i = 0; i < this.getBuildings().length; i++) {
       this.buildings[i].update(delay)
     }
     
-    for (let i = 0; i < this.getUnits().length; i++) {
-      this.units[i].update(delay)
+    // Update all units
+    this.getUnits().map(async unit => {
+      unit.update(delay)
 
-      if(this.units[i] instanceof WorkerUnit && this.units[i].timeSinceLastTask > 1000 && this.units[i].task === 'idle') {
+      if(unit instanceof WorkerUnit && unit.timeSinceLastTask > 75 && unit.task === 'idle') {
         // inactive Peons are converted to PeonSoldier
-        this.addPeonSoldier(this.units[i].currentNode.x, this.units[i].currentNode.y)
-        this.units[i].life = 0
+        this.addPeonSoldier(unit.currentNode.x, unit.currentNode.y)
+        unit.life = 0
       }
-    }
+    })
 
     this.units = this.getUnits().filter(unit => unit.life > 0)
     this.buildings = this.getBuildings().filter(building => building.health > 0)

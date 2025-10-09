@@ -52,7 +52,7 @@ const initGame = async () => {
   do {
     if(!isMapCorrect) gameState.mapSeed = null
     await generateMap()
-    isMapCorrect = placeTents()
+    isMapCorrect = await placeTents()
   } while(!isMapCorrect && ++i < 150)
 
   await assignSpritesOnMap()
@@ -150,7 +150,7 @@ const generateMap = async () => {
  * 
  * @returns {boolean} True if tents were successfully placed with a valid path between them
  */
-const placeTents = () => {
+const placeTents = async () => {
   const { width: MAP_WIDTH, height: MAP_HEIGHT } = getMapDimensions()
   
   // Find suitable locations for tents
@@ -185,10 +185,10 @@ const placeTents = () => {
     }
   }
 
-  const path = searchPath(centerX, humanY, centerX, aiY)
+  const path = await searchPath(centerX, humanY, centerX, aiY)
   const weight = path?.reduce((p, c) => p + c.weight, 0)
 
-  if(path?.length && weight < 2 * (MAP_WIDTH + MAP_HEIGHT)) {
+  if(path?.length && weight < 3 * (MAP_WIDTH + MAP_HEIGHT)) {
     console.log('Path between the 2 tents:', path, weight)
 
     // Create actual tent buildings
@@ -304,7 +304,7 @@ const updateSprite = async (x, y) => {
 } 
 
 // Main game loop
-const gameLoop = () => {
+const gameLoop = async () => {
   const now = performance.now()
   const delay = now - elapsed | 0
   elapsed = now
@@ -341,7 +341,7 @@ const gameLoop = () => {
   
   // Update players and units
   const timingStart = performance.now()
-  if(gameState.humanPlayer) gameState.humanPlayer.update(delay, gameState.map)
+  if(gameState.humanPlayer) await gameState.humanPlayer.update(delay, gameState.map)
   const timing = performance.now() - timingStart
 
   // Check for game over condition
@@ -351,9 +351,9 @@ const gameLoop = () => {
   }
   
   // Update AI players
-  gameState.aiPlayers.forEach(ai => {
-    ai.update(delay, gameState.map)
-  })
+  await Promise.all(gameState.aiPlayers.map(async ai => {
+    await ai.update(delay, gameState.map)
+  }))
 
   // Check for win condition
   if (!gameState.aiPlayers.some(ai => ai.getTents().length)) {

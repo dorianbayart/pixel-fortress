@@ -626,7 +626,7 @@ function createButtonClickParticles(emitter) {
  * Update all particle emitters
  * @param {number} delay - Time elapsed since last update (ms)
  */
-function updateAllParticles(delay) {
+async function updateAllParticles(delay) {
   // Skip if game is paused
   if (gameState.gameStatus !== 'playing' && gameState.gameStatus !== 'menu') return
   
