@@ -4,19 +4,20 @@
 
 - [x] **Game Initialization:** Game window creation, initial resource loading.
 - [x] **Map Generation:** A basic map is randomly generated.
-- [ ] **Load Sprites:** Load more sprites to display different kind of units and buildings. *(In Progress)*
+- [x] **Load Sprites:** Load more sprites to display different kind of units and buildings.
 - [ ] **Define Classes:** Define classes for units, buildings, towers, with their type, characteristics, etc. *(In Progress)*
-- [ ] **Resource Gathering:** Implement resource gathering AI. *(In Progress)*  
+- [x] **Resource Gathering:** Implement resource gathering AI.  
 Details: Worker units automatically locate and gather resources.
-- [ ] **Resource Management:** Implement a system for collecting and spending resources. *(In Progress)*
-- [ ] **Build Placement:** Allow players to strategically place buildings. *(Planned)*  
+- [x] **Resource Management:** Implement a system for collecting and spending resources.
+- [x] **Build Placement:** Allow players to strategically place buildings.  
 Details: Buildings can produce different kind of units.
-- [ ] **Unit Production:** Implement automated unit production from buildings. *(Planned)*  
+- [x] **Unit Production:** Implement automated unit production from buildings.  
 Details: Buildings generate worker units (gather resources) and combat units (attack).
 - [x] **Enemy Spawning:** Generate enemies that move towards the player's base.
 - [x] **Combat:** Implement combat AI for units.  
 Details: Combat units automatically engage and attack enemy units and buildings.
-- [ ] **Game Over Condition:** Handling game over scenarios (base health reaches zero).
+- [x] **Game Over Condition:** Handling game over scenarios (base health reaches zero).
+- [x] **Win Condition:** Handling win scenarios (enemy base health reaches zero).
 - [ ] **AI Opponent:** Implement AI opponent with automated unit management. *(Not Planned)*  
 Details: The AI builds structures and manages units similarly to the player.
 - [ ] **Tower Placement:** Allow players to strategically place towers. *(Not Planned)*

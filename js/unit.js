@@ -1,5 +1,5 @@
 export {
-  CombatUnit, GoldMiner, HumanSoldier, LumberjackWorker, Mage, MeleeUnit, Peon, PeonSoldier, QuarryMiner, RangedUnit, Soldier, Unit, Warrior, WaterCarrier, WorkerUnit
+  CombatUnit, EliteWarrior, GoldMiner, HeavyInfantry, LumberjackWorker, Mage, MeleeUnit, Peon, PeonSoldier, QuarryMiner, RangedUnit, Soldier, Unit, WaterCarrier, WorkerUnit
 }
 
 'use strict'
@@ -23,12 +23,15 @@ Unit (base class)
 ├── WorkerUnit (collects resources)
 │   ├── Peon
 |   └── Lumberjack (wood)
+|   └── QuarryMiner (stone)
+|   └── WaterCarrier (water)
+|   └── GoldMiner (gold)
 ├── CombatUnit (fighting capabilities)
 │   ├── MeleeUnit (close combat)
 │   │   ├── PeonSoldier
-│   │   ├── HumanSoldier
-│   │   ├── Soldier 
-│   │   └── Warrior
+│   │   ├── Soldier
+│   │   └── HeavyInfantry
+│   │   └── EliteWarrior
 │   └── RangedUnit (attacks from distance)
 │       └── Mage
 
@@ -134,7 +137,7 @@ class Unit {
 
     if(!this.goal) return
 
-    if(distance(this.currentNode, this.goal.currentNode ? { x: this.goal.x / getTileSize(), y: this.goal.y / getTileSize() } : this.goal) > (this.range + 0.25) / getTileSize()) {
+    if(distance(this.currentNode, this.goal.currentNode ? { x: this.goal.x / getTileSize(), y: this.goal.y / getTileSize() } : this.goal) > (this.range) / getTileSize()) {
       this.updatePath(delay, time)
     } else {
       this.goalReached(delay, time)
@@ -311,12 +314,12 @@ class Unit {
     const devY = ((this.nextNode.y * SPRITE_SIZE - this.y) * 2 + (this.nextNextNode.y * SPRITE_SIZE - this.y)) / 3
     const theta = Math.atan2(devY, devX)
     const nodeForSpeedFactor = { x: Math.round(this.x / SPRITE_SIZE), y: Math.round(this.y / SPRITE_SIZE) }
-    const speedFactor = gameState.map[nodeForSpeedFactor.x][nodeForSpeedFactor.y].weight < 10 ? 1/gameState.map[nodeForSpeedFactor.x][nodeForSpeedFactor.y].weight : 1/4
+    const speedFactor = Math.max(1/gameState.map[nodeForSpeedFactor.x][nodeForSpeedFactor.y].weight, 1/8)
     let vx = this.speed * (delay/1000) * Math.cos(theta) * speedFactor * SPRITE_SIZE
     let vy = this.speed * (delay/1000) * Math.sin(theta) * speedFactor * SPRITE_SIZE
 
     let type = 'static'
-    if (distance(this.currentNode, this.goal?.currentNode ? { x: this.goal.x / getTileSize(), y: this.goal.y / getTileSize() } : this.goal) <= (this.range + 0.25)/getTileSize()) {
+    if (distance(this.currentNode, this.goal?.currentNode ? { x: this.goal.x / getTileSize(), y: this.goal.y / getTileSize() } : this.goal) <= this.range/getTileSize()) {
       // Stop walking if arrived at goal
       vx = vy = 0
     }
@@ -395,7 +398,7 @@ class WorkerUnit extends Unit {
     this.life = 5
     this.attack = 1
     this.range = 1 * getTileSize()
-    this.speed = getTileSize() / 10 | 0
+    this.speed = getTileSize() / 12
     this.resources = 0
     this.maxResources = 1
 
@@ -1223,6 +1226,8 @@ class CombatUnit extends Unit {
     this.attack *= 1.2
     this.life *= 1.1
     this.experience = 0
+
+    // console.log(`Unit level up !`, this)
   }
 }
 
@@ -1262,22 +1267,22 @@ class PeonSoldier extends MeleeUnit {
     this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
     this.life = 5
     this.attack = 1
-    this.speed = getTileSize() / 10 | 0 // Speedier than normal Combat other units
+    this.speed = getTileSize() / 12 // Speedier than normal Combat other units
   }
 }
 
-/**
- * Human soldier unit implementation
- */
-class HumanSoldier extends MeleeUnit {
-  constructor(x, y, owner) {
-    super(x, y, owner)
-    this.spriteName = 'human-soldier-' + this.owner.getColor()
-    this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
-    this.life = 10
-    this.attack = 2
-  }
-}
+// /**
+//  * Human soldier unit implementation
+//  */
+// class HumanSoldier extends MeleeUnit {
+//   constructor(x, y, owner) {
+//     super(x, y, owner)
+//     this.spriteName = 'human-soldier-' + this.owner.getColor()
+//     this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
+//     this.life = 10
+//     this.attack = 2
+//   }
+// }
 
 /**
  * Mage unit implementation (ranged magic user)
@@ -1289,7 +1294,7 @@ class Mage extends RangedUnit {
     this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
     this.life = 8
     this.attack = 10
-    this.speed = getTileSize() / 14 | 0
+    this.speed = getTileSize() / 15
   }
 }
 
@@ -1299,25 +1304,54 @@ class Mage extends RangedUnit {
 class Soldier extends MeleeUnit {
   constructor(x, y, owner) {
     super(x, y, owner)
-    this.spriteName = 'soldier-' + this.owner.getColor()
+    this.spriteName = 'human-soldier-' + this.owner.getColor()
     this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
-    this.life = 15
-    this.attack = 8
-    this.speed = getTileSize() / 15 | 0
+    this.life = 12
+    this.attack = 5
+    this.speed = getTileSize() / 14
   }
 }
 
+// /**
+//  * Warrior unit implementation (heavy melee fighter)
+//  */
+// class Warrior extends MeleeUnit {
+//   constructor(x, y, owner) {
+//     super(x, y, owner)
+//     this.spriteName = 'soldier-' + this.owner.getColor()
+//     this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
+//     this.life = 40
+//     this.attack = 5
+//     this.range = 0.75 * getTileSize()
+//     this.speed = getTileSize() / 18 | 0
+//   }
+// }
+
 /**
- * Warrior unit implementation (heavy melee fighter)
+ * Heavy Infantry unit implementation (stronger melee fighter)
  */
-class Warrior extends MeleeUnit {
+class HeavyInfantry extends MeleeUnit {
   constructor(x, y, owner) {
     super(x, y, owner)
-    this.spriteName = 'warrior-' + this.owner.getColor()
+    this.spriteName = 'soldier-' + this.owner.getColor() // Placeholder sprite for now
     this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
     this.life = 40
     this.attack = 5
     this.range = 0.75 * getTileSize()
-    this.speed = getTileSize() / 18 | 0
+    this.speed = getTileSize() / 20
+  }
+}
+
+/**
+ * Elite Warrior unit implementation (very strong melee fighter)
+ */
+class EliteWarrior extends MeleeUnit {
+  constructor(x, y, owner) {
+    super(x, y, owner)
+    this.spriteName = 'warrior-' + this.owner.getColor() // Placeholder sprite for now
+    this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
+    this.life = 25
+    this.attack = 12
+    this.speed = getTileSize() / 17
   }
 }

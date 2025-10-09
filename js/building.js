@@ -1,4 +1,4 @@
-export { Building, GoldMine, Quarry, Tent, Well, WorkerBuilding }
+export { Building, CombatBuilding, GoldMine, Quarry, Tent, Well, WorkerBuilding, Barracks, Armory, Citadel }
 
 'use strict'
 
@@ -86,6 +86,10 @@ class Building {
           icon: "⚔️",
           costs: { wood: 15, water: 10, gold: 5 },
           description: "Trains soldiers",
+          sprite_coords: {
+            cyan: { x: 5, y: 34 },
+            red: { x: 15, y: 34 },
+          },
           sprite: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAABZ0lEQVR4nO2ZUW6DMBBEN/QeSW8AN/R9+LZzIe8x2k7lj0ipVbBIjDH2PGn/UFBmZ9YLiBBCCCG7ApFBryNylb+O33ImQAGEDtCWI4DMHT6dQKAAQgdoTxEAOy59dTyGDpD3HeBv02JpqJocgNyb3G3C3bnlsrZty3sKMLXvAL+Scf+ZFmBtJlQvgE91eGtZi6J/uDYBnLU/ciSgAJJ0wKaMv+AAY8zwKACXqhzgc2e+tkiAAggdoJVFoOhMQGUOKD4TQAGEDlBGYOQMUA7BkaeAHnQMhqNuqe7OfYVd4FHNHYMucc6HZWjXvQAUQOgAXXsfECJg7d8quPvvHoHaI0EBDB0wdB0BAJfomrLfCn30oSK2ZOm9YHdAAYQO0MwR+Ge/f3kvOByzUYDUuV79TIihAKZDB5inTM7z/LH1ef75t0Km166PZ8ThM8EkOpa7Q6Xvl4QCmM4dgERm44yf7X6EEEKkUX4BxuhHPhXplNUAAAAASUVORK5CYII='
         },
         ARMORY: {
@@ -93,6 +97,10 @@ class Building {
           icon: "🛡️",
           costs: { wood: 25, water: 20, stone: 15, gold: 20 },
           description: "Trains heavy infantry",
+          sprite_coords: {
+            cyan: { x: 7, y: 33 },
+            red: { x: 17, y: 33 },
+          },
           sprite: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAB3ElEQVR4nO2aUXKCMBiEYzuT3uTvSUpP4OABSq9QfOIeZQb63OvIdRDHYqn+Ar+BQIPZndk3g+RjN6BEKQiCIAiyLv3yUeogrmxZKbVSS5IO4r1VAEnyoJYkDQDxfSeA3vKSorzqcpjuqs3nn/Xr1mjCfPxz9NX5XUcrVc27RlCU7UUAadF4EICz8SKAuRNCAJD5lQASOi8B+HHPmsA7z8dKACZfE0i44jcB6EmE9HljALYTQQCQ+ZUAzZ7lKcqMTsB0TRg7Ye7RvyU0e5KbBIDFKy4CME2EBoAYCdBXDyjbxlIl6vt60ZjeB1TGYDw/P+sV0Mw3ATjr9CAABuOt/5rUABALCcj9TkDIOnrltttbT6evjieM535q6f30ANJisFsBjDgeAARIQDXFf4qrX/NKuF6B04Sb8x8y+QstFIA9aQCI/U7ASU2nwnRXugRgvf5+tNp5Sa4BSJJq3vcCIQDskIANKlBgDdhgESz8vAuMvSuMBfDvE+YCgBQJKL2uAEX5xcvTzv/1BgLgr8pm3xNk+vpcmpApAP5593aNRQCw9yoBZLhnaGo7t0+Q5gbg2j5BAoD8vhNQ69i7dttOSD3B7u9TrokmAbAgEQBkfiegVl9nTQ1BEAQp2zoAV9s22rKd+csAAAAASUVORK5CYII='
         },
         CITADEL: {
@@ -100,6 +108,10 @@ class Building {
           icon: "🏰",
           costs: { wood: 40, water: 40, stone: 20, gold: 50 },
           description: "Trains elite warriors",
+          sprite_coords: {
+            cyan: { x: 8, y: 35 },
+            red: { x: 18, y: 35 },
+          },
           sprite: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAB70lEQVR4nO1aUW6CQBAdaKM9id4ET9CIB7BXqH7NPaCJfnsJozewcJmmxmkwRUWFZbIsi+685H0tzK5v3xtXAUAgEAgE7YMI/At64BKIwN9vPcr5u/EO4BJIBIDndwAi+WVcr/H1WoCq64HosXoEIvlhnFIZJ1/fVBBg65dee2SUPJZDUASg53cAVmT2fbV6aVqATvUIVOywimwBVGzbISgCkHsOQEbGbQhgtCeg5o4bF8C0I1AEIHFAeGWzcZycGEa3NqwarxMBnfrGIzCOExpMF2d+LIgzrhJAt74IEIkDDma/96P0aLucwxsLpjScLk8cTJe8HqBZX/tcgA13/dbPAbrnAhQBSBwQ8m1WTW4EGPXsRyBKqBfMStkP5swmyKsnAsTiAOp0BHqjeSG/k3h3G4GL8fGzRaB3xbfRZ1GAjce6XwQIxAFkNAJA5GU3FaiIQLYrObPMV1p4NDvaPufPxq9l+xOznlLjQ5+Z7nkCtNwTrGdeBREAHXcAGO4Jncu8bUfY33EFRAB00AGo82ywBQG6/WwwMiyAaUegCEDuOQAbfB/gX4BDXfaDefU5w3RPwKb/FWbuiO35wfYCbM8Pthdge364e/ZXsW0BWOuz/dsgaliArr05iiIAue0AUPYMZgabricQCAQCAdzDH7txa8JBeNntAAAAAElFTkSuQmCC'
         }
       }
@@ -201,6 +213,15 @@ class Building {
         case Building.TYPES.GOLD_MINE:
           building = new GoldMine(x, y, color, owner)
           break
+        case Building.TYPES.BARRACKS:
+          building = new Barracks(x, y, color, owner)
+          break
+        case Building.TYPES.ARMORY:
+          building = new Armory(x, y, color, owner)
+          break
+        case Building.TYPES.CITADEL:
+          building = new Citadel(x, y, color, owner)
+          break
     }
 
     gameState.map[x][y].type = building.type
@@ -244,6 +265,52 @@ class WorkerBuilding extends Building {
     this.type = 'WORKER_BUILDING'
   }
   
+}
+
+/**
+ * Building that produces combat units
+ */
+class CombatBuilding extends Building {
+  constructor(x, y, color, owner) {
+    super(x, y, color, owner)
+    this.type = 'COMBAT_BUILDING'
+    this.productionCooldown = 15000 // 15 seconds by default for combat units
+    
+    if(owner === gameState.humanPlayer) {
+      this.showProgressIndicator = true
+      createProgressIndicator(this, 10, 0xFF0000) // Red color for combat production
+    }
+  }
+
+  /**
+   * Update building state and produce combat units
+   * @param {number} delay - Time elapsed since last update (ms)
+   */
+  update(delay) {
+    super.update(delay)
+    
+    // Update production timer
+    this.productionTimer += delay
+
+    // Update progress for indicator
+    this.progress = this.productionTimer / this.productionCooldown
+
+    updateProgressIndicator(this, this.progress)
+    
+    // Check if it's time to produce a combat unit
+    if (this.productionTimer >= this.productionCooldown) {
+      this.produceWarrior()
+      this.productionTimer -= this.productionCooldown
+      this.progress = 0 // Reset progress after producing
+    }
+  }
+  
+  /**
+   * Produce a combat unit (to be overridden by specific combat buildings)
+   */
+  produceWarrior() {
+    // This method will be overridden by Barracks, Armory, Citadel
+  }
 }
 
 /**
@@ -958,6 +1025,72 @@ class GoldMine extends WorkerBuilding {
     const workerIndex = this.owner.units.indexOf(this.convertingWorker)
     if (workerIndex > -1) {
       this.owner.units.splice(workerIndex, 1)
+    }
+  }
+}
+
+/**
+ * Barracks building for training soldiers
+ */
+class Barracks extends CombatBuilding {
+  constructor(x, y, color, owner) {
+    super(x, y, color, owner)
+    this.type = Building.TYPES.BARRACKS
+    this.health = 50
+    this.maxHealth = 50
+    this.productionCooldown = 12000 // 12 seconds to train a soldier
+  }
+
+  /**
+   * Produce a soldier unit
+   */
+  produceWarrior() {
+    if (this.owner) {
+      this.owner.addSoldier(this.x, this.y + 1)
+    }
+  }
+}
+
+/**
+ * Armory building for training heavy infantry
+ */
+class Armory extends CombatBuilding {
+  constructor(x, y, color, owner) {
+    super(x, y, color, owner)
+    this.type = Building.TYPES.ARMORY
+    this.health = 150
+    this.maxHealth = 150
+    this.productionCooldown = 20000 // 20 seconds to train heavy infantry
+  }
+
+  /**
+   * Produce a heavy infantry unit
+   */
+  produceWarrior() {
+    if (this.owner) {
+      this.owner.addHeavyInfantry(this.x, this.y + 1)
+    }
+  }
+}
+
+/**
+ * Citadel building for training elite warriors
+ */
+class Citadel extends CombatBuilding {
+  constructor(x, y, color, owner) {
+    super(x, y, color, owner)
+    this.type = Building.TYPES.CITADEL
+    this.health = 250
+    this.maxHealth = 250
+    this.productionCooldown = 30000 // 30 seconds to train an elite warrior
+  }
+
+  /**
+   * Produce an elite warrior unit
+   */
+  produceWarrior() {
+    if (this.owner) {
+      this.owner.addEliteWarrior(this.x, this.y + 1)
     }
   }
 }

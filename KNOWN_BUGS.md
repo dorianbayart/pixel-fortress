@@ -1,7 +1,7 @@
 # Known bugs and issues
 
 
-
+[ ] Severe memory leak: "uncaught exception: out of memory"
 
 [ ] UI on mobile is not working properly
 

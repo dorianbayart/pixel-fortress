@@ -4,7 +4,7 @@ export { Player, PlayerType }
 
 import { Building } from 'building'
 import gameState, { EventSystem } from 'state'
-import { GoldMiner, HumanSoldier, LumberjackWorker, Peon, PeonSoldier, QuarryMiner, WaterCarrier, WorkerUnit } from 'unit'
+import { EliteWarrior, GoldMiner, HeavyInfantry, LumberjackWorker, Peon, PeonSoldier, QuarryMiner, Soldier, WaterCarrier, WorkerUnit } from 'unit'
 
 const PlayerType = {
   HUMAN: 'human',
@@ -202,9 +202,27 @@ class Player {
     )
   }
 
-  addHumanSoldier(x, y) {
+  // addHumanSoldier(x, y) {
+  //   this.units.push(
+  //     new HumanSoldier(x, y, this)
+  //   )
+  // }
+
+  addSoldier(x, y) {
     this.units.push(
-      new HumanSoldier(x, y, this)
+      new Soldier(x, y, this)
+    )
+  }
+
+  addHeavyInfantry(x, y) {
+    this.units.push(
+      new HeavyInfantry(x, y, this)
+    )
+  }
+
+  addEliteWarrior(x, y) {
+    this.units.push(
+      new EliteWarrior(x, y, this)
     )
   }
 }
