@@ -7,7 +7,7 @@ export {
 import { getMapDimensions, getTileSize } from 'dimensions'
 import { TERRAIN_TYPES, updateSprite } from 'game'
 import { ParticleEffect, createParticleEmitter } from 'particles'
-import { searchPath } from 'pathfinding'
+import { searchPath, updateMapInWorker } from 'pathfinding'
 import { indicatorMap, removeProgressIndicator } from 'renderer'
 import { UNIT_SPRITE_SIZE, offscreenSprite, unitsSprites, unitsSpritesDescription } from 'sprites'
 import gameState from 'state'
@@ -576,6 +576,7 @@ class LumberjackWorker extends WorkerUnit {
     // Update the map tile
     gameState.map[tree.x][tree.y].type = 'DEPLETED_TREE'
     gameState.map[tree.x][tree.y].weight = TERRAIN_TYPES.GRASS.weight
+    updateMapInWorker()
     
     updateSprite(tree.x, tree.y)
     

@@ -7,7 +7,7 @@ import { getMapDimensions, getTileSize } from 'dimensions'
 import { renderFog, updateVisibility } from 'fogOfWar'
 import { drawBack, isDrawBackRequested } from 'globals'
 import { updateAllParticles } from 'particles'
-import { clearPathCache, searchPath } from 'pathfinding'
+import { clearPathCache, searchPath, updateMapDimensionsInWorker, updateMapInWorker } from 'pathfinding'
 import { Player, PlayerType } from 'players'
 import { drawBackground, drawMain } from 'renderer'
 import { offscreenSprite, sprites } from 'sprites'
@@ -49,12 +49,14 @@ const initGame = async () => {
   // Generate map until we get a valid one
   let i = 0
   let isMapCorrect = true
+  updateMapDimensionsInWorker()
   do {
     if(!isMapCorrect) gameState.mapSeed = null
     await generateMap()
     isMapCorrect = await placeTents()
   } while(!isMapCorrect && ++i < 150)
 
+  updateMapInWorker() // Initial map update
   await assignSpritesOnMap()
 
   elapsedBack = elapsed = performance.now()
@@ -62,6 +64,7 @@ const initGame = async () => {
   return isMapCorrect
 }
 
+let lastMapUpdateTime = 0
 
 /**
  * Generate the game map using Perlin noise
@@ -185,6 +188,7 @@ const placeTents = async () => {
     }
   }
 
+  updateMapInWorker()
   const path = await searchPath(centerX, humanY, centerX, aiY)
   const weight = path?.reduce((p, c) => p + c.weight, 0)
 
@@ -382,6 +386,12 @@ const gameLoop = async () => {
   
   
   requestAnimationFrame(gameLoop)
+
+  // Update map in worker periodically
+  if (now - lastMapUpdateTime > 2500) {
+    updateMapInWorker()
+    lastMapUpdateTime = now
+  }
 
   if(gameState.debug && Math.random() > 0.9975) console.log(`Mean Game Loop Time: ${fps.reduce((a, b) => a + b, 0) / fps.length} ms`)
 

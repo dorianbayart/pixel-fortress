@@ -1,4 +1,4 @@
-export { clearPathCache, searchPath }
+export { clearPathCache, searchPath, updateMapDimensionsInWorker, updateMapInWorker }
 
 'use strict'
 
@@ -28,8 +28,6 @@ function searchPath(startX, startY, endX, endY) {
       startY,
       endX,
       endY,
-      map: gameState.map.map(column => column.map(tile => ({ weight: tile.weight }))),
-      mapDimensions: getMapDimensions(),
     })
   })
 }
@@ -54,4 +52,27 @@ pathfindingWorker.onmessage = (event) => {
     }
     pathfindingPromises.delete(id)
   }
+}
+
+
+/**
+ * Sends the current map dimensions to the worker.
+ * This should be called once at the start of the game or when map dimensions change.
+ */
+function updateMapDimensionsInWorker() {
+  pathfindingWorker.postMessage({
+    type: 'UPDATE_MAP_DIMENSIONS',
+    mapDimensions: getMapDimensions(),
+  })
+}
+
+/**
+ * Sends the current game map to the worker.
+ * This should be called periodically or when the map changes (e.g., building, harvesting).
+ */
+function updateMapInWorker() {
+  pathfindingWorker.postMessage({
+    type: 'UPDATE_MAP',
+    map: gameState.map.map(column => column.map(tile => ({ weight: tile.weight }))),
+  })
 }

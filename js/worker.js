@@ -197,11 +197,13 @@ self.onmessage = (event) => {
   const { type, id, startX, startY, endX, endY, map, mapDimensions } = event.data
 
   if (type === 'FIND_PATH') {
-    currentMapDimensions = mapDimensions
-    currentGameStateMap = map
     const path = aStar(startX, startY, endX, endY)
     // console.log(`Worker: Path found for (${startX},${startY}) to (${endX},${endY}):`, path)
     self.postMessage({ type: 'PATH_RESULT', id, path })
+  } else if (type === 'UPDATE_MAP_DIMENSIONS') {
+    currentMapDimensions = mapDimensions
+  } else if (type === 'UPDATE_MAP') {
+    currentGameStateMap = map
   } else if (type === 'CLEAR_CACHE') {
     clearPathCache()
     self.postMessage({ type: 'CACHE_CLEARED', id })

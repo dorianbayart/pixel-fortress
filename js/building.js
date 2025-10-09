@@ -4,7 +4,7 @@ export { Building, CombatBuilding, GoldMine, Quarry, Tent, Well, WorkerBuilding,
 
 import { getMapDimensions, getTileSize } from 'dimensions'
 import { ParticleEffect, createParticleEmitter } from 'particles'
-import { searchPath } from 'pathfinding'
+import { searchPath, updateMapInWorker } from 'pathfinding'
 import { Player } from 'players'
 import { createProgressIndicator, indicatorMap, removeProgressIndicator, updateProgressIndicator } from 'renderer'
 import { offscreenSprite, sprites } from 'sprites'
@@ -154,6 +154,7 @@ class Building {
     // Update map tile to make it hardly walkable
     gameState.map[x][y].weight = Building.WEIGHT
     gameState.map[x][y].type = 'BUILDING'
+    updateMapInWorker()
   }
 
   /**
@@ -174,6 +175,7 @@ class Building {
       gameState.map[this.x][this.y].uid = null
       gameState.map[this.x][this.y].weight = 1
       gameState.map[this.x][this.y].type = 'GRASS'
+      updateMapInWorker()
 
       // Cleanup
       this.destroy()
@@ -225,6 +227,7 @@ class Building {
     }
 
     gameState.map[x][y].type = building.type
+    updateMapInWorker()
 
     // Put the corresponding sprite on the map
     const spriteX = building.type.sprite_coords[color].x
