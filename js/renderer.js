@@ -351,7 +351,7 @@ function drawMain(player, AIs) {
       sprite.visible = entity.visible !== false
       sprite.x = entity.x - UNIT_SPRITE_SIZE/4
       sprite.y = entity.y - UNIT_SPRITE_SIZE/4 - 2
-      sprite.zIndex = sprite.y + UNIT_SPRITE_SIZE/4 - 2 // Set zIndex for sorting based on the visual bottom of the unit sprite
+      sprite.zIndex = entity.y + UNIT_SPRITE_SIZE/2 // Set zIndex for sorting based on the visual bottom of the unit sprite
     }
 
     // --- Progress Indicator Handling (for both units and buildings) ---
