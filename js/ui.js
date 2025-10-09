@@ -601,11 +601,11 @@ async function createBuildingSlots() {
   
   // Create slots based on available buildings
   const buildings = [
-    Building.TYPES.LUMBERJACK,
     Building.TYPES.TENT,
-    Building.TYPES.GOLD_MINE,
+    Building.TYPES.LUMBERJACK,
     Building.TYPES.QUARRY,
     Building.TYPES.WELL,
+    Building.TYPES.GOLD_MINE,
     Building.TYPES.BARRACKS,
     Building.TYPES.ARMORY,
     Building.TYPES.CITADEL
