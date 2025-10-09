@@ -1115,22 +1115,39 @@ class CombatUnit extends Unit {
 
   async handleTasks(delay, time) {
     this.attack = false
+    this.timeSinceLastTargetReevaluation = this.timeSinceLastTargetReevaluation || 0
+    this.timeSinceLastTargetReevaluation += delay
 
-    if (!this.goal || this.goal.life <= 0) {
+    // If current goal is dead or invalid, clear it and go idle
+    if (this.goal && this.goal.life <= 0) {
       this.goal = null
+      this.path = null
       this.task = 'idle'
     }
 
-    switch(this.task) {
-      case 'idle':
-        if(!this.path || !this.goal || time - this.lastPathUpdate > Math.min(4500, this.path?.length * 250)) {
-          this.path = await this.pathToNearestEnemy()
-          this.lastPathUpdate = time
-        }
-        break
-      case 'attack':
-        this.attack = true
-        break
+    // Periodically re-evaluate nearest enemy, even if currently attacking
+    // This allows units to switch targets if a closer or more critical enemy appears
+    const reevaluateInterval = (this.path?.length || 20 + 1) * 175 // Re-evaluate every few 175ms
+    if (this.task === 'idle' || this.timeSinceLastTargetReevaluation > reevaluateInterval) {
+      this.timeSinceLastTargetReevaluation = 0
+      const newPath = await this.pathToNearestEnemy()
+      if (newPath) {
+        this.path = newPath
+        this.lastPathUpdate = time
+        this.task = 'moving' // Set task to moving if a new path is found
+      } else {
+        this.task = 'idle' // No enemy found, remain idle
+      }
+    }
+
+    // If we have a goal and are within range, attack
+    if (this.goal && distance(this.currentNode, this.goal.currentNode ? { x: this.goal.x / getTileSize(), y: this.goal.y / getTileSize() } : this.goal) < (this.range) / getTileSize()) {
+      this.task = 'attack'
+      this.attack = true
+    } else if (this.goal && this.path) {
+      this.task = 'moving'
+    } else {
+      this.task = 'idle'
     }
   }
 
