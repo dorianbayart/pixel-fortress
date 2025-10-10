@@ -206,7 +206,101 @@ const placeTents = async () => {
 }
 
 // Assign sprites to map tiles
+/**
+ * Determines the correct sand sprite based on neighboring tiles.
+ * @param {number} x - The x-coordinate of the current tile.
+ * @param {number} y - The y-coordinate of the current tile.
+ * @param {Array<Array<object>>} map - The game map.
+ * @param {number} MAP_WIDTH - The width of the map.
+ * @param {number} MAP_HEIGHT - The height of the map.
+ * @returns {{spriteX: number, spriteY: number}} The x and y coordinates of the appropriate sand sprite.
+ */
+const getSandSpriteCoordinates = (x, y, map, MAP_WIDTH, MAP_HEIGHT) => {
+  // Base sprite for sand (isolated or full sand)
+  let spriteX = 3;
+  let spriteY = 3;
+
+  // Check neighbors
+  const isSand = (nx, ny) => {
+    if (nx < 0 || nx >= MAP_WIDTH || ny < 0 || ny >= MAP_HEIGHT) return false;
+    return map[nx][ny].type === TERRAIN_TYPES.SAND.type;
+  };
+
+  const north = isSand(x, y - 1);
+  const south = isSand(x, y + 1);
+  const east = isSand(x + 1, y);
+  const west = isSand(x - 1, y);
+  const northEast = isSand(x + 1, y - 1);
+  const northWest = isSand(x - 1, y - 1);
+  const southEast = isSand(x + 1, y + 1);
+  const southWest = isSand(x - 1, y + 1);
+
+  // Default to isolated sand (3,3)
+  spriteX = 3;
+  spriteY = 3;
+
+  // Horizontal connections
+  if (west && east && !north && !south) {
+    spriteX = 5; spriteY = 3; // Sand with West and East neighbors
+  }
+  // Vertical connections
+  else if (north && south && !west && !east) {
+    spriteX = 3; spriteY = 1; // Sand with North and South neighbors
+  }
+  // Corners
+  else if (south && east && !north && !west) {
+    spriteX = 4; spriteY = 0; // South-East corner
+  }
+  else if (south && west && !north && !east) {
+    spriteX = 6; spriteY = 0; // South-West corner
+  }
+  else if (north && east && !south && !west) {
+    spriteX = 4; spriteY = 2; // North-East corner
+  }
+  else if (north && west && !south && !east) {
+    spriteX = 6; spriteY = 2; // North-West corner
+  }
+  // T-intersections
+  else if (north && east && south && !west) {
+    spriteX = 4; spriteY = 1; // North, East, South (T-up)
+  }
+  else if (east && south && west && !north) {
+    spriteX = 5; spriteY = 0; // East, South, West (T-down)
+  }
+  else if (north && south && west && !east) {
+    spriteX = 6; spriteY = 1; // North, South, West (T-left)
+  }
+  else if (north && east && west && !south) {
+    spriteX = 5; spriteY = 2; // North, East, West (T-right)
+  }
+  // Edges (single connections)
+  else if (north && !south && !east && !west) {
+    spriteX = 3; spriteY = 2; // Only North
+  }
+  else if (south && !north && !east && !west) {
+    spriteX = 3; spriteY = 0; // Only South
+  }
+  else if (east && !north && !south && !west) {
+    spriteX = 4; spriteY = 3; // Only East
+  }
+  else if (west && !north && !south && !east) {
+    spriteX = 6; spriteY = 3; // Only West
+  }
+  // Full sand (all 4 cardinal neighbors)
+  else if (north && south && east && west) {
+    spriteX = 5; spriteY = 1; // All cardinal neighbors
+  }
+
+  // Diagonal connections (these are usually handled by combining cardinal tiles,
+  // but if there are specific diagonal sprites, they would go here)
+  // For now, I'll prioritize cardinal connections.
+
+  return { spriteX, spriteY };
+};
+
+// Assign sprites to map tiles
 const assignSpritesOnMap = async () => {
+
   const { width: MAP_WIDTH, height: MAP_HEIGHT, maxWeight: MAX_WEIGHT } = getMapDimensions()
   const SPRITE_SIZE = getTileSize()
 
@@ -260,13 +354,8 @@ const assignSpritesOnMap = async () => {
           gameState.map[x][y].back = offscreenSprite(grassSprite, SPRITE_SIZE)
           break
         case TERRAIN_TYPES.SAND.type:
-          spriteX = Math.floor(Math.random() * 
-              (terrainType.spriteRange.x[1] - terrainType.spriteRange.x[0] + 1)) + 
-              terrainType.spriteRange.x[0]
-          spriteY = Math.floor(Math.random() * 
-              (terrainType.spriteRange.y[1] - terrainType.spriteRange.y[0] + 1)) + 
-              terrainType.spriteRange.y[0]
-          gameState.map[x][y].sprite = offscreenSprite(sprites[spriteX][spriteY], SPRITE_SIZE)
+          const { spriteX: sandSpriteX, spriteY: sandSpriteY } = getSandSpriteCoordinates(x, y, gameState.map, MAP_WIDTH, MAP_HEIGHT)
+          gameState.map[x][y].sprite = offscreenSprite(sprites[sandSpriteX][sandSpriteY], SPRITE_SIZE)
           break
         case TERRAIN_TYPES.WATER.type:
           spriteX = Math.floor(Math.random() * 
