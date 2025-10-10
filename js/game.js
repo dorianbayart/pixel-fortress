@@ -222,7 +222,7 @@ const getSandSpriteCoordinates = (x, y, map, MAP_WIDTH, MAP_HEIGHT) => {
 
   // Check neighbors
   const isSand = (nx, ny) => {
-    if (nx < 0 || nx >= MAP_WIDTH || ny < 0 || ny >= MAP_HEIGHT) return false
+    if (nx < 0 || nx >= MAP_WIDTH || ny < 0 || ny >= MAP_HEIGHT) return true
     return map[nx][ny].type === TERRAIN_TYPES.SAND.type
   }
 
@@ -262,6 +262,18 @@ const getSandSpriteCoordinates = (x, y, map, MAP_WIDTH, MAP_HEIGHT) => {
   }
   else if (N && S && E && W && NW && SE && !NE && !SW) {
     spriteX = 13; spriteY = 2 // Missing NE && SW diagonal
+  }
+  else if (N && S && E && W && NE && NW && !SW && !SE) {
+    spriteX = 8; spriteY = 2
+  }
+  else if (N && S && E && W && NW && SW && !NE && !SE) {
+    spriteX = 9; spriteY = 1
+  }
+  else if (N && S && E && W && SE && SW && !NW && !NE) {
+    spriteX = 8; spriteY = 0
+  }
+  else if (N && S && E && W && NE && SE && !NW && !SW) {
+    spriteX = 7; spriteY = 1
   }
 
   // 3. Outer corners (L-shape with diagonal)
@@ -342,7 +354,161 @@ const getSandSpriteCoordinates = (x, y, map, MAP_WIDTH, MAP_HEIGHT) => {
   // 9. Isolated tile (no sand neighbors) - Default is already (3,3)
 
   return { spriteX, spriteY }
-};
+}
+
+/**
+ * Determines the correct water sprite based on neighboring tiles.
+ * @param {number} x - The x-coordinate of the current tile.
+ * @param {number} y - The y-coordinate of the current tile.
+ * @param {Array<Array<object>>} map - The game map.
+ * @param {number} MAP_WIDTH - The width of the map.
+ * @param {number} MAP_HEIGHT - The height of the map.
+ * @returns {{spriteX: number, spriteY: number}} The x and y coordinates of the appropriate water sprite.
+ */
+const getWaterSpriteCoordinates = (x, y, map, MAP_WIDTH, MAP_HEIGHT) => {
+  // Base sprite for water (isolated or full water)
+  let spriteX = 3
+  let spriteY = 3
+
+  // Check neighbors
+  const isWater = (nx, ny) => {
+    if (nx < 0 || nx >= MAP_WIDTH || ny < 0 || ny >= MAP_HEIGHT) return true
+    return map[nx][ny].type === TERRAIN_TYPES.WATER.type
+  }
+
+  const N = isWater(x, y - 1)
+  const S = isWater(x, y + 1)
+  const E = isWater(x + 1, y)
+  const W = isWater(x - 1, y)
+  const NE = isWater(x + 1, y - 1)
+  const NW = isWater(x - 1, y - 1)
+  const SE = isWater(x + 1, y + 1)
+  const SW = isWater(x - 1, y + 1)
+
+  // Default to isolated water (3,3) relative to water tileset
+  spriteX = 3
+  spriteY = 3
+
+  // 1. Fully connected (all 8 neighbors)
+  if (N && S && E && W && NE && NW && SE && SW) {
+    spriteX = 11; spriteY = 1
+  }
+  // 2. Inner corners (cardinal neighbors present, but a diagonal is missing)
+  else if (N && S && E && W && NW && SW && SE && !NE) {
+    spriteX = 14; spriteY = 0
+  }
+  else if (N && S && E && W && NE && SE && SW && !NW) {
+    spriteX = 13; spriteY = 0
+  }
+  else if (N && S && E && W && NE && NW && SW && !SE) {
+    spriteX = 14; spriteY = 1
+  }
+  else if (N && S && E && W && NE && NW && SE && !SW) {
+    spriteX = 13; spriteY = 1
+  }
+  // Missing 2 diagonals only
+  else if (N && S && E && W && NE && SW && !NW && !SE) {
+    spriteX = 14; spriteY = 2
+  }
+  else if (N && S && E && W && NW && SE && !NE && !SW) {
+    spriteX = 13; spriteY = 2
+  }
+  else if (N && S && E && W && NE && NW && !SW && !SE) {
+    spriteX = 8; spriteY = 2
+  }
+  else if (N && S && E && W && NW && SW && !NE && !SE) {
+    spriteX = 9; spriteY = 1
+  }
+  else if (N && S && E && W && SE && SW && !NW && !NE) {
+    spriteX = 8; spriteY = 0
+  }
+  else if (N && S && E && W && NE && SE && !NW && !SW) {
+    spriteX = 7; spriteY = 1
+  }
+
+  // 3. Outer corners (L-shape with diagonal)
+  else if (N && E && NE && !S && !W) {
+    spriteX = 10; spriteY = 2
+  }
+  else if (N && W && NW && !S && !E) {
+    spriteX = 12; spriteY = 2
+  }
+  else if (S && E && SE && !N && !W) {
+    spriteX = 10; spriteY = 0
+  }
+  else if (S && W && SW && !N && !E) {
+    spriteX = 12; spriteY = 0
+  }
+  // 4. All 4 cardinal neighbors
+  else if (N && S && E && W) {
+    spriteX = 5; spriteY = 1
+  }
+  // 5. T-intersections (3 cardinal neighbors)
+  else if (N && S && E && NE && SE && !W) {
+    spriteX = 10; spriteY = 1
+  }
+  else if (E && S && W && SE && SW && !N) {
+    spriteX = 11; spriteY = 0
+  }
+  else if (N && S && W && NW && SW && !E) {
+    spriteX = 12; spriteY = 1
+  }
+  else if (N && E && W && NE && NW && !S) {
+    spriteX = 11; spriteY = 2
+  }
+  else if (N && S && E && !W) {
+    spriteX = 4; spriteY = 1
+  }
+  else if (E && S && W && !N) {
+    spriteX = 5; spriteY = 0
+  }
+  else if (N && S && W && !E) {
+    spriteX = 6; spriteY = 1
+  }
+  else if (N && E && W && !S) {
+    spriteX = 5; spriteY = 2
+  }
+  // 6. Corners (2 cardinal neighbors)
+  else if (S && E && !N && !W) {
+    spriteX = 4; spriteY = 0
+  }
+  else if (S && W && !N && !E) {
+    spriteX = 6; spriteY = 0
+  }
+  else if (N && E && !S && !W) {
+    spriteX = 4; spriteY = 2
+  }
+  else if (N && W && !S && !E) {
+    spriteX = 6; spriteY = 2
+  }
+  // 7. Side connections
+  else if (W && E && !N && !S) {
+    spriteX = 5; spriteY = 3
+  }
+  else if (N && S && !W && !E) {
+    spriteX = 3; spriteY = 1
+  }
+  // 8. Edges (single connections)
+  else if (N && !S && !E && !W) {
+    spriteX = 3; spriteY = 2
+  }
+  else if (S && !N && !E && !W) {
+    spriteX = 3; spriteY = 0
+  }
+  else if (E && !N && !S && !W) {
+    spriteX = 4; spriteY = 3
+  }
+  else if (W && !N && !S && !E) {
+    spriteX = 6; spriteY = 3
+  }
+  // 9. Isolated tile (no water neighbors) - Default is already (3,3)
+
+  // Apply the offset (x-3, y+10)
+  spriteX = spriteX - 3;
+  spriteY = spriteY + 10;
+
+  return { spriteX, spriteY }
+}
 
 // Assign sprites to map tiles
 const assignSpritesOnMap = async () => {
@@ -404,13 +570,8 @@ const assignSpritesOnMap = async () => {
           gameState.map[x][y].sprite = offscreenSprite(sprites[sandSpriteX][sandSpriteY], SPRITE_SIZE)
           break
         case TERRAIN_TYPES.WATER.type:
-          spriteX = Math.floor(Math.random() * 
-              (terrainType.spriteRange.x[1] - terrainType.spriteRange.x[0] + 1)) + 
-              terrainType.spriteRange.x[0]
-          spriteY = Math.floor(Math.random() * 
-              (terrainType.spriteRange.y[1] - terrainType.spriteRange.y[0] + 1)) + 
-              terrainType.spriteRange.y[0]
-          gameState.map[x][y].sprite = offscreenSprite(sprites[spriteX][spriteY], SPRITE_SIZE)
+          const { spriteX: waterSpriteX, spriteY: waterSpriteY } = getWaterSpriteCoordinates(x, y, gameState.map, MAP_WIDTH, MAP_HEIGHT)
+          gameState.map[x][y].sprite = offscreenSprite(sprites[waterSpriteX][waterSpriteY], SPRITE_SIZE)
           break
         default:
           gameState.map[x][y].back = offscreenSprite(grassSprite, SPRITE_SIZE)
