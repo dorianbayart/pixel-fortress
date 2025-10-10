@@ -44,8 +44,23 @@ const distance = (a, b) => {
  * @param {Array<string|number>} [array] The array to hash
  * @returns {string} The hash of the array
  */
+/**
+ * Calculates a FNV-1a hash from an array of numbers.
+ * FNV-1a is a fast, non-cryptographic hash function with good distribution.
+ * It's suitable for generating unique-enough IDs for caching purposes.
+ * 
+ * @param {Array<number>} array The array of numbers to hash (e.g., ImageData.data).
+ * @returns {string} The FNV-1a hash as a hexadecimal string.
+ */
 const arrayToHash = (array) => {
-    return array.slice(0, array.length / 2 | 0).join('')
+    let hash = 2166136261; // FNV-1a 32-bit offset basis
+
+    for (let i = 0; i < array.length; i++) {
+        hash ^= array[i];
+        hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
+    }
+
+    return (hash >>> 0).toString(16); // Convert to unsigned 32-bit integer and then to hex string
 }
 
 const textureCache = new Map()
