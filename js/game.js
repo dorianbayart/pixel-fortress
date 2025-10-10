@@ -97,7 +97,7 @@ const generateMap = async () => {
     ROCK: 0.34,
     TREE_NEXT_TO_WATER: 0.35,
     GRASS_NEXT_TO_WATER: 0.45,
-    SAND: 0.47,
+    SAND: 0.5,
     GRASS: 0.56,
     GOLD: 0.8,
     TREE: 1,
@@ -217,85 +217,131 @@ const placeTents = async () => {
  */
 const getSandSpriteCoordinates = (x, y, map, MAP_WIDTH, MAP_HEIGHT) => {
   // Base sprite for sand (isolated or full sand)
-  let spriteX = 3;
-  let spriteY = 3;
+  let spriteX = 3
+  let spriteY = 3
 
   // Check neighbors
   const isSand = (nx, ny) => {
-    if (nx < 0 || nx >= MAP_WIDTH || ny < 0 || ny >= MAP_HEIGHT) return false;
-    return map[nx][ny].type === TERRAIN_TYPES.SAND.type;
-  };
+    if (nx < 0 || nx >= MAP_WIDTH || ny < 0 || ny >= MAP_HEIGHT) return false
+    return map[nx][ny].type === TERRAIN_TYPES.SAND.type
+  }
 
-  const north = isSand(x, y - 1);
-  const south = isSand(x, y + 1);
-  const east = isSand(x + 1, y);
-  const west = isSand(x - 1, y);
-  const northEast = isSand(x + 1, y - 1);
-  const northWest = isSand(x - 1, y - 1);
-  const southEast = isSand(x + 1, y + 1);
-  const southWest = isSand(x - 1, y + 1);
+  const N = isSand(x, y - 1)
+  const S = isSand(x, y + 1)
+  const E = isSand(x + 1, y)
+  const W = isSand(x - 1, y)
+  const NE = isSand(x + 1, y - 1)
+  const NW = isSand(x - 1, y - 1)
+  const SE = isSand(x + 1, y + 1)
+  const SW = isSand(x - 1, y + 1)
 
   // Default to isolated sand (3,3)
-  spriteX = 3;
-  spriteY = 3;
+  spriteX = 3
+  spriteY = 3
 
-  // Horizontal connections
-  if (west && east && !north && !south) {
-    spriteX = 5; spriteY = 3; // Sand with West and East neighbors
+  // 1. Fully connected (all 8 neighbors)
+  if (N && S && E && W && NE && NW && SE && SW) {
+    spriteX = 11; spriteY = 1 // User-specified center tile for all 8 neighbors
   }
-  // Vertical connections
-  else if (north && south && !west && !east) {
-    spriteX = 3; spriteY = 1; // Sand with North and South neighbors
+  // 2. Inner corners (cardinal neighbors present, but a diagonal is missing)
+  else if (N && S && E && W && NW && SW && SE && !NE) {
+    spriteX = 14; spriteY = 0 // Missing NE diagonal
   }
-  // Corners
-  else if (south && east && !north && !west) {
-    spriteX = 4; spriteY = 0; // South-East corner
+  else if (N && S && E && W && NE && SE && SW && !NW) {
+    spriteX = 13; spriteY = 0 // Missing NW diagonal
   }
-  else if (south && west && !north && !east) {
-    spriteX = 6; spriteY = 0; // South-West corner
+  else if (N && S && E && W && NE && NW && SW && !SE) {
+    spriteX = 14; spriteY = 1 // Missing SE diagonal
   }
-  else if (north && east && !south && !west) {
-    spriteX = 4; spriteY = 2; // North-East corner
+  else if (N && S && E && W && NE && NW && SE && !SW) {
+    spriteX = 13; spriteY = 1 // Missing SW diagonal
   }
-  else if (north && west && !south && !east) {
-    spriteX = 6; spriteY = 2; // North-West corner
+  // Missing 2 diagonals only
+  else if (N && S && E && W && NE && SW && !NW && !SE) {
+    spriteX = 14; spriteY = 2 // Missing NW && SE diagonal
   }
-  // T-intersections
-  else if (north && east && south && !west) {
-    spriteX = 4; spriteY = 1; // North, East, South (T-up)
-  }
-  else if (east && south && west && !north) {
-    spriteX = 5; spriteY = 0; // East, South, West (T-down)
-  }
-  else if (north && south && west && !east) {
-    spriteX = 6; spriteY = 1; // North, South, West (T-left)
-  }
-  else if (north && east && west && !south) {
-    spriteX = 5; spriteY = 2; // North, East, West (T-right)
-  }
-  // Edges (single connections)
-  else if (north && !south && !east && !west) {
-    spriteX = 3; spriteY = 2; // Only North
-  }
-  else if (south && !north && !east && !west) {
-    spriteX = 3; spriteY = 0; // Only South
-  }
-  else if (east && !north && !south && !west) {
-    spriteX = 4; spriteY = 3; // Only East
-  }
-  else if (west && !north && !south && !east) {
-    spriteX = 6; spriteY = 3; // Only West
-  }
-  // Full sand (all 4 cardinal neighbors)
-  else if (north && south && east && west) {
-    spriteX = 5; spriteY = 1; // All cardinal neighbors
+  else if (N && S && E && W && NW && SE && !NE && !SW) {
+    spriteX = 13; spriteY = 2 // Missing NE && SW diagonal
   }
 
-  // Diagonal connections (these are usually handled by combining cardinal tiles,
-  // but if there are specific diagonal sprites, they would go here)
-  // For now, I'll prioritize cardinal connections.
+  // 3. Outer corners (L-shape with diagonal)
+  else if (N && E && NE && !S && !W) {
+    spriteX = 10; spriteY = 2 // N, E, NE
+  }
+  else if (N && W && NW && !S && !E) {
+    spriteX = 12; spriteY = 2 // N, W, NW
+  }
+  else if (S && E && SE && !N && !W) {
+    spriteX = 10; spriteY = 0 // S, E, SE
+  }
+  else if (S && W && SW && !N && !E) {
+    spriteX = 12; spriteY = 0 // S, W, SW
+  }
+  // 4. All 4 cardinal neighbors
+  else if (N && S && E && W) {
+    spriteX = 5; spriteY = 1 // All cardinal neighbors
+  }
+  // 5. T-intersections (3 cardinal neighbors)
+  else if (N && S && E && NE && SE && !W) {
+    spriteX = 10; spriteY = 1 // N, S, E, NE, NW
+  }
+  else if (E && S && W && SE && SW && !N) {
+    spriteX = 11; spriteY = 0 // E, S, W, SE, SW
+  }
+  else if (N && S && W && NW && SW && !E) {
+    spriteX = 12; spriteY = 1 // N, S, W, NW, SW
+  }
+  else if (N && E && W && NE && NW && !S) {
+    spriteX = 11; spriteY = 2 // N, E, W, NE, NW
+  }
+  else if (N && S && E && !W) {
+    spriteX = 4; spriteY = 1 // N, S, E
+  }
+  else if (E && S && W && !N) {
+    spriteX = 5; spriteY = 0 // E, S, W
+  }
+  else if (N && S && W && !E) {
+    spriteX = 6; spriteY = 1 // N, S, W
+  }
+  else if (N && E && W && !S) {
+    spriteX = 5; spriteY = 2 // N, E, W
+  }
+  // 6. Corners (2 cardinal neighbors)
+  else if (S && E && !N && !W) {
+    spriteX = 4; spriteY = 0 // S, E corner
+  }
+  else if (S && W && !N && !E) {
+    spriteX = 6; spriteY = 0 // S, W corner
+  }
+  else if (N && E && !S && !W) {
+    spriteX = 4; spriteY = 2 // N, E corner
+  }
+  else if (N && W && !S && !E) {
+    spriteX = 6; spriteY = 2 // N, W corner
+  }
+  // 7. Side connections
+  else if (W && E && !N && !S) {
+    spriteX = 5; spriteY = 3 // Horizontal
+  }
+  else if (N && S && !W && !E) {
+    spriteX = 3; spriteY = 1 // Vertical
+  }
+  // 8. Edges (single connections)
+  else if (N && !S && !E && !W) {
+    spriteX = 3; spriteY = 2 // Only N
+  }
+  else if (S && !N && !E && !W) {
+    spriteX = 3; spriteY = 0 // Only S
+  }
+  else if (E && !N && !S && !W) {
+    spriteX = 4; spriteY = 3 // Only E
+  }
+  else if (W && !N && !S && !E) {
+    spriteX = 6; spriteY = 3 // Only W
+  }
+  // 9. Isolated tile (no sand neighbors) - Default is already (3,3)
 
-  return { spriteX, spriteY };
+  return { spriteX, spriteY }
 };
 
 // Assign sprites to map tiles
