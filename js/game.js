@@ -216,7 +216,7 @@ const placeTents = async () => {
  * @returns {{spriteX: number, spriteY: number}} The x and y coordinates of the appropriate sand sprite.
  */
 const getSandSpriteCoordinates = (x, y, map, MAP_WIDTH, MAP_HEIGHT) => {
-  // Base sprite for sand (isolated or full sand)
+  // Base sprite for sand (isolated)
   let spriteX = 3
   let spriteY = 3
 
@@ -234,10 +234,6 @@ const getSandSpriteCoordinates = (x, y, map, MAP_WIDTH, MAP_HEIGHT) => {
   const NW = isSand(x - 1, y - 1)
   const SE = isSand(x + 1, y + 1)
   const SW = isSand(x - 1, y + 1)
-
-  // Default to isolated sand (3,3)
-  spriteX = 3
-  spriteY = 3
 
   // 1. Fully connected (all 8 neighbors)
   if (N && S && E && W && NE && NW && SE && SW) {
@@ -351,7 +347,7 @@ const getSandSpriteCoordinates = (x, y, map, MAP_WIDTH, MAP_HEIGHT) => {
   else if (W && !N && !S && !E) {
     spriteX = 6; spriteY = 3 // Only W
   }
-  // 9. Isolated tile (no sand neighbors) - Default is already (3,3)
+  // 9. Isolated tile (no sand neighbors)
 
   return { spriteX, spriteY }
 }
@@ -366,9 +362,9 @@ const getSandSpriteCoordinates = (x, y, map, MAP_WIDTH, MAP_HEIGHT) => {
  * @returns {{spriteX: number, spriteY: number}} The x and y coordinates of the appropriate water sprite.
  */
 const getWaterSpriteCoordinates = (x, y, map, MAP_WIDTH, MAP_HEIGHT) => {
-  // Base sprite for water (isolated or full water)
-  let spriteX = 3
-  let spriteY = 3
+  // Base sprite for water (isolated)
+  let spriteX = 0
+  let spriteY = 13
 
   // Check neighbors
   const isWater = (nx, ny) => {
@@ -385,127 +381,119 @@ const getWaterSpriteCoordinates = (x, y, map, MAP_WIDTH, MAP_HEIGHT) => {
   const SE = isWater(x + 1, y + 1)
   const SW = isWater(x - 1, y + 1)
 
-  // Default to isolated water (3,3) relative to water tileset
-  spriteX = 3
-  spriteY = 3
-
   // 1. Fully connected (all 8 neighbors)
   if (N && S && E && W && NE && NW && SE && SW) {
-    spriteX = 11; spriteY = 1
+    spriteX = 8; spriteY = 11
   }
   // 2. Inner corners (cardinal neighbors present, but a diagonal is missing)
   else if (N && S && E && W && NW && SW && SE && !NE) {
-    spriteX = 14; spriteY = 0
+    spriteX = 11; spriteY = 10
   }
   else if (N && S && E && W && NE && SE && SW && !NW) {
-    spriteX = 13; spriteY = 0
+    spriteX = 10; spriteY = 10
   }
   else if (N && S && E && W && NE && NW && SW && !SE) {
-    spriteX = 14; spriteY = 1
+    spriteX = 11; spriteY = 11
   }
   else if (N && S && E && W && NE && NW && SE && !SW) {
-    spriteX = 13; spriteY = 1
+    spriteX = 10; spriteY = 11
   }
   // Missing 2 diagonals only
   else if (N && S && E && W && NE && SW && !NW && !SE) {
-    spriteX = 14; spriteY = 2
+    spriteX = 11; spriteY = 12
   }
   else if (N && S && E && W && NW && SE && !NE && !SW) {
-    spriteX = 13; spriteY = 2
+    spriteX = 10; spriteY = 12
   }
   else if (N && S && E && W && NE && NW && !SW && !SE) {
-    spriteX = 8; spriteY = 2
+    spriteX = 5; spriteY = 12
   }
   else if (N && S && E && W && NW && SW && !NE && !SE) {
-    spriteX = 9; spriteY = 1
+    spriteX = 6; spriteY = 11
   }
   else if (N && S && E && W && SE && SW && !NW && !NE) {
-    spriteX = 8; spriteY = 0
+    spriteX = 5; spriteY = 10
   }
   else if (N && S && E && W && NE && SE && !NW && !SW) {
-    spriteX = 7; spriteY = 1
+    spriteX = 4; spriteY = 11
   }
 
   // 3. Outer corners (L-shape with diagonal)
   else if (N && E && NE && !S && !W) {
-    spriteX = 10; spriteY = 2
+    spriteX = 7; spriteY = 12
   }
   else if (N && W && NW && !S && !E) {
-    spriteX = 12; spriteY = 2
+    spriteX = 9; spriteY = 12
   }
   else if (S && E && SE && !N && !W) {
-    spriteX = 10; spriteY = 0
+    spriteX = 7; spriteY = 10
   }
   else if (S && W && SW && !N && !E) {
-    spriteX = 12; spriteY = 0
+    spriteX = 9; spriteY = 10
   }
   // 4. All 4 cardinal neighbors
   else if (N && S && E && W) {
-    spriteX = 5; spriteY = 1
+    spriteX = 2; spriteY = 11
   }
   // 5. T-intersections (3 cardinal neighbors)
   else if (N && S && E && NE && SE && !W) {
-    spriteX = 10; spriteY = 1
+    spriteX = 7; spriteY = 11
   }
   else if (E && S && W && SE && SW && !N) {
-    spriteX = 11; spriteY = 0
+    spriteX = 8; spriteY = 10
   }
   else if (N && S && W && NW && SW && !E) {
-    spriteX = 12; spriteY = 1
+    spriteX = 9; spriteY = 11
   }
   else if (N && E && W && NE && NW && !S) {
-    spriteX = 11; spriteY = 2
+    spriteX = 8; spriteY = 12
   }
   else if (N && S && E && !W) {
-    spriteX = 4; spriteY = 1
+    spriteX = 1; spriteY = 11
   }
   else if (E && S && W && !N) {
-    spriteX = 5; spriteY = 0
+    spriteX = 2; spriteY = 10
   }
   else if (N && S && W && !E) {
-    spriteX = 6; spriteY = 1
+    spriteX = 3; spriteY = 11
   }
   else if (N && E && W && !S) {
-    spriteX = 5; spriteY = 2
+    spriteX = 2; spriteY = 12
   }
   // 6. Corners (2 cardinal neighbors)
   else if (S && E && !N && !W) {
-    spriteX = 4; spriteY = 0
+    spriteX = 1; spriteY = 10
   }
   else if (S && W && !N && !E) {
-    spriteX = 6; spriteY = 0
+    spriteX = 3; spriteY = 10
   }
   else if (N && E && !S && !W) {
-    spriteX = 4; spriteY = 2
+    spriteX = 1; spriteY = 12
   }
   else if (N && W && !S && !E) {
-    spriteX = 6; spriteY = 2
+    spriteX = 3; spriteY = 12
   }
   // 7. Side connections
   else if (W && E && !N && !S) {
-    spriteX = 5; spriteY = 3
+    spriteX = 2; spriteY = 13
   }
   else if (N && S && !W && !E) {
-    spriteX = 3; spriteY = 1
+    spriteX = 0; spriteY = 11
   }
   // 8. Edges (single connections)
   else if (N && !S && !E && !W) {
-    spriteX = 3; spriteY = 2
+    spriteX = 0; spriteY = 12
   }
   else if (S && !N && !E && !W) {
-    spriteX = 3; spriteY = 0
+    spriteX = 0; spriteY = 10
   }
   else if (E && !N && !S && !W) {
-    spriteX = 4; spriteY = 3
+    spriteX = 1; spriteY = 13
   }
   else if (W && !N && !S && !E) {
-    spriteX = 6; spriteY = 3
+    spriteX = 3; spriteY = 13
   }
-  // 9. Isolated tile (no water neighbors) - Default is already (3,3)
-
-  // Apply the offset (x-3, y+10)
-  spriteX = spriteX - 3;
-  spriteY = spriteY + 10;
+  // 9. Isolated tile (no water neighbors)
 
   return { spriteX, spriteY }
 }
