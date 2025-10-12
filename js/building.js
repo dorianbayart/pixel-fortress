@@ -7,7 +7,7 @@ import { ParticleEffect, createParticleEmitter } from 'particles'
 import { searchPath, updateMapInWorker } from 'pathfinding'
 import { Player } from 'players'
 import { createProgressIndicator, indicatorMap, removeProgressIndicator, updateProgressIndicator } from 'renderer'
-import { offscreenSprite, sprites } from 'sprites'
+import { sprites } from 'sprites'
 import gameState from 'state'
 import { GoldMiner, LumberjackWorker, Peon, QuarryMiner, WaterCarrier } from 'unit'
 import { distance } from 'utils'
@@ -232,7 +232,7 @@ class Building {
     // Put the corresponding sprite on the map
     const spriteX = building.type.sprite_coords[color].x
     const spriteY = building.type.sprite_coords[color].y
-    gameState.map[x][y].sprite = offscreenSprite(sprites[spriteX][spriteY], getTileSize())
+    gameState.map[x][y].sprite = sprites[`tile_${spriteX}_${spriteY}`]
 
     // Add building placement particle effect
     createParticleEmitter(ParticleEffect.BUILDING_PLACE, {

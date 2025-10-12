@@ -1,10 +1,10 @@
-export { PerlinNoise, arrayToHash, distance, getCachedSprite, spriteCache, textureCache, throttle, SCALE_MODE }
+export { PerlinNoise, distance, throttle }
 
 'use strict'
 
-import { Sprite } from 'pixijs'
 
-const SCALE_MODE = 'nearest'
+
+
 
 /**
  * Apply throttle on a function
@@ -38,66 +38,7 @@ const distance = (a, b) => {
     return Math.sqrt(Math.pow(b.x-a.x, 2) + Math.pow(b.y-a.y, 2))
 }
 
-/**
- * Calculate a very simplified hash from an array of string or integers
- * 
- * @param {Array<string|number>} [array] The array to hash
- * @returns {string} The hash of the array
- */
-/**
- * Calculates a FNV-1a hash from an array of numbers.
- * FNV-1a is a fast, non-cryptographic hash function with good distribution.
- * It's suitable for generating unique-enough IDs for caching purposes.
- * 
- * @param {Array<number>} array The array of numbers to hash (e.g., ImageData.data).
- * @returns {string} The FNV-1a hash as a hexadecimal string.
- */
-const arrayToHash = (array) => {
-    let hash = 2166136261; // FNV-1a 32-bit offset basis
 
-    for (let i = 0; i < array.length; i++) {
-        hash ^= array[i];
-        hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
-    }
-
-    return (hash >>> 0).toString(16); // Convert to unsigned 32-bit integer and then to hex string
-}
-
-const textureCache = new Map()
-const spriteCache = new Map()
-
-/**
- * Get or create a cached sprite for a texture
- * @param {PIXI.Texture|OffscreenCanvas} source - Texture or canvas to use
- * @param {string} [key] - Cache key
- * @returns {PIXI.Sprite} Cached or new sprite
- */
-function getCachedSprite(source, key) {
-    // Check if the sprite is already cached
-    if (key && spriteCache.has(key)) {
-        return spriteCache.get(key)
-    }
-
-    // If it's an OffscreenCanvas, convert it to a texture first
-    let texture;
-    if (source instanceof OffscreenCanvas) {
-        texture = loadTextureFromCanvas(source, key)
-    } else {
-        texture = source
-    }
-
-    texture.source.scaleMode = SCALE_MODE
-
-    // Create a new sprite
-    const sprite = new Sprite(texture)
-    sprite.sourceKey = texture.uid // Store the key for future reference
-    sprite.cullable = true
-
-    // Cache the sprite
-    spriteCache.set(sprite.sourceKey, sprite)
-
-    return sprite
-}
 
 /**
  * 2D Perlin Noise generator

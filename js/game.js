@@ -2,6 +2,7 @@ export { TERRAIN_TYPES, ZOOM, gameLoop, initGame, updateSprite }
 
 'use strict'
 
+import * as PIXI from 'pixijs'
 import { Building } from 'building'
 import { getMapDimensions, getTileSize } from 'dimensions'
 import { renderFog, updateVisibility } from 'fogOfWar'
@@ -9,8 +10,8 @@ import { drawBack, isDrawBackRequested } from 'globals'
 import { updateAllParticles } from 'particles'
 import { clearPathCache, searchPath, updateMapDimensionsInWorker, updateMapInWorker } from 'pathfinding'
 import { Player, PlayerType } from 'players'
-import { drawBackground, drawMain } from 'renderer'
-import { offscreenSprite, sprites } from 'sprites'
+import { drawBackground, drawMain, app } from 'renderer'
+import { sprites } from 'sprites'
 import gameState from 'state'
 import { handleMouseInteraction, updateUI, showModal } from 'ui'
 import { PerlinNoise } from 'utils'
@@ -507,14 +508,8 @@ const assignSpritesOnMap = async () => {
   for (let x = 0; x < MAP_WIDTH; x++) {
     for (let y = 0; y < MAP_HEIGHT; y++) {
       const terrainType = TERRAIN_TYPES[gameState.map[x][y].type]
-      const grassSprite =
-        sprites[
-          Math.floor(Math.random() * (TERRAIN_TYPES.GRASS.spriteRange.x[1] - TERRAIN_TYPES.GRASS.spriteRange.x[0] + 1)) +
-            TERRAIN_TYPES.GRASS.spriteRange.x[0]
-        ][
-          Math.floor(Math.random() * (TERRAIN_TYPES.GRASS.spriteRange.y[1] - TERRAIN_TYPES.GRASS.spriteRange.y[0] + 1)) +
-            TERRAIN_TYPES.GRASS.spriteRange.y[0]
-        ]
+  const grassSpriteX = Math.floor(Math.random() * (TERRAIN_TYPES.GRASS.spriteRange.x[1] - TERRAIN_TYPES.GRASS.spriteRange.x[0] + 1)) + TERRAIN_TYPES.GRASS.spriteRange.x[0]
+  const grassSpriteY = Math.floor(Math.random() * (TERRAIN_TYPES.GRASS.spriteRange.y[1] - TERRAIN_TYPES.GRASS.spriteRange.y[0] + 1)) + TERRAIN_TYPES.GRASS.spriteRange.y[0]
       let spriteX, spriteY
       switch (gameState.map[x][y].type) {
         case TERRAIN_TYPES.GRASS.type:
@@ -524,7 +519,7 @@ const assignSpritesOnMap = async () => {
           spriteY = Math.floor(Math.random() * 
               (terrainType.spriteRange.y[1] - terrainType.spriteRange.y[0] + 1)) + 
               terrainType.spriteRange.y[0]
-          gameState.map[x][y].sprite = offscreenSprite(sprites[spriteX][spriteY], SPRITE_SIZE)
+          gameState.map[x][y].sprite = sprites[`tile_${spriteX}_${spriteY}`]
           break
         case TERRAIN_TYPES.TREE.type:
           spriteX = Math.floor(Math.random() * 
@@ -533,36 +528,38 @@ const assignSpritesOnMap = async () => {
           spriteY = Math.floor(Math.random() * 
               (terrainType.spriteRange.y[1] - terrainType.spriteRange.y[0] + 1)) + 
               terrainType.spriteRange.y[0]
-          gameState.map[x][y].sprite = offscreenSprite(sprites[spriteX][spriteY], SPRITE_SIZE)
-          gameState.map[x][y].back = offscreenSprite(grassSprite, SPRITE_SIZE)
+          gameState.map[x][y].sprite = sprites[`tile_${spriteX}_${spriteY}`]
+          gameState.map[x][y].back = sprites[`tile_${grassSpriteX}_${grassSpriteY}`]
           break
         case TERRAIN_TYPES.ROCK.type:
           spriteX = terrainType.spriteRange.x[0]
           spriteY = terrainType.spriteRange.y[0]
-          gameState.map[x][y].sprite = offscreenSprite(sprites[spriteX][spriteY], SPRITE_SIZE)
-          gameState.map[x][y].back = offscreenSprite(grassSprite, SPRITE_SIZE)
+          gameState.map[x][y].sprite = sprites[`tile_${spriteX}_${spriteY}`]
+          gameState.map[x][y].back = sprites[`tile_${grassSpriteX}_${grassSpriteY}`]
           break
         case TERRAIN_TYPES.GOLD.type:
           spriteX = terrainType.spriteRange.x[0]
           spriteY = terrainType.spriteRange.y[0]
-          const goldRawCanvas = offscreenSprite(sprites[spriteX][spriteY], SPRITE_SIZE, 'gold_raw')
-          goldRawCanvas.getContext('2d').globalCompositeOperation = 'source-atop'
-          goldRawCanvas.getContext('2d').fillStyle = 'rgba(255, 215, 0, 0.5)' // Gold color with 50% opacity
-          goldRawCanvas.getContext('2d').fillRect(0, 0, SPRITE_SIZE, SPRITE_SIZE)
-          const goldSpriteData = goldRawCanvas.getContext('2d').getImageData(0, 0, SPRITE_SIZE, SPRITE_SIZE)
-          gameState.map[x][y].sprite = offscreenSprite(goldSpriteData, SPRITE_SIZE, 'gold')
-          gameState.map[x][y].back = offscreenSprite(grassSprite, SPRITE_SIZE)
+          const baseGoldTexture = sprites[`tile_${spriteX}_${spriteY}`]
+          //const goldRenderTexture = PIXI.RenderTexture.create({ width: SPRITE_SIZE, height: SPRITE_SIZE, scaleMode: PIXI.SCALE_MODES.NEAREST })
+          //const graphics = new PIXI.Graphics()
+          //graphics.rect(0, 0, SPRITE_SIZE, SPRITE_SIZE).fill({ color: 0xFFD700, alpha: 0.5 })
+          //app.renderer.render(baseGoldTexture, { renderTexture: goldRenderTexture })
+          //app.renderer.render(graphics, { renderTexture: goldRenderTexture, clear: false })
+          gameState.map[x][y].sprite = baseGoldTexture
+          gameState.map[x][y].back = sprites[`tile_${grassSpriteX}_${grassSpriteY}`]
           break
+
         case TERRAIN_TYPES.SAND.type:
           const { spriteX: sandSpriteX, spriteY: sandSpriteY } = getSandSpriteCoordinates(x, y, gameState.map, MAP_WIDTH, MAP_HEIGHT)
-          gameState.map[x][y].sprite = offscreenSprite(sprites[sandSpriteX][sandSpriteY], SPRITE_SIZE)
+          gameState.map[x][y].sprite = sprites[`tile_${sandSpriteX}_${sandSpriteY}`]
           break
         case TERRAIN_TYPES.WATER.type:
           const { spriteX: waterSpriteX, spriteY: waterSpriteY } = getWaterSpriteCoordinates(x, y, gameState.map, MAP_WIDTH, MAP_HEIGHT)
-          gameState.map[x][y].sprite = offscreenSprite(sprites[waterSpriteX][waterSpriteY], SPRITE_SIZE)
+          gameState.map[x][y].sprite = sprites[`tile_${waterSpriteX}_${waterSpriteY}`]
           break
         default:
-          gameState.map[x][y].back = offscreenSprite(grassSprite, SPRITE_SIZE)
+          gameState.map[x][y].back = sprites[`tile_${grassSpriteX}_${grassSpriteY}`]
           break
       }
     }
@@ -577,7 +574,7 @@ const updateSprite = async (x, y) => {
     case TERRAIN_TYPES.DEPLETED_TREE.type:
       spriteX = terrainType.spriteRange.x[0]
       spriteY = terrainType.spriteRange.y[0]
-      gameState.map[x][y].sprite = offscreenSprite(sprites[spriteX][spriteY], getTileSize())
+      gameState.map[x][y].sprite = sprites[`tile_${spriteX}_${spriteY}`]
       break
     case TERRAIN_TYPES.GRASS.type:
     case TERRAIN_TYPES.TREE.type:

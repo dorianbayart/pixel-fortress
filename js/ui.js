@@ -10,10 +10,9 @@ import { getCanvasDimensions, getMapDimensions, getTileSize } from 'dimensions'
 import { DEBUG, drawBack, toggleDebug } from 'globals'
 import { ParticleEffect, createParticleEmitter } from 'particles'
 import * as PIXI from 'pixijs'
-import { offscreenSprite, offscreenSpritesSize, sprites } from 'sprites'
+import { sprites } from 'sprites'
 import { app, containers, indicatorMap, updateZoom, unitSpriteMap, backgroundSpriteMap, worldObjectSpriteMap } from 'renderer'
 import gameState from 'state'
-import { SCALE_MODE, getCachedSprite, textureCache, spriteCache } from 'utils'
 
 const UI_FONTS = {
   PRIMARY: "system-ui, 'Open Sans', Arial, sans-serif",
@@ -99,8 +98,7 @@ async function initUI(mouseInstance) {
 
   // Create cursor sprite
   if (mouse?.sprite) {
-    const cursorTexture = await createTextureFromOffscreenCanvas(mouse.sprite)
-    cursorSprite = getCachedSprite(cursorTexture, 'cursor')
+    cursorSprite = new PIXI.Sprite(mouse.sprite)
     cursorSprite.pivot.set(4.5, 4.5) // Center the cursor
     containers.ui.addChild(cursorSprite)
 
@@ -126,53 +124,7 @@ async function initUI(mouseInstance) {
   containers.ui.addChild(statsText)
 }
 
-/**
- * Create a PIXI texture from an OffscreenCanvas
- * @param {OffscreenCanvas} canvas - The offscreen canvas
- * @returns {Promise<PIXI.Texture>} The created texture
- */
-async function createTextureFromOffscreenCanvas(canvas) {
-  // For newer browsers that support convertToBlob
-  if (canvas.convertToBlob) {
-    const blob = await canvas.convertToBlob()
-    const url = URL.createObjectURL(blob)
-    const texture = await PIXI.Assets.load({
-      src: url,
-      // format: 'png',
-      loadParser: 'loadTextures',
-    })
 
-    texture.source.scaleMode = SCALE_MODE
-
-    // Clean up the URL when the texture is loaded
-    texture.source.once('loaded', () => {
-      URL.revokeObjectURL(url)
-    })
-    
-    return texture
-  } 
-  // Fallback for browsers without convertToBlob
-  else {
-    return new Promise((resolve) => {
-      canvas.toBlob(async (blob) => {
-        const url = URL.createObjectURL(blob)
-        const texture = await PIXI.Assets.load({
-          src: url,
-          // format: 'png',
-          loadParser: 'loadTextures',
-        })
-        
-        texture.source.scaleMode = SCALE_MODE
-
-        texture.source.once('loaded', () => {
-          URL.revokeObjectURL(url)
-        })
-        
-        resolve(texture)
-      })
-    })
-  }
-}
 
 /**
  * Setup all event listeners for UI interaction
@@ -342,14 +294,12 @@ function drawUI(fps) {
       `Zoom: ${viewTransform.scale?.toFixed(2)}x`,
       `World: ${MAP_WIDTH}x${MAP_HEIGHT} (${MAP_WIDTH*SPRITE_SIZE}x${MAP_HEIGHT*SPRITE_SIZE})`,
 
-      `Cached sprites: ${offscreenSpritesSize()}`,
       `Particles: ${containers.particles.children?.length}`,
       `Indicator Map Size: ${indicatorMap.size}`,
       `Unit Sprite Map Size: ${unitSpriteMap.size}`,
       `Background Sprite Map Size: ${backgroundSpriteMap.size}`,
       `World Object Sprite Map Size: ${worldObjectSpriteMap.size}`,
-      `Texture Cache Size: ${textureCache.size}`,
-      `Sprite Cache Size: ${spriteCache.size}`,
+
       
       `Renderer: ${app.renderer.width}x${app.renderer.height}`,
       `Screen: ${screen.width}x${screen.height} | Avail.: ${screen.availWidth}x${screen.availHeight}`,
@@ -821,12 +771,9 @@ async function updateBuildingPreview() {
   // Create preview sprite if it doesn't exist
   if (!buildingPreviewSprite) {
     // Load the building sprite texture
-    selectedBuildingType.sprite_coords.cyan.x
-    const sprite = offscreenSprite(sprites[selectedBuildingType.sprite_coords.cyan.x][selectedBuildingType.sprite_coords.cyan.y], getTileSize())
-    const texture = PIXI.Texture.from(sprite)
-    buildingPreviewSprite = getCachedSprite(texture, sprite.uid)
-    buildingPreviewSprite.width = getTileSize() * viewTransform.scale
-    buildingPreviewSprite.height = getTileSize() * viewTransform.scale
+    const spriteX = selectedBuildingType.sprite_coords.cyan.x
+    const spriteY = selectedBuildingType.sprite_coords.cyan.y
+    buildingPreviewSprite = new PIXI.Sprite(sprites[`tile_${spriteX}_${spriteY}`])
     buildingPreviewSprite.anchor.set(0.5, 0.5)
     containers.ui.addChild(buildingPreviewSprite)
   }
@@ -848,6 +795,7 @@ async function updateBuildingPreview() {
   // Update preview position to be at the center of the grid tile
   buildingPreviewSprite.x = screenX
   buildingPreviewSprite.y = screenY
+  buildingPreviewSprite.scale.set(viewTransform.scale)
 
   // Set tint color based on validity (green if valid, red if invalid)
   buildingPreviewSprite.tint = isValidPlacement ? 0x00FF00 : 0xFF0000

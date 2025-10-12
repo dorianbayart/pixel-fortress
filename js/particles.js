@@ -5,9 +5,7 @@ export { createParticleEmitter, ParticleEffect, updateAllParticles, drawParticle
 import { getCanvasDimensions, getTileSize } from 'dimensions'
 import * as PIXI from 'pixijs'
 import { app, containers } from 'renderer'
-import { offscreenSprite } from 'sprites'
 import gameState from 'state'
-import { getCachedSprite } from 'utils'
 
 // Cache for particle textures to avoid re-creating them
 const particleTextureCache = {}

@@ -9,7 +9,7 @@ import { TERRAIN_TYPES, updateSprite } from 'game'
 import { ParticleEffect, createParticleEmitter } from 'particles'
 import { searchPath, updateMapInWorker } from 'pathfinding'
 import { indicatorMap, removeProgressIndicator } from 'renderer'
-import { UNIT_SPRITE_SIZE, offscreenSprite, unitsSprites, unitsSpritesDescription } from 'sprites'
+import { UNIT_SPRITE_SIZE, unitsSprites, unitsSpritesDescription } from 'sprites'
 import gameState from 'state'
 import { distance } from 'utils'
 
@@ -352,7 +352,7 @@ class Unit {
    * @param {string} type - Sprite type ('static', 'walk', 'attack')
    * @param {number} theta - Direction angle
    * @param {number} delay - Time elapsed since last update (ms)
-   * @returns {OffscreenCanvas} Updated sprite
+   * @returns {PIXI.Texture} Updated sprite
    */
   updateSprite(type, theta = -PI/2, delay) {
     if(!unitsSpritesDescription) return
@@ -364,21 +364,21 @@ class Unit {
 
     try {
       if(theta > -7*PI/12 && theta < -5*PI/12) {
-        return offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName][type][spriteVar].s.x][unitsSpritesDescription[this.spriteName][type][spriteVar].s.y], UNIT_SPRITE_SIZE, `${this.spriteName}${type}${spriteVar}s`)
+        return unitsSprites[this.spriteName][type][spriteVar].s
       } else if(theta >= -5*PI/12 && theta < -PI/12) {
-        return offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName][type][spriteVar].se.x][unitsSpritesDescription[this.spriteName][type][spriteVar].se.y], UNIT_SPRITE_SIZE, `${this.spriteName}${type}${spriteVar}se`)
+        return unitsSprites[this.spriteName][type][spriteVar].se
       } else if(theta >= -PI/12 && theta < PI/12) {
-        return offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName][type][spriteVar].e.x][unitsSpritesDescription[this.spriteName][type][spriteVar].e.y], UNIT_SPRITE_SIZE, `${this.spriteName}${type}${spriteVar}e`)
+        return unitsSprites[this.spriteName][type][spriteVar].e
       } else if(theta >= PI/12 && theta < 5*PI/12) {
-        return offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName][type][spriteVar].ne.x][unitsSpritesDescription[this.spriteName][type][spriteVar].ne.y], UNIT_SPRITE_SIZE, `${this.spriteName}${type}${spriteVar}ne`)
+        return unitsSprites[this.spriteName][type][spriteVar].ne
       } else if(theta >= 5*PI/12 && theta < 7*PI/12) {
-        return offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName][type][spriteVar].n.x][unitsSpritesDescription[this.spriteName][type][spriteVar].n.y], UNIT_SPRITE_SIZE, `${this.spriteName}${type}${spriteVar}n`)
+        return unitsSprites[this.spriteName][type][spriteVar].n
       } else if(theta >= 7*PI/12 && theta < 11*PI/12) {
-        return offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName][type][spriteVar].nw.x][unitsSpritesDescription[this.spriteName][type][spriteVar].nw.y], UNIT_SPRITE_SIZE, `${this.spriteName}${type}${spriteVar}nw`)
+        return unitsSprites[this.spriteName][type][spriteVar].nw
       } else if(theta >= 11*PI/12 || theta < -11*PI/12) {
-        return offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName][type][spriteVar].w.x][unitsSpritesDescription[this.spriteName][type][spriteVar].w.y], UNIT_SPRITE_SIZE, `${this.spriteName}${type}${spriteVar}w`)
+        return unitsSprites[this.spriteName][type][spriteVar].w
       } else if(theta >= -11*PI/12 && theta < -7*PI/12) {
-        return offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName][type][spriteVar].sw.x][unitsSpritesDescription[this.spriteName][type][spriteVar].sw.y], UNIT_SPRITE_SIZE, `${this.spriteName}${type}${spriteVar}sw`)
+        return unitsSprites[this.spriteName][type][spriteVar].sw
       }
     } catch {}
 
@@ -428,7 +428,7 @@ class Peon extends WorkerUnit {
   constructor(x, y, owner) {
     super(x, y, owner)
     this.spriteName = 'human-worker-' + this.owner.getColor()
-    this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
+    this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']  
   }
 }
 
@@ -443,8 +443,8 @@ class LumberjackWorker extends WorkerUnit {
   constructor(x, y, owner) {
     super(x, y, owner)
     this.spriteName = 'human-worker-' + this.owner.getColor()
-    this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
-    
+    this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']  
+      
     // Specialized properties
     this.harvestRate = 0.1 // Wood per second
     this.maxResources = 1
@@ -615,7 +615,7 @@ class QuarryMiner extends WorkerUnit {
   constructor(x, y, owner) {
     super(x, y, owner)
     this.spriteName = 'human-worker-' + this.owner.getColor()
-    this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
+    this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']  
     
     // Specialized properties
     this.miningRate = 0.1 // Stone per second
@@ -770,7 +770,7 @@ class WaterCarrier extends WorkerUnit {
   constructor(x, y, owner) {
     super(x, y, owner)
     this.spriteName = 'human-worker-' + this.owner.getColor()
-    this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
+    this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']  
     
     // Specialized properties
     this.collectionRate = 0.1 // Water per second
@@ -944,7 +944,7 @@ class GoldMiner extends WorkerUnit {
   constructor(x, y, owner) {
     super(x, y, owner)
     this.spriteName = 'human-worker-' + this.owner.getColor()
-    this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
+    this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']  
     
     // Specialized properties
     this.miningRate = 0.1 // Gold per second
@@ -1271,25 +1271,14 @@ class PeonSoldier extends MeleeUnit {
   constructor(x, y, owner) {
     super(x, y, owner)
     this.spriteName = 'human-worker-' + this.owner.getColor()
-    this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
+    this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']  
     this.life = 5
     this.attack = 1
     this.speed = getTileSize() / 12 // Speedier than normal Combat other units
   }
 }
 
-// /**
-//  * Human soldier unit implementation
-//  */
-// class HumanSoldier extends MeleeUnit {
-//   constructor(x, y, owner) {
-//     super(x, y, owner)
-//     this.spriteName = 'human-soldier-' + this.owner.getColor()
-//     this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
-//     this.life = 10
-//     this.attack = 2
-//   }
-// }
+
 
 /**
  * Mage unit implementation (ranged magic user)
@@ -1298,7 +1287,7 @@ class Mage extends RangedUnit {
   constructor(x, y, owner) {
     super(x, y, owner)
     this.spriteName = 'mage-' + this.owner.getColor()
-    this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
+    this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']  
     this.life = 8
     this.attack = 10
     this.speed = getTileSize() / 15
@@ -1312,27 +1301,14 @@ class Soldier extends MeleeUnit {
   constructor(x, y, owner) {
     super(x, y, owner)
     this.spriteName = 'human-soldier-' + this.owner.getColor()
-    this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
+    this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']  
     this.life = 12
     this.attack = 5
     this.speed = getTileSize() / 14
   }
 }
 
-// /**
-//  * Warrior unit implementation (heavy melee fighter)
-//  */
-// class Warrior extends MeleeUnit {
-//   constructor(x, y, owner) {
-//     super(x, y, owner)
-//     this.spriteName = 'soldier-' + this.owner.getColor()
-//     this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
-//     this.life = 40
-//     this.attack = 5
-//     this.range = 0.75 * getTileSize()
-//     this.speed = getTileSize() / 18 | 0
-//   }
-// }
+
 
 /**
  * Heavy Infantry unit implementation (stronger melee fighter)
@@ -1341,7 +1317,7 @@ class HeavyInfantry extends MeleeUnit {
   constructor(x, y, owner) {
     super(x, y, owner)
     this.spriteName = 'soldier-' + this.owner.getColor() // Placeholder sprite for now
-    this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
+    this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']  
     this.life = 40
     this.attack = 5
     this.range = 0.75 * getTileSize()
@@ -1356,7 +1332,7 @@ class EliteWarrior extends MeleeUnit {
   constructor(x, y, owner) {
     super(x, y, owner)
     this.spriteName = 'warrior-' + this.owner.getColor() // Placeholder sprite for now
-    this.sprite = offscreenSprite(unitsSprites[this.spriteName][unitsSpritesDescription[this.spriteName].static._0.s.x][unitsSpritesDescription[this.spriteName].static._0.s.y], UNIT_SPRITE_SIZE, `${this.spriteName}static_0s`)
+    this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']  
     this.life = 25
     this.attack = 12
     this.speed = getTileSize() / 17

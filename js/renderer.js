@@ -7,7 +7,6 @@ export {
   drawMain,
   indicatorMap,
   initCanvases,
-  loadTextureFromCanvas,
   removeProgressIndicator,
   resizeCanvases,
   unitSpriteMap,
@@ -24,9 +23,8 @@ import { TERRAIN_TYPES } from 'game'
 import { DEBUG, backDrawn } from 'globals'
 import { ParticleEffect, createParticleEmitter, initParticleSystem } from 'particles'
 import * as PIXI from 'pixijs'
-import { UNIT_SPRITE_SIZE, offscreenSprite, sprites } from 'sprites'
+import { UNIT_SPRITE_SIZE, sprites } from 'sprites'
 import gameState from 'state'
-import { SCALE_MODE, getCachedSprite, textureCache } from 'utils'
 
 // Pixi.js Application
 let app = null
@@ -66,41 +64,7 @@ let viewport = {
   buffer: 2
 }
 
-/**
- * Convert an OffscreenCanvas to a PIXI.Texture
- * This allows dynamically generated canvas content to be used in the PIXI rendering pipeline.
- * The function handles conversion to a blob, creating a URL, and proper cleanup.
- * 
- * @param {OffscreenCanvas} canvas - Canvas to convert
- * @param {string} key - Cache key
- * @returns {PIXI.Texture} The created texture
- */
-function loadTextureFromCanvas(canvas, key) {
-  if (textureCache.has(key)) {
-    return textureCache.get(key)
-  }
-  
-  // Create a Blob from the canvas
-  const blob = canvas.convertToBlob ? canvas.convertToBlob() : new Promise(resolve => canvas.toBlob(resolve))
-  
-  // Create a URL from the Blob
-  const url = URL.createObjectURL(blob)
-  
-  // Load the texture from the URL
-  const texture = PIXI.Texture.from(url)
-  texture.source.resolution = getCanvasDimensions().dpr
-  texture.source.scaleMode = SCALE_MODE
-  
-  // Store in cache
-  textureCache.set(key, texture)
-  
-  // Clean up the URL when the texture is loaded
-  texture.on('update', () => {
-    URL.revokeObjectURL(url)
-  })
-  
-  return texture
-}
+
 
 /**
  * Initialize Pixi.js application and containers
@@ -121,6 +85,7 @@ async function initCanvases() {
       autoDensity: true, // This adjusts the CSS size automatically
       antialias: false,
       canvas: document.getElementById('canvas'),
+      roundPixels: true,
     })
     
     // Add the view to the document
@@ -331,19 +296,17 @@ function drawMain(player, AIs) {
     if (isUnit) {
       let sprite = unitSpriteMap.get(entity.uid)
 
-      if (sprite && !isSpriteValid(sprite)) {
+      if (sprite && !sprite.texture) {
         containers.world.removeChild(sprite) // Remove from world container
         unitSpriteMap.delete(entity.uid)
         sprite = null
       }
 
-      if (!sprite || sprite.textureKey !== entity.sprite.uid) {
+      if (!sprite || sprite.texture !== entity.sprite) {
         if (sprite) {
           containers.world.removeChild(sprite) // Remove from world container
         }
-        const texture = PIXI.Texture.from(entity.sprite)
-        sprite = getCachedSprite(texture, entity.sprite.uid)
-        sprite.textureKey = entity.sprite.uid
+        sprite = new PIXI.Sprite(entity.sprite)
         unitSpriteMap.set(entity.uid, sprite)
         containers.world.addChild(sprite) // Add directly to world container
       }
@@ -439,19 +402,11 @@ function drawBackground(map) {
 
         let backSprite = backgroundSpriteMap.get(backKey)
 
-        if (backSprite && !isSpriteValid(backSprite)) {
-          containers.background.removeChild(backSprite)
-          backgroundSpriteMap.delete(backKey)
-          backSprite = null
-        }
-
-        if (!backSprite || backSprite.textureKey !== map[x][y].back.uid) {
+        if (!backSprite || backSprite.texture !== map[x][y].back) {
           if (backSprite) {
               containers.background.removeChild(backSprite)
           }
-          const backTexture = PIXI.Texture.from(map[x][y].back)
-          backSprite = getCachedSprite(backTexture, map[x][y].back.uid)
-          backSprite.textureKey = map[x][y].back.uid
+          backSprite = new PIXI.Sprite(map[x][y].back)
           backSprite.x = x * SPRITE_SIZE
           backSprite.y = y * SPRITE_SIZE
           backgroundSpriteMap.set(backKey, backSprite)
@@ -466,22 +421,14 @@ function drawBackground(map) {
         visibleWorldObjectSprites.add(tileKey)
         let worldSprite = worldObjectSpriteMap.get(tileKey)
 
-        if (worldSprite && !isSpriteValid(worldSprite)) {
-          containers.world.removeChild(worldSprite)
-          worldObjectSpriteMap.delete(tileKey)
-          worldSprite = null
-        }
-        
-        if (!worldSprite || worldSprite.textureKey !== map[x][y].sprite.uid) {
+        if (!worldSprite || worldSprite.texture !== map[x][y].sprite) {
             if (worldSprite) {
                 containers.world.removeChild(worldSprite)
             }
-            const texture = PIXI.Texture.from(map[x][y].sprite)
-            worldSprite = getCachedSprite(texture, map[x][y].sprite.uid)
-            worldSprite.textureKey = map[x][y].sprite.uid
+            worldSprite = new PIXI.Sprite(map[x][y].sprite)
             worldSprite.x = x * SPRITE_SIZE
             worldSprite.y = y * SPRITE_SIZE
-            worldSprite.zIndex = worldSprite.y + map[x][y].sprite.height // Set zIndex based on visual bottom
+            worldSprite.zIndex = worldSprite.y + worldSprite.height // Set zIndex based on visual bottom
             worldObjectSpriteMap.set(tileKey, worldSprite)
             containers.world.addChild(worldSprite)
         }
@@ -491,19 +438,11 @@ function drawBackground(map) {
         visibleBackgroundSprites.add(tileKey)
         let backSprite = backgroundSpriteMap.get(tileKey)
 
-        if (backSprite && !isSpriteValid(backSprite)) {
-          containers.background.removeChild(backSprite)
-          backgroundSpriteMap.delete(tileKey)
-          backSprite = null
-        }
-        
-        if (!backSprite || backSprite.textureKey !== map[x][y].sprite.uid) {
+        if (!backSprite || backSprite.texture !== map[x][y].sprite) {
             if (backSprite) {
                 containers.background.removeChild(backSprite)
             }
-            const texture = PIXI.Texture.from(map[x][y].sprite)
-            backSprite = getCachedSprite(texture, map[x][y].sprite.uid)
-            backSprite.textureKey = map[x][y].sprite.uid
+            backSprite = new PIXI.Sprite(map[x][y].sprite)
             backSprite.x = x * SPRITE_SIZE
             backSprite.y = y * SPRITE_SIZE
             backgroundSpriteMap.set(tileKey, backSprite)
@@ -568,9 +507,7 @@ function drawBackground(map) {
       if (gameState.humanPlayer) {
         gameState.humanPlayer.getUnits().forEach((unit) => {
           for (var i = 1; i < (unit.path || []).length; i++) {
-            const pathTexture = PIXI.Texture.from(offscreenSprite(sprites[spriteCoords_Path.x][spriteCoords_Path.y], SPRITE_SIZE))
-            pathTexture.source.scaleMode = SCALE_MODE
-            const pathSprite = new PIXI.Sprite(pathTexture)
+            const pathSprite = new PIXI.Sprite(sprites[`tile_${spriteCoords_Path.x}_${spriteCoords_Path.y}`])
             pathSprite.x = unit.path[i].x * SPRITE_SIZE
             pathSprite.y = unit.path[i].y * SPRITE_SIZE
             debugBatch.addChild(pathSprite)
@@ -702,18 +639,4 @@ async function removeProgressIndicator(entityUid) {
     containers.indicators.removeChild(indicator)
     indicatorMap.delete(entityUid)
   }
-}
-
-/**
- * Check if a sprite's texture is still valid
- * Mobile browsers may discard textures under memory pressure
- * @param {PIXI.Sprite} sprite - The sprite to check
- * @returns {boolean} True if the sprite is valid
- */
-function isSpriteValid(sprite) {
-  return sprite && 
-         sprite.texture && 
-         sprite.texture.valid && 
-         sprite.texture.baseTexture && 
-         sprite.texture.baseTexture.valid
 }

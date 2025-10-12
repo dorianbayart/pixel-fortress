@@ -2,11 +2,12 @@ export { Mouse }
 
 'use strict'
 
+import * as PIXI from 'pixijs'
 import CONSTANTS from 'constants'
 import { getCanvasDimensions, getMapDimensions, getTileSize } from 'dimensions'
 import { drawBack } from 'globals'
 import { app, updateZoom } from 'renderer'
-import { loadAndSplitImage, offscreenSprite } from 'sprites'
+import { loadAndSplitImage } from 'sprites'
 import gameState from 'state'
 
 
@@ -88,8 +89,7 @@ class Mouse {
     this.canvas = canvas
 
     // Load cursor sprite
-    const mouseSprite = (await loadAndSplitImage('assets/ui/crosshair.png', 9))[0][0]
-    this.sprite = offscreenSprite(mouseSprite, 9, 'cursor')
+    this.sprite = await PIXI.Assets.load('assets/ui/crosshair.png')
 
     // Update keyboard event handling for continuous movement
     window.addEventListener('keydown', (e) => {

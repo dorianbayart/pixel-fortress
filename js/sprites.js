@@ -1,41 +1,14 @@
-export { UNIT_SPRITE_SIZE, loadAndSplitImage, loadSprites, offscreenSprite, offscreenSprites, offscreenSpritesSize, sprites, unitsSprites, unitsSpritesDescription }
+export { UNIT_SPRITE_SIZE, loadAndSplitImage, loadSprites, sprites, unitsSprites, unitsSpritesDescription }
 
 'use strict'
 
+import * as PIXI from 'pixijs'
 import { getTileSize } from 'dimensions'
-import { arrayToHash } from 'utils'
 
 const SPRITE_SIZE = getTileSize(), UNIT_SPRITE_SIZE = getTileSize() * 2
 
-/** The Offsreen sprite cache */
-const offscreenSprites = new Map()
-
 /** Exposed variables that stores the sprites and their descriptor */
 let sprites, unitsSprites, unitsSpritesDescription
-
-let offscreenSpritesMapCleanupTimout
-
-
-/**
- * Utility to get offscreen sprites cache size
- * @returns {number}
- *
- */
-const offscreenSpritesSize = () => offscreenSprites.size
-
-/**
- * Utility to clean cache periodically
- * @returns {void}
- *
- */
-const offscreenSpritesMapCleanup = () => {
-  if(offscreenSpritesSize()) {
-    // Delete the oldest entry - Clean Cache
-    offscreenSprites.delete(offscreenSprites.keys().next().value)
-  }
-  if(offscreenSpritesMapCleanupTimout) clearTimeout(offscreenSpritesMapCleanupTimout)
-  offscreenSpritesMapCleanupTimout = setTimeout(offscreenSpritesMapCleanup, 2500)
-}
 
 
 /**
@@ -48,90 +21,119 @@ const offscreenSpritesMapCleanup = () => {
  */
 const loadSprites = async () => {
   sprites = unitsSprites = unitsSpritesDescription = null
-  offscreenSprites.clear()
 
-  sprites = await loadAndSplitImage(
-    './assets/punyworld-overworld-tileset.png',
-    SPRITE_SIZE
-  )
+  const baseTexture = await PIXI.Assets.load('./assets/punyworld-overworld-tileset.png')
+  baseTexture.source.scaleMode = PIXI.SCALE_MODES.NEAREST
+
+  const frames = {}
+  const cols = baseTexture.width / SPRITE_SIZE
+  const rows = baseTexture.height / SPRITE_SIZE
+
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      const frameName = `tile_${x}_${y}`
+      frames[frameName] = {
+        frame: { x: x * SPRITE_SIZE, y: y * SPRITE_SIZE, w: SPRITE_SIZE, h: SPRITE_SIZE },
+        sourceSize: { w: SPRITE_SIZE, h: SPRITE_SIZE },
+        spriteSourceSize: { x: 0, y: 0, w: SPRITE_SIZE, h: SPRITE_SIZE }
+      }
+    }
+  }
+
+  const spritesheet = new PIXI.Spritesheet(baseTexture, {
+    frames: frames,
+    meta: {
+      scale: "1"
+    }
+  })
+
+  await spritesheet.parse()
+  sprites = spritesheet.textures
   unitsSpritesDescription = await (
     await fetch('./assets/unitsSpritesDescription.json')
   ).json()
 
   unitsSprites = {}
-  let spritesToLoad = Object.keys(unitsSpritesDescription)
-  for (let sprite of spritesToLoad) {
-    unitsSprites[sprite] = await loadAndSplitImage(
-      unitsSpritesDescription[sprite]['relativeToRoot'],
-      UNIT_SPRITE_SIZE
-    )
-  }
+  for (const spriteName in unitsSpritesDescription) {
+    if (unitsSpritesDescription.hasOwnProperty(spriteName)) {
+      const unitDesc = unitsSpritesDescription[spriteName]
+      const baseTexture = await PIXI.Assets.load(unitDesc.relativeToRoot)
+      baseTexture.source.scaleMode = PIXI.SCALE_MODES.NEAREST
 
-  offscreenSpritesMapCleanup()
-}
-
-const loadAndSplitImage = (url, spriteSize) => {
-  return new Promise((resolve, reject) => {
-    const image = new Image()
-    image.crossOrigin = 'anonymous'
-
-    image.onload = () => {
-      const canvas = new OffscreenCanvas(image.width, image.height)
-      const ctx = canvas.getContext('2d', { willReadFrequently: false })
-      ctx.drawImage(image, 0, 0)
-
-      // const spriteSheet = ctx.getImageData(0, 0, image.width, image.height)
-      const sprites = Array.from(
-        { length: Math.round(image.width / spriteSize) },
-        (_, i) =>
-          Array.from(
-            { length: Math.round(image.height / spriteSize) },
-            (_, j) => 0
-          )
-      )
-
-      // Split the image into smaller subimages of spriteSizexspriteSize pixels
-      for (let x = 0; x < image.width / spriteSize; x++) {
-        for (let y = 0; y < image.height / spriteSize; y++) {
-          sprites[x][y] = ctx.getImageData(
-            x * spriteSize,
-            y * spriteSize,
-            spriteSize,
-            spriteSize
-          )
+      const unitFrames = {}
+      for (const animationType in unitDesc) {
+        if (['static', 'walk', 'attack', 'lumberjack'].includes(animationType) && unitDesc.hasOwnProperty(animationType)) {
+          for (const frameKey in unitDesc[animationType]) {
+            if (unitDesc[animationType].hasOwnProperty(frameKey)) {
+              for (const direction in unitDesc[animationType][frameKey]) {
+                if (unitDesc[animationType][frameKey].hasOwnProperty(direction)) {
+                  let { x, y } = unitDesc[animationType][frameKey][direction]
+                  x *= UNIT_SPRITE_SIZE
+                  y *= UNIT_SPRITE_SIZE
+                  const w = UNIT_SPRITE_SIZE, h = UNIT_SPRITE_SIZE
+                  const frameName = `${animationType}_${frameKey}_${direction}`
+                  unitFrames[frameName] = {
+                    frame: { x, y, w, h },
+                    sourceSize: { w, h },
+                    spriteSourceSize: { x: 0, y: 0, w, h }
+                  }
+                }
+              }
+            }
+          }
         }
       }
 
-      resolve(
-        sprites
-      )
+      const unitSpritesheet = new PIXI.Spritesheet(baseTexture, {
+        frames: unitFrames,
+        meta: {
+          scale: "1"
+        }
+      })
+
+      await unitSpritesheet.parse()
+      
+      unitsSprites[spriteName] = {}
+      for (const animationType in unitDesc) {
+        if (['static', 'walk', 'attack', 'lumberjack'].includes(animationType) && unitDesc.hasOwnProperty(animationType)) {
+          unitsSprites[spriteName][animationType] = {}
+          for (const frameKey in unitDesc[animationType]) {
+            if (unitDesc[animationType].hasOwnProperty(frameKey)) {
+              unitsSprites[spriteName][animationType][frameKey] = {}
+              for (const direction in unitDesc[animationType][frameKey]) {
+                if (unitDesc[animationType][frameKey].hasOwnProperty(direction)) {
+                  const frameName = `${animationType}_${frameKey}_${direction}`
+                  unitsSprites[spriteName][animationType][frameKey][direction] = unitSpritesheet.textures[frameName]
+                  // console.log(unitsSprites[spriteName][animationType][frameKey][direction])
+                }
+              }
+            }
+          }
+        }
+      }
     }
-
-    image.onerror = reject
-    image.src = url
-  })
-}
-
-/**
- * 
- * @param {ImageData} sprite 
- * @param {number} spriteSize 
- * @param {string|number} id 
- * @returns 
- */
-const offscreenSprite = (sprite, spriteSize, id) => {
-  const hash = id ?? arrayToHash(sprite.data)
-
-  if (!offscreenSprites.has(hash)) {
-    const canvas = new OffscreenCanvas(spriteSize, spriteSize)
-    const ctx = canvas.getContext('2d')
-    ctx.putImageData(sprite, 0, 0)
-    canvas.uid = hash
-    offscreenSprites.set(hash, canvas)
   }
 
-  return offscreenSprites.get(hash)
 }
+
+const loadAndSplitImage = async (url, spriteSize) => {
+  const baseTexture = await PIXI.Assets.load(url)
+  const textures = []
+  const cols = baseTexture.width / spriteSize
+  const rows = baseTexture.height / spriteSize
+
+  for (let y = 0; y < rows; y++) {
+    const rowTextures = []
+    for (let x = 0; x < cols; x++) {
+      const frame = new PIXI.Rectangle(x * spriteSize, y * spriteSize, spriteSize, spriteSize)
+      const texture = new PIXI.Texture(baseTexture.source, frame)
+      rowTextures.push(texture)
+    }
+    textures.push(rowTextures)
+  }
+  return textures
+}
+
 
 
 
