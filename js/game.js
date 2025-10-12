@@ -541,12 +541,11 @@ const assignSpritesOnMap = async () => {
           spriteX = terrainType.spriteRange.x[0]
           spriteY = terrainType.spriteRange.y[0]
           const baseGoldTexture = sprites[`tile_${spriteX}_${spriteY}`]
-          //const goldRenderTexture = PIXI.RenderTexture.create({ width: SPRITE_SIZE, height: SPRITE_SIZE, scaleMode: PIXI.SCALE_MODES.NEAREST })
-          //const graphics = new PIXI.Graphics()
-          //graphics.rect(0, 0, SPRITE_SIZE, SPRITE_SIZE).fill({ color: 0xFFD700, alpha: 0.5 })
-          //app.renderer.render(baseGoldTexture, { renderTexture: goldRenderTexture })
-          //app.renderer.render(graphics, { renderTexture: goldRenderTexture, clear: false })
-          gameState.map[x][y].sprite = baseGoldTexture
+          const goldSprite = new PIXI.Sprite(baseGoldTexture)
+          goldSprite.tint = 0xFFEA7D
+          const goldRenderTexture = PIXI.RenderTexture.create({ width: SPRITE_SIZE, height: SPRITE_SIZE, scaleMode: PIXI.SCALE_MODES.NEAREST })
+          app.renderer.render(goldSprite, { renderTexture: goldRenderTexture })
+          gameState.map[x][y].sprite = goldRenderTexture
           gameState.map[x][y].back = sprites[`tile_${grassSpriteX}_${grassSpriteY}`]
           break
 
