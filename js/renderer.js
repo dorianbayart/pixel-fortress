@@ -397,7 +397,7 @@ function drawBackground(map) {
 
       // Draw background (grass under objects)
       if (map[x][y].back) {
-        const backKey = tileKey * 10 | 0
+        const backKey = tileKey + (width * height) | 0
         visibleBackgroundSprites.add(backKey)
 
         let backSprite = backgroundSpriteMap.get(backKey)
