@@ -211,11 +211,29 @@ class Unit {
    * Find the best path to the goal
    */
   async findPath() {
-    if(this.nextNode) {
-      const path = await searchPath(this.nextNode.x, this.nextNode.y, this.goal.x, this.goal.y)
-      this.path = path ? [this.currentNode, ...path] : [this.currentNode]
+    let startNodeX = this.currentNode.x;
+    let startNodeY = this.currentNode.y;
+    let prependNodes = [];
+
+    // If we have a nextNode and it's different from currentNode,
+    // we want the new path to start from nextNode, but still include currentNode
+    // and nextNode in the path for smooth transition.
+    if (this.nextNode && (this.currentNode.x !== this.nextNode.x || this.currentNode.y !== this.nextNode.y)) {
+      startNodeX = this.nextNode.x;
+      startNodeY = this.nextNode.y;
+      prependNodes = [this.currentNode, this.nextNode];
     } else {
-      this.path = await searchPath(this.currentNode.x, this.currentNode.y, this.goal.x, this.goal.y)
+      // If no nextNode or it's the same as currentNode, start path from currentNode
+      prependNodes = [this.currentNode];
+    }
+
+    const newPath = await searchPath(startNodeX, startNodeY, this.goal.x, this.goal.y);
+
+    if (newPath) {
+      this.path = [...prependNodes, ...newPath];
+    } else {
+      // If no path found, unit should stay at current node or next node if it's already moving there
+      this.path = prependNodes.length > 1 ? [this.currentNode, this.nextNode] : [this.currentNode];
     }
   }
 
