@@ -62,6 +62,11 @@ Details: This should include: pseudo, host a map, join a map
 - [ ] **Implementation:** 2 players can play on the same map
 
 
+## Others
+
+- [ ] **Animated water:** Manage the different water sprites to animate it. *(Not Planned)*
+
+
 ## Future Features and Ideas
 
 - [ ] **New Tower Types:** Introduce new towers with unique abilities. *(Not Planned)*
