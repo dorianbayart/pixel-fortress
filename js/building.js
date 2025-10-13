@@ -12,6 +12,10 @@ import gameState from 'state'
 import { GoldMiner, LumberjackWorker, Peon, QuarryMiner, WaterCarrier } from 'unit'
 import { distance } from 'utils'
 
+const WORKER_CONVERSION_COOLDOWN = 50 // 50ms
+const TREE_PROCESSING_BATCH_SIZE = 5 // Process 5 trees at once
+const TREE_PROCESSING_DELAY = 150 // 150ms delay between batches
+
 
 /**
  * Base Building class for all game buildings
@@ -266,6 +270,7 @@ class WorkerBuilding extends Building {
   constructor(x, y, color, owner) {
     super(x, y, color, owner)
     this.type = 'WORKER_BUILDING'
+    this.lastWorkerConversionTime = 0
   }
   
 }
@@ -514,28 +519,38 @@ class Lumberjack extends WorkerBuilding {
             return
         }
         
-        // Get next tree from queue
-        const tree = this.treeProcessingQueue.shift()
         const startX = this.assignedWorkers[0]?.currentNode?.x ?? this.x
         const startY = this.assignedWorkers[0]?.currentNode?.y ?? this.y
-        
-        // Calculate path
-        const path = await searchPath(startX, startY, tree.x, tree.y)
-        
-        if (path?.length > 0) {
-            this.nearbyTrees.push({
-                x: tree.x,
-                y: tree.y,
-                pathDistance: path.length,
-                pathWeight: path.reduce((sum, node) => sum + node.weight, 0)
-            })
-            
-            // Re-sort and trim the list
-            this.sortTreesByPathQuality()
+
+        const batchPromises = []
+        const treesToProcess = []
+
+        // Process a batch of trees
+        for (let i = 0; i < TREE_PROCESSING_BATCH_SIZE && this.treeProcessingQueue.length > 0; i++) {
+            const tree = this.treeProcessingQueue.shift()
+            treesToProcess.push(tree)
+            batchPromises.push(searchPath(startX, startY, tree.x, tree.y))
         }
+
+        const paths = await Promise.all(batchPromises)
+
+        paths.forEach((path, index) => {
+            const tree = treesToProcess[index]
+            if (path?.length > 0) {
+                this.nearbyTrees.push({
+                    x: tree.x,
+                    y: tree.y,
+                    pathDistance: path.length,
+                    pathWeight: path.reduce((sum, node) => sum + node.weight, 0)
+                })
+            }
+        })
         
-        // Process next tree after a small delay
-        setTimeout(() => this.processNextTreeInQueue(), 1)
+        // Re-sort and trim the list after processing the batch
+        this.sortTreesByPathQuality()
+        
+        // Process next batch after a delay
+        setTimeout(() => this.processNextTreeInQueue(), TREE_PROCESSING_DELAY)
     }
 
 
@@ -584,6 +599,12 @@ class Lumberjack extends WorkerBuilding {
     async findWorkerToConvert() {
         if (!this.owner) return
 
+        const time = performance.now() | 0
+        if (time - this.lastWorkerConversionTime < WORKER_CONVERSION_COOLDOWN) {
+            return // Rate limit worker conversion attempts
+        }
+        this.lastWorkerConversionTime = time
+
         //if(this.assignedWorkers.length >= this.maxWorkers) {
             const regularWorker = this.assignedWorkers.find(unit => unit instanceof Peon)
             if(regularWorker) {
@@ -601,8 +622,13 @@ class Lumberjack extends WorkerBuilding {
             }
         //}
 
-        // Get all the owner's regular workers
-        const regularWorkers = this.owner.getUnits().filter(unit => unit instanceof Peon && unit.task !== 'assigned' && !(unit instanceof LumberjackWorker))
+        // Get all the owner's regular workers, and sort by geometric distance for initial filtering
+        const regularWorkers = this.owner.getUnits()
+            .filter(unit => unit instanceof Peon && unit.task !== 'assigned' && !(unit instanceof LumberjackWorker))
+            .map(worker => ({ worker, dist: distance(worker.currentNode, this) }))
+            .sort((a, b) => a.dist - b.dist)
+            .slice(0, 5) // Consider only the 5 closest peons for pathfinding
+            .map(item => item.worker)
 
         // Find the closest worker
         let closestWorker = null
@@ -711,6 +737,12 @@ class Quarry extends WorkerBuilding {
   async findWorkerToConvert() {
       if (!this.owner) return
 
+      const time = performance.now() | 0
+      if (time - this.lastWorkerConversionTime < WORKER_CONVERSION_COOLDOWN) {
+          return // Rate limit worker conversion attempts
+      }
+      this.lastWorkerConversionTime = time
+
       const regularWorker = this.assignedWorkers.find(unit => unit instanceof Peon)
       if(regularWorker) {
           const d = distance(
@@ -726,8 +758,13 @@ class Quarry extends WorkerBuilding {
           return
       }
 
-      // Get all the owner's regular workers
-      const regularWorkers = this.owner.getUnits().filter(unit => unit instanceof Peon && unit.task !== 'assigned' && !(unit instanceof QuarryMiner))
+      // Get all the owner's regular workers, and sort by geometric distance for initial filtering
+      const regularWorkers = this.owner.getUnits()
+          .filter(unit => unit instanceof Peon && unit.task !== 'assigned' && !(unit instanceof QuarryMiner))
+          .map(worker => ({ worker, dist: distance(worker.currentNode, this) }))
+          .sort((a, b) => a.dist - b.dist)
+          .slice(0, 5) // Consider only the 5 closest peons for pathfinding
+          .map(item => item.worker)
 
       // Find the closest worker
       let closestWorker = null
@@ -836,6 +873,12 @@ class Well extends WorkerBuilding {
   async findWorkerToConvert() {
     if (!this.owner) return
 
+    const time = performance.now() | 0
+    if (time - this.lastWorkerConversionTime < WORKER_CONVERSION_COOLDOWN) {
+        return // Rate limit worker conversion attempts
+    }
+    this.lastWorkerConversionTime = time
+
     const regularWorker = this.assignedWorkers.find(unit => unit instanceof Peon)
     if(regularWorker) {
       const d = distance(
@@ -851,10 +894,13 @@ class Well extends WorkerBuilding {
       return
     }
 
-    // Get all the owner's regular workers
-    const regularWorkers = this.owner.getUnits().filter(unit => 
-      unit instanceof Peon && unit.task !== 'assigned' && !(unit instanceof WaterCarrier)
-    )
+    // Get all the owner's regular workers, and sort by geometric distance for initial filtering
+    const regularWorkers = this.owner.getUnits()
+        .filter(unit => unit instanceof Peon && unit.task !== 'assigned' && !(unit instanceof WaterCarrier))
+        .map(worker => ({ worker, dist: distance(worker.currentNode, this) }))
+        .sort((a, b) => a.dist - b.dist)
+        .slice(0, 5) // Consider only the 5 closest peons for pathfinding
+        .map(item => item.worker)
 
     // Find the closest worker
     let closestWorker = null
@@ -963,6 +1009,12 @@ class GoldMine extends WorkerBuilding {
   async findWorkerToConvert() {
     if (!this.owner) return
 
+    const time = performance.now() | 0
+    if (time - this.lastWorkerConversionTime < WORKER_CONVERSION_COOLDOWN) {
+        return // Rate limit worker conversion attempts
+    }
+    this.lastWorkerConversionTime = time
+
     const regularWorker = this.assignedWorkers.find(unit => unit instanceof Peon)
     if(regularWorker) {
       const d = distance(
@@ -978,10 +1030,13 @@ class GoldMine extends WorkerBuilding {
       return
     }
 
-    // Get all the owner's regular workers
-    const regularWorkers = this.owner.getUnits().filter(unit => 
-      unit instanceof Peon && unit.task !== 'assigned' && !(unit instanceof GoldMiner)
-    )
+    // Get all the owner's regular workers, and sort by geometric distance for initial filtering
+    const regularWorkers = this.owner.getUnits()
+        .filter(unit => unit instanceof Peon && unit.task !== 'assigned' && !(unit instanceof GoldMiner))
+        .map(worker => ({ worker, dist: distance(worker.currentNode, this) }))
+        .sort((a, b) => a.dist - b.dist)
+        .slice(0, 5) // Consider only the 5 closest peons for pathfinding
+        .map(item => item.worker)
 
     // Find the closest worker
     let closestWorker = null

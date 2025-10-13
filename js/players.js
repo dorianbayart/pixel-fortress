@@ -63,6 +63,24 @@ class Player {
       this.aiBuildingTimer = 0
       this.aiBuildingCooldown = 9500 // 9.5 seconds
       this.aiBuildingDelay = 9500 // 9.5 seconds
+
+      // Pre-calculate resource tile locations for AI
+      this.goldTiles = []
+      this.rockTiles = []
+      setTimeout(async () => {
+        const { width: MAP_WIDTH, height: MAP_HEIGHT } = getMapDimensions()
+        for (let x = 0; x < MAP_WIDTH; x++) {
+          for (let y = 0; y < MAP_HEIGHT; y++) {
+            const tile = gameState.map[x][y]
+            if (tile.type === TERRAIN_TYPES.GOLD.type) {
+              this.goldTiles.push({ x, y })
+            }
+            if (tile.type === TERRAIN_TYPES.ROCK.type) {
+              this.rockTiles.push({ x, y })
+            }
+          }
+        }
+      }, 2500)
     }
 
     this.events = new EventSystem()
@@ -201,46 +219,82 @@ class Player {
     }
 
     let potentialPlacements = []
+    const searchRadius = Math.min(20, 1 * MAP_WIDTH / 3); // Define a search radius around tents
 
-    // Collect all potential placements based on building type
-    for (let x = 0; x < MAP_WIDTH; x++) {
-      for (let y = 0; y < MAP_HEIGHT/2; y++) {
-        const tile = gameState.map[x][y]
-        if (isOccupied(x, y)) continue
+    // Specific search logic based on building type
+    switch (buildingType) {
+      case Building.TYPES.LUMBERJACK:
+        for (const tent of tents) {
+          const startX = Math.max(0, tent.x - searchRadius);
+          const endX = Math.min(MAP_WIDTH - 1, tent.x + searchRadius);
+          const startY = 0;
+          const endY = Math.min(MAP_HEIGHT - 1, 2 * searchRadius);
 
-        let isValidCandidate = false
-        switch (buildingType) {
-          case Building.TYPES.LUMBERJACK:
-            if ((tile.type === TERRAIN_TYPES.GRASS.type || tile.type === TERRAIN_TYPES.SAND.type) && countNearbyTrees(x, y, 3) >= 3 && !this.getBuildings().some(b => distance({x,y}, b) < 3)) {
-              isValidCandidate = true
+          for (let x = startX; x <= endX; x++) {
+            for (let y = startY; y <= endY; y++) {
+              const tile = gameState.map[x][y];
+              if (isOccupied(x, y)) continue;
+              if ((tile.type === TERRAIN_TYPES.GRASS.type || tile.type === TERRAIN_TYPES.SAND.type) && countNearbyTrees(x, y, 3) >= 3 && !this.getBuildings().some(b => distance({ x, y }, b) < 3)) {
+                potentialPlacements.push({ x, y });
+              }
             }
-            break
-          case Building.TYPES.QUARRY:
-            if (tile.type === TERRAIN_TYPES.ROCK.type) {
-              isValidCandidate = true
-            }
-            break
-          case Building.TYPES.WELL:
-            if ((tile.type === TERRAIN_TYPES.GRASS.type || tile.type === TERRAIN_TYPES.SAND.type) && isAdjacentToWater(x, y) && !this.getBuildings().some(b => distance({x,y}, b) < 2)) {
-              isValidCandidate = true
-            }
-            break
-          case Building.TYPES.GOLD_MINE:
-            if (tile.type === TERRAIN_TYPES.GOLD.type) {
-              isValidCandidate = true
-            }
-            break
-          default: // For TENT, BARRACKS, ARMORY, CITADEL (general buildings)
-            if ((tile.type === TERRAIN_TYPES.GRASS.type || tile.type === TERRAIN_TYPES.SAND.type) && !this.getBuildings().some(b => distance({x,y}, b) < 3)) {
-              isValidCandidate = true
-            }
-            break
+          }
         }
+        break;
 
-        if (isValidCandidate) {
-          potentialPlacements.push({ x, y })
+      case Building.TYPES.QUARRY:
+        for (const { x, y } of this.rockTiles) {
+          if (!isOccupied(x, y)) {
+            potentialPlacements.push({ x, y });
+          }
         }
-      }
+        break;
+
+      case Building.TYPES.WELL:
+        for (const tent of tents) {
+          const startX = Math.max(0, tent.x - searchRadius);
+          const endX = Math.min(MAP_WIDTH - 1, tent.x + searchRadius);
+          const startY = 0;
+          const endY = Math.min(MAP_HEIGHT - 1, 2 * searchRadius);
+
+          for (let x = startX; x <= endX; x++) {
+            for (let y = startY; y <= endY; y++) {
+              const tile = gameState.map[x][y];
+              if (isOccupied(x, y)) continue;
+              if ((tile.type === TERRAIN_TYPES.GRASS.type || tile.type === TERRAIN_TYPES.SAND.type) && isAdjacentToWater(x, y) && !this.getBuildings().some(b => distance({ x, y }, b) < 2)) {
+                potentialPlacements.push({ x, y });
+              }
+            }
+          }
+        }
+        break;
+
+      case Building.TYPES.GOLD_MINE:
+        for (const { x, y } of this.goldTiles) {
+          if (!isOccupied(x, y)) {
+            potentialPlacements.push({ x, y });
+          }
+        }
+        break;
+
+      default: // For TENT, BARRACKS, ARMORY, CITADEL (general buildings)
+        for (const tent of tents) {
+          const startX = Math.max(0, tent.x - searchRadius);
+          const endX = Math.min(MAP_WIDTH - 1, tent.x + searchRadius);
+          const startY = 0;
+          const endY = Math.min(MAP_HEIGHT - 1, 2 * searchRadius);
+
+          for (let x = startX; x <= endX; x++) {
+            for (let y = startY; y <= endY; y++) {
+              const tile = gameState.map[x][y];
+              if (isOccupied(x, y)) continue;
+              if ((tile.type === TERRAIN_TYPES.GRASS.type || tile.type === TERRAIN_TYPES.SAND.type) && !this.getBuildings().some(b => distance({ x, y }, b) < 3)) {
+                potentialPlacements.push({ x, y });
+              }
+            }
+          }
+        }
+        break;
     }
 
     // Sort potential placements by Euclidean distance to the nearest tent
@@ -258,20 +312,20 @@ class Player {
 
     // For resource buildings, check path for a limited number of closest candidates
     if ([Building.TYPES.LUMBERJACK, Building.TYPES.QUARRY, Building.TYPES.WELL, Building.TYPES.GOLD_MINE].includes(buildingType)) {
-      console.log(buildingType, potentialPlacements)
-      const candidatesToCheck = potentialPlacements.slice(0, 10) // Check up to 20 closest candidates
+      const candidatesToCheck = potentialPlacements.slice(0, 5); // Check up to 5 closest candidates
       for (const placement of candidatesToCheck) {
         for (const tent of tents) {
-          const path = await searchPath(tent.x, tent.y, placement.x, placement.y)
+          const path = await searchPath(tent.x, tent.y, placement.x, placement.y);
           if (path) {
-            return placement // Return the first accessible placement
+            return placement; // Return the first accessible placement
           }
         }
       }
     } else {
       // For general buildings, return the closest valid placement without pathfinding
       if (potentialPlacements.length > 0) {
-        return potentialPlacements[0]
+        const length = Math.min(5, potentialPlacements.length)
+        return potentialPlacements[Math.floor(Math.random()*length)]
       }
     }
 

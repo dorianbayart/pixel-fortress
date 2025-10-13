@@ -15,6 +15,8 @@ import { distance } from 'utils'
 
 const PI = Math.PI
 
+const TENT_REEVALUATION_COOLDOWN = 5000 // 5 seconds
+
 
 /*
 Class hierarchy
@@ -424,6 +426,8 @@ class WorkerUnit extends Unit {
     this.assignedPath = null // Path assigned by a building
 
     this.timeSinceLastTask = 0
+    this.lastTentReevaluationTime = 0
+    this.nearestTentCache = null
   }
 
   /**
@@ -726,11 +730,21 @@ class QuarryMiner extends WorkerUnit {
    * Deposit collected resources at quarry building
    */
   async findNearestTent() {
+    const time = performance.now() | 0
+
+    // If cached value is still valid, return it
+    if (this.nearestTentCache && (time - this.lastTentReevaluationTime < TENT_REEVALUATION_COOLDOWN)) {
+      return this.nearestTentCache
+    }
+
+    this.lastTentReevaluationTime = time // Update re-evaluation time
+
     const tents = this.assignedBuilding.owner.getTents()
     
     // If there's only one tent, return it immediately
     if (tents.length === 1) {
-      return tents[0]
+      this.nearestTentCache = tents[0]
+      return this.nearestTentCache
     } 
     // If we have multiple tents, find the nearest one
     else if (tents.length > 1) {
@@ -754,9 +768,11 @@ class QuarryMiner extends WorkerUnit {
       }
       
       // Return nearest tent, or first tent if no path found
-      return nearestTent || tents[0]
+      this.nearestTentCache = nearestTent || tents[0]
+      return this.nearestTentCache
     }
     
+    this.nearestTentCache = null
     return null
   }
   
@@ -900,11 +916,21 @@ class WaterCarrier extends WorkerUnit {
    * @returns {Object|null} The nearest tent or null if none found
    */
   async findNearestTent() {
+    const time = performance.now() | 0
+
+    // If cached value is still valid, return it
+    if (this.nearestTentCache && (time - this.lastTentReevaluationTime < TENT_REEVALUATION_COOLDOWN)) {
+      return this.nearestTentCache
+    }
+
+    this.lastTentReevaluationTime = time // Update re-evaluation time
+
     const tents = this.assignedBuilding.owner.getTents()
     
     // If there's only one tent, return it immediately
     if (tents.length === 1) {
-      return tents[0]
+      this.nearestTentCache = tents[0]
+      return this.nearestTentCache
     } 
     // If we have multiple tents, find the nearest one
     else if (tents.length > 1) {
@@ -928,9 +954,11 @@ class WaterCarrier extends WorkerUnit {
       }
       
       // Return nearest tent, or first tent if no path found
-      return nearestTent || tents[0]
+      this.nearestTentCache = nearestTent || tents[0]
+      return this.nearestTentCache
     }
     
+    this.nearestTentCache = null
     return null
   }
   
@@ -1056,11 +1084,21 @@ class GoldMiner extends WorkerUnit {
    * @returns {Object|null} The nearest tent or null if none found
    */
   async findNearestTent() {
+    const time = performance.now() | 0
+
+    // If cached value is still valid, return it
+    if (this.nearestTentCache && (time - this.lastTentReevaluationTime < TENT_REEVALUATION_COOLDOWN)) {
+      return this.nearestTentCache
+    }
+
+    this.lastTentReevaluationTime = time // Update re-evaluation time
+
     const tents = this.assignedBuilding.owner.getTents()
     
     // If there's only one tent, return it immediately
     if (tents.length === 1) {
-      return tents[0]
+      this.nearestTentCache = tents[0]
+      return this.nearestTentCache
     } 
     // If we have multiple tents, find the nearest one
     else if (tents.length > 1) {
@@ -1084,9 +1122,11 @@ class GoldMiner extends WorkerUnit {
       }
       
       // Return nearest tent, or first tent if no path found
-      return nearestTent || tents[0]
+      this.nearestTentCache = nearestTent || tents[0]
+      return this.nearestTentCache
     }
     
+    this.nearestTentCache = null
     return null
   }
   
@@ -1133,8 +1173,7 @@ class CombatUnit extends Unit {
 
   async handleTasks(delay, time) {
     this.attack = false
-    this.timeSinceLastTargetReevaluation = this.timeSinceLastTargetReevaluation || 0
-    this.timeSinceLastTargetReevaluation += delay
+    this.timeSinceLastTargetReevaluation = (this.timeSinceLastTargetReevaluation || 0) + delay
 
     // If current goal is dead or invalid, clear it and go idle
     if (this.goal && this.goal.life <= 0) {
@@ -1145,7 +1184,7 @@ class CombatUnit extends Unit {
 
     // Periodically re-evaluate nearest enemy, even if currently attacking
     // This allows units to switch targets if a closer or more critical enemy appears
-    const reevaluateInterval = (this.path?.length || 20 + 1) * 175 // Re-evaluate every few 175ms
+    const reevaluateInterval = (this.path?.length || 20 + 1) * 250 // Re-evaluate every few 250ms
     if (this.task === 'idle' || this.timeSinceLastTargetReevaluation > reevaluateInterval) {
       this.timeSinceLastTargetReevaluation = 0
       const newPath = await this.pathToNearestEnemy()
