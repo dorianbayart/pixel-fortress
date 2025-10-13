@@ -11,13 +11,14 @@ The project is self-contained and has no external build dependencies (no npm, we
 ## General Instructions
 
 - The project uses vanilla JavaScript (ES6 Modules). Do not introduce any build tools, compilers (like TypeScript), or package managers (like npm) without explicit instruction.
+- Do not try to launch external commands (like npx or eslint).
 - All code is organized into modules within the `js/` directory. Maintain this modular structure.
 - The game is launched by opening the `index.html` file directly in a browser.
 
 ## Coding Style & Conventions
 
 - **Language:** Use modern JavaScript (ES6+), including `class`, `const`/`let`, and ES Modules (`import`/`export`).
-- **Formatting:** Follow the existing code style (indentation, spacing, brace style).
+- **Formatting:** Follow the existing code style (indentation, spacing, brace style, no semicolon).
 - **Naming:**
     - Use `PascalCase` for class names (e.g., `CombatUnit`, `Player`).
     - Use `camelCase` for variables and functions (e.g., `gameLoop`, `updateVisibility`).
