@@ -5,7 +5,7 @@
 - [x] **Game Initialization:** Game window creation, initial resource loading.
 - [x] **Map Generation:** A basic map is randomly generated.
 - [x] **Load Sprites:** Load more sprites to display different kind of units and buildings.
-- [ ] **Define Classes:** Define classes for units, buildings, towers, with their type, characteristics, etc. *(In Progress)*
+- [x] **Define Classes:** Define classes for units, buildings, towers, with their type, characteristics, etc.
 - [x] **Resource Gathering:** Implement resource gathering AI.  
 Details: Worker units automatically locate and gather resources.
 - [x] **Resource Management:** Implement a system for collecting and spending resources.
@@ -18,10 +18,11 @@ Details: Buildings generate worker units (gather resources) and combat units (at
 Details: Combat units automatically engage and attack enemy units and buildings.
 - [x] **Game Over Condition:** Handling game over scenarios (base health reaches zero).
 - [x] **Win Condition:** Handling win scenarios (enemy base health reaches zero).
-- [ ] **AI Opponent:** Implement AI opponent with automated unit management. *(Not Planned)*  
+- [ ] **AI Opponent:** Implement AI opponent with automated unit management. *(Planned)*  
 Details: The AI builds structures and manages units similarly to the player.
 - [ ] **Tower Placement:** Allow players to strategically place towers. *(Not Planned)*
 - [ ] **Tower Attacks:** Towers automatically attack enemies within their range. *(Not Planned)*
+- [ ] **Market:** Market sells ressources against Money. *(Not Planned)*
 
 
 ## User Interface (Medium Priority)
@@ -31,6 +32,7 @@ Details: The AI builds structures and manages units similarly to the player.
 Details: The menu presents what the User can do: Play on random map, Play a predefined map, Play a campaign, Manage options (details, SpecialFX, sound, etc.), etc.
 - [ ] **Base Health Display:** Visual representation of the base's health. *(Not Planned)*
 - [x] **Resource Display:** Show the player's current resources.
+- [ ] **Mini-Map:** Overview of the game world.
 
 
 ## Gameplay (Medium Priority)
