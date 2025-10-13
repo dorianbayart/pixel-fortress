@@ -418,18 +418,25 @@ function drawBackground(map) {
       // Handle terrain sprites
       if (isWorldObject) {
         // This is a tree, rock, or building - add it to the sortable world container
-        visibleWorldObjectSprites.add(tileKey)
-        let worldSprite = worldObjectSpriteMap.get(tileKey)
+        let worldObject = map[x][y]
+        if (tileType === 'BUILDING') {
+          worldObject = gameState.map[x][y].building // Get the actual building object
+        }
+        
+        if (!worldObject) continue // Should not happen for buildings, but good for safety
 
-        if (!worldSprite || worldSprite.texture !== map[x][y].sprite) {
+        visibleWorldObjectSprites.add(worldObject.uid)
+        let worldSprite = worldObjectSpriteMap.get(worldObject.uid)
+
+        if (!worldSprite || worldSprite.texture !== worldObject.sprite) {
             if (worldSprite) {
                 containers.world.removeChild(worldSprite)
             }
-            worldSprite = new PIXI.Sprite(map[x][y].sprite)
+            worldSprite = new PIXI.Sprite(worldObject.sprite)
             worldSprite.x = x * SPRITE_SIZE
             worldSprite.y = y * SPRITE_SIZE
             worldSprite.zIndex = worldSprite.y + worldSprite.height // Set zIndex based on visual bottom
-            worldObjectSpriteMap.set(tileKey, worldSprite)
+            worldObjectSpriteMap.set(worldObject.uid, worldSprite)
             containers.world.addChild(worldSprite)
         }
         worldSprite.visible = true
@@ -487,14 +494,23 @@ function drawBackground(map) {
   // Hide or remove world object sprites outside viewport
   for (const [key, sprite] of worldObjectSpriteMap.entries()) {
       if (!visibleWorldObjectSprites.has(key)) {
-          const y = Math.floor(key / width)
-          const x = key % width
+          // Retrieve the building object using its UID (the key)
+          const building = gameState.humanPlayer.getBuildings().find(b => b.uid === key) || gameState.aiPlayers.flatMap(ai => ai.getBuildings()).find(b => b.uid === key)
           
-          if (x < farStartX || x >= farEndX || y < farStartY || y >= farEndY) {
+          if (building) {
+              const x = building.x
+              const y = building.y
+              
+              if (x < farStartX || x >= farEndX || y < farStartY || y >= farEndY) {
+                  containers.world.removeChild(sprite)
+                  worldObjectSpriteMap.delete(key)
+              } else {
+                  sprite.visible = false
+              }
+          } else {
+              // If building object not found, remove the sprite (e.g., building was destroyed)
               containers.world.removeChild(sprite)
               worldObjectSpriteMap.delete(key)
-          } else {
-              sprite.visible = false
           }
       }
   }

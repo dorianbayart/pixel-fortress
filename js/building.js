@@ -150,7 +150,6 @@ class Building {
     }
 
     // Position the building onto the map
-    gameState.map[x][y].uid = this.uid
     // Update map tile to make it hardly walkable
     gameState.map[x][y].weight = Building.WEIGHT
     gameState.map[x][y].type = 'BUILDING'
@@ -227,6 +226,7 @@ class Building {
     }
 
     gameState.map[x][y].type = building.type
+    gameState.map[x][y].building = building
     updateMapInWorker()
 
     // Put the corresponding sprite on the map
