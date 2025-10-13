@@ -22,7 +22,7 @@ import { distance } from 'utils'
  * - Player ownership
  */
 class Building {
-    static WEIGHT = 8192 // Movement cost for walking through a building tile
+    static WEIGHT = getMapDimensions().maxWeight / 2 // Movement cost for walking through a building tile
 
     static TYPES = {
         LUMBERJACK: {
@@ -415,10 +415,14 @@ class Lumberjack extends WorkerBuilding {
         // If we're converting a worker
         if (this.convertingWorker) {
             this.productionTimer += delay
+
+            // Launch tree ordering before the end of the conversion
+            if(this.productionTimer > this.productionCooldown * 0.8) {
+              this.findAndOrderNearbyTrees()
+            }
             
             // Check if conversion is complete
             if (this.productionTimer >= this.productionCooldown) {
-                this.findAndOrderNearbyTrees()
                 this.completeWorkerConversion()
                 this.productionTimer = 0
                 this.convertingWorker = null

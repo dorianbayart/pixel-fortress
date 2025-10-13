@@ -34,7 +34,7 @@ const isWall = (x, y) => {
   if (!isInBounds(x, y)) return true
 
   // Only consider maximum weight as walls, not buildings (2047) or trees (255)
-  return (currentGameStateMap[x][y].weight || 0) === currentMapDimensions.maxWeight
+  return (currentGameStateMap[x][y].weight || 0) >= currentMapDimensions.maxWeight
 }
 
 /**
