@@ -30,11 +30,20 @@ const getHeuristic = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y)
 const isInBounds = (x, y) => x >= 0 && x < currentMapDimensions.width && y >= 0 && y < currentMapDimensions.height
 
 /** Check if a cell is a wall */
-const isWall = (x, y) => {
+const isWall = (x, y, endX, endY) => {
   if (!isInBounds(x, y)) return true
 
-  // Only consider maximum weight as walls, not buildings (2047) or trees (255)
-  return (currentGameStateMap[x][y].weight || 0) >= currentMapDimensions.maxWeight
+  // If the current tile is the destination, it's never a wall
+  if (x === endX && y === endY) return false
+
+  const tileWeight = currentGameStateMap[x][y].weight || 0
+  const buildingWeight = currentMapDimensions.maxWeight / 2 // Defined in Building class
+
+  // If the tile has building weight, it's a wall (unless it's the destination, handled above)
+  if (tileWeight === buildingWeight) return true
+
+  // Otherwise, consider maximum weight as walls
+  return tileWeight >= currentMapDimensions.maxWeight
 }
 
 /**
@@ -46,15 +55,17 @@ const isWall = (x, y) => {
  * @param {Uint8Array} closedList - The closed list (Uint8Array) for A* search.
  * @param {function} isWallFn - Reference to the isWall function.
  * @param {function} getNodeKeyFn - Reference to the getNodeKey function.
+ * @param {number} endX - Destination X coordinate
+ * @param {number} endY - Destination Y coordinate
  * @returns {Array<Object>} An array of neighbor objects {x, y}.
  */
-const getNeighbors = (currentX, currentY, closedList, isWallFn, getNodeKeyFn) => {
+const getNeighbors = (currentX, currentY, closedList, isWallFn, getNodeKeyFn, endX, endY) => {
   const neighbors = []
   for (let i = 0; i < 4; i++) {
     const nx = currentX + DX[i]
     const ny = currentY + DY[i]
 
-    if (!isWallFn(nx, ny) && !closedList[getNodeKeyFn(nx, ny)]) {
+    if (!isWallFn(nx, ny, endX, endY) && !closedList[getNodeKeyFn(nx, ny)]) {
       neighbors.push({ x: nx, y: ny })
     }
   }
@@ -80,7 +91,7 @@ function aStar(startX, startY, endX, endY) {
   }
 
   // Early exit
-  if (isWall(startX, startY) || isWall(endX, endY)) return
+  if (isWall(startX, startY, endX, endY) || isWall(endX, endY, endX, endY)) return
 
   // Binary heap helper functions
   const heapPush = (heap, node) => {
@@ -170,7 +181,7 @@ function aStar(startX, startY, endX, endY) {
     closedList[currentKey] = 1
 
     // Calculate heuristic when adding neighbors
-    const currentNeighbors = getNeighbors(current.x, current.y, closedList, isWall, getNodeKey)
+    const currentNeighbors = getNeighbors(current.x, current.y, closedList, isWall, getNodeKey, endX, endY)
     for (let neighbor of currentNeighbors) {
       const gScore = current.g + (currentGameStateMap[neighbor.x][neighbor.y]?.weight || 1) | 0
       const nodeKey = getNodeKey(neighbor.x, neighbor.y)
