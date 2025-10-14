@@ -23,11 +23,11 @@ class Player {
     this.buildings = []
 
     this.resources = {
-      wood: 10 + 5,
-      water: 0 + 5,
-      gold: 0,
-      money: 0 + 5,
-      stone: 0,
+      wood: 10 + Building.TYPES.TENT.costs.wood || 0,
+      water: 0 + Building.TYPES.TENT.costs.water || 0,
+      gold: 0 + Building.TYPES.TENT.costs.gold || 0,
+      money: 0 + Building.TYPES.TENT.costs.money || 0,
+      stone: 0 + Building.TYPES.TENT.costs.stone || 0,
       population: 0
     }
 
@@ -35,34 +35,16 @@ class Player {
       gameState.humanPlayer = this
     } else {
       gameState.addAiPlayer(this)
-      this.aiBuildingQueue = [
-        Building.TYPES.LUMBERJACK,
-        Building.TYPES.LUMBERJACK,
-        Building.TYPES.QUARRY,
-        Building.TYPES.LUMBERJACK,
-        Building.TYPES.QUARRY,
-        Building.TYPES.WELL,
-        Building.TYPES.GOLD_MINE,
-        Building.TYPES.GOLD_MINE,
-        Building.TYPES.WELL,
-        Building.TYPES.BARRACKS,
-        Building.TYPES.LUMBERJACK,
-        Building.TYPES.QUARRY,
-        Building.TYPES.WELL,
-        Building.TYPES.GOLD_MINE,
-        Building.TYPES.BARRACKS,
-        Building.TYPES.LUMBERJACK,
-        Building.TYPES.QUARRY,
-        Building.TYPES.WELL,
-        Building.TYPES.GOLD_MINE,
-        Building.TYPES.ARMORY,
-        Building.TYPES.ARMORY,
-        Building.TYPES.CITADEL,
-        Building.TYPES.BARRACKS,
-      ]
+      this.difficulty = 'medium' // Default difficulty
       this.aiBuildingTimer = 0
-      this.aiBuildingCooldown = 9500 // 9.5 seconds
-      this.aiBuildingDelay = 9500 // 9.5 seconds
+
+      // Set cooldowns based on difficulty
+      const difficultySettings = {
+        'easy': { cooldown: 25000 }, // 25 seconds
+        'medium': { cooldown: 9500 }, // 9.5 seconds
+        'hard': { cooldown: 5000 }    // 5 seconds
+      }
+      this.aiBuildingCooldown = difficultySettings[this.difficulty].cooldown
 
       // Pre-calculate resource tile locations for AI
       this.goldTiles = []
@@ -333,34 +315,95 @@ class Player {
   }
 
   /**
-   * AI logic to build the next queued building
-   * @param {Array<Array<object>>} map - The game map
+   * AI logic to decide the next building type to construct based on difficulty.
+   * @returns {object|null} - The building type object or null if no building is decided.
    */
-  async buildNextQueuedBuilding(map) {
-    if (this.aiBuildingQueue.length === 0) return
+  async decideNextBuildingType() {
+    const resources = this.getResources()
+    const buildings = this.getBuildings()
+    const lumberjacks = buildings.filter(b => b.type === Building.TYPES.LUMBERJACK).length
+    const quarries = buildings.filter(b => b.type === Building.TYPES.QUARRY).length
+    const wells = buildings.filter(b => b.type === Building.TYPES.WELL).length
+    const goldMines = buildings.filter(b => b.type === Building.TYPES.GOLD_MINE).length
+    const barracks = buildings.filter(b => b.type === Building.TYPES.BARRACKS).length
+    const armories = buildings.filter(b => b.type === Building.TYPES.ARMORY).length
+    const citadels = buildings.filter(b => b.type === Building.TYPES.CITADEL).length
+    const tents = buildings.filter(b => b.type === Building.TYPES.TENT).length
 
-    const buildingType = this.aiBuildingQueue[0]
-
-    // Check if AI can afford the building
-    if (this.canAffordBuilding(buildingType)) {
-      // Find a suitable placement
-      const placement = await this.findBuildingPlacement(buildingType)
-
-      if (placement?.x && placement?.y) {
-        // Build it
-        this.addBuilding(placement.x, placement.y, buildingType)
-        console.log(`AI built a ${buildingType.name} at ${placement.x}, ${placement.y}`)
-        this.aiBuildingQueue.shift() // Remove from queue
-      } else {
-        // If no placement found, try again next time (don't remove from queue)
-        console.log(`AI could not find placement for ${buildingType.name}, pushing it to the end of the queue`)
-        this.aiBuildingQueue.shift()
-        this.aiBuildingQueue.push(buildingType)
-      }
-    } else {
-      // If not enough resources, try again next time (don't remove from queue)
-      console.log(`AI cannot afford ${buildingType.name}`)
+    // Helper to check if AI can afford and if a building type is needed
+    const canBuild = (buildingType, currentCount, targetCount) => {
+      return currentCount < targetCount && this.canAffordBuilding(buildingType)
     }
+
+    switch (this.difficulty) {
+      case 'easy':
+        // Simple, sequential priorities, very guided AI
+        if (canBuild(Building.TYPES.LUMBERJACK, lumberjacks, 2) && this.findBuildingPlacement(Building.TYPES.LUMBERJACK)) return Building.TYPES.LUMBERJACK
+        if (canBuild(Building.TYPES.QUARRY, quarries, 1) && this.findBuildingPlacement(Building.TYPES.QUARRY)) return Building.TYPES.QUARRY
+        if (canBuild(Building.TYPES.WELL, wells, 1) && this.findBuildingPlacement(Building.TYPES.WELL)) return Building.TYPES.WELL
+        if (canBuild(Building.TYPES.GOLD_MINE, goldMines, 1) && this.findBuildingPlacement(Building.TYPES.GOLD_MINE)) return Building.TYPES.GOLD_MINE
+        if (canBuild(Building.TYPES.LUMBERJACK, lumberjacks, 3) && this.findBuildingPlacement(Building.TYPES.LUMBERJACK)) return Building.TYPES.LUMBERJACK // third lumberjack
+        if (canBuild(Building.TYPES.QUARRY, quarries, 2) && this.findBuildingPlacement(Building.TYPES.QUARRY)) return Building.TYPES.QUARRY
+        if (canBuild(Building.TYPES.WELL, wells, 2) && this.findBuildingPlacement(Building.TYPES.WELL)) return Building.TYPES.WELL
+        if (canBuild(Building.TYPES.BARRACKS, barracks, 1) && this.findBuildingPlacement(Building.TYPES.BARRACKS)) return Building.TYPES.BARRACKS
+        if (canBuild(Building.TYPES.GOLD_MINE, goldMines, 3) && this.findBuildingPlacement(Building.TYPES.GOLD_MINE)) return Building.TYPES.GOLD_MINE
+        if (canBuild(Building.TYPES.LUMBERJACK, lumberjacks, 5) && this.findBuildingPlacement(Building.TYPES.LUMBERJACK)) return Building.TYPES.LUMBERJACK
+        if (canBuild(Building.TYPES.QUARRY, quarries, 4) && this.findBuildingPlacement(Building.TYPES.QUARRY)) return Building.TYPES.QUARRY
+        if (canBuild(Building.TYPES.BARRACKS, barracks, 3) && this.findBuildingPlacement(Building.TYPES.BARRACKS)) return Building.TYPES.BARRACKS
+        if (canBuild(Building.TYPES.WELL, wells, 4) && this.findBuildingPlacement(Building.TYPES.WELL)) return Building.TYPES.WELL
+        if (canBuild(Building.TYPES.ARMORY, armories, 1) && armories >= 1 && this.findBuildingPlacement(Building.TYPES.ARMORY)) return Building.TYPES.ARMORY
+        if (canBuild(Building.TYPES.CITADEL, citadels, 1) && barracks >= 1 && this.findBuildingPlacement(Building.TYPES.CITADEL)) return Building.TYPES.CITADEL
+        // Keep building, basic growth, with high but finite targets
+        if (canBuild(Building.TYPES.LUMBERJACK, lumberjacks, 8) && this.findBuildingPlacement(Building.TYPES.LUMBERJACK)) return Building.TYPES.LUMBERJACK
+        if (canBuild(Building.TYPES.QUARRY, quarries, 7) && this.findBuildingPlacement(Building.TYPES.QUARRY)) return Building.TYPES.QUARRY
+        if (canBuild(Building.TYPES.WELL, wells, 6) && this.findBuildingPlacement(Building.TYPES.WELL)) return Building.TYPES.WELL
+        if (canBuild(Building.TYPES.GOLD_MINE, goldMines, this.goldTiles/4) && this.findBuildingPlacement(Building.TYPES.GOLD_MINE)) return Building.TYPES.GOLD_MINE
+        if (canBuild(Building.TYPES.BARRACKS, barracks, 8) && this.findBuildingPlacement(Building.TYPES.BARRACKS)) return Building.TYPES.BARRACKS
+        if (canBuild(Building.TYPES.ARMORY, armories, 6) && this.findBuildingPlacement(Building.TYPES.ARMORY)) return Building.TYPES.ARMORY
+        if (canBuild(Building.TYPES.CITADEL, citadels, 4) && this.findBuildingPlacement(Building.TYPES.CITADEL)) return Building.TYPES.CITADEL
+        if (canBuild(Building.TYPES.TENT, tents, 5) && this.findBuildingPlacement(Building.TYPES.TENT)) return Building.TYPES.TENT
+        break
+
+      case 'medium':
+        // First, gather resources
+        if (canBuild(Building.TYPES.LUMBERJACK, lumberjacks, 3) && this.findBuildingPlacement(Building.TYPES.LUMBERJACK)) return Building.TYPES.LUMBERJACK
+        if (canBuild(Building.TYPES.QUARRY, quarries, 3) && this.findBuildingPlacement(Building.TYPES.QUARRY)) return Building.TYPES.QUARRY
+        if (canBuild(Building.TYPES.WELL, wells, 2) && this.findBuildingPlacement(Building.TYPES.WELL)) return Building.TYPES.WELL
+        if (canBuild(Building.TYPES.GOLD_MINE, goldMines, 2) && this.findBuildingPlacement(Building.TYPES.GOLD_MINE)) return Building.TYPES.GOLD_MINE
+        // Attack a bit
+        if (canBuild(Building.TYPES.BARRACKS, barracks, 1) && this.findBuildingPlacement(Building.TYPES.BARRACKS)) return Building.TYPES.BARRACKS
+        // Then grow
+        if (canBuild(Building.TYPES.LUMBERJACK, lumberjacks, 10) && this.findBuildingPlacement(Building.TYPES.LUMBERJACK)) return Building.TYPES.LUMBERJACK
+        if (canBuild(Building.TYPES.QUARRY, quarries, 10) && this.findBuildingPlacement(Building.TYPES.QUARRY)) return Building.TYPES.QUARRY
+        if (canBuild(Building.TYPES.WELL, wells, 6) && this.findBuildingPlacement(Building.TYPES.WELL)) return Building.TYPES.WELL
+        if (canBuild(Building.TYPES.GOLD_MINE, goldMines, this.goldTiles.length/2) && this.findBuildingPlacement(Building.TYPES.GOLD_MINE)) return Building.TYPES.GOLD_MINE
+        if (canBuild(Building.TYPES.BARRACKS, barracks, 8) && this.findBuildingPlacement(Building.TYPES.BARRACKS)) return Building.TYPES.BARRACKS
+        if (canBuild(Building.TYPES.ARMORY, armories, 8) && this.findBuildingPlacement(Building.TYPES.ARMORY)) return Building.TYPES.ARMORY
+        if (canBuild(Building.TYPES.CITADEL, citadels, 8) && this.findBuildingPlacement(Building.TYPES.CITADEL)) return Building.TYPES.CITADEL
+        if (canBuild(Building.TYPES.TENT, tents, 10) && this.findBuildingPlacement(Building.TYPES.TENT)) return Building.TYPES.TENT
+        break
+
+      case 'hard':
+        // More aggressive resources gathering
+        if (canBuild(Building.TYPES.LUMBERJACK, lumberjacks, 5) && this.findBuildingPlacement(Building.TYPES.LUMBERJACK)) return Building.TYPES.LUMBERJACK
+        if (canBuild(Building.TYPES.QUARRY, quarries, 4) && this.findBuildingPlacement(Building.TYPES.QUARRY)) return Building.TYPES.QUARRY
+        if (canBuild(Building.TYPES.WELL, wells, 3) && this.findBuildingPlacement(Building.TYPES.WELL)) return Building.TYPES.WELL
+        if (canBuild(Building.TYPES.GOLD_MINE, goldMines, 3) && this.findBuildingPlacement(Building.TYPES.GOLD_MINE)) return Building.TYPES.GOLD_MINE
+        // Then build-up with unlimited military buildings
+        if (canBuild(Building.TYPES.LUMBERJACK, lumberjacks, 12) && this.findBuildingPlacement(Building.TYPES.LUMBERJACK)) return Building.TYPES.LUMBERJACK
+        if (canBuild(Building.TYPES.QUARRY, quarries, 12) && this.findBuildingPlacement(Building.TYPES.QUARRY)) return Building.TYPES.QUARRY
+        if (canBuild(Building.TYPES.WELL, wells, 12) && this.findBuildingPlacement(Building.TYPES.WELL)) return Building.TYPES.WELL
+        if (canBuild(Building.TYPES.GOLD_MINE, goldMines, this.goldTiles.length) && this.findBuildingPlacement(Building.TYPES.GOLD_MINE)) return Building.TYPES.GOLD_MINE
+        if (canBuild(Building.TYPES.BARRACKS, barracks, 5) && this.findBuildingPlacement(Building.TYPES.BARRACKS)) return Building.TYPES.BARRACKS
+        if (canBuild(Building.TYPES.ARMORY, armories, 8) && this.findBuildingPlacement(Building.TYPES.ARMORY)) return Building.TYPES.ARMORY
+        if (canBuild(Building.TYPES.CITADEL, citadels, 15) && this.findBuildingPlacement(Building.TYPES.CITADEL)) return Building.TYPES.CITADEL
+        if (canBuild(Building.TYPES.TENT, tents, 8) && this.findBuildingPlacement(Building.TYPES.TENT)) return Building.TYPES.TENT
+        // Default
+        if (canBuild(Building.TYPES.BARRACKS, barracks, Infinity) && this.findBuildingPlacement(Building.TYPES.BARRACKS)) return Building.TYPES.BARRACKS
+        break
+    }
+
+    return null // No building to construct at this time
   }
 
   async update(delay) {
@@ -388,7 +431,14 @@ class Player {
       this.aiBuildingTimer += delay
       if (this.aiBuildingTimer >= this.aiBuildingCooldown) {
         this.aiBuildingTimer -= this.aiBuildingCooldown
-        this.buildNextQueuedBuilding(gameState.map)
+        const buildingType = await this.decideNextBuildingType()
+
+        if (buildingType) {
+          const placement = await this.findBuildingPlacement(buildingType)
+          if (placement?.x && placement?.y) {
+            this.addBuilding(placement.x, placement.y, buildingType)
+          }
+        }
       }
     }
   }
