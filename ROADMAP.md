@@ -18,11 +18,11 @@ Details: Buildings generate worker units (gather resources) and combat units (at
 Details: Combat units automatically engage and attack enemy units and buildings.
 - [x] **Game Over Condition:** Handling game over scenarios (base health reaches zero).
 - [x] **Win Condition:** Handling win scenarios (enemy base health reaches zero).
-- [ ] **AI Opponent:** Implement AI opponent with automated unit management. *(Planned)*  
+- [x] **AI Opponent:** Implement AI opponent with automated unit management. *(In Progress)*  
 Details: The AI builds structures and manages units similarly to the player.
+- [ ] **Market:** Market sells ressources against Money. *(Not Planned)*
 - [ ] **Tower Placement:** Allow players to strategically place towers. *(Not Planned)*
 - [ ] **Tower Attacks:** Towers automatically attack enemies within their range. *(Not Planned)*
-- [ ] **Market:** Market sells ressources against Money. *(Not Planned)*
 
 
 ## User Interface (Medium Priority)
@@ -38,6 +38,8 @@ Details: The menu presents what the User can do: Play on random map, Play a pred
 ## Gameplay (Medium Priority)
 
 - [x] **Fog of War:** Implement a fog of war mechanism.
+- [ ] **Building prices:** Prices of buildings are increasing with the amount of buildings already built. *(In Progress)*  
+Details: The price of a building is based on the amount of buildings already built. Maybe 25% more expensive for each building.
 - [ ] **Special Maps:** Add predefined maps. *(Not Planned)*
 - [ ] **Campaign Mode:** Add campaigns maps with scenarii. *(Not Planned)*
 
@@ -45,7 +47,8 @@ Details: The menu presents what the User can do: Play on random map, Play a pred
 ## Upgrades and Power-ups (Medium Priority)
 
 - [ ] **Tower Upgrades:** Allow players to upgrade towers to increase their effectiveness. *(Not Planned)*
-- [ ] **Building Upgrades:** Allow players to upgrade buildings to increase their capacity. *(Not Planned)*
+- [ ] **Building Upgrades:** Allow players to upgrade buildings to increase their capacity. *(Not Planned)*  
+Details: Can affect more workers, can produce quicklyer units, etc.
 - [ ] **Global Upgrades:** Implement upgrades that affect the entire game (e.g., increased resource gain). *(Not Planned)*
 
 
@@ -64,6 +67,7 @@ Details: This should include: pseudo, host a map, join a map
 
 ## Others
 
+- [ ] **Explorer:** Add an explorer that will be able to move around the map. *(Not Planned)*
 - [ ] **Animated water:** Manage the different water sprites to animate it. *(Not Planned)*
 
 
@@ -73,3 +77,4 @@ Details: This should include: pseudo, host a map, join a map
 - [ ] **Special Enemies:** Add enemies with special abilities or resistances. *(Not Planned)*
 - [ ] **Level Editor:** Allow players to create their own custom levels. *(Not Planned)* 
 - [ ] **Endless Mode:** Implement an endless mode with increasing difficulty. *(Not Planned)*
+- [ ] **High Speed:** High speed mode: the time is 2x accelerated. *(Not Planned)*
