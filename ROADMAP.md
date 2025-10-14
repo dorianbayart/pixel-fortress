@@ -38,7 +38,7 @@ Details: The menu presents what the User can do: Play on random map, Play a pred
 ## Gameplay (Medium Priority)
 
 - [x] **Fog of War:** Implement a fog of war mechanism.
-- [ ] **Building prices:** Prices of buildings are increasing with the amount of buildings already built. *(In Progress)*  
+- [x] **Building prices:** Prices of buildings are increasing with the amount of buildings already built. *(In Progress)*  
 Details: The price of a building is based on the amount of buildings already built. Maybe 25% more expensive for each building.
 - [ ] **Special Maps:** Add predefined maps. *(Not Planned)*
 - [ ] **Campaign Mode:** Add campaigns maps with scenarii. *(Not Planned)*
