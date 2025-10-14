@@ -16,7 +16,7 @@ const PlayerType = {
 }
 
 class Player {
-  constructor(type = PlayerType.HUMAN) {
+  constructor(type = PlayerType.HUMAN, difficulty = 'medium') {
 
     this.type = type
     this.units = []
@@ -41,8 +41,10 @@ class Player {
       gameState.humanPlayer = this
     } else {
       gameState.addAiPlayer(this)
-      this.difficulty = 'medium' // Default difficulty
+      this.difficulty = difficulty
       this.aiBuildingTimer = 0
+
+      console.log(gameState)
 
       // Set cooldowns based on difficulty
       const difficultySettings = {

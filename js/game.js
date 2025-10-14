@@ -45,7 +45,7 @@ let delays = new Array(100).fill(50)
 const initGame = async () => {
   // Create players
   new Player(PlayerType.HUMAN)
-  new Player(PlayerType.AI)
+  new Player(PlayerType.AI, gameState.settings.difficulty)
   
   // Generate map until we get a valid one
   let i = 0
