@@ -29,6 +29,18 @@ class Building {
     static WEIGHT = getMapDimensions().maxWeight / 2 // Movement cost for walking through a building tile
 
     static TYPES = {
+        TENT: {
+          name: "Tent",
+          icon: "⛺",
+          costs: { wood: 75, water: 50, money: 50 },
+          description: "Produces peons",
+          sprite_coords: {
+            cyan: { x: 4, y: 33 },
+            red: { x: 14, y: 33 },
+          },
+          sprite: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAMAAADXqc3KAAAALVBMVEUAAAC9aS5MLinxnT/xnj+bLBrtXjHxnj+cKxrxnkDsYDLsXzLCRCWbLRs1Ly5aaGaRAAAACXRSTlMAH1FbrLjK6eoLXuamAAAAaklEQVR42t3QQQ6AIAxEUUAUZBjuf1wBwRRTL2CXfflpUvOvscFbFc5n8AHAUgYB0IMVvAAiKUECCqAGucKhXWDJgBoUziTKC6wwE8qgwUwoL7Dcwt5sbc0KHMAOw9j3dM5G7kY8zL3+fQFVsQkOwk/8+wAAAABJRU5ErkJggg=='
+          //sprite: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAMAAADXqc3KAAAAYFBMVEUAAAD/KgDiMACyLQD/PAC9LADtOACGMQL/PADCLgD/PQCzKgD/PADBLgD/1I7/x4P/q2jvrW3/nVz/ejq9e0n/UxX/UhP+PQDqOACcSyPCLwCuMQGLJwN/HwBqGwBWFwBLdjRBAAAADnRSTlMABho3TGp1oay31NXZ8z/XQMYAAACJSURBVBgZxcFbDoJAEATAluUhAoMIONDuyv1vKZHAbMK/VuEPMuLE5Q1XDrGEhwqxmgYxnXhwMPmsNDC6jDQJdul9aZWHBjuVRZTGYZP3w7vrJxpsVPx7EKUpUaBA/ZQQZtGJpgBcqq2EEOSh3DUOq/Q6dt57EVV+lYhklfSq5IsZTi75zSf4pQ+FhxNQ6zbK1gAAAABJRU5ErkJggg=='
+        },
         LUMBERJACK: {
           name: "Wood Hut",
           icon: "🪓",
@@ -40,22 +52,10 @@ class Building {
           },
           sprite: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAABXklEQVR4nO2ZwW2EMBBFLRcDBQUpW8AafEiwvQ3MLdvD7oHUFNzOhogcCLACZHEI9vwv/QL4898wAiEgCIIg6H9FJDPVdIs+Nw+RtAgBSPYNyNVnt+RMpYYATSfeP+Tp7pd984ntBEIAkn0D8jHnZZM4AhQ4cQTg0YBTagjkIcxH3wDayfxTAG1n36uJ22sx+Ov68mAVgEMAFccG6MGu1swCuG/thPJbcA7AvJW8G2COHkDWv/dvfsPt1AE7wdT6YAgEfvLKVTNjWid2KBECkGiAWkegv+4GGx24E46OwExEJFdP248ibCcgAI8GZLEh4EbMX0z1W/uxJwjUevWGeD16AyiQ+afLLvZfZ4QACA1wAcxHjwDtnXjsIgRAaIDbw3xsIkycUHnLfes7MF/wmrjlXnnLPQAH5gteE7fcK28RQPXXgDrx236rAXMn98BzIQBCAyRrBCAIgiCRpn4AbtcHa+oFkwUAAAAASUVORK5CYII='
         },
-        TENT: {
-          name: "Tent",
-          icon: "⛺",
-          costs: { wood: 5, water: 5, money: 5 },
-          description: "Produces peons",
-          sprite_coords: {
-            cyan: { x: 4, y: 33 },
-            red: { x: 14, y: 33 },
-          },
-          sprite: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAMAAADXqc3KAAAALVBMVEUAAAC9aS5MLinxnT/xnj+bLBrtXjHxnj+cKxrxnkDsYDLsXzLCRCWbLRs1Ly5aaGaRAAAACXRSTlMAH1FbrLjK6eoLXuamAAAAaklEQVR42t3QQQ6AIAxEUUAUZBjuf1wBwRRTL2CXfflpUvOvscFbFc5n8AHAUgYB0IMVvAAiKUECCqAGucKhXWDJgBoUziTKC6wwE8qgwUwoL7Dcwt5sbc0KHMAOw9j3dM5G7kY8zL3+fQFVsQkOwk/8+wAAAABJRU5ErkJggg=='
-          //sprite: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAMAAADXqc3KAAAAYFBMVEUAAAD/KgDiMACyLQD/PAC9LADtOACGMQL/PADCLgD/PQCzKgD/PADBLgD/1I7/x4P/q2jvrW3/nVz/ejq9e0n/UxX/UhP+PQDqOACcSyPCLwCuMQGLJwN/HwBqGwBWFwBLdjRBAAAADnRSTlMABho3TGp1oay31NXZ8z/XQMYAAACJSURBVBgZxcFbDoJAEATAluUhAoMIONDuyv1vKZHAbMK/VuEPMuLE5Q1XDrGEhwqxmgYxnXhwMPmsNDC6jDQJdul9aZWHBjuVRZTGYZP3w7vrJxpsVPx7EKUpUaBA/ZQQZtGJpgBcqq2EEOSh3DUOq/Q6dt57EVV+lYhklfSq5IsZTi75zSf4pQ+FhxNQ6zbK1gAAAABJRU5ErkJggg=='
-        },
         GOLD_MINE: {
           name: "Gold Mine",
           icon: "⛏️",
-          costs: { wood: 25, stone: 5 },
+          costs: { wood: 25, stone: 15 },
           description: "Mines gold",
           sprite_coords: {
             cyan: { x: 6, y: 33 },
@@ -77,7 +77,7 @@ class Building {
         WELL: {
           name: "Well",
           icon: "🧱",
-          costs: { wood: 10, stone: 10 },
+          costs: { wood: 8, stone: 20 },
           description: "Produces water",
           sprite_coords: {
             cyan: { x: 4, y: 37 },
