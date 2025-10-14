@@ -208,7 +208,7 @@ class Player {
     }
 
     let potentialPlacements = []
-    const searchRadius = Math.min(20, 1 * MAP_WIDTH / 3); // Define a search radius around tents
+    const searchRadius = MAP_WIDTH / 2 * 0.80 | 0; // Define a search radius around tents
 
     // Specific search logic based on building type
     switch (buildingType) {
