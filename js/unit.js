@@ -282,7 +282,12 @@ class Unit {
    */
   attackEnemy(delay) {
     if(this.goal) {
-      this.goal.life -= this.attack * delay / 1000
+      // Determine if the goal is a unit or a building and apply damage accordingly
+      if (this.goal.life !== undefined) { // It's a unit
+        this.goal.life -= this.attack * delay / 1000
+      } else if (this.goal.health !== undefined) { // It's a building
+        this.goal.health -= this.attack * delay / 1000
+      }
 
       // Add attack particles
       if (Math.random() < 0.2) { // 30% chance per attack frame
@@ -1262,7 +1267,7 @@ class CombatUnit extends Unit {
     super.attackEnemy(delay)
     
     // Check if killed enemy
-    if (this.goal?.life <= 0) {
+    if (this.goal?.life <= 0 || this.goal?.health <= 0) {
       this.kills++
       this.gainExperience(5)
     }
