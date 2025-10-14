@@ -133,8 +133,8 @@ class Building {
     this.y = y
     this.color = color
     this.owner = owner
-    this.health = 100
-    this.maxHealth = 100
+    this.life = 100
+    this.maxLife = 100
     this.productionTimer = 0
     this.productionCooldown = 10000 // 10 seconds by default
     this.visibilityRange = getTileSize() * 8
@@ -174,7 +174,7 @@ class Building {
    * @param {number} delay - Time elapsed since last update (ms)
    */
   update(delay) {
-    if(this.health <= 0) {
+    if(this.life <= 0) {
       gameState.map[this.x][this.y].uid = null
       gameState.map[this.x][this.y].weight = 1
       gameState.map[this.x][this.y].type = 'GRASS'
@@ -328,8 +328,8 @@ class Tent extends WorkerBuilding {
   constructor(x, y, color, owner) {
     super(x, y, color, owner)
     this.type = Building.TYPES.TENT
-    this.health = 200
-    this.maxHealth = 200
+    this.life = 200
+    this.maxLife = 200
     this.productionCooldown = 10000 // 10 seconds
     
     if(owner === gameState.humanPlayer) {
@@ -381,8 +381,8 @@ class Lumberjack extends WorkerBuilding {
     constructor(x, y, color, owner) {
         super(x, y, color, owner)
         this.type = Building.TYPES.LUMBERJACK
-        this.health = 150
-        this.maxHealth = 150
+        this.life = 150
+        this.maxLife = 150
         this.level = 1
         this.maxWorkers = this.level // Level 1 can handle 1 worker
         this.assignedWorkers = []
@@ -692,8 +692,8 @@ class Quarry extends WorkerBuilding {
   constructor(x, y, color, owner) {
       super(x, y, color, owner)
       this.type = Building.TYPES.QUARRY
-      this.health = 150
-      this.maxHealth = 150
+      this.life = 150
+      this.maxLife = 150
       this.level = 1
       this.maxWorkers = this.level // Level 1 can handle 1 worker
       this.assignedWorkers = []
@@ -828,8 +828,8 @@ class Well extends WorkerBuilding {
   constructor(x, y, color, owner) {
     super(x, y, color, owner)
     this.type = Building.TYPES.WELL
-    this.health = 150
-    this.maxHealth = 150
+    this.life = 150
+    this.maxLife = 150
     this.level = 1
     this.maxWorkers = this.level // Level 1 can handle 1 worker
     this.assignedWorkers = []
@@ -964,8 +964,8 @@ class GoldMine extends WorkerBuilding {
   constructor(x, y, color, owner) {
     super(x, y, color, owner)
     this.type = Building.TYPES.GOLD_MINE
-    this.health = 150
-    this.maxHealth = 150
+    this.life = 150
+    this.maxLife = 150
     this.level = 1
     this.maxWorkers = this.level // Level 1 can handle 1 worker
     this.assignedWorkers = []
@@ -1098,8 +1098,8 @@ class Barracks extends CombatBuilding {
   constructor(x, y, color, owner) {
     super(x, y, color, owner)
     this.type = Building.TYPES.BARRACKS
-    this.health = 50
-    this.maxHealth = 50
+    this.life = 50
+    this.maxLife = 50
     this.productionCooldown = 12000 // 12 seconds to train a soldier
   }
 
@@ -1120,8 +1120,8 @@ class Armory extends CombatBuilding {
   constructor(x, y, color, owner) {
     super(x, y, color, owner)
     this.type = Building.TYPES.ARMORY
-    this.health = 150
-    this.maxHealth = 150
+    this.life = 150
+    this.maxLife = 150
     this.productionCooldown = 20000 // 20 seconds to train heavy infantry
   }
 
@@ -1142,8 +1142,8 @@ class Citadel extends CombatBuilding {
   constructor(x, y, color, owner) {
     super(x, y, color, owner)
     this.type = Building.TYPES.CITADEL
-    this.health = 250
-    this.maxHealth = 250
+    this.life = 250
+    this.maxLife = 250
     this.productionCooldown = 30000 // 30 seconds to train an elite warrior
   }
 

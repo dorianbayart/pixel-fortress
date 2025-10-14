@@ -424,7 +424,7 @@ class Player {
     })
 
     this.units = this.getUnits().filter(unit => unit.life > 0)
-    this.buildings = this.getBuildings().filter(building => building.health > 0)
+    this.buildings = this.getBuildings().filter(building => building.life > 0)
 
     // AI building logic
     if (!this.isHuman()) {
