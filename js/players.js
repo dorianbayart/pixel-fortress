@@ -31,6 +31,12 @@ class Player {
       population: 0
     }
 
+    // Track how many of each building type has been built
+    this.buildingsBuiltCount = {}
+    for (const type in Building.TYPES) {
+      this.buildingsBuiltCount[Building.TYPES[type].name] = 0
+    }
+
     if(this.isHuman()) {
       gameState.humanPlayer = this
     } else {
@@ -145,7 +151,8 @@ class Player {
    */
   canAffordBuilding(buildingType) {
     const resources = this.getResources()
-    for (const [resource, cost] of Object.entries(buildingType.costs)) {
+    const costs = this.getBuildingCost(buildingType)
+    for (const [resource, cost] of Object.entries(costs)) {
       if (!resources[resource] || resources[resource] < cost) {
         return false
       }
@@ -443,13 +450,34 @@ class Player {
     }
   }
 
+  /**
+   * Get the current cost of a building, adjusted by how many have been built.
+   * @param {object} buildingType - The building type object.
+   * @returns {object} - An object containing the adjusted costs.
+   */
+  getBuildingCost(buildingType) {
+    const baseCosts = buildingType.costs
+    const builtCount = this.buildingsBuiltCount[buildingType.name] || 0
+    const adjustedCosts = {}
+
+    for (const [resource, cost] of Object.entries(baseCosts)) {
+      // Increase cost by 25% for each building of the same type already built
+      adjustedCosts[resource] = Math.floor(cost * (1 + builtCount * 0.25))
+    }
+    return adjustedCosts
+  }
+
   addBuilding(x, y, buildingType) {
     // Deduct resources
+    const currentCosts = this.getBuildingCost(buildingType)
     const resources = this.getResources()
-    for (const [resource, cost] of Object.entries(buildingType.costs)) {
+    for (const [resource, cost] of Object.entries(currentCosts)) {
       resources[resource] -= cost
     }
     this.updateResources(resources)
+
+    // Increment the count for this building type
+    this.buildingsBuiltCount[buildingType.name] = (this.buildingsBuiltCount[buildingType.name] || 0) + 1
 
     // Create building
     Building.create(buildingType, x, y, this.getColor(), this)

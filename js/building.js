@@ -248,12 +248,13 @@ class Building {
     return building
   }
 
-  static checkCanAffordBuilding(building) {
+  static checkCanAffordBuilding(buildingType) {
     if (!gameState.humanPlayer) return false
     
     const resources = gameState.humanPlayer.getResources()
+    const costs = gameState.humanPlayer.getBuildingCost(buildingType)
     
-    for (const [resource, cost] of Object.entries(building.costs)) {
+    for (const [resource, cost] of Object.entries(costs)) {
       if (!resources[resource] || resources[resource] < cost) {
         return false
       }

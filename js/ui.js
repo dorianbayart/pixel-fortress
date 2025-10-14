@@ -566,7 +566,7 @@ async function createBuildingSlots() {
   
   for (let i = 0; i < numSlots; i++) {
     // Check if player can afford this building and adjust appearance
-    const canAfford = Building.checkCanAffordBuilding(buildings[i])
+    const canAfford = gameState.humanPlayer.canAffordBuilding(buildings[i])
 
     const slot = new PIXI.Container()
     slot.position.set(startX + i * (slotSize + padding), 12)
@@ -692,7 +692,7 @@ function handleBuildingSelect(index) {
   selectedBuildingType = slot.buildingData
 
   // Format cost display
-  const costs = selectedBuildingType.costs
+  const costs = gameState.humanPlayer.getBuildingCost(selectedBuildingType)
   const costText = Object.entries(costs)
     .map(([resource, amount]) => `${resource}: ${amount}`)
     .join(', ')
@@ -908,8 +908,10 @@ async function updateTooltip(building) {
     money: "💰",
     stone: "🪨"
   }
+
+  const costs = gameState.humanPlayer.getBuildingCost(building)
   
-  for (const [resource, amount] of Object.entries(building.costs)) {
+  for (const [resource, amount] of Object.entries(costs)) {
     const container = new PIXI.Container()
     container.position.set(xOffset, 0)
     
