@@ -462,7 +462,7 @@ class Player {
 
     for (const [resource, cost] of Object.entries(baseCosts)) {
       // Increase cost by 25% for each building of the same type already built
-      adjustedCosts[resource] = Math.floor(cost * (1 + builtCount * 0.25))
+      adjustedCosts[resource] = cost * (1 + builtCount * 0.25) | 0
     }
     return adjustedCosts
   }
@@ -477,6 +477,9 @@ class Player {
     this.updateResources(resources)
 
     // Increment the count for this building type
+    if(buildingType.name === 'Tent' && this.buildingsBuiltCount[buildingType.name] === 0) {
+      this.buildingsBuiltCount[buildingType.name] = -1 // First Tent is not counted
+    }
     this.buildingsBuiltCount[buildingType.name] = (this.buildingsBuiltCount[buildingType.name] || 0) + 1
 
     // Create building
