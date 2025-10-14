@@ -1184,7 +1184,7 @@ class CombatUnit extends Unit {
 
     // Periodically re-evaluate nearest enemy, even if currently attacking
     // This allows units to switch targets if a closer or more critical enemy appears
-    const reevaluateInterval = (this.path?.length || 20 + 1) * 250 // Re-evaluate every few 250ms
+    const reevaluateInterval = Math.min(7500, (this.path?.length || 1) * 750) // Re-evaluate every few 750ms - max is 7500ms
     if (this.task === 'idle' || this.timeSinceLastTargetReevaluation > reevaluateInterval) {
       this.timeSinceLastTargetReevaluation = 0
       const newPath = await this.pathToNearestEnemy()
@@ -1219,7 +1219,7 @@ class CombatUnit extends Unit {
     let path, pathLength = MAP_WIDTH * MAP_HEIGHT
     this.goal = null
     const enemies = this.owner.getEnemies().map(enemy => {
-            return { enemy, distance: distance(this.currentNode, enemy.currentNode) || 1 }
+            return { enemy, distance: distance(this.currentNode, enemy.currentNode ?? { x: enemy.x, y: enemy.y }) || 1 }
           }).sort((a, b) => a.distance - b.distance)
           .slice(0, 3) // Keep only 3 nearest enemies
           .map(item => item.enemy)
