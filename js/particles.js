@@ -3,6 +3,7 @@ export { createParticleEmitter, ParticleEffect, updateAllParticles, drawParticle
 'use strict'
 
 import { getCanvasDimensions, getTileSize } from 'dimensions'
+import { isPositionVisible } from 'fogOfWar'
 import * as PIXI from 'pixijs'
 import { app, containers } from 'renderer'
 import gameState from 'state'
@@ -76,6 +77,19 @@ export function initParticleSystem() {
  * @returns {Object} The created emitter
  */
 function createParticleEmitter(effectType, options = {}) {
+  // For UI particles, always create them regardless of fog of war
+  if (effectType !== ParticleEffect.UI_BUTTON_CLICK) {
+    // If fog of war is enabled and the position is not visible, do not create particles
+    if (gameState.settings.fogOfWar) {
+      const tileSize = getTileSize()
+      const tileX = Math.floor(options.x / tileSize)
+      const tileY = Math.floor(options.y / tileSize)
+      if (!isPositionVisible(tileX, tileY)) {
+        return null // Do not create emitter if not visible
+      }
+    }
+  }
+
   const SPRITE_SIZE = getTileSize()
   const emitter = {
     id: Math.random().toString(36).substring(2, 9),
