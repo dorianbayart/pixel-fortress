@@ -556,6 +556,7 @@ async function createBuildingSlots() {
     Building.TYPES.QUARRY,
     Building.TYPES.WELL,
     Building.TYPES.GOLD_MINE,
+    Building.TYPES.MARKET,
     Building.TYPES.BARRACKS,
     Building.TYPES.ARMORY,
     Building.TYPES.CITADEL

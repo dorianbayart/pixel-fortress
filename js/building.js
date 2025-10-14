@@ -29,18 +29,6 @@ class Building {
     static WEIGHT = getMapDimensions().maxWeight / 2 // Movement cost for walking through a building tile
 
     static TYPES = {
-        TENT: {
-          name: "Tent",
-          icon: "⛺",
-          costs: { wood: 75, water: 50, money: 50 },
-          description: "Produces peons",
-          sprite_coords: {
-            cyan: { x: 4, y: 33 },
-            red: { x: 14, y: 33 },
-          },
-          sprite: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAMAAADXqc3KAAAALVBMVEUAAAC9aS5MLinxnT/xnj+bLBrtXjHxnj+cKxrxnkDsYDLsXzLCRCWbLRs1Ly5aaGaRAAAACXRSTlMAH1FbrLjK6eoLXuamAAAAaklEQVR42t3QQQ6AIAxEUUAUZBjuf1wBwRRTL2CXfflpUvOvscFbFc5n8AHAUgYB0IMVvAAiKUECCqAGucKhXWDJgBoUziTKC6wwE8qgwUwoL7Dcwt5sbc0KHMAOw9j3dM5G7kY8zL3+fQFVsQkOwk/8+wAAAABJRU5ErkJggg=='
-          //sprite: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAMAAADXqc3KAAAAYFBMVEUAAAD/KgDiMACyLQD/PAC9LADtOACGMQL/PADCLgD/PQCzKgD/PADBLgD/1I7/x4P/q2jvrW3/nVz/ejq9e0n/UxX/UhP+PQDqOACcSyPCLwCuMQGLJwN/HwBqGwBWFwBLdjRBAAAADnRSTlMABho3TGp1oay31NXZ8z/XQMYAAACJSURBVBgZxcFbDoJAEATAluUhAoMIONDuyv1vKZHAbMK/VuEPMuLE5Q1XDrGEhwqxmgYxnXhwMPmsNDC6jDQJdul9aZWHBjuVRZTGYZP3w7vrJxpsVPx7EKUpUaBA/ZQQZtGJpgBcqq2EEOSh3DUOq/Q6dt57EVV+lYhklfSq5IsZTi75zSf4pQ+FhxNQ6zbK1gAAAABJRU5ErkJggg=='
-        },
         LUMBERJACK: {
           name: "Wood Hut",
           icon: "🪓",
@@ -117,7 +105,30 @@ class Building {
             red: { x: 18, y: 35 },
           },
           sprite: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAB70lEQVR4nO1aUW6CQBAdaKM9id4ET9CIB7BXqH7NPaCJfnsJozewcJmmxmkwRUWFZbIsi+685H0tzK5v3xtXAUAgEAgE7YMI/At64BKIwN9vPcr5u/EO4BJIBIDndwAi+WVcr/H1WoCq64HosXoEIvlhnFIZJ1/fVBBg65dee2SUPJZDUASg53cAVmT2fbV6aVqATvUIVOywimwBVGzbISgCkHsOQEbGbQhgtCeg5o4bF8C0I1AEIHFAeGWzcZycGEa3NqwarxMBnfrGIzCOExpMF2d+LIgzrhJAt74IEIkDDma/96P0aLucwxsLpjScLk8cTJe8HqBZX/tcgA13/dbPAbrnAhQBSBwQ8m1WTW4EGPXsRyBKqBfMStkP5swmyKsnAsTiAOp0BHqjeSG/k3h3G4GL8fGzRaB3xbfRZ1GAjce6XwQIxAFkNAJA5GU3FaiIQLYrObPMV1p4NDvaPufPxq9l+xOznlLjQ5+Z7nkCtNwTrGdeBREAHXcAGO4Jncu8bUfY33EFRAB00AGo82ywBQG6/WwwMiyAaUegCEDuOQAbfB/gX4BDXfaDefU5w3RPwKb/FWbuiO35wfYCbM8Pthdge364e/ZXsW0BWOuz/dsgaliArr05iiIAue0AUPYMZgabricQCAQCAdzDH7txa8JBeNntAAAAAElFTkSuQmCC'
-        }
+        },
+        MARKET: {
+          name: "Market",
+          icon: "🏦",
+          costs: { wood: 25, water: 10, money: 50, gold: 20 },
+          description: "Sell resources against money",
+          sprite_coords: {
+            cyan: { x: 5, y: 34 },
+            red: { x: 15, y: 34 },
+          },
+          sprite: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAMAAADXqc3KAAAAFVBMVEXH2+uuw9LM3u2Wrr1vnKxWZXEQV61ZyqlCAAAAAnRSTlMB9aJf+uoAAACFSURBVHjarZJBCsNADANtjaz/P7k0TUjabKGHzsXgERiB6xekWtF6soqT0LrHSTbzptQNgYDQJc4IkgAa1EecmQacgGaOS8I2EBNo297FC5wEvairaX/sSzfOEiNpZrYhdR2mxz0bYi4VpUG76LsAWArb/oeQ2raRTtELnnuWVJWWfH+ZBzq/A+PL/IUwAAAAAElFTkSuQmCC'
+        },
+        TENT: {
+          name: "Tent",
+          icon: "⛺",
+          costs: { wood: 75, water: 50, money: 50 },
+          description: "Produces peons",
+          sprite_coords: {
+            cyan: { x: 4, y: 33 },
+            red: { x: 14, y: 33 },
+          },
+          sprite: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAMAAADXqc3KAAAALVBMVEUAAAC9aS5MLinxnT/xnj+bLBrtXjHxnj+cKxrxnkDsYDLsXzLCRCWbLRs1Ly5aaGaRAAAACXRSTlMAH1FbrLjK6eoLXuamAAAAaklEQVR42t3QQQ6AIAxEUUAUZBjuf1wBwRRTL2CXfflpUvOvscFbFc5n8AHAUgYB0IMVvAAiKUECCqAGucKhXWDJgBoUziTKC6wwE8qgwUwoL7Dcwt5sbc0KHMAOw9j3dM5G7kY8zL3+fQFVsQkOwk/8+wAAAABJRU5ErkJggg=='
+          //sprite: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAMAAADXqc3KAAAAYFBMVEUAAAD/KgDiMACyLQD/PAC9LADtOACGMQL/PADCLgD/PQCzKgD/PADBLgD/1I7/x4P/q2jvrW3/nVz/ejq9e0n/UxX/UhP+PQDqOACcSyPCLwCuMQGLJwN/HwBqGwBWFwBLdjRBAAAADnRSTlMABho3TGp1oay31NXZ8z/XQMYAAACJSURBVBgZxcFbDoJAEATAluUhAoMIONDuyv1vKZHAbMK/VuEPMuLE5Q1XDrGEhwqxmgYxnXhwMPmsNDC6jDQJdul9aZWHBjuVRZTGYZP3w7vrJxpsVPx7EKUpUaBA/ZQQZtGJpgBcqq2EEOSh3DUOq/Q6dt57EVV+lYhklfSq5IsZTi75zSf4pQ+FhxNQ6zbK1gAAAABJRU5ErkJggg=='
+        },
       }
 
   /**
@@ -248,13 +259,12 @@ class Building {
     return building
   }
 
-  static checkCanAffordBuilding(buildingType) {
+  static checkCanAffordBuilding(building) {
     if (!gameState.humanPlayer) return false
     
     const resources = gameState.humanPlayer.getResources()
-    const costs = gameState.humanPlayer.getBuildingCost(buildingType)
     
-    for (const [resource, cost] of Object.entries(costs)) {
+    for (const [resource, cost] of Object.entries(building.costs)) {
       if (!resources[resource] || resources[resource] < cost) {
         return false
       }
@@ -514,7 +524,7 @@ class Lumberjack extends WorkerBuilding {
      */
     async processNextTreeInQueue() {
         // If building is destroyed or no more trees to process, stop
-        if (!this.owner || this.health <= 0 || this.treeProcessingQueue.length === 0) {
+        if (!this.owner || this.life <= 0 || this.treeProcessingQueue.length === 0) {
             this.treeProcessingInProgress = false
             this.treeProcessingQueue = []
             return
