@@ -393,7 +393,7 @@ function drawBackground(map) {
 
       const tileKey = map[x][y].uid
       const tileType = map[x][y].type
-      const isWorldObject = ['TREE', 'DEPLETED_TREE', 'ROCK', 'GOLD', 'BUILDING'].includes(tileType)
+      const isWorldObject = ['TREE', 'DEPLETED_TREE', 'ROCK', 'GOLD'].includes(tileType)// || map[x][y].building
 
       // Draw background (grass under objects)
       if (map[x][y].back) {
@@ -419,24 +419,28 @@ function drawBackground(map) {
       if (isWorldObject) {
         // This is a tree, rock, or building - add it to the sortable world container
         let worldObject = map[x][y]
-        if (tileType === 'BUILDING') {
-          worldObject = gameState.map[x][y].building // Get the actual building object
+        let actualObject = null
+
+        if (worldObject.building) {
+          actualObject = worldObject.building // Get the actual building object
+        } else if (['TREE', 'DEPLETED_TREE', 'ROCK', 'GOLD'].includes(worldObject.type)) {
+          actualObject = worldObject // It's a resource object directly on the tile
         }
         
-        if (!worldObject) continue // Should not happen for buildings, but good for safety
+        if (!actualObject) continue // Should not happen if isWorldObject is true, but good for safety
 
-        visibleWorldObjectSprites.add(worldObject.uid)
-        let worldSprite = worldObjectSpriteMap.get(worldObject.uid)
+        visibleWorldObjectSprites.add(actualObject.uid)
+        let worldSprite = worldObjectSpriteMap.get(actualObject.uid)
 
-        if (!worldSprite || worldSprite.texture !== worldObject.sprite) {
+        if (!worldSprite || worldSprite.texture !== actualObject.sprite) {
             if (worldSprite) {
                 containers.world.removeChild(worldSprite)
             }
-            worldSprite = new PIXI.Sprite(worldObject.sprite)
+            worldSprite = new PIXI.Sprite(actualObject.sprite)
             worldSprite.x = x * SPRITE_SIZE
             worldSprite.y = y * SPRITE_SIZE
             worldSprite.zIndex = worldSprite.y + worldSprite.height // Set zIndex based on visual bottom
-            worldObjectSpriteMap.set(worldObject.uid, worldSprite)
+            worldObjectSpriteMap.set(actualObject.uid, worldSprite)
             containers.world.addChild(worldSprite)
         }
         worldSprite.visible = true
@@ -456,6 +460,25 @@ function drawBackground(map) {
             containers.background.addChild(backSprite)
         }
         backSprite.visible = true
+
+        if (map[x][y].building?.selected) {
+            // If selected, ensure the indicator is present
+            if (!backSprite.selectionIndicator) {
+              const selectionSquare = new PIXI.Graphics()
+                .rect(0, 0, SPRITE_SIZE, SPRITE_SIZE)
+                .stroke({ width: 0.25, color: 0xFFFF00 }) // Yellow square, 2px thick
+              
+              backSprite.addChild(selectionSquare)
+              backSprite.selectionIndicator = selectionSquare
+            }
+          } else {
+            // If not selected, remove any existing indicator
+            if (backSprite.selectionIndicator) {
+              backSprite.removeChild(backSprite.selectionIndicator)
+              backSprite.selectionIndicator.destroy()
+              backSprite.selectionIndicator = null
+            }
+          }
       }
 
       // Add special effect on Gold tiles

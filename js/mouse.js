@@ -166,6 +166,24 @@ class Mouse {
         const dy = Math.abs(e.clientY - this.dragStartY)
         if (dx < 5 && dy < 5 && e.clientY < getCanvasDimensions().height - 80) {
             this.clicked = true
+
+            // Handle building selection
+            const tile = gameState.map[this.x][this.y]
+            const clickedBuilding = tile?.building
+
+            if (clickedBuilding) {
+                // If another building was selected, unselect it
+                if (gameState.selectedBuilding && gameState.selectedBuilding !== clickedBuilding) {
+                    gameState.selectedBuilding.selected = false
+                }
+                // Toggle selection of the clicked building
+                clickedBuilding.selected = !clickedBuilding.selected
+                gameState.selectedBuilding = clickedBuilding.selected ? clickedBuilding : null
+            } else if (gameState.selectedBuilding) {
+                // If no building was clicked, unselect the current one
+                gameState.selectedBuilding.selected = false
+                gameState.selectedBuilding = null
+            }
         } else {
           // Enable momentum scrolling if we were dragging with significant velocity
           const dragSpeed = Math.sqrt(this.dragVelocity.x * this.dragVelocity.x + this.dragVelocity.y * this.dragVelocity.y)

@@ -84,6 +84,9 @@ class GameState {
 
     // UI references
     this.UI = null
+
+    // Selected building
+    this._selectedBuilding = null
   }
 
   /**
@@ -263,6 +266,27 @@ class GameState {
   set mapSeed(seed) {
     this._settings.mapSeed = seed
     this.events.emit('map-seed-changed', seed)
+  }
+
+  /**
+   * Get the currently selected building
+   * @returns {Building|null} The selected building or null
+   */
+  get selectedBuilding() {
+    return this._selectedBuilding
+  }
+
+  /**
+   * Set the selected building and emit event
+   * @param {Building|null} building - The building to select or null to unselect
+   */
+  set selectedBuilding(building) {
+    const oldSelectedBuilding = this._selectedBuilding
+    this._selectedBuilding = building
+    if (oldSelectedBuilding !== building) {
+      this.events.emit('selected-building-changed', building)
+      this.drawBack()
+    }
   }
 }
 

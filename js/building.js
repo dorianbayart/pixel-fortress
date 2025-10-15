@@ -155,6 +155,7 @@ class Building {
     this.showProgressIndicator = false
     this.indicatorColor = color
     this.progress = 0
+    this.selected = false
     
     // Register building with player
     if (owner) {

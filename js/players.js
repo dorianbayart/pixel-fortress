@@ -485,7 +485,7 @@ class Player {
     this.buildingsBuiltCount[buildingType.name] = (this.buildingsBuiltCount[buildingType.name] || 0) + 1
 
     // Create building
-    Building.create(buildingType, x, y, this.getColor(), this)
+    return Building.create(buildingType, x, y, this.getColor(), this)
   }
 
   addWorker(x, y) {
