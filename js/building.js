@@ -3,6 +3,7 @@ export { Building, CombatBuilding, GoldMine, Quarry, Tent, Well, WorkerBuilding,
 'use strict'
 
 import { getMapDimensions, getTileSize } from 'dimensions'
+import { TERRAIN_TYPES } from 'game'
 import { ParticleEffect, createParticleEmitter } from 'particles'
 import { searchPath, updateMapInWorker } from 'pathfinding'
 import { Player } from 'players'
@@ -285,7 +286,7 @@ class Building {
   /**
    * Properly cleanup object
    */
-  destroy() {
+  async destroy() {
     if (indicatorMap?.has(this.uid)) {
       removeProgressIndicator(this.uid)
     }
@@ -298,8 +299,11 @@ class Building {
   update(delay) {
     if(this.life <= 0) {
       gameState.map[this.x][this.y].uid = null
-      gameState.map[this.x][this.y].weight = 1
-      gameState.map[this.x][this.y].type = 'GRASS'
+      gameState.map[this.x][this.y].weight = TERRAIN_TYPES.GRASS.weight
+      gameState.map[this.x][this.y].type = TERRAIN_TYPES.GRASS.type
+      gameState.map[this.x][this.y].building = undefined
+      gameState.map[this.x][this.y].sprite.destroy()
+      gameState.map[this.x][this.y].sprite = undefined
       updateMapInWorker()
 
       // Cleanup

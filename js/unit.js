@@ -103,7 +103,7 @@ class Unit {
   /**
    * Properly cleanup object
    */
-  destroy() {
+  async destroy() {
     this.path = null
     this.goal = null
     this.sprite = null
