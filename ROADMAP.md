@@ -47,7 +47,7 @@ Details: The price of a building is based on the amount of buildings already bui
 ## Upgrades and Power-ups (Medium Priority)
 
 - [ ] **Tower Upgrades:** Allow players to upgrade towers to increase their effectiveness. *(Not Planned)*
-- [ ] **Building Upgrades:** Allow players to upgrade buildings to increase their capacity. *(Not Planned)*  
+- [x] **Building Upgrades:** Allow players to upgrade buildings to increase their capacity.
 Details: Can affect more workers, can produce quicklyer units, etc.
 - [ ] **Global Upgrades:** Implement upgrades that affect the entire game (e.g., increased resource gain). *(Not Planned)*
 
