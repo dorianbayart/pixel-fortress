@@ -1175,7 +1175,6 @@ class CombatUnit extends Unit {
   }
 
   async handleTasks(delay, time) {
-    this.attack = false
     this.timeSinceLastTargetReevaluation = (this.timeSinceLastTargetReevaluation || 0) + delay
 
     // If current goal is dead or invalid, clear it and go idle
@@ -1203,7 +1202,6 @@ class CombatUnit extends Unit {
     // If we have a goal and are within range, attack
     if (this.goal && distance(this.currentNode, this.goal.currentNode ? { x: this.goal.x / getTileSize(), y: this.goal.y / getTileSize() } : this.goal) < (this.range) / getTileSize()) {
       this.task = 'attack'
-      this.attack = true
     } else if (this.goal && this.path) {
       this.task = 'moving'
     } else {
