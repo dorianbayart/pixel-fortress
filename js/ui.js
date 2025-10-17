@@ -636,7 +636,7 @@ async function displayBuildingInfo(building) {
 
   // Life/MaxLife
   fontSize = 14
-  const lifeLabel = `Life: ${building.life}/${building.maxLife}`
+  const lifeLabel = `Life: ${building.life.toFixed(0)}/${building.maxLife}`
   const lifeText = new PIXI.Text({
     text: lifeLabel,
     style: {
