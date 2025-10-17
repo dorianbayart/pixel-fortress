@@ -9,10 +9,10 @@ import { Player } from 'players'
 import { createProgressIndicator, indicatorMap, removeProgressIndicator, updateProgressIndicator } from 'renderer'
 import { sprites } from 'sprites'
 import gameState from 'state'
+import { showDebugMessage } from 'ui'
 import { GoldMiner, LumberjackWorker, Peon, QuarryMiner, WaterCarrier } from 'unit'
 import { distance } from 'utils'
 
-const WORKER_CONVERSION_COOLDOWN = 50 // 50ms
 const TREE_PROCESSING_BATCH_SIZE = 5 // Process 5 trees at once
 const TREE_PROCESSING_DELAY = 150 // 150ms delay between batches
 
@@ -33,6 +33,9 @@ class Building {
           name: "Wood Hut",
           icon: "🪓",
           costs: { wood: 10 },
+          UPGRADES: {
+            benefits: { life: 25, maxWorkers: 1 } // +25 life, +1 worker
+          },
           description: "Harvests wood from nearby trees",
           sprite_coords: {
             cyan: { x: 5, y: 33 },
@@ -44,6 +47,9 @@ class Building {
           name: "Gold Mine",
           icon: "⛏️",
           costs: { wood: 25, stone: 15 },
+          UPGRADES: {
+            benefits: { life: 25, productionSpeed: 10 } // +25 life, 10% faster
+          },
           description: "Mines gold",
           sprite_coords: {
             cyan: { x: 6, y: 33 },
@@ -55,6 +61,9 @@ class Building {
           name: "Quarry",
           icon: "🪨",
           costs: { wood: 20 },
+          UPGRADES: {
+            benefits: { life: 25, productionSpeed: 10 } // +25 life, 10% faster
+          },
           description: "Extracts stone",
           sprite_coords: {
             cyan: { x: 6, y: 33 },
@@ -66,6 +75,9 @@ class Building {
           name: "Well",
           icon: "🧱",
           costs: { wood: 8, stone: 20 },
+          UPGRADES: {
+            benefits: { life: 25, maxWorkers: 1 } // +25 life, +1 worker
+          },
           description: "Produces water",
           sprite_coords: {
             cyan: { x: 4, y: 37 },
@@ -77,6 +89,9 @@ class Building {
           name: "Barracks",
           icon: "⚔️",
           costs: { wood: 15, water: 10, gold: 5 },
+          UPGRADES: {
+            benefits: { life: 50, productionSpeed: 10 } // +50 life, 10% faster production
+          },
           description: "Trains soldiers",
           sprite_coords: {
             cyan: { x: 5, y: 34 },
@@ -88,6 +103,9 @@ class Building {
           name: "Armory",
           icon: "🛡️",
           costs: { wood: 25, water: 20, stone: 15, gold: 20 },
+          UPGRADES: {
+            benefits: { life: 75, productionSpeed: 10 } // +75 life, 10% faster production
+          },
           description: "Trains heavy infantry",
           sprite_coords: {
             cyan: { x: 7, y: 33 },
@@ -99,6 +117,9 @@ class Building {
           name: "Citadel",
           icon: "🏰",
           costs: { wood: 40, water: 40, stone: 20, gold: 50 },
+          UPGRADES: {
+            benefits: { life: 100, productionSpeed: 10 } // +100 life, 10% faster production
+          },
           description: "Trains elite warriors",
           sprite_coords: {
             cyan: { x: 8, y: 35 },
@@ -110,6 +131,9 @@ class Building {
           name: "Market",
           icon: "🏦",
           costs: { wood: 25, water: 10, money: 50, gold: 20 },
+          UPGRADES: {
+            benefits: { life: 50, productionSpeed: 10 } // +50 life, 10% faster production (for selling rate)
+          },
           description: "Sell resources against money",
           sprite_coords: {
             cyan: { x: 5, y: 34 },
@@ -121,6 +145,9 @@ class Building {
           name: "Tent",
           icon: "⛺",
           costs: { wood: 75, water: 50, money: 50 },
+          UPGRADES: {
+            benefits: { life: 50, productionSpeed: 10 } // +50 life, 10% faster production
+          },
           description: "Produces peons",
           sprite_coords: {
             cyan: { x: 4, y: 33 },
@@ -144,6 +171,7 @@ class Building {
     this.y = y
     this.color = color
     this.owner = owner
+    this.level = 1
     this.life = 100
     this.maxLife = 100
     this.productionTimer = 0
@@ -170,6 +198,88 @@ class Building {
     gameState.map[x][y].weight = Building.WEIGHT
     gameState.map[x][y].type = 'BUILDING'
     updateMapInWorker()
+  }
+
+  /**
+   * Get the upgrade costs for the next level of a building.
+   * @param {Building} building - The building instance.
+   * @returns {Object|null} The costs for the next upgrade, or null if no more upgrades.
+   */
+  getUpgradeCosts() {
+    const nextLevel = this.level + 1
+    if (this.getUpgradeBenefits()) {
+      return Object.fromEntries(
+        Object.entries(this.type.costs).map(([key, value]) => [key, value * nextLevel])
+      )
+    }
+    return null
+  }
+
+  /**
+   * Get the upgrade benefits for the next level of a building.
+   * @param {Building} building - The building instance.
+   * @returns {Object|null} The benefits for the next upgrade, or null if no more upgrades.
+   */
+  getUpgradeBenefits() {
+    return this.type.UPGRADES?.benefits
+  }
+
+  /**
+   * Apply an upgrade to the building.
+   * @param {Building} building - The building instance.
+   */
+  async applyUpgrade() {
+    const nextLevel = this.level + 1
+    const benefits = this.getUpgradeBenefits()
+    if (benefits) {
+      // Apply benefits
+      if (benefits.life) {
+        this.maxLife += benefits.life
+        this.life += benefits.life // Also heal the building
+      }
+      if (benefits.productionSpeed) {
+        this.productionCooldown *= (1 - benefits.productionSpeed / 100)
+      }
+      if (benefits.maxWorkers) {
+        this.maxWorkers += benefits.maxWorkers
+      }
+
+      this.level = nextLevel
+      return true
+    }
+    return false
+  }
+
+
+  /**
+   * Handle building upgrade logic.
+   */
+  async handleBuildingUpgrade() {
+    const upgradeCosts = this.getUpgradeCosts()
+    if (!upgradeCosts) {
+      showDebugMessage('No more upgrades available for this building.')
+      return
+    }
+
+    const canAfford = this.owner.canAffordUpgrade(this)
+
+    if (canAfford) {
+      // Deduct costs
+      for (const [resource, amount] of Object.entries(upgradeCosts)) {
+        this.owner.addResource(resource, -amount)
+      }
+
+      // Apply upgrade benefits
+      this.applyUpgrade()
+
+      showDebugMessage(`${this.type.name} upgraded to Level ${this.level}!`)
+      // displayBuildingInfo(this) // Refresh UI
+    } else {
+      const costText = Object.entries(upgradeCosts)
+        .map(([resource, amount]) => `${resource}: ${amount}`)
+        .join(', ')
+      showDebugMessage(`Cannot afford upgrade (Needs ${costText})`)
+    }
   }
 
   /**
@@ -283,6 +393,14 @@ class WorkerBuilding extends Building {
     super(x, y, color, owner)
     this.type = 'WORKER_BUILDING'
     this.lastWorkerConversionTime = 0
+
+    this.maxWorkers = 0
+    this.assignedWorkers = []
+
+    // Production timer for converting workers
+    this.productionTimer = 0
+    this.productionCooldown = 1000 // Small delay to convert a worker
+    this.convertingWorker = null
   }
   
 }
@@ -395,14 +513,8 @@ class Lumberjack extends WorkerBuilding {
         this.type = Building.TYPES.LUMBERJACK
         this.life = 150
         this.maxLife = 150
-        this.level = 1
-        this.maxWorkers = this.level // Level 1 can handle 1 worker
-        this.assignedWorkers = []
 
-        // Production timer for converting workers
-        this.productionTimer = 0
-        this.productionCooldown = 1000 // Small delay to convert a worker
-        this.convertingWorker = null
+        this.maxWorkers = 1
 
         // Add nearby trees array
         this.nearbyTrees = []
@@ -611,28 +723,20 @@ class Lumberjack extends WorkerBuilding {
     async findWorkerToConvert() {
         if (!this.owner) return
 
-        const time = performance.now() | 0
-        if (time - this.lastWorkerConversionTime < WORKER_CONVERSION_COOLDOWN) {
-            return // Rate limit worker conversion attempts
-        }
-        this.lastWorkerConversionTime = time
+        const regularWorker = this.assignedWorkers.find(unit => unit instanceof Peon)
+        if(regularWorker) {
+            const d = distance(
+                regularWorker.currentNode, this
+            )
 
-        //if(this.assignedWorkers.length >= this.maxWorkers) {
-            const regularWorker = this.assignedWorkers.find(unit => unit instanceof Peon)
-            if(regularWorker) {
-                const d = distance(
-                    regularWorker.currentNode, this
-                )
-
-                if (d < 2) {
-                    this.convertingWorker = regularWorker
-                } else {
-                    this.convertingWorker = null
-                    this.productionTimer = 0
-                }
-                return
+            if (d < 2) {
+                this.convertingWorker = regularWorker
+            } else {
+                this.convertingWorker = null
+                this.productionTimer = 0
             }
-        //}
+            return
+        }
 
         // Get all the owner's regular workers, and sort by geometric distance for initial filtering
         const regularWorkers = this.owner.getUnits()
@@ -706,14 +810,8 @@ class Quarry extends WorkerBuilding {
       this.type = Building.TYPES.QUARRY
       this.life = 150
       this.maxLife = 150
-      this.level = 1
-      this.maxWorkers = this.level // Level 1 can handle 1 worker
-      this.assignedWorkers = []
 
-      // Production timer for converting workers
-      this.productionTimer = 0
-      this.productionCooldown = 1000 // Small delay to convert a worker
-      this.convertingWorker = null
+      this.maxWorkers = 1
   }
 
   /**
@@ -748,12 +846,6 @@ class Quarry extends WorkerBuilding {
    */
   async findWorkerToConvert() {
       if (!this.owner) return
-
-      const time = performance.now() | 0
-      if (time - this.lastWorkerConversionTime < WORKER_CONVERSION_COOLDOWN) {
-          return // Rate limit worker conversion attempts
-      }
-      this.lastWorkerConversionTime = time
 
       const regularWorker = this.assignedWorkers.find(unit => unit instanceof Peon)
       if(regularWorker) {
@@ -842,14 +934,8 @@ class Well extends WorkerBuilding {
     this.type = Building.TYPES.WELL
     this.life = 150
     this.maxLife = 150
-    this.level = 1
-    this.maxWorkers = this.level // Level 1 can handle 1 worker
-    this.assignedWorkers = []
 
-    // Production timer for converting workers
-    this.productionTimer = 0
-    this.productionCooldown = 1000 // Small delay to convert a worker
-    this.convertingWorker = null
+    this.maxWorkers = 1
   }
 
   /**
@@ -884,12 +970,6 @@ class Well extends WorkerBuilding {
    */
   async findWorkerToConvert() {
     if (!this.owner) return
-
-    const time = performance.now() | 0
-    if (time - this.lastWorkerConversionTime < WORKER_CONVERSION_COOLDOWN) {
-        return // Rate limit worker conversion attempts
-    }
-    this.lastWorkerConversionTime = time
 
     const regularWorker = this.assignedWorkers.find(unit => unit instanceof Peon)
     if(regularWorker) {
@@ -978,20 +1058,14 @@ class GoldMine extends WorkerBuilding {
     this.type = Building.TYPES.GOLD_MINE
     this.life = 150
     this.maxLife = 150
-    this.level = 1
-    this.maxWorkers = this.level // Level 1 can handle 1 worker
-    this.assignedWorkers = []
 
-    // Production timer for converting workers
-    this.productionTimer = 0
-    this.productionCooldown = 1000 // Small delay to convert a worker
-    this.convertingWorker = null
+    this.maxWorkers = 1
   }
 
   /**
    * Update building state and convert workers
    */
-  async update(delay, time) {
+  async update(delay) {
     super.update(delay)
 
     this.assignedWorkers = this.assignedWorkers.filter(unit => unit.life > 0)
@@ -1020,12 +1094,6 @@ class GoldMine extends WorkerBuilding {
    */
   async findWorkerToConvert() {
     if (!this.owner) return
-
-    const time = performance.now() | 0
-    if (time - this.lastWorkerConversionTime < WORKER_CONVERSION_COOLDOWN) {
-        return // Rate limit worker conversion attempts
-    }
-    this.lastWorkerConversionTime = time
 
     const regularWorker = this.assignedWorkers.find(unit => unit instanceof Peon)
     if(regularWorker) {

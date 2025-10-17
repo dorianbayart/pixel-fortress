@@ -590,11 +590,12 @@ const updateSprite = async (x, y) => {
 // Main game loop
 const gameLoop = async () => {
   const now = performance.now()
-  const delay = now - elapsed | 0
+  const delay = Math.min(now - elapsed, 20) | 0
   elapsed = now
 
   if(gameState.gameStatus === 'paused') {
     requestAnimationFrame(gameLoop)
+    elapsed -= delay
     return
   }
 

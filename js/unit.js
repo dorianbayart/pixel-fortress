@@ -288,7 +288,7 @@ class Unit {
       }
 
       // Add attack particles
-      if (Math.random() < 0.2) { // 30% chance per attack frame
+      if (Math.random() < 0.2) { // 20% chance per attack frame
         const SPRITE_SIZE = getTileSize()
         let targetX, targetY
         

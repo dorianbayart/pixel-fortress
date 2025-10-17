@@ -23,11 +23,11 @@ class Player {
     this.buildings = []
 
     this.resources = {
-      wood: 10 + Building.TYPES.TENT.costs.wood || 0,
-      water: 0 + Building.TYPES.TENT.costs.water || 0,
-      gold: 0 + Building.TYPES.TENT.costs.gold || 0,
-      money: 0 + Building.TYPES.TENT.costs.money || 0,
-      stone: 0 + Building.TYPES.TENT.costs.stone || 0,
+      wood: 10 + (Building.TYPES.TENT.costs.wood || 0),
+      water: 0 + (Building.TYPES.TENT.costs.water || 0),
+      gold: 0 + (Building.TYPES.TENT.costs.gold || 0),
+      money: 0 + (Building.TYPES.TENT.costs.money || 0),
+      stone: 0 + (Building.TYPES.TENT.costs.stone || 0),
       population: 0
     }
 
@@ -155,6 +155,25 @@ class Player {
     const resources = this.getResources()
     const costs = this.getBuildingCost(buildingType)
     for (const [resource, cost] of Object.entries(costs)) {
+      if (!resources[resource] || resources[resource] < cost) {
+        return false
+      }
+    }
+    return true
+  }
+
+  /**
+   * Check if the player can afford a building upgrade
+   * @param {Building} building - The building instance to check for upgrade affordability
+   * @returns {boolean} - True if the player can afford the upgrade, false otherwise
+   */
+  canAffordUpgrade(building) {
+    const resources = this.getResources()
+    const upgradeCosts = building.getUpgradeCosts()
+
+    if (!upgradeCosts) return false // No upgrades available
+
+    for (const [resource, cost] of Object.entries(upgradeCosts)) {
       if (!resources[resource] || resources[resource] < cost) {
         return false
       }
@@ -551,12 +570,6 @@ class Player {
       new PeonSoldier(x, y, this)
     )
   }
-
-  // addHumanSoldier(x, y) {
-  //   this.units.push(
-  //     new HumanSoldier(x, y, this)
-  //   )
-  // }
 
   addSoldier(x, y) {
     this.units.push(

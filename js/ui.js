@@ -4,7 +4,7 @@ export {
   
 'use strict'
   
-import { Building } from 'building'
+import { Building, WorkerBuilding } from 'building'
 import CONSTANTS from 'constants'
 import { getCanvasDimensions, getMapDimensions, getTileSize } from 'dimensions'
 import { DEBUG, drawBack, toggleDebug } from 'globals'
@@ -50,7 +50,6 @@ async function initUI(mouseInstance) {
     // Subscribe to state changes
     gameState.events.on('debug-changed', (value) => {
       statsText.visible = value
-      drawBack()
     })
     
     gameState.events.on('game-status-changed', async (status) => {
@@ -65,7 +64,6 @@ async function initUI(mouseInstance) {
 
         // Create the bottom building bar
         createBottomBar()
-
       } else if (status === 'paused') {
         // Remove preview sprite if it exists
         if (buildingPreviewSprite && buildingPreviewSprite.parent) {
@@ -90,6 +88,12 @@ async function initUI(mouseInstance) {
         }, 20)
       }
     })
+  } else if (gameState.status === 'playing') {
+    // Create the top resource bar
+    createTopBar()
+
+    // Create the bottom building bar
+    createBottomBar()
   }
   
 
@@ -373,7 +377,12 @@ async function createTopBar() {
       style: {
         fontFamily: UI_FONTS.PRIMARY,
         fontSize: 14,
-        fill: 0xFFD700
+        fill: 0xFFD700,
+        padding: resource.initial.toString().length * 14,
+        strokeThickness: 1,
+        stroke: 0x000000,
+        wordWrap: true,
+        wordWrapWidth: 24
       }
     })
     text.position.set(24, 2) // Position after the icon
@@ -495,19 +504,30 @@ async function createBottomBar() {
     e.stopPropagation()
   })
   
-  // Create tooltip container (initially hidden)
-  createBuildingTooltip()
-  
   // Add to UI container
   containers.ui.addChild(bottomBarContainer)
   
   // Subscribe to resource changes from human player
   if (gameState.humanPlayer) {
-    if(gameState.humanPlayer.events?.listeners['resources-changed'].includes(createBuildingSlots)) {
-      createBuildingSlots()
+    if(gameState.humanPlayer.events?.listeners['resources-changed'].includes(updateBottomBarPosition)) {
+      updateBottomBarPosition()
     } else {
-      gameState.humanPlayer.events.on('resources-changed', createBuildingSlots)
+      gameState.humanPlayer.events.on('resources-changed', updateBottomBarPosition)
     }
+  }
+
+  const selectedBuildingChangedEvent = async (building) => {
+    if (building) {
+      displayBuildingInfo(building)
+    } else {
+      hideBuildingInfo()
+    }
+  }
+
+  if(gameState.events?.listeners['selected-building-changed']?.includes(selectedBuildingChangedEvent)) {
+    selectedBuildingChangedEvent()
+  } else {
+    gameState.events.on('selected-building-changed', selectedBuildingChangedEvent)
   }
 }
 
@@ -529,11 +549,275 @@ function updateBottomBarPosition() {
     .rect(0, 0, width, barHeight)
     .fill({ color: 0x114611, alpha: 0.85 })
     .stroke({ width: 2, color: 0xFFD700, alpha: 0.5 })
-  
-  // Hide tooltip when resizing
-  hideTooltip()
 
   // Recreate building slots to adjust for new width
+  if (!gameState.selectedBuilding) {
+    createBuildingSlots()
+  } else {
+    displayBuildingInfo(gameState.selectedBuilding)
+  }
+}
+
+/**
+ * Display information about the selected building in the bottom bar.
+ * @param {Building} building - The selected building instance.
+ */
+async function displayBuildingInfo(building) {
+  if (!bottomBarContainer) return
+
+  // Clear existing content
+  bottomBarContainer.removeChildren()
+
+  // Re-add background
+  const { width } = getCanvasDimensions()
+  const barHeight = CONSTANTS.UI.BOTTOM_BAR_HEIGHT
+  const background = new PIXI.Graphics()
+    .rect(0, 0, width, barHeight)
+    .fill({ color: 0x114611, alpha: 0.85 })
+    .stroke({ width: 2, color: 0xFFD700, alpha: 0.5 })
+  bottomBarContainer.addChild(background)
+
+  const padding = 10
+  let currentX = padding
+  let fontSize = 12
+
+  // Building Icon
+  let iconSprite
+  if (building.type.sprite) {
+    iconSprite = new PIXI.Sprite(await PIXI.Assets.load({ src: building.type.sprite }))
+    iconSprite.width = 48
+    iconSprite.height = 48
+    iconSprite.position.set(currentX, padding)
+    bottomBarContainer.addChild(iconSprite)
+    currentX += iconSprite.width + padding
+  } else if (building.type.icon) {
+    const iconText = new PIXI.Text({
+      text: building.type.icon,
+      style: {
+        fontSize: 36,
+        fill: 0xFFFFFF
+      }
+    })
+    iconText.position.set(currentX, padding)
+    bottomBarContainer.addChild(iconText)
+    currentX += iconText.width + padding
+  }
+
+  // Building Name and Level
+  fontSize = 20
+  const nameText = new PIXI.Text({
+    text: `${building.type.name} (Level ${building.level})`,
+    style: {
+      fontFamily: UI_FONTS.PRIMARY,
+      fontSize: fontSize,
+      fill: 0xFFD700,
+      fontWeight: 'bold',
+      padding: fontSize * building.type.name.length / 2,
+    }
+  })
+  nameText.position.set(currentX, padding)
+  bottomBarContainer.addChild(nameText)
+
+  // Building Description
+  fontSize = 14
+  const descText = new PIXI.Text({
+    text: building.type.description,
+    style: {
+      fontFamily: UI_FONTS.PRIMARY,
+      fontSize: fontSize,
+      fill: 0xFFFFFF,
+      padding: fontSize * building.type.description.length / 2,
+    }
+  })
+  descText.position.set(currentX, padding + nameText.height + 5)
+  bottomBarContainer.addChild(descText)
+
+  currentX += Math.max(nameText.width, descText.width) * 1.4
+
+  // Life/MaxLife
+  fontSize = 14
+  const lifeLabel = `Life: ${building.life}/${building.maxLife}`
+  const lifeText = new PIXI.Text({
+    text: lifeLabel,
+    style: {
+      fontFamily: UI_FONTS.PRIMARY,
+      fontSize: fontSize,
+      fill: 0x00FF00, // Green for life
+      padding: fontSize * lifeLabel.length / 2,
+    }
+  })
+  lifeText.position.set(currentX, padding)
+  bottomBarContainer.addChild(lifeText)
+
+  // Production Info (if applicable)
+  let productionText = null
+  fontSize = 14
+  if (building.productionCooldown > 1000 && building.productionTimer !== undefined) {
+    const productionLabel = `Producing: ${(building.productionTimer / 1000).toFixed(1)}s / ${(building.productionCooldown / 1000).toFixed(1)}s`
+    productionText = new PIXI.Text({
+      text: productionLabel,
+      style: {
+        fontFamily: UI_FONTS.PRIMARY,
+        fontSize: fontSize,
+        fill: 0xADD8E6, // Light blue
+        padding: fontSize * productionLabel.length / 2,
+      }
+    })
+    productionText.position.set(currentX, padding + lifeText.height + 5)
+    bottomBarContainer.addChild(productionText)
+  }
+
+  let workersText = null
+  fontSize = 14
+  if (building.maxWorkers > 0 && building instanceof WorkerBuilding) {
+    const workersLabel = `Workers: ${building.assignedWorkers?.length ?? 0} / ${building.maxWorkers}`
+    workersText = new PIXI.Text({
+      text: workersLabel,
+      style: {
+        fontFamily: UI_FONTS.PRIMARY,
+        fontSize: fontSize,
+        fill: 0xADD8E6, // Light blue
+        padding: fontSize * workersLabel.length / 2,
+      }
+    })
+    workersText.position.set(currentX, padding + lifeText.height + 5 + (productionText ? productionText.height + 5 : 0))
+    bottomBarContainer.addChild(workersText)
+  }
+
+  currentX = width / 2
+
+  // Upgrade Information and Button
+  const upgradeCosts = building.getUpgradeCosts()
+  const upgradeBenefits = building.getUpgradeBenefits()
+  
+  if (upgradeCosts && upgradeBenefits) {
+    const canAffordUpgrade = gameState.humanPlayer.canAffordUpgrade(building)
+
+    // Upgrade Button
+    const upgradeButton = new PIXI.Container()
+    upgradeButton.position.set(currentX, padding)
+
+    
+
+    const upgradeButtonIcon = new PIXI.Sprite(await PIXI.Assets.load('assets/ui/upgrade_google23eb.png'))
+    upgradeButtonIcon.width = 48
+    upgradeButtonIcon.height = 48
+    upgradeButtonIcon.anchor.set(0.5)
+    upgradeButtonIcon.position.set(30, 20 + padding)
+    
+    const upgradeLabel = 'Upgrade'
+    const upgradeButtonText = new PIXI.Text({
+      text: upgradeLabel,
+      style: {
+        fontFamily: UI_FONTS.PRIMARY,
+        fontSize: 16,
+        fill: 0xFFFFFF,
+        align: 'center',
+        padding: fontSize * upgradeLabel.length / 2,
+      }
+    })
+    upgradeButtonText.anchor.set(0.5)
+    upgradeButtonText.position.set(85 + fontSize * upgradeLabel.length / 2, 20 + padding + fontSize * upgradeLabel.length / 2)
+    
+
+    const upgradeButtonBg = new PIXI.Graphics()
+      .roundRect(0, 0, 3 * padding + upgradeButtonIcon.width + upgradeButtonText.width, 60, 4)
+      .fill({ color: canAffordUpgrade ? 0x006400 : 0x333333, alpha: 0.7 }) // Dark green if affordable, grey otherwise
+      .stroke({ width: 1, color: 0xFFD700, alpha: 0.8 })
+    
+
+    upgradeButtonBg.eventMode = canAffordUpgrade ? 'static' : 'none'
+    upgradeButtonBg.cursor = canAffordUpgrade ? 'pointer' : 'not-allowed'
+    upgradeButtonBg.on('pointerup', (e) => {
+      e.stopPropagation()
+      building.handleBuildingUpgrade()
+    })
+
+    currentX += upgradeButtonBg.width + 2 * padding
+
+    // Upgrade Benefits Display
+    let benefitsText = []
+    if (upgradeBenefits.life) benefitsText.push(`Life +${upgradeBenefits.life}`)
+    if (upgradeBenefits.productionSpeed) benefitsText.push(`Prod. Speed -${upgradeBenefits.productionSpeed}%`)
+    if (upgradeBenefits.maxWorkers) benefitsText.push(`Max Workers +${upgradeBenefits.maxWorkers}`)
+
+    const benefitsLabel = `Next Level: ${benefitsText.join(', ')}`
+    const upgradeBenefitsDisplay = new PIXI.Text({
+      text: benefitsLabel,
+      style: {
+        fontFamily: UI_FONTS.PRIMARY,
+        fontSize: 12,
+        fill: 0xFFFFFF,
+        padding: fontSize * benefitsLabel.length / 2,
+      }
+    })
+    upgradeBenefitsDisplay.position.set(currentX, padding + 10)
+    
+
+
+    upgradeButton.addChild(upgradeButtonBg)
+    upgradeButton.addChild(upgradeButtonIcon)
+    upgradeButton.addChild(upgradeButtonText)
+    bottomBarContainer.addChild(upgradeButton)
+    bottomBarContainer.addChild(upgradeBenefitsDisplay)
+
+    // Upgrade Costs Display
+    const resourceIcons = {
+      wood: "🪵",
+      water: "💧",
+      gold: "🪙",
+      money: "💰",
+      stone: "🪨"
+    }
+    let costDisplayX = currentX
+    let costDisplayY = padding + 10 + upgradeBenefitsDisplay.height + 5
+
+    for (const [resource, amount] of Object.entries(upgradeCosts)) {
+      const costContainer = new PIXI.Container()
+      costContainer.position.set(costDisplayX, costDisplayY)
+
+      const icon = new PIXI.Text({
+        text: resourceIcons[resource] || "❓",
+        style: { fontSize: 16 }
+      })
+      costContainer.addChild(icon)
+
+      const amountText = new PIXI.Text({
+        text: `${amount.toString()}`,
+        style: {
+          fontFamily: UI_FONTS.PRIMARY,
+          fontSize: 12,
+          fill: 0xFFFFFF
+        }
+      })
+      amountText.position.set(20, 4)
+      costContainer.addChild(amountText)
+
+      bottomBarContainer.addChild(costContainer)
+      costDisplayX += 55
+    }
+  }
+}
+
+/**
+ * Hide building information and show building slots.
+ */
+function hideBuildingInfo() {
+  if (!bottomBarContainer) return
+
+  // Clear existing content
+  bottomBarContainer.removeChildren()
+
+  // Re-add background
+  const { width } = getCanvasDimensions()
+  const barHeight = CONSTANTS.UI.BOTTOM_BAR_HEIGHT
+  const background = new PIXI.Graphics()
+    .rect(0, 0, width, barHeight)
+    .fill({ color: 0x114611, alpha: 0.85 })
+    .stroke({ width: 2, color: 0xFFD700, alpha: 0.5 })
+  bottomBarContainer.addChild(background)
+
+  // Recreate building slots
   createBuildingSlots()
 }
 
@@ -653,6 +937,8 @@ async function createBuildingSlots() {
     bottomBarContainer.addChild(slot)
     buildingSlots.push(slot)
   }
+
+  createBuildingTooltip()
 }
 
 function handleBuildingSelect(index) {
