@@ -369,20 +369,6 @@ class Building {
     
     return building
   }
-
-  static checkCanAffordBuilding(building) {
-    if (!gameState.humanPlayer) return false
-    
-    const resources = gameState.humanPlayer.getResources()
-    
-    for (const [resource, cost] of Object.entries(building.costs)) {
-      if (!resources[resource] || resources[resource] < cost) {
-        return false
-      }
-    }
-    
-    return true
-  }
 }
 
 /**

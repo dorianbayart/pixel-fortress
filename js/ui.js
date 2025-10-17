@@ -208,7 +208,7 @@ function handleMouseInteraction(map, player) {
     // Handle mouse click to place building
     if (mouse?.clicked) {
       // Check if player can afford the building
-      if (isValidPlacement && Building.checkCanAffordBuilding(selectedBuildingType)) {
+      if (isValidPlacement && player.canAffordBuilding(selectedBuildingType)) {
         // Create the building
         player.addBuilding(mouse.x, mouse.y, selectedBuildingType)
         
@@ -985,7 +985,7 @@ function handleBuildingSelect(index) {
     .join(', ')
   
   // Display building info
-  const canAfford = Building.checkCanAffordBuilding(selectedBuildingType)
+  const canAfford = gameState.humanPlayer.canAffordBuilding(selectedBuildingType)
   if(!canAfford) {
     // selectedBuildingType = null
     handleBuildingSelect(index)
