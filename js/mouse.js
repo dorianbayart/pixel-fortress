@@ -171,7 +171,7 @@ class Mouse {
             const tile = gameState.map[this.x][this.y]
             const clickedBuilding = tile?.building
 
-            if (clickedBuilding) {
+            if (clickedBuilding?.owner.type === 'human') {
                 // If another building was selected, unselect it
                 if (gameState.selectedBuilding && gameState.selectedBuilding !== clickedBuilding) {
                     gameState.selectedBuilding.selected = false
