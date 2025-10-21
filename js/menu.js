@@ -139,7 +139,10 @@ async function setupOptionsSection() {
   const closeButton = optionsSection.querySelector('.close')
   const saveOptionsButton = document.getElementById('saveOptions')
   const closeOptionsButton = document.getElementById('closeOptions')
+  const fogToggle = document.getElementById('fogToggle')
   const debugToggle = document.getElementById('debugToggle')
+  const sfxVolumeSlider = document.getElementById('sfxVolumeSlider')
+  const musicVolumeSlider = document.getElementById('musicVolumeSlider')
   
   // Get difficulty and map size buttons
   const difficultyButtons = optionsSection.querySelectorAll('.option-btn[data-difficulty]')
@@ -165,7 +168,6 @@ async function setupOptionsSection() {
     debugToggle.checked = gameState.debug
 
     // Set fog of war toggle
-    const fogToggle = document.getElementById('fogToggle')
     fogToggle.checked = gameState.settings?.fogOfWar !== false
     
     // Update difficulty selection (default to "medium" if not set)
@@ -175,6 +177,12 @@ async function setupOptionsSection() {
     // Update map size selection (default to "medium" if not set)
     const currentMapSize = gameState.settings?.mapSize || 'medium'
     updateSelection(mapSizeButtons, currentMapSize)
+
+    // Update SFX volume
+    sfxVolumeSlider.value = gameState.settings?.sfxVolume || 0.75
+
+    // Update Music volume
+    musicVolumeSlider.value = gameState.settings?.musicVolume || 0.5
     
     optionsSection.style.display = 'block'
     // Slight delay to ensure the display change registers before adding the show class
@@ -205,11 +213,19 @@ async function setupOptionsSection() {
       // Get fog of war toggle state
       const fogOfWarEnabled = document.getElementById('fogToggle').checked
 
+      // Get SFX volume
+      const sfxVolume = document.getElementById('sfxVolumeSlider').value
+
+      // Get Music volume
+      const musicVolume = document.getElementById('musicVolumeSlider').value
+
       // Update game settings
       gameState.updateSettings({
           difficulty: selectedDifficulty,
           mapSize: selectedMapSize,
-          fogOfWar: fogOfWarEnabled
+          fogOfWar: fogOfWarEnabled,
+          sfxVolume: sfxVolume,
+          musicVolume: musicVolume
       })
       
       // Update debug mode
@@ -237,6 +253,11 @@ async function setupOptionsSection() {
   closeButton.addEventListener('click', closeOptionsModal)
   closeOptionsButton.addEventListener('click', closeOptionsModal)
   saveOptionsButton.addEventListener('click', saveOptions)
+
+  fogToggle.addEventListener('change', playClickSound)
+  debugToggle.addEventListener('change', playClickSound)
+  sfxVolumeSlider.addEventListener('change', playClickSound)
+  musicVolumeSlider.addEventListener('change', playClickSound)
   
   // Close the modal if the user clicks outside of it
   window.addEventListener('click', (event) => {

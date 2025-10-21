@@ -21,13 +21,32 @@ const buildingSound = new Audio('assets/sounds/Chest Close 2.ogg')
 
 /* Ambient */
 const forestDayAmbient = new Audio('assets/sounds/Forest Day.ogg')
-forestDayAmbient.volume = 0.75
 let ambientTimer = null
 
 /* Music */
 const sonatina_letsadventure_3ToArms = new Audio('assets/music/sonatina_letsadventure_3ToArms.ogg')
-sonatina_letsadventure_3ToArms.volume = 0.5
 let menuMusicTimer = null
+
+// Initialize volumes from gameState
+clickSound.volume = gameState.sfxVolume
+closeSound.volume = gameState.sfxVolume
+confirmSound.volume = gameState.sfxVolume
+buildingSound.volume = gameState.sfxVolume
+forestDayAmbient.volume = gameState.sfxVolume
+sonatina_letsadventure_3ToArms.volume = gameState.musicVolume
+
+// Subscribe to volume changes
+gameState.events.on('sfx-volume-changed', (volume) => {
+  clickSound.volume = volume
+  closeSound.volume = volume
+  confirmSound.volume = volume
+  buildingSound.volume = volume
+  forestDayAmbient.volume = volume
+})
+
+gameState.events.on('music-volume-changed', (volume) => {
+  sonatina_letsadventure_3ToArms.volume = volume
+})
 
 /* Sounds */
 const playHoverSound = async () => {

@@ -54,8 +54,8 @@ Details: Can affect more workers, can produce quicklyer units, etc.
 
 ## Sound and Music (Low Priority)
 
-- [ ] **Sound Effects:** Implement sound effects for tower attacks, enemy spawns, etc. *(Not Planned)*
-- [ ] **Background Music:** Add background music to enhance the game's atmosphere. *(Not Planned)*
+- [ ] **Sound Effects:** Implement sound effects for tower attacks, enemy spawns, etc. *(In Progress)*
+- [ ] **Background Music:** Add background music to enhance the game's atmosphere. *(In Progress)*
 
 
 ## Multiplayer (Very Low Priority)

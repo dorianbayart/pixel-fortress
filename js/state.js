@@ -79,7 +79,9 @@ class GameState {
       difficulty: 'medium',
       mapSeed: null,
       mapSize: 'medium',
-      fogOfWar: true
+      fogOfWar: true,
+      sfxVolume: 0.8,
+      musicVolume: 0.5
     }
 
     // UI references
@@ -257,6 +259,14 @@ class GameState {
       oldSettings,
       newSettings: this._settings
     })
+
+    if(oldSettings.sfxVolume !== newSettings.sfxVolume) {
+      this.events.emit('sfx-volume-changed', this._settings.sfxVolume)
+    }
+
+    if(oldSettings.musicVolume !== newSettings.musicVolume) {
+      this.events.emit('music-volume-changed', this._settings.musicVolume)
+    }
   }
 
   get mapSeed() {
@@ -266,6 +276,46 @@ class GameState {
   set mapSeed(seed) {
     this._settings.mapSeed = seed
     this.events.emit('map-seed-changed', seed)
+  }
+
+  /**
+   * Get the SFX volume
+   * @returns {number} The SFX volume
+   */
+  get sfxVolume() {
+    return this._settings.sfxVolume
+  }
+
+  /**
+   * Set the SFX volume and emit event
+   * @param {number} value - The SFX volume
+   */
+  set sfxVolume(value) {
+    const oldValue = this._settings.sfxVolume
+    this._settings.sfxVolume = value
+    if (oldValue !== value) {
+      this.events.emit('sfx-volume-changed', value)
+    }
+  }
+
+  /**
+   * Get the music volume
+   * @returns {number} The music volume
+   */
+  get musicVolume() {
+    return this._settings.musicVolume
+  }
+
+  /**
+   * Set the music volume and emit event
+   * @param {number} value - The music volume
+   */
+  set musicVolume(value) {
+    const oldValue = this._settings.musicVolume
+    this._settings.musicVolume = value
+    if (oldValue !== value) {
+      this.events.emit('music-volume-changed', value)
+    }
   }
 
   /**
