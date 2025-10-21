@@ -58,6 +58,7 @@ class Player {
       this.goldTiles = []
       this.rockTiles = []
       setTimeout(async () => {
+        if(gameState.gameStatus === 'menu') return
         const { width: MAP_WIDTH, height: MAP_HEIGHT } = getMapDimensions()
         for (let x = 0; x < MAP_WIDTH; x++) {
           for (let y = 0; y < MAP_HEIGHT; y++) {
