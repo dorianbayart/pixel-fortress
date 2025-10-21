@@ -2,6 +2,7 @@ export { handleWindowResize, initializeGame }
 
 'use strict'
 
+import { musicManager } from 'audio'
 import { getTileSize, initMapDimensions } from 'dimensions'
 import { initFogOfWar } from 'fogOfWar'
 import { gameLoop, initGame } from 'game'
@@ -24,6 +25,9 @@ async function initializeGame() {
 
   // Initialize home menu
   initHomeMenu()
+
+  // Initialize music manager
+  musicManager()
   
   // Initialize mouse handling
   const mouseModule = await import('mouse')

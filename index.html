@@ -86,11 +86,20 @@
     body {
       /* Apply safe area padding */
       padding: var(--sat) var(--sar) var(--sab) var(--sal);
+      /*background-image: url('assets/punyworld-overworld-tileset.png');
+      background-size: 200px 200px;
+      animation: backgroundPan 60s linear infinite;*/
+    }
+
+    @keyframes backgroundPan {
+      0% { background-position: 0% 0%; }
+      100% { background-position: 200% 200%; }
     }
 
     body.playing-mode {
       background: #1a1a1a; /* Dark background, but not true black */
       background-size: 100% 100%;
+      animation: none; /* Disable background animation when playing */
     }
 
     canvas {
@@ -187,21 +196,23 @@
       font-family: var(--font-base);
       font-size: 1.5rem;
       text-align: center;
-      transition: all 0.3s ease;
+      transition: all 0.2s ease-in-out;
       width: min(80%, 240px);
       text-shadow: 0 0 5px forestgreen;
       box-shadow: 0 0 10px rgba(34, 139, 34, 0.5);
     }
 
     .menu-button:hover {
-      background: rgba(34, 139, 34, 0.6);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(34, 139, 34, 0.7);
+      background: rgba(34, 139, 34, 0.7);
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 6px 15px rgba(34, 139, 34, 0.9), 0 0 20px var(--font-color);
+      filter: brightness(1.2);
     }
 
     .menu-button:active {
-      transform: translateY(1px);
-      box-shadow: 0 2px 6px rgba(34, 139, 34, 0.7);
+      transform: translateY(0) scale(0.98);
+      box-shadow: 0 2px 8px rgba(34, 139, 34, 0.7);
+      filter: brightness(0.9);
     }
 
     #progressBar {
@@ -266,6 +277,7 @@
   <script type="importmap">
     {
       "imports": {
+        "audio": "./js/audio.js",
         "building": "./js/building.js",
         "constants": "./js/constants.js",
         "dimensions": "./js/dimensions.js",

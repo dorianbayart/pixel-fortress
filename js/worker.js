@@ -37,10 +37,9 @@ const isWall = (x, y, startX, startY, endX, endY) => {
   if (x === startX && y === startY || x === endX && y === endY) return false
 
   const tileWeight = currentGameStateMap[x][y].weight || 0
-  const buildingWeight = currentMapDimensions.maxWeight / 2 // Defined in Building class
 
   // If the tile has building weight, it's a wall (unless it's the destination, handled above)
-  if (tileWeight === buildingWeight) return true
+  if (tileWeight === currentMapDimensions.maxWeight) return true
 
   // Otherwise, consider maximum weight as walls
   return tileWeight >= currentMapDimensions.maxWeight

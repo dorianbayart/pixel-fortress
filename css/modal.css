@@ -13,13 +13,21 @@
   padding: 15px;
   background-color: rgba(34, 139, 34, 0.3);
   text-align: center;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
 }
 
 .scenarii-item:hover {
-  background-color: rgba(34, 139, 34, 0.5);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  background-color: rgba(34, 139, 34, 0.7);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 6px 15px rgba(34, 139, 34, 0.9), 0 0 20px var(--font-color);
+  filter: brightness(1.2);
+}
+
+.scenarii-item:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 2px 8px rgba(34, 139, 34, 0.7);
+  filter: brightness(0.9);
 }
 
 .scenarii-item h3 {
@@ -37,11 +45,20 @@
   cursor: pointer;
   font-family: var(--font-base);
   margin-top: 10px;
+  transition: all 0.2s ease-in-out;
 }
 
 .play-button:hover {
-  background-color: #1a6b1a;
-  box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+  background-color: rgba(34, 139, 34, 0.7);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 6px 15px rgba(34, 139, 34, 0.9), 0 0 20px var(--font-color);
+  filter: brightness(1.2);
+}
+
+.play-button:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 2px 8px rgba(34, 139, 34, 0.7);
+  filter: brightness(0.9);
 }
 
 
@@ -61,13 +78,14 @@
   overflow: auto;
   background-color: rgba(0, 0, 0, 0.7);
   opacity: 0;
-  transition: opacity 0.4s ease-in-out;
+  transition: opacity 0.4s ease-in-out, visibility 0.4s ease-in-out;
+  visibility: hidden; /* Hidden by default */
   font-size: max(1.75dvh, 13px);
 }
 
 .modal.show {
-  display: block;
   opacity: 1;
+  visibility: visible;
 }
 
 .modal-content {
@@ -85,6 +103,12 @@
   image-rendering: pixelated;
   display: flex;
   flex-flow: column;
+  transform: translateY(-50px); /* Start slightly above */
+  transition: transform 0.4s ease-in-out;
+}
+
+.modal.show .modal-content {
+  transform: translateY(0); /* Slide into place */
 }
 
 .modal-header {
@@ -215,12 +239,20 @@
   font-size: 1rem;
   border-radius: 4px;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.2s ease-in-out;
 }
 
 #closeAbout:hover {
-  background-color: #1a6b1a;
-  box-shadow: 0 0 5px var(--font-color);
+  background-color: rgba(34, 139, 34, 0.7);
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 4px 10px rgba(34, 139, 34, 0.8), 0 0 15px var(--font-color);
+  filter: brightness(1.15);
+}
+
+#closeAbout:active {
+  transform: translateY(0) scale(0.99);
+  box-shadow: 0 2px 6px rgba(34, 139, 34, 0.6);
+  filter: brightness(0.95);
 }
 
 /* License link styling */
@@ -249,16 +281,27 @@
   border-radius: 4px;
   cursor: pointer;
   font-family: var(--font-base);
-  transition: all 0.2s ease;
+  transition: all 0.2s ease-in-out;
 }
 
 .option-btn:hover {
-  background-color: rgba(34, 139, 34, 0.6);
+  background-color: rgba(34, 139, 34, 0.7);
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 4px 10px rgba(34, 139, 34, 0.8), 0 0 15px var(--font-color);
+  filter: brightness(1.15);
+}
+
+.option-btn:active {
+  transform: translateY(0) scale(0.99);
+  box-shadow: 0 2px 6px rgba(34, 139, 34, 0.6);
+  filter: brightness(0.95);
 }
 
 .option-btn.selected {
   background-color: forestgreen;
   box-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+  transform: scale(1.05);
+  filter: brightness(1.3);
 }
 
 .toggle-label {
@@ -280,10 +323,33 @@
   border-radius: 4px;
   cursor: pointer;
   font-family: var(--font-base);
+  transition: all 0.2s ease-in-out;
+}
+
+#saveOptions:hover, #closeOptions:hover, #closeScenarii:hover {
+  background-color: rgba(34, 139, 34, 0.7);
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 4px 10px rgba(34, 139, 34, 0.8), 0 0 15px var(--font-color);
+  filter: brightness(1.15);
+}
+
+#saveOptions:active, #closeOptions:active, #closeScenarii:active {
+  transform: translateY(0) scale(0.99);
+  box-shadow: 0 2px 6px rgba(34, 139, 34, 0.6);
+  filter: brightness(0.95);
 }
 
 #closeOptions, #closeScenarii {
   background-color: #333;
+}
+
+#closeOptions:hover, #closeScenarii:hover {
+  background-color: rgba(51, 51, 51, 0.7);
+  box-shadow: 0 4px 10px rgba(51, 51, 51, 0.8), 0 0 15px var(--font-color);
+}
+
+#closeOptions:active, #closeScenarii:active {
+  background-color: rgba(51, 51, 51, 0.9);
 }
 
 /** In-game menu */

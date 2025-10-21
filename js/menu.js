@@ -3,6 +3,7 @@ export { initHomeMenu }
 'use strict'
 
 import gameState from 'state'
+import { playClickSound, playCloseSound, playConfirmSound } from 'audio'
 import { setupEventListeners } from 'ui'
 
 
@@ -57,54 +58,57 @@ async function setupScenariiSection() {
   
   // Function to open the modal
   const openScenariiModal = () => {
-      // Clear existing items
-      scenariiList.innerHTML = ''
-      
-      // Add predefined map items
-      if (predefinedMaps.length > 0) {
-          predefinedMaps.forEach(map => {
-              const item = document.createElement('div')
-              item.className = 'scenarii-item'
-              item.innerHTML = `
-                  <h3>${map.name}</h3>
-                  <p>Seed: ${map.seed}</p>
-                  <button class="play-button" data-seed="${map.seed}">Play</button>
-              `
-              scenariiList.appendChild(item)
-          })
-          
-          // Add event listeners to play buttons
-          const playButtons = scenariiList.querySelectorAll('.play-button')
-          playButtons.forEach(button => {
-              button.addEventListener('click', () => {
-                  // Set map seed
-                  const seed = parseInt(button.dataset.seed, 10)
-                  gameState.mapSeed = seed
-                  // Start game
-                  gameState.gameStatus = 'initialize'
-                  // Close modal
-                  closeScenariiModal()
-              })
-          })
-      } else {
-          // Show message if no maps found
-          scenariiList.innerHTML = '<p>No predefined scenarios available</p>'
-      }
-      
-      scenariiSection.style.display = 'block'
-      // Slight delay to ensure the display change registers before adding the show class
-      setTimeout(() => {
-          scenariiSection.classList.add('show')
-      }, 20)
+    playClickSound()
+    // Clear existing items
+    scenariiList.innerHTML = ''
+    
+    // Add predefined map items
+    if (predefinedMaps.length > 0) {
+        predefinedMaps.forEach(map => {
+            const item = document.createElement('div')
+            item.className = 'scenarii-item'
+            item.innerHTML = `
+                <h3>${map.name}</h3>
+                <p>Seed: ${map.seed}</p>
+                <button class="play-button" data-seed="${map.seed}">Play</button>
+            `
+            scenariiList.appendChild(item)
+        })
+        
+        // Add event listeners to play buttons
+        const playButtons = scenariiList.querySelectorAll('.play-button')
+        playButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                playConfirmSound()
+                // Set map seed
+                const seed = parseInt(button.dataset.seed, 10)
+                gameState.mapSeed = seed
+                // Start game
+                gameState.gameStatus = 'initialize'
+                // Close modal
+                closeScenariiModal()
+            })
+        })
+    } else {
+        // Show message if no maps found
+        scenariiList.innerHTML = '<p>No predefined scenarios available</p>'
+    }
+    
+    scenariiSection.style.display = 'block'
+    // Slight delay to ensure the display change registers before adding the show class
+    setTimeout(() => {
+        scenariiSection.classList.add('show')
+    }, 20)
   }
   
   // Function to close the modal
   const closeScenariiModal = () => {
-      scenariiSection.classList.remove('show')
-      // Wait for transition to complete before hiding
-      setTimeout(() => {
-          scenariiSection.style.display = 'none'
-      }, 600) // Same as transition time
+    playCloseSound()
+    scenariiSection.classList.remove('show')
+    // Wait for transition to complete before hiding
+    setTimeout(() => {
+        scenariiSection.style.display = 'none'
+    }, 600) // Same as transition time
   }
   
   // Add event listeners
@@ -143,46 +147,51 @@ async function setupOptionsSection() {
   
   // Function to update selected button in a group
   const updateSelection = (buttons, value) => {
-      buttons.forEach(button => {
-          if (button.dataset.difficulty === value || button.dataset.mapSize === value) {
-              button.classList.add('selected')
-          } else {
-              button.classList.remove('selected')
-          }
-      })
+    playClickSound()
+    buttons.forEach(button => {
+        if (button.dataset.difficulty === value || button.dataset.mapSize === value) {
+            button.classList.add('selected')
+        } else {
+            button.classList.remove('selected')
+        }
+    })
   }
   
   // Function to open the modal
   const openOptionsModal = () => {
-      // Set current values based on game settings
-      debugToggle.checked = gameState.debug
+    playClickSound()
 
-      // Set fog of war toggle
-      const fogToggle = document.getElementById('fogToggle')
-      fogToggle.checked = gameState.settings?.fogOfWar !== false
-      
-      // Update difficulty selection (default to "medium" if not set)
-      const currentDifficulty = gameState.settings?.difficulty || 'medium'
-      updateSelection(difficultyButtons, currentDifficulty)
-      
-      // Update map size selection (default to "medium" if not set)
-      const currentMapSize = gameState.settings?.mapSize || 'medium'
-      updateSelection(mapSizeButtons, currentMapSize)
-      
-      optionsSection.style.display = 'block'
-      // Slight delay to ensure the display change registers before adding the show class
-      setTimeout(() => {
-          optionsSection.classList.add('show')
-      }, 20)
+    // Set current values based on game settings
+    debugToggle.checked = gameState.debug
+
+    // Set fog of war toggle
+    const fogToggle = document.getElementById('fogToggle')
+    fogToggle.checked = gameState.settings?.fogOfWar !== false
+    
+    // Update difficulty selection (default to "medium" if not set)
+    const currentDifficulty = gameState.settings?.difficulty || 'medium'
+    updateSelection(difficultyButtons, currentDifficulty)
+    
+    // Update map size selection (default to "medium" if not set)
+    const currentMapSize = gameState.settings?.mapSize || 'medium'
+    updateSelection(mapSizeButtons, currentMapSize)
+    
+    optionsSection.style.display = 'block'
+    // Slight delay to ensure the display change registers before adding the show class
+    setTimeout(() => {
+        optionsSection.classList.add('show')
+    }, 20)
   }
   
   // Function to close the modal
   const closeOptionsModal = () => {
-      optionsSection.classList.remove('show')
-      // Wait for transition to complete before hiding
-      setTimeout(() => {
-          optionsSection.style.display = 'none'
-      }, 600) // Same as transition time
+    playCloseSound()
+
+    optionsSection.classList.remove('show')
+    // Wait for transition to complete before hiding
+    setTimeout(() => {
+        optionsSection.style.display = 'none'
+    }, 600) // Same as transition time
   }
   
   // Function to save options
@@ -258,6 +267,8 @@ async function setupAboutSection() {
   
   // Function to open the modal
   const openAboutModal = () => {
+    playClickSound()
+
     // Update version info in the modal
     versionInfoElement.textContent = `Version ${gameVersion}`
 
@@ -270,6 +281,8 @@ async function setupAboutSection() {
   
   // Function to close the modal
   const closeAboutModal = () => {
+    playCloseSound()
+
     aboutSection.classList.remove('show')
     // Wait for transition to complete before hiding
     setTimeout(() => {

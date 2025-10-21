@@ -3,7 +3,8 @@ export {
 }
   
 'use strict'
-  
+
+import { playClickSound, playCloseSound, playConfirmSound } from 'audio'
 import { Building, WorkerBuilding } from 'building'
 import CONSTANTS from 'constants'
 import { getCanvasDimensions, getMapDimensions, getTileSize } from 'dimensions'
@@ -54,6 +55,8 @@ async function initUI(mouseInstance) {
     
     gameState.events.on('game-status-changed', async (status) => {
       if (status === 'playing') {
+        playConfirmSound()
+
         document.getElementById('homeMenu').style.opacity = 0
         setTimeout(() => {
           document.getElementById('homeMenu').style.display = 'none'
@@ -65,6 +68,8 @@ async function initUI(mouseInstance) {
         // Create the bottom building bar
         createBottomBar()
       } else if (status === 'paused') {
+        playCloseSound()
+
         // Remove preview sprite if it exists
         if (buildingPreviewSprite && buildingPreviewSprite.parent) {
           buildingPreviewSprite.parent.removeChild(buildingPreviewSprite)
@@ -73,6 +78,8 @@ async function initUI(mouseInstance) {
         selectedBuildingType = null
         selectedBuildingIndex = -1
       } else if (status === 'menu') {
+        playClickSound()
+
         // Remove preview sprite if it exists
         if (buildingPreviewSprite?.parent) {
           buildingPreviewSprite.parent.removeChild(buildingPreviewSprite)
@@ -139,6 +146,8 @@ function setupEventListeners() {
   document.getElementById('generated').addEventListener('click', () => {
     gameState.mapSeed = null
     gameState.gameStatus = 'initialize'
+
+    playConfirmSound()
   })
 
   // Keyboard shortcuts
@@ -1295,6 +1304,8 @@ function openGameMenu() {
 function closeGameMenu(destination) {
   const gameMenuSection = document.getElementById('gameMenuSection')
   gameMenuSection.classList.remove('show')
+
+  playCloseSound()
   
   // Wait for transition to complete before hiding and resuming
   setTimeout(() => {
@@ -1306,7 +1317,7 @@ function closeGameMenu(destination) {
     } else if (destination === 'game') {
       gameState.gameStatus = 'playing'
     }
-  }, 600) // Same as transition time
+  }, 250) // Same as transition time
 }
 
 /**
@@ -1331,6 +1342,19 @@ function resetCurrentMap() {
  * Quit to the home menu
  */
 function quitToHome() {
+  // Remove toolbars
+  if (topBarContainer) {
+    topBarContainer.removeChildren()
+    topBarContainer.destroy()
+  }
+  if (tooltipContainer) {
+    bottomBarContainer.removeChild(tooltipContainer)
+  }
+  if (bottomBarContainer) {
+    bottomBarContainer.removeChildren()
+    bottomBarContainer.destroy()
+  }
+
   // Close the menu first
   closeGameMenu('home')
   

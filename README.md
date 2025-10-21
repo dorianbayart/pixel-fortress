@@ -94,6 +94,8 @@ This project includes a `GEMINI.md` file with detailed context for AI code assis
 ## 🙌 Credits
 
 * Very useful SVG icons: [Pixel Icon Library](https://github.com/hackernoon/pixel-icon-library)
+* Main game assets: [Puny World from Merchant-Shade](https://merchant-shade.itch.io/16x16-puny-world)
+* Original game assets: [Mini World from Merchant-Shade](https://merchant-shade.itch.io/16x16-mini-world-sprites)
 
 
 

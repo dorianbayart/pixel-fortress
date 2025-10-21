@@ -2,7 +2,9 @@ export { Building, CombatBuilding, GoldMine, Quarry, Tent, Well, WorkerBuilding,
 
 'use strict'
 
+import { playBuildingSound } from 'audio'
 import { getMapDimensions, getTileSize } from 'dimensions'
+import { isPositionVisible } from 'fogOfWar'
 import { TERRAIN_TYPES } from 'game'
 import { ParticleEffect, createParticleEmitter } from 'particles'
 import { searchPath, updateMapInWorker } from 'pathfinding'
@@ -198,7 +200,6 @@ class Building {
     // Update map tile to make it hardly walkable
     gameState.map[x][y].weight = Building.WEIGHT
     gameState.map[x][y].type = 'BUILDING'
-    updateMapInWorker()
   }
 
   /**
@@ -210,7 +211,7 @@ class Building {
     const nextLevel = this.level + 1
     if (this.getUpgradeBenefits()) {
       return Object.fromEntries(
-        Object.entries(this.type.costs).map(([key, value]) => [key, value * nextLevel])
+        Object.entries(this.type.costs).map(([key, value]) => [key, value * nextLevel | 0])
       )
     }
     return null
@@ -370,6 +371,10 @@ class Building {
       y: y * getTileSize() + getTileSize()/2,
       duration: 1500
     })
+
+    if(isPositionVisible(x, y)) {
+      playBuildingSound()
+    }
     
     return building
   }
