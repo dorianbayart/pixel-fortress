@@ -81,6 +81,8 @@ const musicManager = async () => {
 }
 
 const playAmbientSounds = async (status) => {
+  clearTimeout(ambientTimer)
+
   if (status === 'playing') {
     if (forestDayAmbient.paused || forestDayAmbient.ended) {
       forestDayAmbient.currentTime = 0
@@ -90,11 +92,11 @@ const playAmbientSounds = async (status) => {
   } else {
     forestDayAmbient.pause()
   }
-
-  clearTimeout(ambientTimer)
 }
 
 const playMenuMusic = async (status) => {
+  clearTimeout(menuMusicTimer)
+
   if (status === 'menu') {
     if (sonatina_letsadventure_3ToArms.paused || sonatina_letsadventure_3ToArms.ended) {
       sonatina_letsadventure_3ToArms.currentTime = 0
@@ -104,7 +106,5 @@ const playMenuMusic = async (status) => {
   } else {
     sonatina_letsadventure_3ToArms.pause()
   }
-
-  clearTimeout(menuMusicTimer)
 }
 
