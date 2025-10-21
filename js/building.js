@@ -1,4 +1,4 @@
-export { Building, CombatBuilding, GoldMine, Quarry, Tent, Well, WorkerBuilding, Barracks, Armory, Citadel }
+export { Building, CombatBuilding, GoldMine, Quarry, Tent, Well, WorkerBuilding, Barracks, Armory, Citadel, Market }
 
 'use strict'
 
@@ -139,8 +139,8 @@ class Building {
           },
           description: "Sell resources against money",
           sprite_coords: {
-            cyan: { x: 5, y: 34 },
-            red: { x: 15, y: 34 },
+            cyan: { x: 5, y: 35 },
+            red: { x: 15, y: 35 },
           },
           sprite: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAMAAADXqc3KAAAAFVBMVEXH2+uuw9LM3u2Wrr1vnKxWZXEQV61ZyqlCAAAAAnRSTlMB9aJf+uoAAACFSURBVHjarZJBCsNADANtjaz/P7k0TUjabKGHzsXgERiB6xekWtF6soqT0LrHSTbzptQNgYDQJc4IkgAa1EecmQacgGaOS8I2EBNo297FC5wEvairaX/sSzfOEiNpZrYhdR2mxz0bYi4VpUG76LsAWArb/oeQ2raRTtELnnuWVJWWfH+ZBzq/A+PL/IUwAAAAAElFTkSuQmCC'
         },
@@ -345,6 +345,9 @@ class Building {
         case Building.TYPES.GOLD_MINE:
           building = new GoldMine(x, y, color, owner)
           break
+        case Building.TYPES.MARKET:
+          building = new Market(x, y, color, owner)
+          break
         case Building.TYPES.BARRACKS:
           building = new Barracks(x, y, color, owner)
           break
@@ -408,11 +411,8 @@ class CombatBuilding extends Building {
     super(x, y, color, owner)
     this.type = 'COMBAT_BUILDING'
     this.productionCooldown = 15000 // 15 seconds by default for combat units
-    
-    if(owner === gameState.humanPlayer) {
-      this.showProgressIndicator = true
-      createProgressIndicator(this, 10, 0xFF0000) // Red color for combat production
-    }
+    this.indicatorColor = 0xFF0000 // Red color for combat production
+    this.showProgressIndicator = owner === gameState.humanPlayer
   }
 
   /**
@@ -456,11 +456,8 @@ class Tent extends WorkerBuilding {
     this.life = 200
     this.maxLife = 200
     this.productionCooldown = 10000 // 10 seconds
-    
-    if(owner === gameState.humanPlayer) {
-      this.showProgressIndicator = true
-      createProgressIndicator(this, 10, 0x00FF00) // Green color
-    }
+    this.indicatorColor = 0x00FF00 // Green color
+    this.showProgressIndicator = owner === gameState.humanPlayer
   }
 
   /**
@@ -1228,6 +1225,59 @@ class Citadel extends CombatBuilding {
   produceWarrior() {
     if (this.owner) {
       this.owner.addEliteWarrior(this.x, this.y + 1)
+    }
+  }
+}
+
+/**
+ * Market building for selling resources
+ */
+class Market extends Building {
+  constructor(x, y, color, owner) {
+    super(x, y, color, owner)
+    this.type = Building.TYPES.MARKET
+    this.life = 100
+    this.maxLife = 100
+    this.productionCooldown = 10000 // Sell every 10 seconds
+    this.indicatorColor = 0xFFA500 // Orange color for market
+    this.sellingResource = 'wood' // Default resource to sell
+    this.sellingPrice = 1 // Default price per unit
+    this.showProgressIndicator = owner === gameState.humanPlayer
+  }
+
+  /**
+   * Update building state and sell resources
+   * @param {number} delay - Time elapsed since last update (ms)
+   */
+  update(delay) {
+    super.update(delay)
+
+    // Update production timer
+    this.productionTimer += delay
+
+    // Update progress for indicator
+    this.progress = this.productionTimer / this.productionCooldown
+
+    updateProgressIndicator(this, this.progress)
+    
+    // Check if it's time to sell resources
+    if (this.productionTimer >= this.productionCooldown) {
+      this.sellResources()
+      this.productionTimer -= this.productionCooldown
+      this.progress = 0 // Reset progress after selling
+    }
+  }
+
+  /**
+   * Sell resources to gain money
+   */
+  sellResources() {
+    if (this.owner) {
+      const resourceAmount = 1 // Sell 1 unit of resource at a time
+      if (this.owner.getResources()[this.sellingResource] >= resourceAmount) {
+        this.owner.addResource(this.sellingResource, -resourceAmount | 0)
+        this.owner.addResource('money', this.sellingPrice * resourceAmount | 0)
+      }
     }
   }
 }

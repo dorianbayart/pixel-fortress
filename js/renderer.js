@@ -322,7 +322,7 @@ function drawMain(player, AIs) {
       let indicator = indicatorMap.get(entity.uid)
       if (!indicator) {
         // Create indicator if it doesn't exist
-        indicator = createProgressIndicator(entity, isUnit ? 10 : 14, entity.indicatorColor)
+        indicator = createProgressIndicator(entity, 10, entity.indicatorColor)
       }
       indicator.visible = true
       updateProgressIndicator(entity, entity.progress || 0)
