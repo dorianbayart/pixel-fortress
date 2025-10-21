@@ -372,7 +372,7 @@ class Building {
       duration: 1500
     })
 
-    if(isPositionVisible(x, y)) {
+    if(owner === gameState.humanPlayer || isPositionVisible(x, y)) {
       playBuildingSound()
     }
     
