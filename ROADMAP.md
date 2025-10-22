@@ -20,14 +20,14 @@ Details: Combat units automatically engage and attack enemy units and buildings.
 - [x] **Win Condition:** Handling win scenarios (enemy base health reaches zero).
 - [x] **AI Opponent:** Implement AI opponent with automated unit management. *(In Progress)*  
 Details: The AI builds structures and manages units similarly to the player.
-- [ ] **Market:** Market sells ressources against Money. *(Not Planned)*
+- [x] **Market:** Market sells ressources against Money.
 - [ ] **Tower Placement:** Allow players to strategically place towers. *(Not Planned)*
 - [ ] **Tower Attacks:** Towers automatically attack enemies within their range. *(Not Planned)*
 
 
 ## User Interface (Medium Priority)
 
-- [ ] **Tower/Building Selection UI:** Display available towers/buildings and allow players to select them. *(In Progress)*
+- [x] **Tower/Building Selection UI:** Display available towers/buildings and allow players to select them.
 - [ ] **Game Menu:** Implement a main menu, pause menu, and options menu. *(In Progress)*  
 Details: The menu presents what the User can do: Play on random map, Play a predefined map, Play a campaign, Manage options (details, SpecialFX, sound, etc.), etc.
 - [ ] **Base Health Display:** Visual representation of the base's health. *(Not Planned)*

@@ -21,7 +21,7 @@ A 2D pixel-based strategy game that uniquely merges the depth of Tower Defense w
 
 **Single-player (vs AI):** Currently, the game can be played against an AI opponent. This mode allows you to practice and familiarize yourself with the game mechanics, through campaigns, and predefined or randomly generated maps.
 
-**Multiplayer (vs Player):** Multiplayer functionality will be added in a future release. This will allow you to play against other players online and compete for dominance on the battlefield.  
+**Multiplayer (vs Player):** Multiplayer functionality will hopefully be added in a future release. This will allow you to play against other players online and compete for dominance on the battlefield.  
 Stay tuned for updates! 
 
 
@@ -30,7 +30,7 @@ Stay tuned for updates!
 * **HTML/2D Canvas:** Provides the structure and visuals of the game.
 * **JavaScript:** Handles game logic, rendering, and player interactions.
 * **Pixi.js:** Used for rendering, animation and in-game UI.
-* _Potentially_ **Web Workers:** May be used for background tasks to enhance performance.
+* **Web Workers:** To enhance performance, the pathfinding calculations are offloaded to a web worker thread.
 
 
 ## 🕹️ Game Mechanics (Brief Overview)
