@@ -9,7 +9,7 @@ import { TERRAIN_TYPES } from 'game'
 import { ParticleEffect, createParticleEmitter } from 'particles'
 import { searchPath, updateMapInWorker } from 'pathfinding'
 import { Player } from 'players'
-import { createProgressIndicator, indicatorMap, removeProgressIndicator, updateProgressIndicator } from 'renderer'
+import { indicatorMap, removeProgressIndicator, updateProgressIndicator } from 'renderer'
 import { sprites } from 'sprites'
 import gameState from 'state'
 import { showDebugMessage } from 'ui'
@@ -105,7 +105,7 @@ class Building {
         ARMORY: {
           name: "Armory",
           icon: "🛡️",
-          costs: { wood: 25, water: 20, stone: 15, gold: 20 },
+          costs: { wood: 25, water: 20, money: 10, gold: 20 },
           UPGRADES: {
             benefits: { life: 75, productionSpeed: 10 } // +75 life, 10% faster production
           },
@@ -119,7 +119,7 @@ class Building {
         CITADEL: {
           name: "Citadel",
           icon: "🏰",
-          costs: { wood: 40, water: 40, stone: 20, gold: 50 },
+          costs: { wood: 40, water: 40, money: 20, gold: 50 },
           UPGRADES: {
             benefits: { life: 100, productionSpeed: 10 } // +100 life, 10% faster production
           },
@@ -133,9 +133,9 @@ class Building {
         MARKET: {
           name: "Market",
           icon: "🏦",
-          costs: { wood: 25, water: 10, money: 50, gold: 20 },
+          costs: { wood: 25, water: 10, stone: 50, gold: 20 },
           UPGRADES: {
-            benefits: { life: 50, productionSpeed: 10 } // +50 life, 10% faster production (for selling rate)
+            benefits: { life: 50, sellingPrice: 1 } // +50 life, +1 selling price
           },
           description: "Sell resources against money",
           sprite_coords: {
@@ -245,6 +245,9 @@ class Building {
       if (benefits.maxWorkers) {
         this.maxWorkers += benefits.maxWorkers
       }
+      if (benefits.sellingPrice) {
+        this.sellingPrice += benefits.sellingPrice
+      }
 
       this.level = nextLevel
       return true
@@ -305,6 +308,16 @@ class Building {
       gameState.map[this.x][this.y].building = undefined
       gameState.map[this.x][this.y].sprite.destroy()
       gameState.map[this.x][this.y].sprite = undefined
+      // Assign a Grass sprite to the cell
+      const terrainType = TERRAIN_TYPES.GRASS
+      const spriteX = Math.floor(Math.random() * 
+              (terrainType.spriteRange.x[1] - terrainType.spriteRange.x[0] + 1)) + 
+              terrainType.spriteRange.x[0]
+      const spriteY = Math.floor(Math.random() * 
+              (terrainType.spriteRange.y[1] - terrainType.spriteRange.y[0] + 1)) + 
+              terrainType.spriteRange.y[0]
+      gameState.map[this.x][this.y].back = sprites[`tile_${spriteX}_${spriteY}`]
+
       updateMapInWorker()
 
       // Cleanup
@@ -1238,7 +1251,7 @@ class Market extends Building {
     this.type = Building.TYPES.MARKET
     this.life = 100
     this.maxLife = 100
-    this.productionCooldown = 10000 // Sell every 10 seconds
+    this.productionCooldown = 15000 // Sell every 15 seconds
     this.indicatorColor = 0xFFA500 // Orange color for market
     this.sellingResource = 'wood' // Default resource to sell
     this.sellingPrice = 1 // Default price per unit
@@ -1268,14 +1281,48 @@ class Market extends Building {
     }
   }
 
+  getValidSellingResources() {
+    return ['wood', 'water', 'stone', 'gold']
+  }
+
+  /**
+   * Set the resource to be sold by the market.
+   * @param {string} resourceType - The type of resource to sell ('wood', 'water', 'stone', 'gold').
+   */
+  setSellingResource(resourceType) {
+    const validResources = this.getValidSellingResources()
+    if (validResources.includes(resourceType)) {
+      this.sellingResource = resourceType
+      // // Adjust selling price based on resource type (example logic, can be refined)
+      // switch (resourceType) {
+      //   case 'wood':
+      //     this.sellingPrice = 5
+      //     break
+      //   case 'water':
+      //     this.sellingPrice = 7
+      //     break
+      //   case 'stone':
+      //     this.sellingPrice = 6
+      //     break
+      //   case 'gold':
+      //     this.sellingPrice = 10
+      //     break
+      //   default:
+      //     this.sellingPrice = 5
+      // }
+    } else {
+      console.warn(`Invalid resource type for Market: ${resourceType}`)
+    }
+  }
+
   /**
    * Sell resources to gain money
    */
   sellResources() {
     if (this.owner) {
       const resourceAmount = 1 // Sell 1 unit of resource at a time
-      if (this.owner.getResources()[this.sellingResource] >= resourceAmount) {
-        this.owner.addResource(this.sellingResource, -resourceAmount | 0)
+      if (this.owner.resources[this.sellingResource] >= resourceAmount) {
+        this.owner.addResource(this.sellingResource, -resourceAmount)
         this.owner.addResource('money', this.sellingPrice * resourceAmount | 0)
       }
     }

@@ -354,6 +354,7 @@ class Player {
     const quarries = buildings.filter(b => b.type === Building.TYPES.QUARRY).length
     const wells = buildings.filter(b => b.type === Building.TYPES.WELL).length
     const goldMines = buildings.filter(b => b.type === Building.TYPES.GOLD_MINE).length
+    const markets = buildings.filter(b => b.type === Building.TYPES.MARKET).length
     const barracks = buildings.filter(b => b.type === Building.TYPES.BARRACKS).length
     const armories = buildings.filter(b => b.type === Building.TYPES.ARMORY).length
     const citadels = buildings.filter(b => b.type === Building.TYPES.CITADEL).length
@@ -378,6 +379,7 @@ class Player {
         if (canBuild(Building.TYPES.GOLD_MINE, goldMines, 3) && this.findBuildingPlacement(Building.TYPES.GOLD_MINE)) return Building.TYPES.GOLD_MINE
         if (canBuild(Building.TYPES.LUMBERJACK, lumberjacks, 5) && this.findBuildingPlacement(Building.TYPES.LUMBERJACK)) return Building.TYPES.LUMBERJACK
         if (canBuild(Building.TYPES.QUARRY, quarries, 4) && this.findBuildingPlacement(Building.TYPES.QUARRY)) return Building.TYPES.QUARRY
+        if (canBuild(Building.TYPES.MARKET, markets, 2) && this.findBuildingPlacement(Building.TYPES.MARKET)) return Building.TYPES.MARKET
         if (canBuild(Building.TYPES.BARRACKS, barracks, 3) && this.findBuildingPlacement(Building.TYPES.BARRACKS)) return Building.TYPES.BARRACKS
         if (canBuild(Building.TYPES.WELL, wells, 4) && this.findBuildingPlacement(Building.TYPES.WELL)) return Building.TYPES.WELL
         if (canBuild(Building.TYPES.ARMORY, armories, 1) && armories >= 1 && this.findBuildingPlacement(Building.TYPES.ARMORY)) return Building.TYPES.ARMORY
@@ -387,6 +389,7 @@ class Player {
         if (canBuild(Building.TYPES.QUARRY, quarries, 7) && this.findBuildingPlacement(Building.TYPES.QUARRY)) return Building.TYPES.QUARRY
         if (canBuild(Building.TYPES.WELL, wells, 6) && this.findBuildingPlacement(Building.TYPES.WELL)) return Building.TYPES.WELL
         if (canBuild(Building.TYPES.GOLD_MINE, goldMines, this.goldTiles/4) && this.findBuildingPlacement(Building.TYPES.GOLD_MINE)) return Building.TYPES.GOLD_MINE
+        if (canBuild(Building.TYPES.MARKET, markets, 4) && this.findBuildingPlacement(Building.TYPES.MARKET)) return Building.TYPES.MARKET
         if (canBuild(Building.TYPES.BARRACKS, barracks, 8) && this.findBuildingPlacement(Building.TYPES.BARRACKS)) return Building.TYPES.BARRACKS
         if (canBuild(Building.TYPES.ARMORY, armories, 6) && this.findBuildingPlacement(Building.TYPES.ARMORY)) return Building.TYPES.ARMORY
         if (canBuild(Building.TYPES.CITADEL, citadels, 4) && this.findBuildingPlacement(Building.TYPES.CITADEL)) return Building.TYPES.CITADEL
@@ -402,6 +405,7 @@ class Player {
         // Attack a bit
         if (canBuild(Building.TYPES.BARRACKS, barracks, 1) && this.findBuildingPlacement(Building.TYPES.BARRACKS)) return Building.TYPES.BARRACKS
         // Then grow
+        if (canBuild(Building.TYPES.MARKET, markets, 5) && this.findBuildingPlacement(Building.TYPES.MARKET)) return Building.TYPES.MARKET
         if (canBuild(Building.TYPES.LUMBERJACK, lumberjacks, 10) && this.findBuildingPlacement(Building.TYPES.LUMBERJACK)) return Building.TYPES.LUMBERJACK
         if (canBuild(Building.TYPES.QUARRY, quarries, 10) && this.findBuildingPlacement(Building.TYPES.QUARRY)) return Building.TYPES.QUARRY
         if (canBuild(Building.TYPES.WELL, wells, 6) && this.findBuildingPlacement(Building.TYPES.WELL)) return Building.TYPES.WELL
@@ -418,12 +422,14 @@ class Player {
         if (canBuild(Building.TYPES.QUARRY, quarries, 4) && this.findBuildingPlacement(Building.TYPES.QUARRY)) return Building.TYPES.QUARRY
         if (canBuild(Building.TYPES.WELL, wells, 3) && this.findBuildingPlacement(Building.TYPES.WELL)) return Building.TYPES.WELL
         if (canBuild(Building.TYPES.GOLD_MINE, goldMines, 3) && this.findBuildingPlacement(Building.TYPES.GOLD_MINE)) return Building.TYPES.GOLD_MINE
+        if (canBuild(Building.TYPES.MARKET, markets, 2) && this.findBuildingPlacement(Building.TYPES.MARKET)) return Building.TYPES.MARKET
         // Then build-up with unlimited military buildings
         if (canBuild(Building.TYPES.LUMBERJACK, lumberjacks, 12) && this.findBuildingPlacement(Building.TYPES.LUMBERJACK)) return Building.TYPES.LUMBERJACK
         if (canBuild(Building.TYPES.QUARRY, quarries, 12) && this.findBuildingPlacement(Building.TYPES.QUARRY)) return Building.TYPES.QUARRY
         if (canBuild(Building.TYPES.WELL, wells, 12) && this.findBuildingPlacement(Building.TYPES.WELL)) return Building.TYPES.WELL
         if (canBuild(Building.TYPES.GOLD_MINE, goldMines, this.goldTiles.length) && this.findBuildingPlacement(Building.TYPES.GOLD_MINE)) return Building.TYPES.GOLD_MINE
         if (canBuild(Building.TYPES.BARRACKS, barracks, 5) && this.findBuildingPlacement(Building.TYPES.BARRACKS)) return Building.TYPES.BARRACKS
+        if (canBuild(Building.TYPES.MARKET, markets, 5) && this.findBuildingPlacement(Building.TYPES.MARKET)) return Building.TYPES.MARKET
         if (canBuild(Building.TYPES.ARMORY, armories, 8) && this.findBuildingPlacement(Building.TYPES.ARMORY)) return Building.TYPES.ARMORY
         if (canBuild(Building.TYPES.CITADEL, citadels, 15) && this.findBuildingPlacement(Building.TYPES.CITADEL)) return Building.TYPES.CITADEL
         if (canBuild(Building.TYPES.TENT, tents, 8) && this.findBuildingPlacement(Building.TYPES.TENT)) return Building.TYPES.TENT
@@ -465,7 +471,11 @@ class Player {
         if (buildingType) {
           const placement = await this.findBuildingPlacement(buildingType)
           if (placement?.x && placement?.y) {
-            this.addBuilding(placement.x, placement.y, buildingType)
+            const building = this.addBuilding(placement.x, placement.y, buildingType)
+
+            if(building.type === Building.TYPES.MARKET) { // Sell a random resource
+              building.setSellingResource(building.getValidSellingResources()[Math.random() * building.getValidSellingResources().length | 0])
+            }
           }
         }
       }

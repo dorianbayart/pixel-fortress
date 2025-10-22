@@ -672,7 +672,7 @@ async function displayBuildingInfo(building) {
         padding: fontSize * productionLabel.length / 2,
       }
     })
-    productionText.position.set(currentX, padding + lifeText.height + 5)
+    productionText.position.set(currentX + lifeText.width + 40, padding)
     bottomBarContainer.addChild(productionText)
   }
 
@@ -689,8 +689,74 @@ async function displayBuildingInfo(building) {
         padding: fontSize * workersLabel.length / 2,
       }
     })
-    workersText.position.set(currentX, padding + lifeText.height + 5 + (productionText ? productionText.height + 5 : 0))
+    workersText.position.set(currentX + lifeText.width + 40, padding)
     bottomBarContainer.addChild(workersText)
+  }
+
+  // Market specific UI for selling resources
+  if (building.type === Building.TYPES.MARKET) {
+    const sellResources = [
+      { name: 'wood', icon: '🪵' },
+      { name: 'water', icon: '💧' },
+      { name: 'stone', icon: '🪨' },
+      { name: 'gold', icon: '🪙' }
+    ]
+    
+    const sellLabel = new PIXI.Text({
+      text: 'Sell:',
+      style: {
+        fontFamily: UI_FONTS.PRIMARY,
+        fontSize: fontSize,
+        fill: 0xFFD700,
+        padding: fontSize * 'Sell:'.length / 2,
+      }
+    })
+    sellLabel.position.set(currentX, padding + lifeText.height + 10)
+    bottomBarContainer.addChild(sellLabel)
+
+    let sellButtonX = currentX + sellLabel.width + 20
+    const sellButtonY = sellLabel.y - 4
+
+    sellResources.forEach(resource => {
+      const button = new PIXI.Container()
+      button.position.set(sellButtonX, sellButtonY)
+
+      const buttonBg = new PIXI.Graphics()
+        .roundRect(0, 0, 40, 24, 4)
+        .fill({ color: building.sellingResource === resource.name ? 0x006400 : 0x333333, alpha: 0.7 })
+        .stroke({ width: 1, color: 0xFFD700, alpha: 0.8 })
+      button.addChild(buttonBg)
+
+      const icon = new PIXI.Text({
+        text: resource.icon,
+        style: { fontSize: 16 }
+      })
+      icon.position.set(10, 2)
+      button.addChild(icon)
+
+      buttonBg.eventMode = 'static'
+      buttonBg.cursor = 'pointer'
+      buttonBg.on('pointerup', (e) => {
+        e.stopPropagation()
+        building.setSellingResource(resource.name)
+        displayBuildingInfo(building) // Refresh UI to show new selection
+      })
+
+      bottomBarContainer.addChild(button)
+      sellButtonX += 50 // Spacing between buttons
+    })
+    
+    const currentSellingInfo = new PIXI.Text({
+      text: `Selling ${building.sellingResource} for ${building.sellingPrice} money.`,
+      style: {
+        fontFamily: UI_FONTS.PRIMARY,
+        fontSize: fontSize,
+        fill: 0xFFFFFF,
+        padding: fontSize * `Selling ${building.sellingResource} for ${building.sellingPrice} money.`.length / 2,
+      }
+    })
+    currentSellingInfo.position.set(currentX, sellLabel.y + sellLabel.height + 10)
+    bottomBarContainer.addChild(currentSellingInfo)
   }
 
   currentX = width / 2
@@ -1432,5 +1498,9 @@ function closeModal(destination) {
   setTimeout(() => {
     modalSection.style.display = 'none'
     gameState.gameStatus = destination ?? 'playing'
+
+    if(gameState.gameStatus === 'menu') {
+      quitToHome()
+    }
   }, 500)
 }

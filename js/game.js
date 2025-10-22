@@ -513,13 +513,7 @@ const assignSpritesOnMap = async () => {
       let spriteX, spriteY
       switch (gameState.map[x][y].type) {
         case TERRAIN_TYPES.GRASS.type:
-          spriteX = Math.floor(Math.random() * 
-              (terrainType.spriteRange.x[1] - terrainType.spriteRange.x[0] + 1)) + 
-              terrainType.spriteRange.x[0]
-          spriteY = Math.floor(Math.random() * 
-              (terrainType.spriteRange.y[1] - terrainType.spriteRange.y[0] + 1)) + 
-              terrainType.spriteRange.y[0]
-          gameState.map[x][y].sprite = sprites[`tile_${spriteX}_${spriteY}`]
+          gameState.map[x][y].sprite = sprites[`tile_${grassSpriteX}_${grassSpriteY}`]
           break
         case TERRAIN_TYPES.TREE.type:
           spriteX = Math.floor(Math.random() * 
