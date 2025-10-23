@@ -88,6 +88,7 @@ class Unit {
     // Unit properties (to be set by subclasses)
     this.range = null
     this.life = null
+    this.maxLife = null // Initialize maxLife
     this.speed = null
     this.attack = null
     this.spriteName = null
@@ -418,6 +419,7 @@ class WorkerUnit extends Unit {
     
     // Peon units have weaker stats but can collect resources
     this.life = 5
+    this.maxLife = this.life // Set maxLife to initial life
     this.attack = 1
     this.range = 1 * getTileSize()
     this.speed = getTileSize() / 12
@@ -1163,6 +1165,7 @@ class CombatUnit extends Unit {
     
     this.range = 1 * getTileSize()
     this.life = 10
+    this.maxLife = this.life // Set maxLife to initial life
     this.speed = getTileSize() / 12 | 0
     this.attack = 2
 
@@ -1290,6 +1293,7 @@ class CombatUnit extends Unit {
     this.level++
     this.attack *= 1.2
     this.life *= 1.1
+    this.maxLife = this.life // Update maxLife when life increases
     this.experience = 0
 
     // console.log(`Unit level up !`, this)

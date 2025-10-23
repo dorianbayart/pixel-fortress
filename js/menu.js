@@ -144,6 +144,7 @@ async function setupOptionsSection() {
   const debugToggle = document.getElementById('debugToggle')
   const sfxVolumeSlider = document.getElementById('sfxVolumeSlider')
   const musicVolumeSlider = document.getElementById('musicVolumeSlider')
+  const healthBarsToggle = document.getElementById('healthBarsToggle')
   
   // Get difficulty and map size buttons
   const difficultyButtons = optionsSection.querySelectorAll('.option-btn[data-difficulty]')
@@ -168,6 +169,7 @@ async function setupOptionsSection() {
 
     // Set current values based on game settings
     debugToggle.checked = gameState.debug
+    healthBarsToggle.checked = gameState.showHealthBars
 
     // Set fog of war toggle
     fogToggle.checked = gameState.settings?.fogOfWar !== false
@@ -228,6 +230,9 @@ async function setupOptionsSection() {
       // Get selected game speed
       const selectedGameSpeed = optionsSection.querySelector('.option-btn[data-game-speed].selected')?.dataset.gameSpeed || 'normal'
 
+      // Get health bars toggle state
+      const showHealthBars = document.getElementById('healthBarsToggle').checked
+
       // Update game settings
       gameState.updateSettings({
           difficulty: selectedDifficulty,
@@ -235,7 +240,8 @@ async function setupOptionsSection() {
           fogOfWar: fogOfWarEnabled,
           sfxVolume: sfxVolume,
           musicVolume: musicVolume,
-          gameSpeedMultiplier: CONSTANTS.GAME_SPEED_MULTIPLIERS[selectedGameSpeed.toUpperCase()]
+          gameSpeedMultiplier: CONSTANTS.GAME_SPEED_MULTIPLIERS[selectedGameSpeed.toUpperCase()],
+          showHealthBars: showHealthBars
       })
       
       // Update debug mode
@@ -275,6 +281,7 @@ async function setupOptionsSection() {
   debugToggle.addEventListener('change', playClickSound)
   sfxVolumeSlider.addEventListener('change', playClickSound)
   musicVolumeSlider.addEventListener('change', playClickSound)
+  healthBarsToggle.addEventListener('change', playClickSound)
   
   // Close the modal if the user clicks outside of it
   window.addEventListener('click', (event) => {

@@ -82,7 +82,8 @@ class GameState {
       fogOfWar: true,
       sfxVolume: 0.8,
       musicVolume: 0.5,
-      gameSpeedMultiplier: 1
+      gameSpeedMultiplier: 1,
+      showHealthBars: false
     }
 
     // UI references
@@ -336,6 +337,26 @@ class GameState {
     this._settings.gameSpeedMultiplier = value
     if (oldValue !== value) {
       this.events.emit('game-speed-multiplier-changed', value)
+    }
+  }
+
+  /**
+   * Get the show health bars setting
+   * @returns {boolean} The show health bars setting
+   */
+  get showHealthBars() {
+    return this._settings.showHealthBars
+  }
+
+  /**
+   * Set the show health bars setting and emit event
+   * @param {boolean} value - The show health bars setting
+   */
+  set showHealthBars(value) {
+    const oldValue = this._settings.showHealthBars
+    this._settings.showHealthBars = value
+    if (oldValue !== value) {
+      this.events.emit('show-health-bars-changed', value)
     }
   }
 
