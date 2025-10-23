@@ -620,7 +620,7 @@ const gameLoop = async () => {
   
   // Update players and units
   const timingStart = performance.now()
-  if(gameState.humanPlayer) await gameState.humanPlayer.update(delay, gameState.map)
+  if(gameState.humanPlayer) await gameState.humanPlayer.update(gameState.gameSpeedMultiplier * delay, gameState.map)
   const timing = performance.now() - timingStart
 
   // Check for game over condition
@@ -631,7 +631,7 @@ const gameLoop = async () => {
   
   // Update AI players
   await Promise.all(gameState.aiPlayers.map(async ai => {
-    await ai.update(delay, gameState.map)
+    await ai.update(gameState.gameSpeedMultiplier * delay, gameState.map)
   }))
 
   // Check for win condition

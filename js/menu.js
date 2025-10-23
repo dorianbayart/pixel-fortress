@@ -3,6 +3,7 @@ export { initHomeMenu }
 'use strict'
 
 import gameState from 'state'
+import CONSTANTS from 'constants'
 import { playClickSound, playCloseSound, playConfirmSound } from 'audio'
 import { setupEventListeners } from 'ui'
 
@@ -147,12 +148,13 @@ async function setupOptionsSection() {
   // Get difficulty and map size buttons
   const difficultyButtons = optionsSection.querySelectorAll('.option-btn[data-difficulty]')
   const mapSizeButtons = optionsSection.querySelectorAll('.option-btn[data-map-size]')
+  const gameSpeedButtons = optionsSection.querySelectorAll('.option-btn[data-game-speed]')
   
   // Function to update selected button in a group
-  const updateSelection = (buttons, value) => {
+  const updateSelection = (buttons, value, datasetKey) => {
     playClickSound()
     buttons.forEach(button => {
-        if (button.dataset.difficulty === value || button.dataset.mapSize === value) {
+        if (button.dataset[datasetKey] === value) {
             button.classList.add('selected')
         } else {
             button.classList.remove('selected')
@@ -172,11 +174,15 @@ async function setupOptionsSection() {
     
     // Update difficulty selection (default to "medium" if not set)
     const currentDifficulty = gameState.settings?.difficulty || 'medium'
-    updateSelection(difficultyButtons, currentDifficulty)
+    updateSelection(difficultyButtons, currentDifficulty, 'difficulty')
     
     // Update map size selection (default to "medium" if not set)
     const currentMapSize = gameState.settings?.mapSize || 'medium'
-    updateSelection(mapSizeButtons, currentMapSize)
+    updateSelection(mapSizeButtons, currentMapSize, 'mapSize')
+
+    // Update game speed selection (default to "normal" if not set)
+    const currentGameSpeed = Object.keys(CONSTANTS.GAME_SPEED_MULTIPLIERS).find(key => CONSTANTS.GAME_SPEED_MULTIPLIERS[key] === gameState.settings?.gameSpeedMultiplier)?.toLowerCase() || 'normal'
+    updateSelection(gameSpeedButtons, currentGameSpeed, 'gameSpeed')
 
     // Update SFX volume
     sfxVolumeSlider.value = gameState.settings?.sfxVolume || 0.75
@@ -219,13 +225,17 @@ async function setupOptionsSection() {
       // Get Music volume
       const musicVolume = document.getElementById('musicVolumeSlider').value
 
+      // Get selected game speed
+      const selectedGameSpeed = optionsSection.querySelector('.option-btn[data-game-speed].selected')?.dataset.gameSpeed || 'normal'
+
       // Update game settings
       gameState.updateSettings({
           difficulty: selectedDifficulty,
           mapSize: selectedMapSize,
           fogOfWar: fogOfWarEnabled,
           sfxVolume: sfxVolume,
-          musicVolume: musicVolume
+          musicVolume: musicVolume,
+          gameSpeedMultiplier: CONSTANTS.GAME_SPEED_MULTIPLIERS[selectedGameSpeed.toUpperCase()]
       })
       
       // Update debug mode
@@ -237,14 +247,21 @@ async function setupOptionsSection() {
   // Add click handlers for difficulty buttons
   difficultyButtons.forEach(button => {
       button.addEventListener('click', () => {
-          updateSelection(difficultyButtons, button.dataset.difficulty)
+          updateSelection(difficultyButtons, button.dataset.difficulty, 'difficulty')
       })
   })
   
   // Add click handlers for map size buttons
   mapSizeButtons.forEach(button => {
       button.addEventListener('click', () => {
-          updateSelection(mapSizeButtons, button.dataset.mapSize)
+          updateSelection(mapSizeButtons, button.dataset.mapSize, 'mapSize')
+      })
+  })
+
+  // Add click handlers for game speed buttons
+  gameSpeedButtons.forEach(button => {
+      button.addEventListener('click', () => {
+          updateSelection(gameSpeedButtons, button.dataset.gameSpeed, 'gameSpeed')
       })
   })
   

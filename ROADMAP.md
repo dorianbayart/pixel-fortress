@@ -77,4 +77,4 @@ Details: This should include: pseudo, host a map, join a map
 - [ ] **Special Enemies:** Add enemies with special abilities or resistances. *(Not Planned)*
 - [ ] **Level Editor:** Allow players to create their own custom levels. *(Not Planned)* 
 - [ ] **Endless Mode:** Implement an endless mode with increasing difficulty. *(Not Planned)*
-- [ ] **High Speed:** High speed mode: the time is 2x accelerated. *(Not Planned)*
+- [x] **High Speed:** High speed mode: the time is 1x, 1.33x or 2x accelerated.

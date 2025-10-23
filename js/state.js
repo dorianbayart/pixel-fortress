@@ -81,7 +81,8 @@ class GameState {
       mapSize: 'medium',
       fogOfWar: true,
       sfxVolume: 0.8,
-      musicVolume: 0.5
+      musicVolume: 0.5,
+      gameSpeedMultiplier: 1
     }
 
     // UI references
@@ -315,6 +316,26 @@ class GameState {
     this._settings.musicVolume = value
     if (oldValue !== value) {
       this.events.emit('music-volume-changed', value)
+    }
+  }
+
+  /**
+   * Get the game speed multiplier
+   * @returns {number} The game speed multiplier
+   */
+  get gameSpeedMultiplier() {
+    return this._settings.gameSpeedMultiplier
+  }
+
+  /**
+   * Set the game speed multiplier and emit event
+   * @param {number} value - The game speed multiplier
+   */
+  set gameSpeedMultiplier(value) {
+    const oldValue = this._settings.gameSpeedMultiplier
+    this._settings.gameSpeedMultiplier = value
+    if (oldValue !== value) {
+      this.events.emit('game-speed-multiplier-changed', value)
     }
   }
 
