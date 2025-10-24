@@ -1195,7 +1195,7 @@ class CombatUnit extends Unit {
 
     // Periodically re-evaluate nearest enemy, even if currently attacking
     // This allows units to switch targets if a closer or more critical enemy appears
-    const reevaluateInterval = Math.min(7500, (this.path?.length || 1) * 750) // Re-evaluate every few 750ms - max is 7500ms
+    const reevaluateInterval = Math.min(7500, (this.path?.length || 1) * 600) // Re-evaluate every few 600ms - max is 7500ms
     if (this.task === 'idle' || this.timeSinceLastTargetReevaluation > reevaluateInterval) {
       this.timeSinceLastTargetReevaluation = 0
       const newPath = await this.pathToNearestEnemy()

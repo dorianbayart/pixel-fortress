@@ -5,7 +5,7 @@ export { clearPathCache, getPathfindingStats, searchPath, updateMapDimensionsInW
 import { getMapDimensions } from 'dimensions'
 import gameState from "state"
 
-const NUM_PATHFINDING_WORKERS = 3
+const NUM_PATHFINDING_WORKERS = 4
 const pathfindingWorkers = []
 let nextWorkerIndex = 0
 const pathfindingPromises = new Map()

@@ -16,8 +16,8 @@ import { showDebugMessage } from 'ui'
 import { GoldMiner, LumberjackWorker, Peon, QuarryMiner, WaterCarrier } from 'unit'
 import { distance } from 'utils'
 
-const TREE_PROCESSING_BATCH_SIZE = 5 // Process 5 trees at once
-const TREE_PROCESSING_DELAY = 150 // 150ms delay between batches
+const TREE_PROCESSING_BATCH_SIZE = 8 // Process 8 trees at once
+const TREE_PROCESSING_DELAY = 80 // 80ms delay between batches
 
 
 /**
@@ -528,6 +528,8 @@ class Lumberjack extends WorkerBuilding {
         this.treeProcessingInProgress = false
         this.treeProcessingQueue = []
 
+        this.lastTreeReevaluationTime = performance.now()
+
         // Find and order nearby trees after construction
         this.findAndOrderNearbyTrees()
     }
@@ -551,7 +553,7 @@ class Lumberjack extends WorkerBuilding {
             this.productionTimer += delay
 
             // Launch tree ordering before the end of the conversion
-            if(this.productionTimer > this.productionCooldown * 0.8) {
+            if(this.productionTimer > this.productionCooldown * 0.4) {
               this.findAndOrderNearbyTrees()
             }
             
@@ -563,8 +565,8 @@ class Lumberjack extends WorkerBuilding {
             }
         }
 
-        if (Math.random() > 0.999) {
-          // Sometimes refresh the tree list
+        if (this.lastTreeReevaluationTime + 20000 < performance.now()) {
+          // Refresh the list every 20 seconds
           this.findAndOrderNearbyTrees()
         }
     }
@@ -577,7 +579,8 @@ class Lumberjack extends WorkerBuilding {
         if (this.treeProcessingInProgress) {
             return
         }
-        
+        this.lastTreeReevaluationTime = performance.now()
+
         this.treeProcessingInProgress = true
         const { width, height } = getMapDimensions()
         this.treeProcessingQueue = []
@@ -631,10 +634,11 @@ class Lumberjack extends WorkerBuilding {
             return a.pathDistance - b.pathDistance
         });
         
-        // Limit to 30 trees max to avoid memory issues
-        if (this.nearbyTrees.length > 30) {
-            this.nearbyTrees = this.nearbyTrees.slice(0, 30)
+        // Limit to 10 trees max to avoid memory issues
+        if (this.nearbyTrees.length > 10) {
+            this.nearbyTrees = this.nearbyTrees.slice(0, 10)
         }
+        if(this.owner.type === 'human') console.log(this.nearbyTrees.length, this.nearbyTrees)
     }
 
     /**
