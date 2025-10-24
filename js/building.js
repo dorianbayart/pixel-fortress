@@ -638,7 +638,6 @@ class Lumberjack extends WorkerBuilding {
         if (this.nearbyTrees.length > 10) {
             this.nearbyTrees = this.nearbyTrees.slice(0, 10)
         }
-        if(this.owner.type === 'human') console.log(this.nearbyTrees.length, this.nearbyTrees)
     }
 
     /**
