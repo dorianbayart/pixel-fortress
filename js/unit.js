@@ -168,11 +168,11 @@ class Unit {
     if (this.isAtGoal()) return
 
     const mathPathLength = this.path?.length || 1
-    const maxTime = Math.min(4500, mathPathLength * 400)
+    const maxTime = Math.min(6000, mathPathLength * 600)
     const updatePath = time - this.lastPathUpdate > maxTime
     const distToNextNode = distance(this.currentNode, this.nextNode) || 0
 
-    if(distToNextNode < 1 && mathPathLength > 1) {
+    if(distToNextNode <= 1 && mathPathLength > 1) {
       // Just trim the path if we've reached the next node
       this.path.splice(0, 1)
       this.timeSinceLastTask = 0
@@ -753,11 +753,19 @@ class QuarryMiner extends WorkerUnit {
     } 
     // If we have multiple tents, find the nearest one
     else if (tents.length > 1) {
+      // Sort tents by Euclidean distance first to prioritize closer ones
+      const sortedTents = tents.sort((a, b) => {
+        const distA = distance(this.assignedBuilding, a)
+        const distB = distance(this.assignedBuilding, b)
+        return distA - distB
+      })
+
       let nearestTent = null
-      let shortestDistance = Infinity
+      let shortestPathLength = Infinity
       
-      for (const tent of tents) {
-        // Calculate path to this tent
+      // Only calculate full paths for the top few closest tents
+      for (let i = 0; i < Math.min(sortedTents.length, 3); i++) {
+        const tent = sortedTents[i]
         const path = await searchPath(
           this.assignedBuilding.x, 
           this.assignedBuilding.y,
@@ -765,14 +773,12 @@ class QuarryMiner extends WorkerUnit {
           tent.y
         )
         
-        // If path exists and is shorter than current shortest
-        if (path && path.length < shortestDistance) {
-          shortestDistance = path.length
+        if (path && path.length < shortestPathLength) {
+          shortestPathLength = path.length
           nearestTent = tent
         }
       }
       
-      // Return nearest tent, or first tent if no path found
       this.nearestTentCache = nearestTent || tents[0]
       return this.nearestTentCache
     }
@@ -1222,28 +1228,27 @@ class CombatUnit extends Unit {
     const { width: MAP_WIDTH, height: MAP_HEIGHT } = getMapDimensions()
     let path, pathLength = MAP_WIDTH * MAP_HEIGHT
     this.goal = null
-    const enemies = this.owner.getEnemies().map(enemy => {
-            return { enemy, distance: distance(this.currentNode, enemy.currentNode ?? { x: enemy.x, y: enemy.y }) || 1 }
-          }).sort((a, b) => a.distance - b.distance)
-          .slice(0, 3) // Keep only 3 nearest enemies
-          .map(item => item.enemy)
+    const enemies = this.owner.getEnemies()
+      .filter(enemy => distance(this.currentNode, enemy.currentNode ?? { x: enemy.x, y: enemy.y }) < this.visibilityRange * 2) // Only consider enemies within 2x visibility range
+      .map(enemy => {
+        return { enemy, distance: distance(this.currentNode, enemy.currentNode ?? { x: enemy.x, y: enemy.y }) || 1 }
+      })
+      .sort((a, b) => a.distance - b.distance)
 
-    for (const enemy of enemies) {
-      let temp
-      if(enemy instanceof Unit) {
-        temp = await searchPath(this.nextNextNode?.x ?? (this.nextNode?.x ?? this.currentNode.x), this.nextNextNode?.y ?? (this.nextNode?.y ?? this.currentNode.y), enemy.nextNode?.x ?? enemy.currentNode.x, enemy.nextNode?.y ?? enemy.currentNode.y)
+    if (enemies.length > 0) {
+      const nearestEnemy = enemies[0].enemy
+      let tempPath
+      if (nearestEnemy instanceof Unit) {
+        tempPath = await searchPath(this.nextNextNode?.x ?? (this.nextNode?.x ?? this.currentNode.x), this.nextNextNode?.y ?? (this.nextNode?.y ?? this.currentNode.y), nearestEnemy.nextNode?.x ?? nearestEnemy.currentNode.x, nearestEnemy.nextNode?.y ?? nearestEnemy.currentNode.y)
       } else {
         // Buildings are not using CurrentNode
-        temp = await searchPath(this.nextNextNode?.x ?? (this.nextNode?.x ?? this.currentNode.x), this.nextNextNode?.y ?? (this.nextNode?.y ?? this.currentNode.y), enemy.x, enemy.y)
+        tempPath = await searchPath(this.nextNextNode?.x ?? (this.nextNode?.x ?? this.currentNode.x), this.nextNextNode?.y ?? (this.nextNode?.y ?? this.currentNode.y), nearestEnemy.x, nearestEnemy.y)
       }
 
-      if(temp?.length < pathLength) {
-        path = temp
-        pathLength = path.length
-        this.goal = enemy
+      if (tempPath) {
+        path = tempPath
+        this.goal = nearestEnemy
       }
-
-      temp = null
     }
 
     if(this.nextNode) return [this.currentNode, this.nextNode, ...path]
