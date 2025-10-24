@@ -14,6 +14,7 @@ import * as PIXI from 'pixijs'
 import { sprites } from 'sprites'
 import { app, containers, indicatorMap, updateZoom, unitSpriteMap, backgroundSpriteMap, worldObjectSpriteMap } from 'renderer'
 import gameState from 'state'
+import { getPathfindingStats } from 'pathfinding'
 
 const UI_FONTS = {
   PRIMARY: "system-ui, 'Open Sans', Arial, sans-serif",
@@ -298,6 +299,8 @@ function drawUI(fps) {
 
     const { width: MAP_WIDTH, height: MAP_HEIGHT } = getMapDimensions()
     const SPRITE_SIZE = getTileSize()
+
+    const pathfindingStats = getPathfindingStats()
     
     statsText.text = [
       `FPS: ${currentFps} | DPR: ${getCanvasDimensions().dpr}:${globalThis.devicePixelRatio || 1}`,
@@ -308,6 +311,7 @@ function drawUI(fps) {
       `World: ${MAP_WIDTH}x${MAP_HEIGHT} (${MAP_WIDTH*SPRITE_SIZE}x${MAP_HEIGHT*SPRITE_SIZE})`,
 
       `Particles: ${containers.particles.children?.length}`,
+      `Pathfinding (/s): ${pathfindingStats.map((count, i) => `W${i}: ${count}`).join(', ')}`,
       `Indicator Map Size: ${indicatorMap.size}`,
       `Unit Sprite Map Size: ${unitSpriteMap.size}`,
       `Background Sprite Map Size: ${backgroundSpriteMap.size}`,

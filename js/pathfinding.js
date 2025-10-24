@@ -1,4 +1,4 @@
-export { clearPathCache, searchPath, updateMapDimensionsInWorker, updateMapInWorker }
+export { clearPathCache, getPathfindingStats, searchPath, updateMapDimensionsInWorker, updateMapInWorker }
 
 'use strict'
 
@@ -10,6 +10,7 @@ const pathfindingWorkers = []
 let nextWorkerIndex = 0
 const pathfindingPromises = new Map()
 let nextPathfindingId = 0
+const workerCalculations = Array.from({ length: NUM_PATHFINDING_WORKERS }, () => [])
 
 /**
  * Sends a pathfinding request to the worker and returns a Promise that resolves with the path.
@@ -49,6 +50,7 @@ for (let i = 0; i < NUM_PATHFINDING_WORKERS; i++) {
 function searchPath(startX, startY, endX, endY) {
   const id = nextPathfindingId++
   const worker = pathfindingWorkers[nextWorkerIndex]
+  workerCalculations[nextWorkerIndex].push(performance.now())
   nextWorkerIndex = (nextWorkerIndex + 1) % NUM_PATHFINDING_WORKERS
 
   return new Promise((resolve) => {
@@ -61,6 +63,18 @@ function searchPath(startX, startY, endX, endY) {
       endX,
       endY,
     })
+  })
+}
+
+/**
+ * Returns the number of pathfinding calculations per second for each worker calculated over the last 10 seconds.
+ * @returns {Array<number>} An array where each element is the number of calculations for a worker.
+ */
+function getPathfindingStats() {
+  const tenSecondsAgo = performance.now() - 10000
+  return workerCalculations.map(calculations => {
+    // Filter out old timestamps and return the count
+    return calculations.filter(timestamp => timestamp > tenSecondsAgo).length / 10
   })
 }
 
