@@ -23,11 +23,11 @@ class Player {
     this.buildings = []
 
     this.resources = {
-      wood: 10 + (Building.TYPES.TENT.costs.wood || 0),
-      water: 0 + (Building.TYPES.TENT.costs.water || 0),
+      wood: 15 + (Building.TYPES.TENT.costs.wood || 0),
+      stone: 5 + (Building.TYPES.TENT.costs.stone || 0),
+      water: 5 + (Building.TYPES.TENT.costs.water || 0),
       gold: 0 + (Building.TYPES.TENT.costs.gold || 0),
       money: 0 + (Building.TYPES.TENT.costs.money || 0),
-      stone: 0 + (Building.TYPES.TENT.costs.stone || 0),
       population: 0
     }
 
