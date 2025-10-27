@@ -6,7 +6,7 @@
   "scripts": {
     "start": "electron .",
     "build": "electron-builder",
-    "update-manifest-version": "VERSION=$(node -p \"require('./package.json').version\"); jq '.version = \"'\"$VERSION\"'\" | .version_name = \"'\"$VERSION\"'\"' manifest.json > manifest.json.tmp && mv manifest.json.tmp manifest.json",
+    "update-manifest-version": "node scripts/update-manifest-version.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
