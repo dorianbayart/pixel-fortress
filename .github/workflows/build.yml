@@ -113,9 +113,11 @@ jobs:
     - name: List downloaded artifacts (for debugging)
       run: ls -R artifacts
 
-    - name: Prepare Release Notes
+    - name: Get package version and Prepare Release Notes
+      id: get_version
       run: |
         VERSION=$(node -p "require('./package.json').version")
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
         sed -i "s/{{version}}/$VERSION/g" RELEASE_NOTES.md
 
     - name: Upload artifacts to Release
@@ -126,5 +128,5 @@ jobs:
           artifacts/PixelFortress-macOS/*.dmg
           artifacts/PixelFortress-Linux/*.AppImage
         token: ${{ secrets.GITHUB_TOKEN }}
-        overwrite: true
+        tag_name: v${{ steps.get_version.outputs.version }}
         body_path: RELEASE_NOTES.md
