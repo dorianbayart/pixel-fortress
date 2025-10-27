@@ -119,4 +119,4 @@ Under the following terms:
 
 ## #️⃣ Keywords
 
-pixel, fortress, game, strategy, tower defense, TD, clicker, pixel art, 2D, HTML5, JavaScript, canvas, web, browser, open source, sandbox, dungeon, monsters, waves, upgrades, skills, achievements, resource management, base building, survival
+pixel, fortress, game, strategy, tower defense, TD, clicker, pixel art, 2D, HTML5, JavaScript, canvas, web, browser, pixijs, open source, sandbox, dungeon, monsters, waves, upgrades, skills, achievements, resource management, base building, survival
