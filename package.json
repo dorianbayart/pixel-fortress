@@ -1,6 +1,6 @@
 {
   "name": "pixel-fortress",
-  "version": "0.1.0",
+  "version": "0.0.1-dev",
   "description": "A 2D pixel-based strategy game that uniquely merges the depth of Tower Defense with the addictive simplicity of Clicker styles.",
   "main": "main.js",
   "scripts": {

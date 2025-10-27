@@ -47,6 +47,6 @@
   "short_name": "Pixel Fortress",
   "start_url": "index.html",
   "theme_color": "#228b22",
-  "version": "0.1.0",
-  "version_name": "0.1.0"
+  "version": "x.x.x-latest",
+  "version_name": "x.x.x-latest"
 }
