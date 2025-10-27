@@ -66,6 +66,29 @@ Units automatically attack nearby enemies within their range or navigate to enga
 * **Performance Issues:** Try closing other browser tabs or applications to free up system resources.
 * **Unexpected Behavior:** If you encounter bugs or glitches, please report them on the project's issue tracker. Please remember it is still a work in progress.
 
+## 📦 Releases & Builds
+
+The project utilizes GitHub Actions for continuous integration and release management.
+
+### GitHub Workflow
+
+Upon every push to the `main` branch, a GitHub Actions workflow is triggered. This workflow performs the following steps:
+1.  **Build:** The game is built into platform-specific executables for Windows, macOS and Linux.
+2.  **Release:** A new GitHub release is created (or an existing one with the same version is updated/overwritten).
+3.  **Artifact Upload:** The built executables are uploaded to this release.
+
+### Releases
+
+You can find all official releases and their corresponding build artifacts on the [GitHub Releases page](https://github.com/dorianbayart/pixel-fortress/releases).
+
+### Build Artifacts
+
+For each release, the following platform-specific executables are provided:
+*   **Windows:** `.exe` installer/executable
+*   **macOS:** `.dmg` installer/disk image - does not work as of now due to missing Apple Developper account
+*   **Linux:** `.AppImage` executable
+
+These artifacts allow you to run the game natively on your preferred operating system without needing a web browser.
 
 ## 🎯 Roadmap
 

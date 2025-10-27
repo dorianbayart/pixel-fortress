@@ -64,13 +64,19 @@
       "target": "nsis"
     },
     "mac": {
-      "target": "dmg"
+      "target": "dmg",
+      "identity": "Apple Distribution: Your Company Name (XXXXXXXXXX)",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
     },
     "linux": {
       "target": "AppImage"
     }
   },
   "devDependencies": {
+    "@electron/notarize": "^3.1.0",
     "electron": "^38.4.0",
     "electron-builder": "^26.0.12"
   }
