@@ -100,6 +100,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build-windows, build-macos, build-linux]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
 
     steps:
     - name: Checkout repository
@@ -119,6 +121,27 @@ jobs:
         VERSION=$(node -p "require('./package.json').version")
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         sed -i "s/{{version}}/$VERSION/g" RELEASE_NOTES.md
+
+    - name: Check for existing release
+      id: check_release
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        set +e
+        gh release view v${{ steps.get_version.outputs.version }} > /dev/null 2>&1
+        if [ $? -eq 0 ]; then
+          echo "exists=true" >> $GITHUB_OUTPUT
+        else
+          echo "exists=false" >> $GITHUB_OUTPUT
+        fi
+        set -e
+
+    - name: Delete existing release if found
+      if: steps.check_release.outputs.exists == 'true'
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh release delete v${{ steps.get_version.outputs.version }} --yes
 
     - name: Upload artifacts to Release
       uses: softprops/action-gh-release@v1
