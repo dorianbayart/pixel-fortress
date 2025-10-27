@@ -1,0 +1,8 @@
+# Mac-os
+.DS_Store
+
+# Node modules
+node_modules
+
+# dist folder
+dist
