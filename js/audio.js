@@ -21,11 +21,9 @@ const buildingSound = new Audio('assets/sounds/Chest Close 2.ogg')
 
 /* Ambient */
 const forestDayAmbient = new Audio('assets/sounds/Forest Day.ogg')
-let ambientTimer = null
 
 /* Music */
 const sonatina_letsadventure_3ToArms = new Audio('assets/music/sonatina_letsadventure_3ToArms.ogg')
-let menuMusicTimer = null
 
 // Initialize volumes from gameState
 clickSound.volume = gameState.sfxVolume
@@ -33,7 +31,9 @@ closeSound.volume = gameState.sfxVolume
 confirmSound.volume = gameState.sfxVolume
 buildingSound.volume = gameState.sfxVolume
 forestDayAmbient.volume = gameState.sfxVolume
+forestDayAmbient.loop = true
 sonatina_letsadventure_3ToArms.volume = gameState.musicVolume
+sonatina_letsadventure_3ToArms.loop = true
 
 // Subscribe to volume changes
 gameState.events.on('sfx-volume-changed', (volume) => {
@@ -100,28 +100,22 @@ const musicManager = async () => {
 }
 
 const playAmbientSounds = async (status) => {
-  clearTimeout(ambientTimer)
-
   if (status === 'playing') {
-    if (forestDayAmbient.paused || forestDayAmbient.ended) {
+    if (forestDayAmbient.paused) {
       forestDayAmbient.currentTime = 0
       forestDayAmbient.play()
     }
-    ambientTimer = setTimeout(() => playAmbientSounds(gameState.gameStatus), 5000)
   } else {
     forestDayAmbient.pause()
   }
 }
 
 const playMenuMusic = async (status) => {
-  clearTimeout(menuMusicTimer)
-
   if (status === 'menu') {
-    if (sonatina_letsadventure_3ToArms.paused || sonatina_letsadventure_3ToArms.ended) {
+    if (sonatina_letsadventure_3ToArms.paused) {
       sonatina_letsadventure_3ToArms.currentTime = 0
       sonatina_letsadventure_3ToArms.play()
     }
-    menuMusicTimer = setTimeout(() => playMenuMusic(gameState.gameStatus), 5000)
   } else {
     sonatina_letsadventure_3ToArms.pause()
   }
