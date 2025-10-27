@@ -1,6 +1,6 @@
 [![Pixel Fortress Logo](assets/logo_banner.svg)](https://dorianbayart.github.io/sandbox/games/pixel-fortress/) 
 
-# <img src="assets/base_192_pixelated.png" alt="Favicon" width="auto" height="32"> Pixel Fortress
+# <img src="assets/base_512_pixelated.png" alt="Favicon" width="auto" height="32"> Pixel Fortress
 
 A 2D pixel-based strategy game that uniquely merges the depth of Tower Defense with the addictive simplicity of Clicker styles.
 

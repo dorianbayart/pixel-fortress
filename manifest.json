@@ -1,52 +1,52 @@
 {
-    "background_color": "#114611",
-    "categories": [
-        "games",
-        "strategy",
-        "tower-defense",
-        "pixel-art",
-        "2d"
-    ],
-    "description": "Pixel Fortress is a 2D pixel-based strategy game that uniquely merges the depth of Tower Defense with the addictive simplicity of Clicker styles.",
-    "display": "standalone",
-    "icons": [
-        {
-            "sizes": "16x16",
-            "src": "assets/base_16.png",
-            "type": "image/png"
-        },
-        {
-            "sizes": "192x192",
-            "src": "assets/base_192_pixelated.png",
-            "type": "image/png"
-        }
-    ],
-    "name": "Pixel Fortress",
-    "screenshots": [
-        {
-            "form_factor": "narrow",
-            "label": "Title banner - Portrait view",
-            "sizes": "1000x1800",
-            "src": "assets/logo_portrait.svg",
-            "type": "image/svg+xml"
-        },
-        {
-            "form_factor": "wide",
-            "label": "Title banner - Wide view",
-            "sizes": "1000x300",
-            "src": "assets/logo_banner.svg",
-            "type": "image/svg+xml"
-        },
-        {
-            "label": "2D pixelated sprite",
-            "sizes": "192x192",
-            "src": "assets/base_192_pixelated.png",
-            "type": "image/png"
-        }
-    ],
-    "short_name": "Pixel Fortress",
-    "start_url": "index.html",
-    "theme_color": "#228b22",
-    "version": "0.0.1",
-    "version_name": "0.0.1 Building"
+  "background_color": "#114611",
+  "categories": [
+    "games",
+    "strategy",
+    "tower-defense",
+    "pixel-art",
+    "2d"
+  ],
+  "description": "Pixel Fortress is a 2D pixel-based strategy game that uniquely merges the depth of Tower Defense with the addictive simplicity of Clicker styles.",
+  "display": "standalone",
+  "icons": [
+    {
+      "sizes": "16x16",
+      "src": "assets/base_16.png",
+      "type": "image/png"
+    },
+    {
+      "sizes": "512x512",
+      "src": "assets/base_512_pixelated.png",
+      "type": "image/png"
+    }
+  ],
+  "name": "Pixel Fortress",
+  "screenshots": [
+    {
+      "form_factor": "narrow",
+      "label": "Title banner - Portrait view",
+      "sizes": "1000x1800",
+      "src": "assets/logo_portrait.svg",
+      "type": "image/svg+xml"
+    },
+    {
+      "form_factor": "wide",
+      "label": "Title banner - Wide view",
+      "sizes": "1000x300",
+      "src": "assets/logo_banner.svg",
+      "type": "image/svg+xml"
+    },
+    {
+      "label": "2D pixelated sprite",
+      "sizes": "512x512",
+      "src": "assets/base_512_pixelated.png",
+      "type": "image/png"
+    }
+  ],
+  "short_name": "Pixel Fortress",
+  "start_url": "index.html",
+  "theme_color": "#228b22",
+  "version": "0.1.0",
+  "version_name": "0.1.0"
 }

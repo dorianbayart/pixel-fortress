@@ -1,0 +1,77 @@
+{
+  "name": "pixel-fortress",
+  "version": "0.1.0",
+  "description": "A 2D pixel-based strategy game that uniquely merges the depth of Tower Defense with the addictive simplicity of Clicker styles.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "update-manifest-version": "VERSION=$(node -p \"require('./package.json').version\"); jq '.version = \"'\"$VERSION\"'\" | .version_name = \"'\"$VERSION\"'\"' manifest.json > manifest.json.tmp && mv manifest.json.tmp manifest.json",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dorianbayart/sandbox/tree/master/games/pixel-fortress"
+  },
+  "bugs": {
+    "url": "https://github.com/dorianbayart/sandbox/tree/master/games/pixel-fortress/KNOWN_BUGS.md"
+  },
+  "homepage": "https://dorianbayart.github.io/sandbox/games/pixel-fortress/",
+  "keywords": [
+    "pixel",
+    "fortress",
+    "game",
+    "strategy",
+    "tower defense",
+    "TD",
+    "clicker",
+    "pixel art",
+    "2D",
+    "HTML5",
+    "JavaScript",
+    "canvas",
+    "web",
+    "browser",
+    "open source",
+    "sandbox",
+    "dungeon",
+    "monsters",
+    "waves",
+    "upgrades",
+    "skills",
+    "achievements",
+    "resource management",
+    "base building",
+    "survival"
+  ],
+  "author": "Dorian Bayart (https://github.com/dorianbayart)",
+  "license": "ISC",
+  "build": {
+    "appId": "com.0xDBA.pixelfortress",
+    "productName": "Pixel Fortress",
+    "icon": "assets/base_512_pixelated.png",
+    "files": [
+      "**/*",
+      "!node_modules",
+      "!package-lock.json",
+      "!npm-debug.log",
+      "!dist"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  },
+  "devDependencies": {
+    "electron": "^38.4.0",
+    "electron-builder": "^26.0.12"
+  }
+}
