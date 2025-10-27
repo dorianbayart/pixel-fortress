@@ -11,12 +11,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/dorianbayart/sandbox/tree/master/games/pixel-fortress"
+    "url": "https://github.com/dorianbayart/pixel-fortress.git"
   },
   "bugs": {
-    "url": "https://github.com/dorianbayart/sandbox/tree/master/games/pixel-fortress/KNOWN_BUGS.md"
+    "url": "https://github.com/dorianbayart/pixel-fortress/KNOWN_BUGS.md"
   },
-  "homepage": "https://dorianbayart.github.io/sandbox/games/pixel-fortress/",
+  "homepage": "https://dorianbayart.github.io/pixel-fortress/",
   "keywords": [
     "pixel",
     "fortress",
@@ -34,7 +34,6 @@
     "browser",
     "pixijs",
     "open source",
-    "sandbox",
     "dungeon",
     "monsters",
     "waves",
@@ -48,7 +47,7 @@
   "author": "Dorian Bayart (https://github.com/dorianbayart)",
   "license": "ISC",
   "build": {
-    "appId": "com.0xDBA.pixelfortress",
+    "appId": "com.dorianbayart.pixelfortress",
     "productName": "Pixel Fortress",
     "icon": "assets/base_512_pixelated.png",
     "files": [

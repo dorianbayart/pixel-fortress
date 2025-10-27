@@ -1,10 +1,10 @@
-[![Pixel Fortress Logo](assets/logo_banner.svg)](https://dorianbayart.github.io/sandbox/games/pixel-fortress/) 
+[![Pixel Fortress Logo](assets/logo_banner.svg)](https://dorianbayart.github.io/pixel-fortress/) 
 
 # <img src="assets/base_512_pixelated.png" alt="Favicon" width="auto" height="32"> Pixel Fortress
 
 A 2D pixel-based strategy game that uniquely merges the depth of Tower Defense with the addictive simplicity of Clicker styles.
 
-➡️ [Play live](https://dorianbayart.github.io/sandbox/games/pixel-fortress/)
+➡️ [Play live](https://dorianbayart.github.io/pixel-fortress/)
 
 
 
@@ -51,12 +51,13 @@ Units automatically attack nearby enemies within their range or navigate to enga
 
 ### 💾 Installation
 
-1. Clone the repository: `git clone https://github.com/dorianbayart/sandbox.git`
-2. Navigate to the project directory: `cd games/pixel-fortress`
+1. Clone the repository: `git clone https://github.com/dorianbayart/pixel-fortress.git`
+2. Navigate to the project directory: `cd pixel-fortress`
+3. Install dependencies with `npm install` if you want to use the Electron version
 
 ### ▶️ Running the Game
 
-1. Open the `index.html` file in your web browser.
+1. Open the `index.html` file in your web browser, or run `npm run start` to launch the Electron app.
 2. Enjoy!
 
 ### ⚠️ Troubleshooting
@@ -119,4 +120,4 @@ Under the following terms:
 
 ## #️⃣ Keywords
 
-pixel, fortress, game, strategy, tower defense, TD, clicker, pixel art, 2D, HTML5, JavaScript, canvas, web, browser, pixijs, open source, sandbox, dungeon, monsters, waves, upgrades, skills, achievements, resource management, base building, survival
+pixel, fortress, game, strategy, tower defense, TD, clicker, pixel art, 2D, HTML5, JavaScript, canvas, web, browser, pixijs, open source, dungeon, monsters, waves, upgrades, skills, achievements, resource management, base building, survival
