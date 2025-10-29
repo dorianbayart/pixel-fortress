@@ -143,6 +143,13 @@ jobs:
       run: |
         gh release delete v${{ steps.get_version.outputs.version }} --yes
 
+    - name: Delete existing Git tag if found
+      if: steps.check_release.outputs.exists == 'true'
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        git push origin --delete v${{ steps.get_version.outputs.version }} || true
+
     - name: Upload artifacts to Release
       uses: softprops/action-gh-release@v1
       with:
