@@ -34,7 +34,7 @@ const throttle = (func, wait = 100) => {
  * @returns {number|null} The distance between the points, or null if one of the points is missing
  */
 const distance = (a, b) => {
-    if(!a?.x || !a?.y || !b?.x || !b?.y) return null
+    if(isNaN(a?.x) || isNaN(a?.y) || isNaN(b?.x) || isNaN(b?.y)) return null
     return Math.sqrt(Math.pow(b.x-a.x, 2) + Math.pow(b.y-a.y, 2))
 }
 

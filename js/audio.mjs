@@ -5,8 +5,13 @@ export {
   playCloseSound,
   playConfirmSound,
   playHoverSound,
-  playMenuMusic
+  playMenuMusic,
+  toggleMute,
+  isMuted
 }
+
+const NOT_ALLOWED_ERROR = 'NotAllowedError'
+let isMuted = false
 
 'use strict'
 
@@ -34,6 +39,7 @@ forestDayAmbient.volume = gameState.sfxVolume
 forestDayAmbient.loop = true
 sonatina_letsadventure_3ToArms.volume = gameState.musicVolume
 sonatina_letsadventure_3ToArms.loop = true
+sonatina_letsadventure_3ToArms.autoplay = true
 
 // Subscribe to volume changes
 gameState.events.on('sfx-volume-changed', (volume) => {
@@ -100,6 +106,8 @@ const musicManager = async () => {
 }
 
 const playAmbientSounds = async (status) => {
+  if (isMuted) return
+
   if (status === 'playing') {
     if (forestDayAmbient.paused) {
       forestDayAmbient.currentTime = 0
@@ -111,13 +119,33 @@ const playAmbientSounds = async (status) => {
 }
 
 const playMenuMusic = async (status) => {
+  if (isMuted) return
+
   if (status === 'menu') {
     if (sonatina_letsadventure_3ToArms.paused) {
       sonatina_letsadventure_3ToArms.currentTime = 0
-      sonatina_letsadventure_3ToArms.play()
+      let playStatus
+      try { // Try to play music
+        playStatus = await sonatina_letsadventure_3ToArms.play()
+      } catch(e) { // play() was not authorized
+        if(!playStatus || playStatus?.includes(NOT_ALLOWED_ERROR)) {
+          isMuted = true
+        }
+      }
     }
   } else {
     sonatina_letsadventure_3ToArms.pause()
+  }
+}
+
+const toggleMute = async () => {
+  isMuted = !isMuted
+  if (isMuted) {
+    sonatina_letsadventure_3ToArms.pause()
+    forestDayAmbient.pause()
+  } else {
+    playMenuMusic(gameState.gameStatus)
+    playAmbientSounds(gameState.gameStatus)
   }
 }
 

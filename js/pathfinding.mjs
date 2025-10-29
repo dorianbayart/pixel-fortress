@@ -21,7 +21,7 @@ const workerCalculations = Array.from({ length: NUM_PATHFINDING_WORKERS }, () =>
  * @returns {Promise<Array|null>} Promise that resolves with an array of path nodes or null if no path found
  */
 for (let i = 0; i < NUM_PATHFINDING_WORKERS; i++) {
-  const worker = new Worker('./js/worker.js', { type: 'module' })
+  const worker = new Worker('./js/worker.mjs', { type: 'module' })
   pathfindingWorkers.push(worker)
 
   worker.onmessage = (event) => {

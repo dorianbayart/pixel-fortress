@@ -2,7 +2,7 @@ export { handleWindowResize, initializeGame }
 
 'use strict'
 
-import { musicManager } from 'audio'
+import { isMuted, musicManager, toggleMute } from 'audio'
 import { getTileSize, initMapDimensions } from 'dimensions'
 import { initFogOfWar } from 'fogOfWar'
 import { gameLoop, initGame } from 'game'
@@ -26,8 +26,49 @@ async function initializeGame() {
   // Initialize home menu
   initHomeMenu()
 
-  // Initialize music manager
+  // Get audio toggle button
+  const audioToggleButton = document.getElementById('audioToggleButton')
+
+  // Attempt to play music immediately
+  // try {
+  //   musicManager()
+  //   audioToggleButton.style.display = 'none' // Hide button if music plays
+  // } catch (error) {
+  //   console.log(error)
+  //   if (error.name === 'NotAllowedError') {
+  //     console.warn('Autoplay prevented. User interaction required to play audio.')
+  //     if(!isMuted) toggleMute() // Set to muted if autoplay is prevented
+  //     audioToggleButton.style.display = 'block' // Show button
+  //     audioToggleButton.textContent = 'Unmute Audio'
+
+  //     // Add event listener for the audio toggle button
+  //     audioToggleButton.addEventListener('click', () => {
+  //       toggleMute()
+  //       audioToggleButton.textContent = isMuted ? 'Unmute Audio' : 'Mute Audio'
+  //     })
+  //   } else {
+  //     console.error('Error playing audio:', error)
+  //   }
+  // }
+
+  
+
+  // Initialize music manager (sets up event listeners)
   musicManager()
+  audioToggleButton.style.display = 'none'
+
+  setTimeout(async () => {
+    if(isMuted) {
+      audioToggleButton.style.display = 'block' // Show button
+      audioToggleButton.textContent = '🎵 Unmute Audio'
+
+      // Add event listener for the audio toggle button
+      audioToggleButton.addEventListener('click', () => {
+        toggleMute()
+        audioToggleButton.textContent = isMuted ? '🎵 Unmute Audio' : '🎵 Mute Audio'
+      })
+    }
+  }, 250)
   
   // Initialize mouse handling
   const mouseModule = await import('mouse')

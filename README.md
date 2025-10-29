@@ -53,7 +53,9 @@ Units automatically attack nearby enemies within their range or navigate to enga
 
 1. Clone the repository: `git clone https://github.com/dorianbayart/pixel-fortress.git`
 2. Navigate to the project directory: `cd pixel-fortress`
-3. Install dependencies with `npm install` if you want to use the Electron version
+3. Use `nvm install` and `nvm use` to install the required Node version (stored in .nvmrc)
+4. Install dependencies with `npm install` if you want to use the Electron version
+5. Run the unit tests with `npm run test`command
 
 ### ▶️ Running the Game
 

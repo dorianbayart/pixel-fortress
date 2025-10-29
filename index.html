@@ -183,12 +183,15 @@
 
     #menuOptions {
       opacity: 0;
+      display: flex;
+      flex-flow: column;
+      width: min(95%, 300px);
     }
 
     .menu-button {
       cursor: pointer;
-      padding: 0.75dvh 2dvw;
-      margin: 1.5dvh;
+      padding: 0.75dvh 2.5dvw;
+      margin: 1.5dvh auto;
       background: rgba(34, 139, 34, 0.3);
       border: 2px solid var(--font-color);
       border-radius: 6px;
@@ -197,7 +200,7 @@
       font-size: 1.5rem;
       text-align: center;
       transition: all 0.2s ease-in-out;
-      width: min(80%, 240px);
+      width: 95%;
       text-shadow: 0 0 5px forestgreen;
       box-shadow: 0 0 10px rgba(34, 139, 34, 0.5);
     }
@@ -213,6 +216,15 @@
       transform: translateY(0) scale(0.98);
       box-shadow: 0 2px 8px rgba(34, 139, 34, 0.7);
       filter: brightness(0.9);
+    }
+
+    #audioToggleButton {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 1.25rem;
+      width: 225px;
+      padding: 0.75dvh 0;
     }
 
     #progressBar {
@@ -277,34 +289,34 @@
   <script type="importmap">
     {
       "imports": {
-        "audio": "./js/audio.js",
-        "building": "./js/building.js",
-        "constants": "./js/constants.js",
-        "dimensions": "./js/dimensions.js",
-        "fogOfWar": "./js/fogOfWar.js",
-        "game": "./js/game.js",
-        "globals": "./js/globals.js",
-        "init": "./js/init.js",
-        "maps": "./js/maps.js",
-        "menu": "./js/menu.js",
-        "mouse": "./js/mouse.js",
-        "pathfinding": "./js/pathfinding.js",
-        "particles": "./js/particles.js",
-        "players": "./js/players.js",
-        "renderer": "./js/renderer.js",
-        "state": "./js/state.js",
-        "sprites": "./js/sprites.js",
-        "ui": "./js/ui.js",
-        "unit": "./js/unit.js",
-        "utils": "./js/utils.js",
-        "viewport": "./js/viewport.js",
-        "worker": "./js/worker.js",
+        "audio": "./js/audio.mjs",
+        "building": "./js/building.mjs",
+        "constants": "./js/constants.mjs",
+        "dimensions": "./js/dimensions.mjs",
+        "fogOfWar": "./js/fogOfWar.mjs",
+        "game": "./js/game.mjs",
+        "globals": "./js/globals.mjs",
+        "init": "./js/init.mjs",
+        "maps": "./js/maps.mjs",
+        "menu": "./js/menu.mjs",
+        "mouse": "./js/mouse.mjs",
+        "pathfinding": "./js/pathfinding.mjs",
+        "particles": "./js/particles.mjs",
+        "players": "./js/players.mjs",
+        "renderer": "./js/renderer.mjs",
+        "state": "./js/state.mjs",
+        "sprites": "./js/sprites.mjs",
+        "ui": "./js/ui.mjs",
+        "unit": "./js/unit.mjs",
+        "utils": "./js/utils.mjs",
+        "viewport": "./js/viewport.mjs",
+        "worker": "./js/worker.mjs",
         "pixijs": "./lib/pixi.mjs"
       }
     }
   </script>
 
-  <script type="module" src="js/index.js"></script>
+  <script type="module" src="js/index.mjs"></script>
 </head>
 
 <body>
@@ -322,6 +334,7 @@
       <button id="options" class="menu-button">Options</button>
       <button id="about" class="menu-button">About</button>
     </div>
+    <button id="audioToggleButton" class="menu-button" style="display: none;">🎵 Unmute Audio</button>
   </div>
 
   
