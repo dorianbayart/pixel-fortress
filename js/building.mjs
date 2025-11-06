@@ -501,7 +501,7 @@ class Tent extends WorkerBuilding {
    */
   produceWorker() {
     if (this.owner) {
-      this.owner.addWorker(this.x, this.y + 1)
+      this.owner.addWorker(this.x, this.y)
     }
   }
 }
@@ -1196,7 +1196,7 @@ class Barracks extends CombatBuilding {
    */
   produceWarrior() {
     if (this.owner) {
-      this.owner.addSoldier(this.x, this.y + 1)
+      this.owner.addSoldier(this.x, this.y)
     }
   }
 }
@@ -1218,7 +1218,7 @@ class Armory extends CombatBuilding {
    */
   produceWarrior() {
     if (this.owner) {
-      this.owner.addHeavyInfantry(this.x, this.y + 1)
+      this.owner.addHeavyInfantry(this.x, this.y)
     }
   }
 }
@@ -1240,7 +1240,7 @@ class Citadel extends CombatBuilding {
    */
   produceWarrior() {
     if (this.owner) {
-      this.owner.addEliteWarrior(this.x, this.y + 1)
+      this.owner.addEliteWarrior(this.x, this.y)
     }
   }
 }
