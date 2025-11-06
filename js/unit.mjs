@@ -473,7 +473,7 @@ class LumberjackWorker extends WorkerUnit {
     this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']  
       
     // Specialized properties
-    this.harvestRate = 0.1 // Wood per second
+    this.harvestRate = 0.2 // Wood per second
     this.maxResources = 1
     this.assignedBuilding = null // Reference to lumberjack building
 
@@ -645,7 +645,7 @@ class QuarryMiner extends WorkerUnit {
     this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']  
     
     // Specialized properties
-    this.miningRate = 0.1 // Stone per second
+    this.miningRate = 0.2 // Stone per second
     this.maxResources = 1
     this.assignedBuilding = null // Reference to quarry building
 
@@ -818,7 +818,7 @@ class WaterCarrier extends WorkerUnit {
     this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']  
     
     // Specialized properties
-    this.collectionRate = 0.1 // Water per second
+    this.collectionRate = 0.2 // Water per second
     this.maxResources = 1
     this.assignedBuilding = null // Reference to well building
 
@@ -1004,7 +1004,7 @@ class GoldMiner extends WorkerUnit {
     this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']  
     
     // Specialized properties
-    this.miningRate = 0.1 // Gold per second
+    this.miningRate = 0.2 // Gold per second
     this.maxResources = 1
     this.assignedBuilding = null // Reference to gold mine building
 
