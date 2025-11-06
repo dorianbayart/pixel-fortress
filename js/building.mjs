@@ -35,7 +35,7 @@ class Building {
         LUMBERJACK: {
           name: "Wood Hut",
           icon: "🪓",
-          costs: { wood: 10 },
+          costs: { wood: 8 },
           UPGRADES: {
             benefits: { life: 25, maxWorkers: 1 } // +25 life, +1 worker
           },
