@@ -158,6 +158,13 @@ function setupEventListeners() {
       case 'd':
         toggleDebug()
         break
+      case 'u':
+        if (gameState.selectedBuilding && gameState.humanPlayer.canAffordUpgrade(gameState.selectedBuilding)) {
+          gameState.selectedBuilding.handleBuildingUpgrade()
+          // Simulate a click event for visual feedback (sparkles)
+          addButtonSparkles({ clientX: app.renderer.width / 2, clientY: app.renderer.height - CONSTANTS.UI.BOTTOM_BAR_HEIGHT / 2 })
+        }
+        break
     }
   })
 
@@ -784,23 +791,33 @@ async function displayBuildingInfo(building) {
     upgradeButtonIcon.anchor.set(0.5)
     upgradeButtonIcon.position.set(30, 20 + padding)
     
-    const upgradeLabel = 'Upgrade'
-    const upgradeButtonText = new PIXI.Text({
-      text: upgradeLabel,
+    const upgradeUText = new PIXI.Text({
+      text: 'U',
+      style: {
+        fontFamily: UI_FONTS.PRIMARY,
+        fontSize: 16,
+        fill: 0xFFD700, // Gold color for 'U'
+        fontWeight: 'bold',
+      }
+    })
+    upgradeUText.anchor.set(0.5)
+    upgradeUText.position.set(65, 20 + padding) // Position 'U'
+
+    const pgradeText = new PIXI.Text({
+      text: 'pgrade',
       style: {
         fontFamily: UI_FONTS.PRIMARY,
         fontSize: 16,
         fill: 0xFFFFFF,
-        align: 'center',
-        padding: fontSize * upgradeLabel.length / 2,
+        padding: 12
       }
     })
-    upgradeButtonText.anchor.set(0.5)
-    upgradeButtonText.position.set(85 + fontSize * upgradeLabel.length / 2, 20 + padding + fontSize * upgradeLabel.length / 2)
+    pgradeText.anchor.set(0.5)
+    pgradeText.position.set(upgradeUText.x + upgradeUText.width / 2 + 1.3 * pgradeText.width / 2 - 5 + 12, 20 + padding + 12) // Position 'pgrade' next to 'U'
     
 
     const upgradeButtonBg = new PIXI.Graphics()
-      .roundRect(0, 0, 3 * padding + upgradeButtonIcon.width + upgradeButtonText.width, 60, 4)
+      .roundRect(0, 0, 3 * padding + upgradeButtonIcon.width + upgradeUText.width * 1.25 + pgradeText.width, 60, 4)
       .fill({ color: canAffordUpgrade ? 0x006400 : 0x333333, alpha: 0.7 }) // Dark green if affordable, grey otherwise
       .stroke({ width: 1, color: 0xFFD700, alpha: 0.8 })
     
@@ -836,7 +853,8 @@ async function displayBuildingInfo(building) {
 
     upgradeButton.addChild(upgradeButtonBg)
     upgradeButton.addChild(upgradeButtonIcon)
-    upgradeButton.addChild(upgradeButtonText)
+    upgradeButton.addChild(upgradeUText)
+    upgradeButton.addChild(pgradeText)
     bottomBarContainer.addChild(upgradeButton)
     bottomBarContainer.addChild(upgradeBenefitsDisplay)
 
