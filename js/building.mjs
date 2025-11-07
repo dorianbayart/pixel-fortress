@@ -304,6 +304,13 @@ class Building {
       }
 
       this.level = nextLevel
+      
+      createParticleEmitter(ParticleEffect.BUILDING_PLACE, {
+        x: this.x * getTileSize() + getTileSize()/2,
+        y: this.y * getTileSize() + getTileSize()/2,
+        duration: 1500
+      })
+
       return true
     }
     return false
