@@ -16,6 +16,51 @@ import { showDebugMessage } from 'ui'
 import { GoldMiner, LumberjackWorker, Peon, QuarryMiner, WaterCarrier } from 'unit'
 import { distance } from 'utils'
 
+/**
+ * Finds the best available spawn location around a building.
+ * @param {number} buildingX - The x-coordinate of the building.
+ * @param {number} buildingY - The y-coordinate of the building.
+ * @returns {Promise<{x: number, y: number}|null>} A promise that resolves to the best spawn location or null if none found.
+ */
+async function findBestSpawnLocation(buildingX, buildingY) {
+    const { width: MAP_WIDTH, height: MAP_HEIGHT } = getMapDimensions()
+    const potentialOffsets = [
+        { dx: -1, dy: -1 }, { dx: 0, dy: -1 }, { dx: 1, dy: -1 },
+        { dx: -1, dy: 0 },                     { dx: 1, dy: 0 },
+        { dx: -1, dy: 1 }, { dx: 0, dy: 1 }, { dx: 1, dy: 1 },
+    ]
+
+    const validLocations = []
+
+    for (const offset of potentialOffsets) {
+        const newX = buildingX + offset.dx
+        const newY = buildingY + offset.dy
+
+        // Check map boundaries
+        if (newX >= 0 && newX < MAP_WIDTH && newY >= 0 && newY < MAP_HEIGHT) {
+            const tile = gameState.map[newX][newY]
+
+            // Check if the tile is walkable and not occupied by a resource or building
+            if (tile &&
+                tile.type !== TERRAIN_TYPES.WATER.type &&
+                tile.type !== TERRAIN_TYPES.ROCK.type &&
+                tile.type !== TERRAIN_TYPES.GOLD.type &&
+                tile.type !== TERRAIN_TYPES.TREE.type &&
+                tile.type !== TERRAIN_TYPES.BUILDING.type) {
+                validLocations.push({ x: newX, y: newY })
+            }
+        }
+    }
+
+    // For now, just return the first valid location.
+    // Later, we can implement more sophisticated "best" location logic (e.g., closest to path, least crowded).
+    if (validLocations.length > 0) {
+        return validLocations[0]
+    }
+    return null
+}
+
+
 const TREE_PROCESSING_BATCH_SIZE = 8 // Process 8 trees at once
 const TREE_PROCESSING_DELAY = 80 // 80ms delay between batches
 
@@ -499,9 +544,14 @@ class Tent extends WorkerBuilding {
   /**
    * Produce a worker unit
    */
-  produceWorker() {
+  async produceWorker() {
     if (this.owner) {
-      this.owner.addWorker(this.x, this.y)
+      const spawnLocation = await findBestSpawnLocation(this.x, this.y)
+      if (spawnLocation) {
+        this.owner.addWorker(spawnLocation.x, spawnLocation.y)
+      } else {
+        console.warn(`No valid spawn location found for worker from ${this.type.name} at (${this.x}, ${this.y})`)
+      }
     }
   }
 }
@@ -1194,9 +1244,14 @@ class Barracks extends CombatBuilding {
   /**
    * Produce a soldier unit
    */
-  produceWarrior() {
+  async produceWarrior() {
     if (this.owner) {
-      this.owner.addSoldier(this.x, this.y)
+      const spawnLocation = await findBestSpawnLocation(this.x, this.y)
+      if (spawnLocation) {
+        this.owner.addSoldier(spawnLocation.x, spawnLocation.y)
+      } else {
+        console.warn(`No valid spawn location found for soldier from ${this.type.name} at (${this.x}, ${this.y})`)
+      }
     }
   }
 }
@@ -1216,9 +1271,14 @@ class Armory extends CombatBuilding {
   /**
    * Produce a heavy infantry unit
    */
-  produceWarrior() {
+  async produceWarrior() {
     if (this.owner) {
-      this.owner.addHeavyInfantry(this.x, this.y)
+      const spawnLocation = await findBestSpawnLocation(this.x, this.y)
+      if (spawnLocation) {
+        this.owner.addHeavyInfantry(spawnLocation.x, spawnLocation.y)
+      } else {
+        console.warn(`No valid spawn location found for heavy infantry from ${this.type.name} at (${this.x}, ${this.y})`)
+      }
     }
   }
 }
@@ -1238,9 +1298,14 @@ class Citadel extends CombatBuilding {
   /**
    * Produce an elite warrior unit
    */
-  produceWarrior() {
+  async produceWarrior() {
     if (this.owner) {
-      this.owner.addEliteWarrior(this.x, this.y)
+      const spawnLocation = await findBestSpawnLocation(this.x, this.y)
+      if (spawnLocation) {
+        this.owner.addEliteWarrior(spawnLocation.x, spawnLocation.y)
+      } else {
+        console.warn(`No valid spawn location found for elite warrior from ${this.type.name} at (${this.x}, ${this.y})`)
+      }
     }
   }
 }
