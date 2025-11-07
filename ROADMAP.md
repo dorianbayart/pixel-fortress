@@ -1,6 +1,6 @@
 # Pixel Fortress Roadmap
 
-## Core Gameplay (High Priority)
+## Core Gameplay
 
 - [x] **Game Initialization:** Game window creation, initial resource loading.
 - [x] **Map Generation:** A basic map is randomly generated.
@@ -23,9 +23,11 @@ Details: The AI builds structures and manages units similarly to the player.
 - [x] **Market:** Market sells ressources against Money.
 - [ ] **Tower Placement:** Allow players to strategically place towers. *(Not Planned)*
 - [ ] **Tower Attacks:** Towers automatically attack enemies within their range. *(Not Planned)*
+- [ ] **Explorer:** Add an explorer that will be able to move around the map. *(Not Planned)*
+- [ ] **Fortification:** Implement a system for building fortifications. *(Not Planned)*
 
 
-## User Interface (Medium Priority)
+## User Interface
 
 - [x] **Tower/Building Selection UI:** Display available towers/buildings and allow players to select them.
 - [ ] **Game Menu:** Implement a main menu, pause menu, and options menu. *(In Progress)*  
@@ -35,16 +37,17 @@ Details: The menu presents what the User can do: Play on random map, Play a pred
 - [ ] **Mini-Map:** Overview of the game world.
 
 
-## Gameplay (Medium Priority)
+## Gameplay
 
 - [x] **Fog of War:** Implement a fog of war mechanism.
 - [x] **Building prices:** Prices of buildings are increasing with the amount of buildings already built. *(In Progress)*  
 Details: The price of a building is based on the amount of buildings already built. Maybe 25% more expensive for each building.
 - [ ] **Special Maps:** Add predefined maps. *(Not Planned)*
 - [ ] **Campaign Mode:** Add campaigns maps with scenarii. *(Not Planned)*
+- [ ] **Unit Resistance:** Implement unit resistance to certain types of damage. *(Not Planned)*
 
 
-## Upgrades and Power-ups (Medium Priority)
+## Upgrades and Power-ups
 
 - [ ] **Tower Upgrades:** Allow players to upgrade towers to increase their effectiveness. *(Not Planned)*
 - [x] **Building Upgrades:** Allow players to upgrade buildings to increase their capacity.
@@ -52,7 +55,7 @@ Details: Can affect more workers, can produce quicklyer units, etc.
 - [ ] **Global Upgrades:** Implement upgrades that affect the entire game (e.g., increased resource gain). *(Not Planned)*
 
 
-## Sound and Music (Low Priority)
+## Sound and Music
 
 - [ ] **Sound Effects:** Implement sound effects for tower attacks, enemy spawns, etc. *(In Progress)*
 - [ ] **Background Music:** Add background music to enhance the game's atmosphere. *(In Progress)*
@@ -67,8 +70,7 @@ Details: This should include: pseudo, host a map, join a map
 
 ## Others
 
-- [ ] **Explorer:** Add an explorer that will be able to move around the map. *(Not Planned)*
-- [ ] **Animated water:** Manage the different water sprites to animate it. *(Not Planned)*
+- [ ] **Animated water:** Manage the different water sprites to animate. *(Not Planned)*
 
 
 ## Future Features and Ideas
@@ -78,3 +80,5 @@ Details: This should include: pseudo, host a map, join a map
 - [ ] **Level Editor:** Allow players to create their own custom levels. *(Not Planned)* 
 - [ ] **Endless Mode:** Implement an endless mode with increasing difficulty. *(Not Planned)*
 - [x] **High Speed:** High speed mode: the time is 1x, 1.33x or 2x accelerated.
+- [ ] **Rapid Gathering:** Gathering workers are faster like Speedy Gonsalves. *(Not Planned)*
+- [ ] **PNJs:** Add PNJs enemies on the map. *(Not Planned)*
