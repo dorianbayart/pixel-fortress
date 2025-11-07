@@ -22,12 +22,12 @@ import { distance } from 'utils'
  * @param {number} buildingY - The y-coordinate of the building.
  * @returns {Promise<{x: number, y: number}|null>} A promise that resolves to the best spawn location or null if none found.
  */
-async function findBestSpawnLocation(buildingX, buildingY) {
+async function findBestSpawnLocation(buildingX, buildingY, targetX, targetY) {
     const { width: MAP_WIDTH, height: MAP_HEIGHT } = getMapDimensions()
     const potentialOffsets = [
-        { dx: -1, dy: -1 }, { dx: 0, dy: -1 }, { dx: 1, dy: -1 },
+        /*{ dx: -1, dy: -1 },*/ { dx: 0, dy: -1 }, /*{ dx: 1, dy: -1 },*/
         { dx: -1, dy: 0 },                     { dx: 1, dy: 0 },
-        { dx: -1, dy: 1 }, { dx: 0, dy: 1 }, { dx: 1, dy: 1 },
+        /*{ dx: -1, dy: 1 },*/ { dx: 0, dy: 1 }, /*{ dx: 1, dy: 1 },*/
     ]
 
     const validLocations = []
@@ -46,18 +46,27 @@ async function findBestSpawnLocation(buildingX, buildingY) {
                 tile.type !== TERRAIN_TYPES.ROCK.type &&
                 tile.type !== TERRAIN_TYPES.GOLD.type &&
                 tile.type !== TERRAIN_TYPES.TREE.type &&
-                tile.type !== TERRAIN_TYPES.BUILDING.type) {
+                !tile.building) {
                 validLocations.push({ x: newX, y: newY })
             }
         }
     }
 
-    // For now, just return the first valid location.
-    // Later, we can implement more sophisticated "best" location logic (e.g., closest to path, least crowded).
-    if (validLocations.length > 0) {
-        return validLocations[0]
+    const pathPromises = validLocations.map(loc => searchPath(loc.x, loc.y, targetX, targetY))
+    const paths = await Promise.all(pathPromises)
+
+    let bestLocation = null
+    let shortestPathLength = Infinity
+
+    for (let i = 0; i < validLocations.length; i++) {
+        const path = paths[i]
+        if (path && path.length > 0 && path.length < shortestPathLength) {
+            shortestPathLength = path.length
+            bestLocation = validLocations[i]
+        }
     }
-    return null
+
+    return bestLocation
 }
 
 
@@ -546,7 +555,8 @@ class Tent extends WorkerBuilding {
    */
   async produceWorker() {
     if (this.owner) {
-      const spawnLocation = await findBestSpawnLocation(this.x, this.y)
+      const target = this.owner.getEnemies()[0].currentNode ? this.owner.getEnemies()[0].currentNode : this.owner.getEnemies()[0]
+      const spawnLocation = await findBestSpawnLocation(this.x, this.y, target.x, target.y)
       if (spawnLocation) {
         this.owner.addWorker(spawnLocation.x, spawnLocation.y)
       } else {
@@ -1246,7 +1256,13 @@ class Barracks extends CombatBuilding {
    */
   async produceWarrior() {
     if (this.owner) {
-      const spawnLocation = await findBestSpawnLocation(this.x, this.y)
+      const enemy = this.owner.getEnemies()[0]
+      if (!enemy) {
+        console.warn('No enemy tent found to target for combat unit spawn.')
+        return
+      }
+      const target = enemy.currentNode ? enemy.currentNode : enemy
+      const spawnLocation = await findBestSpawnLocation(this.x, this.y, target.x, target.y)
       if (spawnLocation) {
         this.owner.addSoldier(spawnLocation.x, spawnLocation.y)
       } else {
@@ -1273,7 +1289,13 @@ class Armory extends CombatBuilding {
    */
   async produceWarrior() {
     if (this.owner) {
-      const spawnLocation = await findBestSpawnLocation(this.x, this.y)
+      const enemy = this.owner.getEnemies()[0]
+      if (!enemy) {
+        console.warn('No enemy tent found to target for combat unit spawn.')
+        return
+      }
+      const target = enemy.currentNode ? enemy.currentNode : enemy
+      const spawnLocation = await findBestSpawnLocation(this.x, this.y, target.x, target.y)
       if (spawnLocation) {
         this.owner.addHeavyInfantry(spawnLocation.x, spawnLocation.y)
       } else {
@@ -1300,7 +1322,13 @@ class Citadel extends CombatBuilding {
    */
   async produceWarrior() {
     if (this.owner) {
-      const spawnLocation = await findBestSpawnLocation(this.x, this.y)
+      const enemy = this.owner.getEnemies()[0]
+      if (!enemy) {
+        console.warn('No enemy tent found to target for combat unit spawn.')
+        return
+      }
+      const target = enemy.currentNode ? enemy.currentNode : enemy
+      const spawnLocation = await findBestSpawnLocation(this.x, this.y, target.x, target.y)
       if (spawnLocation) {
         this.owner.addEliteWarrior(spawnLocation.x, spawnLocation.y)
       } else {
