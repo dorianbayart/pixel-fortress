@@ -23,7 +23,7 @@ Details: The AI builds structures and manages units similarly to the player.
 - [x] **Market:** Market sells ressources against Money.
 - [ ] **Tower Placement:** Allow players to strategically place towers. *(Not Planned)*
 - [ ] **Tower Attacks:** Towers automatically attack enemies within their range. *(Not Planned)*
-- [ ] **Explorer:** Add an explorer that will be able to move around the map. *(Not Planned)*
+- [x] **Explorer:** Add an explorer that will be able to move around the map.
 - [ ] **Fortification:** Implement a system for building fortifications. *(Not Planned)*
 
 
