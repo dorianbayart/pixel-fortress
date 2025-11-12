@@ -1197,7 +1197,7 @@ class CombatUnit extends Unit {
     // Periodically re-evaluate nearest enemy, even if currently attacking
     // This allows units to switch targets if a closer or more critical enemy appears
     const reevaluateInterval = Math.min(7500, (this.path?.length || 1) * 600) // Re-evaluate every few 600ms - max is 7500ms
-    if (this.task === 'idle' || /*this.task === 'explore' ||*/ this.timeSinceLastTargetReevaluation > reevaluateInterval) {
+    if (this.task === 'idle' || this.timeSinceLastTargetReevaluation > reevaluateInterval) {
       this.timeSinceLastTargetReevaluation = 0
       const newEnemyPath = await this.pathToNearestEnemy()
       if (newEnemyPath) {
@@ -1206,14 +1206,15 @@ class CombatUnit extends Unit {
         this.task = 'moving' // Set task to moving if a new path to enemy is found
       } else {
         // No visible enemies, try to explore
-        const newExplorePath = await this.findPathToUnexploredTile()
-        if (newExplorePath) {
-          this.path = newExplorePath
-          this.lastPathUpdate = time
-          this.task = 'explore' // Set task to explore
-        } else {
-          this.task = 'idle' // No enemies and no unexplored areas, remain idle
-        }
+        this.findPathToUnexploredTile().then(newExplorePath => {
+          if (newExplorePath) {
+            this.path = newExplorePath
+            this.lastPathUpdate = time
+            this.task = 'explore' // Set task to explore
+          } else {
+            this.task = 'idle' // No enemies and no unexplored areas, remain idle
+          }
+        })
       }
     }
 
