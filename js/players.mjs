@@ -6,7 +6,7 @@ import { Building } from 'building'
 import gameState, { EventSystem } from 'state'
 import { getMapDimensions } from 'dimensions'
 import { TERRAIN_TYPES } from 'game'
-import { isPositionVisible } from 'fogOfWar'
+import { isPositionVisible, isPositionExplored } from 'fogOfWar'
 import { EliteWarrior, GoldMiner, HeavyInfantry, LumberjackWorker, Peon, PeonSoldier, QuarryMiner, Soldier, WaterCarrier, WorkerUnit } from 'unit'
 import { searchPath } from 'pathfinding'
 import { distance } from 'utils'
@@ -25,6 +25,9 @@ class Player {
     this._cachedEnemies = null
     this._lastEnemyCacheUpdateTime = 0
     this._enemyCacheInterval = 1000 // 1 second
+    this._cachedExploredBorderTiles = null
+    this._lastExploredBorderTilesUpdateTime = 0
+    this._exploredBorderTilesInterval = 2000 // 2 seconds
 
     this.resources = {
       wood: 15 + (Building.TYPES.TENT.costs.wood || 0),
@@ -136,6 +139,40 @@ class Player {
     this._cachedEnemies = enemies
     this._lastEnemyCacheUpdateTime = gameState.gameTime
     return enemies
+  }
+
+  getExploredBorderTiles() {
+    if (this._cachedExploredBorderTiles && (gameState.gameTime - this._lastExploredBorderTilesUpdateTime < this._exploredBorderTilesInterval)) {
+      return this._cachedExploredBorderTiles
+    }
+
+    const { width: MAP_WIDTH, height: MAP_HEIGHT } = getMapDimensions()
+    const borderTiles = []
+
+    for (let x = 0; x < MAP_WIDTH; x++) {
+      for (let y = 0; y < MAP_HEIGHT; y++) {
+        if (isPositionExplored(x, y)) {
+          // Check neighbors
+          for (let dx = -1; dx <= 1; dx++) {
+            for (let dy = -1; dy <= 1; dy++) {
+              if (dx === 0 && dy === 0) continue // Skip self
+
+              const nx = x + dx
+              const ny = y + dy
+
+              // Check bounds and if neighbor is unexplored
+              if (nx >= 0 && nx < MAP_WIDTH && ny >= 0 && ny < MAP_HEIGHT && !isPositionExplored(nx, ny)) {
+                borderTiles.push({ x: nx, y: ny })
+              }
+            }
+          }
+        }
+      }
+    }
+
+    this._cachedExploredBorderTiles = borderTiles
+    this._lastExploredBorderTilesUpdateTime = gameState.gameTime
+    return borderTiles
   }
 
   getVisibleEnemies() {

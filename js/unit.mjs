@@ -6,6 +6,7 @@ export {
 
 import { getMapDimensions, getTileSize } from 'dimensions'
 import { TERRAIN_TYPES, updateSprite } from 'game'
+import { isPositionExplored } from 'fogOfWar'
 import { ParticleEffect, createParticleEmitter } from 'particles'
 import { searchPath, updateMapInWorker } from 'pathfinding'
 import { indicatorMap, removeProgressIndicator } from 'renderer'
@@ -1180,7 +1181,7 @@ class CombatUnit extends Unit {
     this.experience = 0
     this.level = 1
 
-    this.task = 'idle' // 'idle', 'attack'
+    this.task = 'idle' // 'idle', 'attack', 'explore'
   }
 
   async handleTasks(delay, time) {
@@ -1196,15 +1197,23 @@ class CombatUnit extends Unit {
     // Periodically re-evaluate nearest enemy, even if currently attacking
     // This allows units to switch targets if a closer or more critical enemy appears
     const reevaluateInterval = Math.min(7500, (this.path?.length || 1) * 600) // Re-evaluate every few 600ms - max is 7500ms
-    if (this.task === 'idle' || this.timeSinceLastTargetReevaluation > reevaluateInterval) {
+    if (this.task === 'idle' || /*this.task === 'explore' ||*/ this.timeSinceLastTargetReevaluation > reevaluateInterval) {
       this.timeSinceLastTargetReevaluation = 0
-      const newPath = await this.pathToNearestEnemy()
-      if (newPath) {
-        this.path = newPath
+      const newEnemyPath = await this.pathToNearestEnemy()
+      if (newEnemyPath) {
+        this.path = newEnemyPath
         this.lastPathUpdate = time
-        this.task = 'moving' // Set task to moving if a new path is found
+        this.task = 'moving' // Set task to moving if a new path to enemy is found
       } else {
-        this.task = 'idle' // No enemy found, remain idle
+        // No visible enemies, try to explore
+        const newExplorePath = await this.findPathToUnexploredTile()
+        if (newExplorePath) {
+          this.path = newExplorePath
+          this.lastPathUpdate = time
+          this.task = 'explore' // Set task to explore
+        } else {
+          this.task = 'idle' // No enemies and no unexplored areas, remain idle
+        }
       }
     }
 
@@ -1212,9 +1221,15 @@ class CombatUnit extends Unit {
     if (this.goal && distance(this.currentNode, this.goal.currentNode ? { x: this.goal.x / getTileSize(), y: this.goal.y / getTileSize() } : this.goal) < (this.range) / getTileSize()) {
       this.task = 'attack'
     } else if (this.goal && this.path) {
-      this.task = 'moving'
+      // If we have a goal and a path, and not attacking, we are moving (either to enemy or to explore)
+      if (this.task !== 'attack') {
+        this.task = this.task === 'explore' ? 'explore' : 'moving'
+      }
     } else {
-      this.task = 'idle'
+      // If no goal or path, and not already exploring, go idle
+      if (this.task !== 'explore') {
+        this.task = 'idle'
+      }
     }
   }
 
@@ -1259,11 +1274,55 @@ class CombatUnit extends Unit {
   }
 
   /**
+   * Find a path to an unexplored tile for exploration
+   * @returns {Array|null} Path to an unexplored tile or null if no path found
+   */
+  async findPathToUnexploredTile() {
+    const currentTile = this.currentNode
+    const borderTiles = this.owner.getExploredBorderTiles()
+
+    if (borderTiles.length === 0) return null
+
+    let bestUnexploredTile = null
+    let shortestPath = null
+    let shortestPathLength = Infinity
+
+    // To avoid checking all border tiles (which can still be many), pick a few random candidates
+    const candidates = []
+    for (let i = 0; i < Math.min(borderTiles.length, 10); i++) { // Check up to 10 random candidates
+      candidates.push(borderTiles[Math.floor(Math.random() * borderTiles.length)])
+    }
+
+    for (const tile of candidates) {
+      const path = await searchPath(currentTile.x, currentTile.y, tile.x, tile.y)
+      if (path && path.length < shortestPathLength) {
+        shortestPathLength = path.length
+        shortestPath = path
+        bestUnexploredTile = tile
+      }
+    }
+
+    if (bestUnexploredTile) {
+      this.goal = bestUnexploredTile
+      return shortestPath
+    }
+    return null
+  }
+
+  /**
    * Do action when goal is reached
    */
   goalReached(delay, time) {
-    this.task = 'attack'
-    this.attackEnemy(delay)
+    switch (this.task) {
+      case 'attack':
+        this.attackEnemy(delay)
+        break
+      case 'explore':
+        // Once an exploration goal is reached, immediately look for another
+        this.goal = null // Clear goal to trigger new pathfinding in handleTasks
+        this.path = null
+        break
+    }
   }
   
   /**
