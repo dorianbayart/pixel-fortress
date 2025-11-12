@@ -6,6 +6,7 @@ import { Building } from 'building'
 import gameState, { EventSystem } from 'state'
 import { getMapDimensions } from 'dimensions'
 import { TERRAIN_TYPES } from 'game'
+import { isPositionVisible } from 'fogOfWar'
 import { EliteWarrior, GoldMiner, HeavyInfantry, LumberjackWorker, Peon, PeonSoldier, QuarryMiner, Soldier, WaterCarrier, WorkerUnit } from 'unit'
 import { searchPath } from 'pathfinding'
 import { distance } from 'utils'
@@ -21,6 +22,9 @@ class Player {
     this.type = type
     this.units = []
     this.buildings = []
+    this._cachedEnemies = null
+    this._lastEnemyCacheUpdateTime = 0
+    this._enemyCacheInterval = 1000 // 1 second
 
     this.resources = {
       wood: 15 + (Building.TYPES.TENT.costs.wood || 0),
@@ -117,7 +121,11 @@ class Player {
   }
 
   getEnemies() {
-    return this.isHuman() ? 
+    if (this._cachedEnemies && (gameState.gameTime - this._lastEnemyCacheUpdateTime < this._enemyCacheInterval)) {
+      return this._cachedEnemies
+    }
+
+    const enemies = this.isHuman() ? 
       [
         ...gameState.aiPlayers.flatMap(ai => ai.getUnits()),
         ...gameState.aiPlayers.flatMap(ai => ai.getBuildings())
@@ -125,6 +133,17 @@ class Player {
         ...gameState.humanPlayer.getUnits(),
         ...gameState.humanPlayer.getBuildings()
       ]
+    this._cachedEnemies = enemies
+    this._lastEnemyCacheUpdateTime = gameState.gameTime
+    return enemies
+  }
+
+  getVisibleEnemies() {
+    return this.getEnemies().filter(enemy => {
+      const x = enemy.currentNode?.x !== undefined ? enemy.currentNode.x : enemy.x
+      const y = enemy.currentNode?.y !== undefined ? enemy.currentNode.y : enemy.y
+      return isPositionVisible(x, y)
+    })
   }
 
   getResources() {

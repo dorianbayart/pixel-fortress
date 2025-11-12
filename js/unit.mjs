@@ -1228,7 +1228,7 @@ class CombatUnit extends Unit {
     const { width: MAP_WIDTH, height: MAP_HEIGHT } = getMapDimensions()
     let path, pathLength = MAP_WIDTH * MAP_HEIGHT
     this.goal = null
-    const enemies = this.owner.getEnemies()
+    const enemies = this.owner.getVisibleEnemies()
       .filter(enemy => distance(this.currentNode, enemy.currentNode ?? { x: enemy.x, y: enemy.y }) < this.visibilityRange * 2) // Only consider enemies within 2x visibility range
       .map(enemy => {
         return { enemy, distance: distance(this.currentNode, enemy.currentNode ?? { x: enemy.x, y: enemy.y }) || 1 }
@@ -1249,11 +1249,13 @@ class CombatUnit extends Unit {
         path = tempPath
         this.goal = nearestEnemy
       }
+
+      if(this.nextNode) return [this.currentNode, this.nextNode, ...path]
+      if(this.currentNode) return [this.currentNode, ...path]
+      return path
     }
 
-    if(this.nextNode) return [this.currentNode, this.nextNode, ...path]
-    if(this.currentNode) return [this.currentNode, ...path]
-    return path
+    return null
   }
 
   /**
