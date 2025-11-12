@@ -78,8 +78,9 @@ function updateVisibility(delay, force = false) {
   
   lastFogUpdate = 0
   
-  // Reset fog to fully dark
   const { width, height } = getMapDimensions()
+  
+  // Reset fog to fully dark
   for (let x = 0; x < width; x++) {
     for (let y = 0; y < height; y++) {
       fogGrid[x][y] = 1 // 1 = fully fogged
@@ -108,6 +109,12 @@ function updateVisibility(delay, force = false) {
             
             // Check if within map bounds
             if (x >= 0 && x < width && y >= 0 && y < height) {
+              // Defensive check: Ensure fogGrid[x] is an array
+              if (!Array.isArray(fogGrid[x])) {
+                fogGrid[x] = Array(height).fill(1) // Re-initialize this column
+                exploredGrid[x] = Array(height).fill(false) // Re-initialize corresponding explored column
+              }
+
               // Calculate fog factor based on distance (closer = clearer)
               const distanceFactor = Math.min(1, 1 - Math.log(0.4 + (Math.sqrt(distanceSquared) / visibilityRange)))
               

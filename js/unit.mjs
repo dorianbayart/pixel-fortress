@@ -1206,6 +1206,7 @@ class CombatUnit extends Unit {
         this.task = 'moving' // Set task to moving if a new path to enemy is found
       } else {
         // No visible enemies, try to explore
+        this.task = 'explore'
         this.findPathToUnexploredTile().then(newExplorePath => {
           if (newExplorePath) {
             this.path = newExplorePath
@@ -1245,11 +1246,12 @@ class CombatUnit extends Unit {
     let path, pathLength = MAP_WIDTH * MAP_HEIGHT
     this.goal = null
     const enemies = this.owner.getVisibleEnemies()
-      .filter(enemy => distance(this.currentNode, enemy.currentNode ?? { x: enemy.x, y: enemy.y }) < this.visibilityRange * 2) // Only consider enemies within 2x visibility range
+      //.filter(enemy => distance(this.currentNode, enemy.currentNode ?? { x: enemy.x, y: enemy.y }) < this.visibilityRange * 2) // Only consider enemies within 2x visibility range
       .map(enemy => {
         return { enemy, distance: distance(this.currentNode, enemy.currentNode ?? { x: enemy.x, y: enemy.y }) || 1 }
       })
       .sort((a, b) => a.distance - b.distance)
+      //.slice(0, 4)
 
     if (enemies.length > 0) {
       const nearestEnemy = enemies[0].enemy
