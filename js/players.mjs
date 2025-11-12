@@ -24,10 +24,10 @@ class Player {
     this.buildings = []
     this._cachedEnemies = null
     this._lastEnemyCacheUpdateTime = 0
-    this._enemyCacheInterval = 1000 // 1 second
+    this._enemyCacheInterval = 1500 // 1.5 seconds
     this._cachedExploredBorderTiles = null
     this._lastExploredBorderTilesUpdateTime = 0
-    this._exploredBorderTilesInterval = 2000 // 2 seconds
+    this._exploredBorderTilesInterval = 2500 // 2.5 seconds
 
     this.resources = {
       wood: 15 + (Building.TYPES.TENT.costs.wood || 0),
@@ -124,7 +124,7 @@ class Player {
   }
 
   getEnemies() {
-    if (this._cachedEnemies && (gameState.gameTime - this._lastEnemyCacheUpdateTime < this._enemyCacheInterval)) {
+    if (this._cachedEnemies && (performance.now() - this._lastEnemyCacheUpdateTime < this._enemyCacheInterval)) {
       return this._cachedEnemies
     }
 
@@ -137,32 +137,41 @@ class Player {
         ...gameState.humanPlayer.getBuildings()
       ]
     this._cachedEnemies = enemies
-    this._lastEnemyCacheUpdateTime = gameState.gameTime
+    this._lastEnemyCacheUpdateTime = performance.now()
     return enemies
   }
 
   getExploredBorderTiles() {
-    if (this._cachedExploredBorderTiles && (gameState.gameTime - this._lastExploredBorderTilesUpdateTime < this._exploredBorderTilesInterval)) {
+    if (this._cachedExploredBorderTiles && (performance.now() - this._lastExploredBorderTilesUpdateTime < this._exploredBorderTilesInterval)) {
       return this._cachedExploredBorderTiles
     }
 
     const { width: MAP_WIDTH, height: MAP_HEIGHT } = getMapDimensions()
     const borderTiles = []
+    const uniqueBorderTiles = new Set()
 
     for (let x = 0; x < MAP_WIDTH; x++) {
       for (let y = 0; y < MAP_HEIGHT; y++) {
-        if (isPositionExplored(x, y)) {
+        const tile = gameState.map[x]?.[y]
+        // Check if it's a walkable tile
+        if (isPositionExplored(x, y) && tile && (tile.type === TERRAIN_TYPES.GRASS.type || tile.type === TERRAIN_TYPES.SAND.type || tile.type === TERRAIN_TYPES.DEPLETED_TREE.type)) {
+          const tileKey = `${x},${y}`
           // Check neighbors
           for (let dx = -1; dx <= 1; dx++) {
+            if(uniqueBorderTiles.has(tileKey)) continue
             for (let dy = -1; dy <= 1; dy++) {
               if (dx === 0 && dy === 0) continue // Skip self
+              if(uniqueBorderTiles.has(tileKey)) continue
 
               const nx = x + dx
               const ny = y + dy
 
-              // Check bounds and if neighbor is unexplored
+              // Check bounds, and if neighbor is unexplored
               if (nx >= 0 && nx < MAP_WIDTH && ny >= 0 && ny < MAP_HEIGHT && !isPositionExplored(nx, ny)) {
-                borderTiles.push({ x: nx, y: ny })
+                if (!uniqueBorderTiles.has(tileKey)) {
+                  uniqueBorderTiles.add(tileKey)
+                  borderTiles.push({ x: x, y: y })
+                }
               }
             }
           }
@@ -171,7 +180,7 @@ class Player {
     }
 
     this._cachedExploredBorderTiles = borderTiles
-    this._lastExploredBorderTilesUpdateTime = gameState.gameTime
+    this._lastExploredBorderTilesUpdateTime = performance.now()
     return borderTiles
   }
 
