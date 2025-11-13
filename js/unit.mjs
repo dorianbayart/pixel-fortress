@@ -142,7 +142,7 @@ class Unit {
     if(!this.goal) return
 
     if(distance(this.currentNode, this.goal.currentNode ? { x: this.goal.x / getTileSize(), y: this.goal.y / getTileSize() } : this.goal) > (this.range) / getTileSize()) {
-      await this.updatePath(delay, time)
+      this.updatePath(delay, time)
     } else {
       this.goalReached(delay, time)
       this.timeSinceLastTask = 0
@@ -181,7 +181,7 @@ class Unit {
 
     if(!this.path || updatePath) {
       this.lastPathUpdate = time
-      await this.findPath()
+      this.findPath()
     }
 
   }
@@ -338,7 +338,8 @@ class Unit {
     const devY = ((this.nextNode.y * SPRITE_SIZE - this.y) * 3 + (this.nextNextNode.y * SPRITE_SIZE - this.y)) / 4
     const theta = Math.atan2(devY, devX)
     const nodeForSpeedFactor = { x: Math.round(this.x / SPRITE_SIZE), y: Math.round(this.y / SPRITE_SIZE) }
-    const speedFactor = Math.max(1/gameState.map[nodeForSpeedFactor.x][nodeForSpeedFactor.y].weight, 1/8)
+    const speedModulation = 1.2 // Used to balance unit walking speed
+    const speedFactor = Math.max(1/gameState.map[nodeForSpeedFactor.x][nodeForSpeedFactor.y].weight, 1/8) * speedModulation
     let vx = this.speed * (delay/1000) * Math.cos(theta) * speedFactor * SPRITE_SIZE
     let vy = this.speed * (delay/1000) * Math.sin(theta) * speedFactor * SPRITE_SIZE
 
@@ -356,7 +357,7 @@ class Unit {
       type = 'lumberjack'
     }
     // Walk
-    if(this.goal && Math.abs(vx) + Math.abs(vy) > this.speed * (delay/2000)) {
+    if(this.goal && Math.abs(vx) + Math.abs(vy) > 0) {
       type = 'walk'
       this.x += vx
       this.y += vy
@@ -423,7 +424,7 @@ class WorkerUnit extends Unit {
     this.maxLife = this.life // Set maxLife to initial life
     this.attack = 1
     this.range = 1 * getTileSize()
-    this.speed = getTileSize() / 12
+    this.speed = 1 // 1 tile per second
     this.resources = 0
     this.maxResources = 1
 
@@ -1173,7 +1174,7 @@ class CombatUnit extends Unit {
     this.range = 1 * getTileSize()
     this.life = 10
     this.maxLife = this.life // Set maxLife to initial life
-    this.speed = getTileSize() / 12 | 0
+    this.speed = 1
     this.attack = 2
 
     // Combat units have specialized stats for fighting
@@ -1405,7 +1406,7 @@ class PeonSoldier extends MeleeUnit {
     this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']  
     this.life = 5
     this.attack = 1
-    this.speed = getTileSize() / 12 // Speedier than normal Combat other units
+    this.speed = 1
   }
 }
 
@@ -1421,7 +1422,7 @@ class Mage extends RangedUnit {
     this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']  
     this.life = 8
     this.attack = 10
-    this.speed = getTileSize() / 15
+    this.speed = 0.9
   }
 }
 
@@ -1435,7 +1436,7 @@ class Soldier extends MeleeUnit {
     this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']  
     this.life = 12
     this.attack = 5
-    this.speed = getTileSize() / 14
+    this.speed = 0.925
   }
 }
 
@@ -1452,7 +1453,7 @@ class HeavyInfantry extends MeleeUnit {
     this.life = 40
     this.attack = 5
     this.range = 0.75 * getTileSize()
-    this.speed = getTileSize() / 20
+    this.speed = 0.8
   }
 }
 
@@ -1466,6 +1467,6 @@ class EliteWarrior extends MeleeUnit {
     this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']  
     this.life = 25
     this.attack = 12
-    this.speed = getTileSize() / 17
+    this.speed = 0.85
   }
 }
