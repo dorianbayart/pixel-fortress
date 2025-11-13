@@ -334,8 +334,8 @@ class Unit {
    */
   move(delay) {
     const SPRITE_SIZE = getTileSize()
-    const devX = ((this.nextNode.x * SPRITE_SIZE - this.x) * 2 + (this.nextNextNode.x * SPRITE_SIZE - this.x)) / 3
-    const devY = ((this.nextNode.y * SPRITE_SIZE - this.y) * 2 + (this.nextNextNode.y * SPRITE_SIZE - this.y)) / 3
+    const devX = ((this.nextNode.x * SPRITE_SIZE - this.x) * 3 + (this.nextNextNode.x * SPRITE_SIZE - this.x)) / 4
+    const devY = ((this.nextNode.y * SPRITE_SIZE - this.y) * 3 + (this.nextNextNode.y * SPRITE_SIZE - this.y)) / 4
     const theta = Math.atan2(devY, devX)
     const nodeForSpeedFactor = { x: Math.round(this.x / SPRITE_SIZE), y: Math.round(this.y / SPRITE_SIZE) }
     const speedFactor = Math.max(1/gameState.map[nodeForSpeedFactor.x][nodeForSpeedFactor.y].weight, 1/8)
