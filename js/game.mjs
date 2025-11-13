@@ -29,8 +29,8 @@ const TERRAIN_TYPES = {
   ROCK: { type: 'ROCK', weight: getMapDimensions().maxWeight, spriteRange: { x: [0], y: [26] } },
   GOLD: { type: 'GOLD', weight: getMapDimensions().maxWeight, spriteRange: { x: [1], y: [26] } },
   TREE: { type: 'TREE', weight: 1024, spriteRange: { x: [2, 3], y: [26, 27] } },
-  DEPLETED_TREE: { type: 'DEPLETED_TREE', weight: 4, spriteRange: { x: [1], y: [27] } },
-  GRASS: { type: 'GRASS', weight: 1.75, spriteRange: { x: [0, 2], y: [0, 2] } },
+  DEPLETED_TREE: { type: 'DEPLETED_TREE', weight: 3, spriteRange: { x: [1], y: [27] } },
+  GRASS: { type: 'GRASS', weight: 1.5, spriteRange: { x: [0, 2], y: [0, 2] } },
   SAND: { type: 'SAND', weight: 1, spriteRange: { x: [3, 3], y: [3, 3] } },
   BUILDING: { type: 'BUILDING', weight: getMapDimensions().maxWeight * 0.99999 | 0 }
 }
