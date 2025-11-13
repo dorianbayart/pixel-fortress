@@ -298,40 +298,38 @@ function updateUI(fps) {
  */
 function drawUI(fps) {
   // Update debug stats text
-  if (DEBUG()) {
-    const currentFps = (1000 * fps.length / fps.reduce((res, curr) => res + curr, 0)).toFixed(1)
-    const unitsCount = gameState.humanPlayer?.getUnits().length
-    const aiUnitsCount = gameState.aiPlayers?.reduce((sum, ai) => sum + ai.getUnits().length, 0)
-    const viewTransform = mouse.getViewTransform()
+  const unitsCount = gameState.humanPlayer?.getUnits().length
+  const aiUnitsCount = gameState.aiPlayers?.reduce((sum, ai) => sum + ai.getUnits().length, 0)
+  const viewTransform = mouse.getViewTransform()
 
-    const { width: MAP_WIDTH, height: MAP_HEIGHT } = getMapDimensions()
-    const SPRITE_SIZE = getTileSize()
+  const { width: MAP_WIDTH, height: MAP_HEIGHT } = getMapDimensions()
+  const SPRITE_SIZE = getTileSize()
 
-    const pathfindingStats = getPathfindingStats()
+  const pathfindingStats = getPathfindingStats()
+  
+  statsText.text = [
+    `FPS: ${fps.toFixed(2)} | DPR: ${getCanvasDimensions().dpr}:${globalThis.devicePixelRatio || 1}`,
+    `Loop Time: ${(1000 / fps).toFixed(3)} ms`,
+    `Game Status: ${gameState.gameStatus}`,
+    `Units: ${unitsCount} human, ${aiUnitsCount} AI`,
+    `Mouse: ${mouse.x}x${mouse.y} (${mouse.worldX.toFixed(0)}, ${mouse.worldY.toFixed(0)})${mouse.isDragging ? ' | clic' : ''}`,
+    `Zoom: ${viewTransform.scale?.toFixed(2)}x`,
+    `World: ${MAP_WIDTH}x${MAP_HEIGHT} (${MAP_WIDTH*SPRITE_SIZE}x${MAP_HEIGHT*SPRITE_SIZE})`,
+
+    `Particles: ${containers.particles.children?.length}`,
+    `Pathfinding (/s): ${pathfindingStats.map((count, i) => `W${i}: ${count}`).join(', ')}`,
+    `Indicator Map Size: ${indicatorMap.size}`,
+    `Unit Sprite Map Size: ${unitSpriteMap.size}`,
+    `Background Sprite Map Size: ${backgroundSpriteMap.size}`,
+    `World Object Sprite Map Size: ${worldObjectSpriteMap.size}`,
+
     
-    statsText.text = [
-      `FPS: ${currentFps} | DPR: ${getCanvasDimensions().dpr}:${globalThis.devicePixelRatio || 1}`,
-      `Game Status: ${gameState.gameStatus}`,
-      `Units: ${unitsCount} human, ${aiUnitsCount} AI`,
-      `Mouse: ${mouse.x}x${mouse.y} (${mouse.worldX.toFixed(0)}, ${mouse.worldY.toFixed(0)})${mouse.isDragging ? ' | clic' : ''}`,
-      `Zoom: ${viewTransform.scale?.toFixed(2)}x`,
-      `World: ${MAP_WIDTH}x${MAP_HEIGHT} (${MAP_WIDTH*SPRITE_SIZE}x${MAP_HEIGHT*SPRITE_SIZE})`,
-
-      `Particles: ${containers.particles.children?.length}`,
-      `Pathfinding (/s): ${pathfindingStats.map((count, i) => `W${i}: ${count}`).join(', ')}`,
-      `Indicator Map Size: ${indicatorMap.size}`,
-      `Unit Sprite Map Size: ${unitSpriteMap.size}`,
-      `Background Sprite Map Size: ${backgroundSpriteMap.size}`,
-      `World Object Sprite Map Size: ${worldObjectSpriteMap.size}`,
-
-      
-      `Renderer: ${app.renderer.width}x${app.renderer.height}`,
-      `Screen: ${screen.width}x${screen.height} | Avail.: ${screen.availWidth}x${screen.availHeight}`,
-      // `Window: ${window.innerWidth}x${window.innerHeight}`,
-      // `CSS: ${document.documentElement.clientWidth}x${document.documentElement.clientHeight}`,
-      // `Canvas: ${app.canvas.style.width} x ${app.canvas.style.height}`
-    ].join('\n')
-  }
+    `Renderer: ${app.renderer.width}x${app.renderer.height}`,
+    `Screen: ${screen.width}x${screen.height} | Avail.: ${screen.availWidth}x${screen.availHeight}`,
+    // `Window: ${window.innerWidth}x${window.innerHeight}`,
+    // `CSS: ${document.documentElement.clientWidth}x${document.documentElement.clientHeight}`,
+    // `Canvas: ${app.canvas.style.width} x ${app.canvas.style.height}`
+  ].join('\n')
 }
 
 function updateResourceDisplay(resources) {

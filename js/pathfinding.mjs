@@ -95,7 +95,7 @@ function clearPathCache() {
  * Sends the current map dimensions to the worker.
  * This should be called once at the start of the game or when map dimensions change.
  */
-function updateMapDimensionsInWorker() {
+async function updateMapDimensionsInWorker() {
   const mapDimensions = getMapDimensions()
   pathfindingWorkers.forEach(worker => {
     worker.postMessage({
@@ -105,7 +105,7 @@ function updateMapDimensionsInWorker() {
   })
 }
 
-function updateMapInWorker() {
+async function updateMapInWorker() {
   const mapData = gameState.map.map(column => column.map(tile => ({ weight: tile.weight })))
   pathfindingWorkers.forEach(worker => {
     worker.postMessage({

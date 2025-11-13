@@ -38,8 +38,8 @@ const TERRAIN_TYPES = {
 // Game timing variables
 let elapsed = -5000
 let elapsedBack = -5000
-let fps = new Array(100).fill(50)
-let delays = new Array(100).fill(50)
+let delays = new Uint8Array(60).fill(255)
+let delaysIndex = 0
 
 // Initialize the game
 const initGame = async () => {
@@ -611,17 +611,8 @@ const gameLoop = async () => {
     drawBackground(gameState.map)
   }
   
-  // Track FPS
-  if(gameState.debug) {
-    fps.push(delay)
-    fps.shift()
-  }
-  
-  
   // Update players and units
-  const timingStart = performance.now()
   if(gameState.humanPlayer) await gameState.humanPlayer.update(gameState.gameSpeedMultiplier * delay, gameState.map)
-  const timing = performance.now() - timingStart
 
   // Check for game over condition
   if (gameState.humanPlayer.getTents().length === 0) {
@@ -656,25 +647,19 @@ const gameLoop = async () => {
     renderFog(delay)
   }
 
-  // Render UI
-  updateUI(fps)
-  
-  
+  // Ask for next frame
   requestAnimationFrame(gameLoop)
 
+  // Render UI
+  updateUI(1000 * delays.length / delays.reduce((a, b) => a + b, 0))
+  
   // Update map in worker periodically
   if (now - lastMapUpdateTime > 2500) {
     updateMapInWorker()
     lastMapUpdateTime = now
   }
 
-  if(gameState.debug && Math.random() > 0.9975) console.log(`Mean Game Loop Time: ${fps.reduce((a, b) => a + b, 0) / fps.length} ms`)
-
-
-  if(gameState.debug) {
-    delays.push(timing)
-    delays.shift()
-    if(Math.random() > 0.993) console.log(`Human Player Updating took: ${delays.reduce((a, b) => a + b, 0) / delays.length} ms`)
-  }
+  delays[delaysIndex++] = delay
+  if(delaysIndex === delays.length) delaysIndex = 0
 }
 
