@@ -377,7 +377,7 @@ class Building {
       const spriteY = Math.floor(Math.random() * 
               (terrainType.spriteRange.y[1] - terrainType.spriteRange.y[0] + 1)) + 
               terrainType.spriteRange.y[0]
-      gameState.map[this.x][this.y].back = sprites[`tile_${spriteX}_${spriteY}`]
+      gameState.map[this.x][this.y].sprite = sprites[`tile_${spriteX}_${spriteY}`]
 
       updateMapInWorker()
 
