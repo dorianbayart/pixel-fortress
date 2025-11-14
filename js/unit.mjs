@@ -166,8 +166,6 @@ class Unit {
    * @param {number} time - The current time (ms)
    */
   async updatePath(delay, time) {
-    if (this.isAtGoal()) return
-
     const mathPathLength = this.path?.length || 1
     const maxTime = Math.min(6000, mathPathLength * 600)
     const updatePath = time - this.lastPathUpdate > maxTime
@@ -1171,7 +1169,7 @@ class CombatUnit extends Unit {
   constructor(x, y, owner) {
     super(x, y, owner)
     
-    this.range = 1 * getTileSize()
+    this.range = 0.75 * getTileSize()
     this.life = 10
     this.maxLife = this.life // Set maxLife to initial life
     this.speed = 1
@@ -1378,7 +1376,7 @@ class MeleeUnit extends CombatUnit {
     super(x, y, owner)
     
     // Melee units have shorter range but higher health
-    this.range = 1 * getTileSize()
+    this.range = 0.75 * getTileSize()
   }
 }
 
@@ -1452,7 +1450,7 @@ class HeavyInfantry extends MeleeUnit {
     this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']  
     this.life = 40
     this.attack = 5
-    this.range = 0.75 * getTileSize()
+    this.range = 0.5 * getTileSize()
     this.speed = 0.8
   }
 }
