@@ -150,6 +150,10 @@ jobs:
       run: |
         git push origin --delete v${{ steps.get_version.outputs.version }} || true
 
+    - name: Wait for tag deletion to propagate
+      if: steps.check_release.outputs.exists == 'true'
+      run: sleep 5
+
     - name: Upload artifacts to Release
       uses: softprops/action-gh-release@v1
       with:
@@ -160,3 +164,4 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
         tag_name: v${{ steps.get_version.outputs.version }}
         body_path: RELEASE_NOTES.md
+        draft: false
