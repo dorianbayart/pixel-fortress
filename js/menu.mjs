@@ -8,11 +8,50 @@ import { playClickSound, playCloseSound, playConfirmSound } from 'audio'
 import { setupEventListeners } from 'ui'
 
 
+// Function to simulate a typewriter effect
+function typewriterEffect(element, text, delay = 200) {
+  let i = 0
+  element.textContent = '' // Clear existing text
+  element.style.opacity = 1 // Make sure the element is visible
+
+  return new Promise(resolve => {
+    function type() {
+      if (i < text.length) {
+        element.textContent += text.charAt(i)
+        i++
+        setTimeout(type, delay)
+      } else {
+        resolve() // Resolve the promise when typing is complete
+      }
+    }
+    type()
+  })
+}
+
 // Initialize all menu functions
 async function initHomeMenu() {
   setupScenariiSection()
   setupAboutSection()
   setupOptionsSection()
+
+  // Typewriter effect for the game title
+  const gameNameElement = document.getElementById('gameName')
+  const originalTitle = gameNameElement.textContent
+  gameNameElement.textContent = '' // Clear title for typewriter effect
+
+  // Add a class for the blinking caret
+  gameNameElement.classList.add('typewriter-caret')
+
+  let delay = 500
+  const typingSpeed = 200
+  setTimeout(() => typewriterEffect(gameNameElement, 'Welcome', typingSpeed), delay)
+  delay += typingSpeed * 'Welcome'.length + 1000
+  setTimeout(() => typewriterEffect(gameNameElement, 'to', typingSpeed), delay)
+  delay += typingSpeed * 'to'.length + 1000
+  setTimeout(() => typewriterEffect(gameNameElement, originalTitle, typingSpeed), delay)
+  delay += typingSpeed * originalTitle.length + 3000
+  setTimeout(() => gameNameElement.classList.remove('typewriter-caret'), delay)
+
 
   setupEventListeners()
 }

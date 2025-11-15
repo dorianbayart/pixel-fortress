@@ -149,13 +149,24 @@
       100% { transform: scale(1); }
     }
 
+    @keyframes blink-caret {
+      from, to { border-color: transparent }
+      50% { border-color: var(--font-color); }
+    }
+
+    /* Blinking caret for typewriter effect */
+    .typewriter-caret {
+      border-right: 0.15em solid var(--font-color);
+      animation: blink-caret 1s step-end infinite;
+    }
+
     #gameLogo {
       margin: max(4dvh, 1.5rem);
     }
 
     #gameLogo img {
       animation: pulse 3s infinite ease-in-out;
-      filter: drop-shadow(0 0 20px var(--font-color));
+      filter: drop-shadow(0 0 30px var(--font-color)) drop-shadow(0 0 15px var(--font-color));
     }
 
     /* Make the title more prominent */
@@ -163,8 +174,9 @@
       opacity: 0;
       font-size: clamp(2rem, 5vw, 3rem);
       margin: 1.5dvh;
-      text-shadow: 0 0 10px forestgreen, 0 0 20px forestgreen;
-      filter: drop-shadow(0 0 1px var(--font-color));
+      text-shadow: 0 0 15px forestgreen, 0 0 25px forestgreen, 0 0 35px forestgreen;
+      filter: drop-shadow(0 0 5px var(--font-color));
+      /* animation: pulse 8.5s infinite ease-in-out; */
     }
 
     #homeMenu h2 {
@@ -276,7 +288,6 @@
       document.fonts.add(f)
       // Hide loader when fonts are ready
       document.getElementById('progressBar').style.opacity = 0
-      document.getElementById('gameName').style.opacity = 1
       setTimeout(() => {
         document.getElementById('progressBar').style.display = 'none'
         document.getElementById('menuOptions').style.opacity = 1
