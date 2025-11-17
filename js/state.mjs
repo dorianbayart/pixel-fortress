@@ -76,7 +76,7 @@ class GameState {
     
     // Game settings
     this._settings = {
-      difficulty: 'medium',
+      difficulty: 'easy',
       mapSeed: null,
       mapSize: 'medium',
       fogOfWar: true,

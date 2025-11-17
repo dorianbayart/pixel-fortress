@@ -193,7 +193,7 @@
       text-decoration: underline;
     }
 
-    #menuOptions {
+    #mainMenuButtons {
       opacity: 0;
       display: flex;
       flex-flow: column;
@@ -290,8 +290,8 @@
       document.getElementById('progressBar').style.opacity = 0
       setTimeout(() => {
         document.getElementById('progressBar').style.display = 'none'
-        document.getElementById('menuOptions').style.opacity = 1
-      }, 350)
+        document.getElementById('mainMenuButtons').style.opacity = 1
+      }, 500)
     }).catch(e => console.log('Error loading font:', e))
   </script>
 
@@ -339,13 +339,18 @@
       <img src="assets/base_512_pixelated.png" alt="Game Logo" width="48" height="48">
     </div>
 
-    <div id="menuOptions" class="menu-options">
-      <button id="scenarii" class="menu-button">Scenarii</button>
-      <button id="generated" class="menu-button">Random Map</button>
+    <div id="mainMenuButtons" class="menu-options">
+      <button id="playButton" class="menu-button">Play</button>
       <button id="options" class="menu-button">Options</button>
       <button id="about" class="menu-button">About</button>
     </div>
-    <button id="audioToggleButton" class="menu-button" style="display: none;">🎵 Unmute Audio</button>
+
+    <div id="playOptionsButtons" class="menu-options" style="display: none;">
+      <button id="campaignButton" class="menu-button" disabled>Campaign</button>
+      <button id="skirmishButton" class="menu-button">Skirmish</button>
+      <button id="backButton" class="menu-button cancelButton">Back</button>
+    </div>
+    <button id="audioToggleButton" class="menu-button cancelButton" style="display: none;">🎵 Unmute Audio</button>
   </div>
 
   
@@ -389,7 +394,7 @@
       <p id="genericModalMessage"></p>
     </div>
     <div class="modal-footer">
-      <button id="modalCloseButton" class="menu-button">Close</button>
+      <button id="modalCloseButton" class="footerButton cancelButton">Close</button>
     </div>
   </div>
 </div>
@@ -397,50 +402,45 @@
 
 
 
-<!-- Scenarii section modal that appears when "Scenarii" is clicked -->
-<div id="scenariiSection" class="modal">
+
+
+
+
+
+
+
+<!-- Skirmish Setup section modal -->
+<div id="skirmishSetupSection" class="modal">
   <div class="modal-content">
     <div class="modal-header">
-      <h2>Select Scenario</h2>
+      <h2>Skirmish Setup</h2>
       <span class="close">&times;</span>
     </div>
     <div class="modal-body">
-      <div id="scenarii-list" class="scenarii-grid">
-        <!-- Will be populated from JavaScript -->
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button id="closeScenarii">Back to Menu</button>
-    </div>
-  </div>
-</div>
-
-
-
-
-<!-- Options section modal that appears when "Options" is clicked -->
-<div id="optionsSection" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2>Game Options</h2>
-      <span class="close">&times;</span>
-    </div>
-    <div class="modal-body">
-      <div class="option-group">
-        <h3>Difficulty</h3>
-        <div class="option-controls">
-          <button class="option-btn" data-difficulty="easy">Easy</button>
-          <button class="option-btn selected" data-difficulty="medium">Medium</button>
-          <button class="option-btn" data-difficulty="hard">Hard</button>
-        </div>
-      </div>
-      
       <div class="option-group">
         <h3>Map Size</h3>
         <div class="option-controls">
           <button class="option-btn" data-map-size="small">Small</button>
           <button class="option-btn selected" data-map-size="medium">Medium</button>
           <button class="option-btn" data-map-size="large">Large</button>
+        </div>
+      </div>
+
+      <div class="option-group">
+        <h3>AI Opponents</h3>
+        <div class="option-controls">
+          <button class="option-btn selected" data-ai-count="1">1</button>
+          <button class="option-btn" data-ai-count="2" disabled>2</button>
+          <button class="option-btn" data-ai-count="3" disabled>3</button>
+        </div>
+      </div>
+      
+      <div class="option-group">
+        <h3>Difficulty</h3>
+        <div class="option-controls">
+          <button class="option-btn selected" data-difficulty="easy">Easy</button>
+          <button class="option-btn" data-difficulty="medium">Medium</button>
+          <button class="option-btn" data-difficulty="hard">Hard</button>
         </div>
       </div>
 
@@ -454,17 +454,31 @@
       </div>
 
       <div class="option-group">
-        <!-- <h3>Fog of War</h3> -->
         <div class="option-controls">
           <label class="toggle-label">
-            <input type="checkbox" id="fogToggle" checked>
+            <input type="checkbox" id="skirmishFogToggle" checked>
             <span class="toggle-text">Enable Fog of War</span>
           </label>
         </div>
       </div>
+    </div>
+    <div class="modal-footer">
+      <button id="startSkirmishGame" class="footerButton actionButton">Start Game</button>
+      <button id="closeSkirmishSetup" class="footerButton cancelButton">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Options section modal that appears when "Options" is clicked -->
+<div id="optionsSection" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Game Options</h2>
+      <span class="close">&times;</span>
+    </div>
+    <div class="modal-body">
       
       <div class="option-group">
-        <!-- <h3>Debug Mode</h3> -->
         <div class="option-controls">
           <label class="toggle-label">
             <input type="checkbox" id="debugToggle">
@@ -497,8 +511,8 @@
       </div>
     </div>
     <div class="modal-footer">
-      <button id="saveOptions">Save</button>
-      <button id="closeOptions">Cancel</button>
+      <button id="saveOptions" class="footerButton actionButton">Save</button>
+      <button id="closeOptions" class="footerButton cancelButton">Cancel</button>
     </div>
   </div>
 </div>
@@ -550,7 +564,7 @@
       </div>
     </div>
     <div class="modal-footer">
-      <button id="closeAbout">Close</button>
+      <button id="closeAbout" class="footerButton cancelButton">Close</button>
     </div>
   </div>
 </div>

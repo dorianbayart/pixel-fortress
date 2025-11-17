@@ -143,13 +143,7 @@ async function initUI(mouseInstance) {
  */
 function setupEventListeners() {
 
-  // Start game on "Random Map" click
-  document.getElementById('generated').addEventListener('click', () => {
-    gameState.mapSeed = null
-    gameState.gameStatus = 'initialize'
-
-    playConfirmSound()
-  })
+  
 
   // Keyboard shortcuts
   window.addEventListener('keypress', (event) => {

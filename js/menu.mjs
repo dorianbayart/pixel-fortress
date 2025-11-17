@@ -30,9 +30,11 @@ function typewriterEffect(element, text, delay = 200) {
 
 // Initialize all menu functions
 async function initHomeMenu() {
-  setupScenariiSection()
   setupAboutSection()
   setupOptionsSection()
+  setupSkirmishSection()
+
+  showMainMenu()
 
   // Typewriter effect for the game title
   const gameNameElement = document.getElementById('gameName')
@@ -75,262 +77,135 @@ async function fetchGameVersion() {
     return version
 }
 
-// Function to handle the Scenarii section modal
-async function setupScenariiSection() {
-  // Get DOM elements
-  const scenariiButton = document.getElementById('scenarii')
-  const scenariiSection = document.getElementById('scenariiSection')
-  const closeButton = scenariiSection.querySelector('.close')
-  const closeScenariiButton = document.getElementById('closeScenarii')
-  const scenariiList = document.getElementById('scenarii-list')
-  
-  // Load predefined maps from seeds.json
-  let predefinedMaps = []
-  try {
-      const response = await fetch('maps/seeds.json')
-      if (response.ok) {
-          const data = await response.json()
-          predefinedMaps = data.interesting_seeds || []
-      }
-  } catch (error) {
-      console.error('Error loading predefined maps:', error)
-  }
-  
-  // Function to open the modal
-  const openScenariiModal = () => {
-    playClickSound()
-    // Clear existing items
-    scenariiList.innerHTML = ''
-    
-    // Add predefined map items
-    if (predefinedMaps.length > 0) {
-        predefinedMaps.forEach(map => {
-            const item = document.createElement('div')
-            item.className = 'scenarii-item'
-            item.innerHTML = `
-                <h3>${map.name}</h3>
-                <p>Seed: ${map.seed}</p>
-                <button class="play-button" data-seed="${map.seed}">Play</button>
-            `
-            scenariiList.appendChild(item)
-        })
-        
-        // Add event listeners to play buttons
-        const playButtons = scenariiList.querySelectorAll('.play-button')
-        playButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                playConfirmSound()
-                // Set map seed
-                const seed = parseInt(button.dataset.seed, 10)
-                gameState.mapSeed = seed
-                // Start game
-                gameState.gameStatus = 'initialize'
-                // Close modal
-                closeScenariiModal()
-            })
-        })
-    } else {
-        // Show message if no maps found
-        scenariiList.innerHTML = '<p>No predefined scenarios available</p>'
-    }
-    
-    scenariiSection.style.display = 'block'
-    // Slight delay to ensure the display change registers before adding the show class
-    setTimeout(() => {
-        scenariiSection.classList.add('show')
-    }, 20)
-  }
-  
-  // Function to close the modal
-  const closeScenariiModal = () => {
-    playCloseSound()
-    scenariiSection.classList.remove('show')
-    // Wait for transition to complete before hiding
-    setTimeout(() => {
-        scenariiSection.style.display = 'none'
-    }, 600) // Same as transition time
-  }
-  
-  // Add event listeners
-  scenariiButton.addEventListener('click', openScenariiModal)
-  closeButton.addEventListener('click', closeScenariiModal)
-  closeScenariiButton.addEventListener('click', closeScenariiModal)
-  
-  // Close the modal if the user clicks outside of it
-  window.addEventListener('click', (event) => {
-      if (event.target === scenariiSection) {
-          closeScenariiModal()
-      }
-  })
-  
-  // Escape key also closes the modal
-  window.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && scenariiSection.classList.contains('show')) {
-          closeScenariiModal()
+
+
+// Function to handle the Skirmish Setup section modal
+// Get DOM elements for Skirmish Setup
+const skirmishSetupSection = document.getElementById('skirmishSetupSection')
+const closeSkirmishSetupModalButton = skirmishSetupSection.querySelector('.close')
+const startSkirmishGameButton = document.getElementById('startSkirmishGame')
+const closeSkirmishSetupButton = document.getElementById('closeSkirmishSetup')
+const skirmishFogToggle = document.getElementById('skirmishFogToggle')
+
+// Get option buttons
+const mapSizeButtons = skirmishSetupSection.querySelectorAll('.option-btn[data-map-size]')
+const aiCountButtons = skirmishSetupSection.querySelectorAll('.option-btn[data-ai-count]')
+const difficultyButtons = skirmishSetupSection.querySelectorAll('.option-btn[data-difficulty]')
+const gameSpeedButtons = skirmishSetupSection.querySelectorAll('.option-btn[data-game-speed]')
+
+// Function to update selected button in a group (reused from options)
+const updateSelection = (buttons, value, datasetKey) => {
+  playClickSound()
+  buttons.forEach(button => {
+      if (button.dataset[datasetKey] === String(value)) {
+          button.classList.add('selected')
+      } else {
+          button.classList.remove('selected')
       }
   })
 }
 
-// Function to handle the Options section modal
-async function setupOptionsSection() {
-  // Get DOM elements
-  const optionsButton = document.getElementById('options')
-  const optionsSection = document.getElementById('optionsSection')
-  const closeButton = optionsSection.querySelector('.close')
-  const saveOptionsButton = document.getElementById('saveOptions')
-  const closeOptionsButton = document.getElementById('closeOptions')
-  const fogToggle = document.getElementById('fogToggle')
-  const debugToggle = document.getElementById('debugToggle')
-  const sfxVolumeSlider = document.getElementById('sfxVolumeSlider')
-  const musicVolumeSlider = document.getElementById('musicVolumeSlider')
-  const healthBarsToggle = document.getElementById('healthBarsToggle')
-  
-  // Get difficulty and map size buttons
-  const difficultyButtons = optionsSection.querySelectorAll('.option-btn[data-difficulty]')
-  const mapSizeButtons = optionsSection.querySelectorAll('.option-btn[data-map-size]')
-  const gameSpeedButtons = optionsSection.querySelectorAll('.option-btn[data-game-speed]')
-  
-  // Function to update selected button in a group
-  const updateSelection = (buttons, value, datasetKey) => {
-    playClickSound()
-    buttons.forEach(button => {
-        if (button.dataset[datasetKey] === value) {
-            button.classList.add('selected')
-        } else {
-            button.classList.remove('selected')
-        }
-    })
-  }
-  
-  // Function to open the modal
-  const openOptionsModal = () => {
-    playClickSound()
+// Function to open the Skirmish Setup modal
+const openSkirmishSetupModal = () => {
+  playClickSound()
 
-    // Set current values based on game settings
-    debugToggle.checked = gameState.debug
-    healthBarsToggle.checked = gameState.showHealthBars
+  // Set current values based on game settings or defaults
+  updateSelection(mapSizeButtons, gameState.settings?.mapSize || 'medium', 'mapSize')
+  updateSelection(aiCountButtons, gameState.settings?.aiCount || 1, 'aiCount')
+  updateSelection(difficultyButtons, gameState.settings?.difficulty || 'medium', 'difficulty')
+  updateSelection(gameSpeedButtons, Object.keys(CONSTANTS.GAME_SPEED_MULTIPLIERS).find(key => CONSTANTS.GAME_SPEED_MULTIPLIERS[key] === gameState.settings?.gameSpeedMultiplier)?.toLowerCase() || 'normal', 'gameSpeed')
+  skirmishFogToggle.checked = gameState.settings?.fogOfWar !== false
 
-    // Set fog of war toggle
-    fogToggle.checked = gameState.settings?.fogOfWar !== false
-    
-    // Update difficulty selection (default to "medium" if not set)
-    const currentDifficulty = gameState.settings?.difficulty || 'medium'
-    updateSelection(difficultyButtons, currentDifficulty, 'difficulty')
-    
-    // Update map size selection (default to "medium" if not set)
-    const currentMapSize = gameState.settings?.mapSize || 'medium'
-    updateSelection(mapSizeButtons, currentMapSize, 'mapSize')
+  skirmishSetupSection.style.display = 'block'
+  setTimeout(() => {
+      skirmishSetupSection.classList.add('show')
+  }, 20)
+}
 
-    // Update game speed selection (default to "normal" if not set)
-    const currentGameSpeed = Object.keys(CONSTANTS.GAME_SPEED_MULTIPLIERS).find(key => CONSTANTS.GAME_SPEED_MULTIPLIERS[key] === gameState.settings?.gameSpeedMultiplier)?.toLowerCase() || 'normal'
-    updateSelection(gameSpeedButtons, currentGameSpeed, 'gameSpeed')
+// Function to close the Skirmish Setup modal
+const closeSkirmishSetupModal = () => {
+  playCloseSound()
+  skirmishSetupSection.classList.remove('show')
+  setTimeout(() => {
+      skirmishSetupSection.style.display = 'none'
+  }, 600)
+}
 
-    // Update SFX volume
-    sfxVolumeSlider.value = gameState.settings?.sfxVolume || 0.75
+// Function to start the game with selected options
+const startSkirmishGame = () => {
+  playConfirmSound()
 
-    // Update Music volume
-    musicVolumeSlider.value = gameState.settings?.musicVolume || 0.5
-    
-    optionsSection.style.display = 'block'
-    // Slight delay to ensure the display change registers before adding the show class
-    setTimeout(() => {
-        optionsSection.classList.add('show')
-    }, 20)
-  }
-  
-  // Function to close the modal
-  const closeOptionsModal = () => {
-    playCloseSound()
+  const selectedMapSize = skirmishSetupSection.querySelector('.option-btn[data-map-size].selected')?.dataset.mapSize || 'medium'
+  const selectedAiCount = parseInt(skirmishSetupSection.querySelector('.option-btn[data-ai-count].selected')?.dataset.aiCount || '1', 10)
+  const selectedDifficulty = skirmishSetupSection.querySelector('.option-btn[data-difficulty].selected')?.dataset.difficulty || 'medium'
+  const selectedGameSpeed = skirmishSetupSection.querySelector('.option-btn[data-game-speed].selected')?.dataset.gameSpeed || 'normal'
+  const fogOfWarEnabled = skirmishFogToggle.checked
 
-    optionsSection.classList.remove('show')
-    // Wait for transition to complete before hiding
-    setTimeout(() => {
-        optionsSection.style.display = 'none'
-    }, 600) // Same as transition time
-  }
-  
-  // Function to save options
-  const saveOptions = () => {
-      // Get selected difficulty
-      const selectedDifficulty = optionsSection.querySelector('.option-btn[data-difficulty].selected')?.dataset.difficulty || 'medium'
-      
-      // Get selected map size
-      const selectedMapSize = optionsSection.querySelector('.option-btn[data-map-size].selected')?.dataset.mapSize || 'medium'
-      
-      // Get fog of war toggle state
-      const fogOfWarEnabled = document.getElementById('fogToggle').checked
-
-      // Get SFX volume
-      const sfxVolume = document.getElementById('sfxVolumeSlider').value
-
-      // Get Music volume
-      const musicVolume = document.getElementById('musicVolumeSlider').value
-
-      // Get selected game speed
-      const selectedGameSpeed = optionsSection.querySelector('.option-btn[data-game-speed].selected')?.dataset.gameSpeed || 'normal'
-
-      // Get health bars toggle state
-      const showHealthBars = document.getElementById('healthBarsToggle').checked
-
-      // Update game settings
-      gameState.updateSettings({
-          difficulty: selectedDifficulty,
-          mapSize: selectedMapSize,
-          fogOfWar: fogOfWarEnabled,
-          sfxVolume: sfxVolume,
-          musicVolume: musicVolume,
-          gameSpeedMultiplier: CONSTANTS.GAME_SPEED_MULTIPLIERS[selectedGameSpeed.toUpperCase()],
-          showHealthBars: showHealthBars
-      })
-      
-      // Update debug mode
-      gameState.debug = debugToggle.checked
-      
-      closeOptionsModal()
-  }
-  
-  // Add click handlers for difficulty buttons
-  difficultyButtons.forEach(button => {
-      button.addEventListener('click', () => {
-          updateSelection(difficultyButtons, button.dataset.difficulty, 'difficulty')
-      })
+  gameState.updateSettings({
+      mapSize: selectedMapSize,
+      aiCount: selectedAiCount,
+      difficulty: selectedDifficulty,
+      gameSpeedMultiplier: CONSTANTS.GAME_SPEED_MULTIPLIERS[selectedGameSpeed.toUpperCase()],
+      fogOfWar: fogOfWarEnabled,
   })
-  
-  // Add click handlers for map size buttons
+
+  gameState.gameStatus = 'initialize'
+  document.getElementById('homeMenu').style.display = 'none'
+  closeSkirmishSetupModal()
+}
+
+async function setupSkirmishSection() {
+  // Add event listeners
+  closeSkirmishSetupModalButton.addEventListener('click', closeSkirmishSetupModal)
+  closeSkirmishSetupButton.addEventListener('click', closeSkirmishSetupModal)
+  startSkirmishGameButton.addEventListener('click', startSkirmishGame)
+  // Escape key also closes the modal
+  window.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && document.getElementById('skirmishSetupSection').classList.contains('show')) {
+          closeSkirmishSetupModal()
+      }
+  })
+
+  // Add click handlers for option buttons
   mapSizeButtons.forEach(button => {
       button.addEventListener('click', () => {
           updateSelection(mapSizeButtons, button.dataset.mapSize, 'mapSize')
       })
   })
-
-  // Add click handlers for game speed buttons
+  aiCountButtons.forEach(button => {
+      button.addEventListener('click', () => {
+          updateSelection(aiCountButtons, button.dataset.aiCount, 'aiCount')
+      })
+  })
+  difficultyButtons.forEach(button => {
+      button.addEventListener('click', () => {
+          updateSelection(difficultyButtons, button.dataset.difficulty, 'difficulty')
+      })
+  })
   gameSpeedButtons.forEach(button => {
       button.addEventListener('click', () => {
           updateSelection(gameSpeedButtons, button.dataset.gameSpeed, 'gameSpeed')
       })
   })
-  
-  // Add event listeners
-  optionsButton.addEventListener('click', openOptionsModal)
-  closeButton.addEventListener('click', closeOptionsModal)
-  closeOptionsButton.addEventListener('click', closeOptionsModal)
-  saveOptionsButton.addEventListener('click', saveOptions)
+  skirmishFogToggle.addEventListener('change', playClickSound)
 
-  fogToggle.addEventListener('change', playClickSound)
-  debugToggle.addEventListener('change', playClickSound)
-  sfxVolumeSlider.addEventListener('change', playClickSound)
-  musicVolumeSlider.addEventListener('change', playClickSound)
-  healthBarsToggle.addEventListener('change', playClickSound)
-  
   // Close the modal if the user clicks outside of it
   window.addEventListener('click', (event) => {
-      if (event.target === optionsSection) {
-          closeOptionsModal()
+      if (event.target === skirmishSetupSection) {
+          closeSkirmishSetupModal()
       }
   })
-  
+
   // Escape key also closes the modal
   window.addEventListener('keydown', (event) => {
+    const optionsSection = document.getElementById('optionsSection')
+    const closeOptionsModal = () => {
+      playCloseSound()
+      optionsSection.classList.remove('show')
+      setTimeout(() => {
+          optionsSection.style.display = 'none'
+      }, 600)
+    }
       if (event.key === 'Escape' && optionsSection.classList.contains('show')) {
           closeOptionsModal()
       }
@@ -339,53 +214,48 @@ async function setupOptionsSection() {
 
 // Function to handle the About section modal
 async function setupAboutSection() {
-  // Get DOM elements
   const aboutButton = document.getElementById('about')
   const aboutSection = document.getElementById('aboutSection')
   const closeButton = aboutSection.querySelector('.close')
   const closeAboutButton = document.getElementById('closeAbout')
-  const versionInfoElement = aboutSection.querySelector('.version-info p')
+  const gameVersionElement = aboutSection.querySelector('.version-info p')
 
-  // Pre-fetch the game version
-  const gameVersion = await fetchGameVersion()
-  
   // Function to open the modal
-  const openAboutModal = () => {
+  const openAboutModal = async () => {
     playClickSound()
-
-    // Update version info in the modal
-    versionInfoElement.textContent = `Version ${gameVersion}`
-
     aboutSection.style.display = 'block'
-    // Slight delay to ensure the display change registers before adding the show class
     setTimeout(() => {
       aboutSection.classList.add('show')
     }, 20)
+
+    // Fetch and display game version
+    const version = await fetchGameVersion()
+    if (version) {
+      gameVersionElement.textContent = `v${version}`
+    }
   }
-  
+
   // Function to close the modal
   const closeAboutModal = () => {
     playCloseSound()
-
     aboutSection.classList.remove('show')
-    // Wait for transition to complete before hiding
     setTimeout(() => {
       aboutSection.style.display = 'none'
-    }, 600) // Same as transition time
+    }, 600)
   }
-  
+
   // Add event listeners
   aboutButton.addEventListener('click', openAboutModal)
   closeButton.addEventListener('click', closeAboutModal)
   closeAboutButton.addEventListener('click', closeAboutModal)
-  
+
   // Close the modal if the user clicks outside of it
   window.addEventListener('click', (event) => {
     if (event.target === aboutSection) {
       closeAboutModal()
     }
   })
-  
+
   // Escape key also closes the modal
   window.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && aboutSection.classList.contains('show')) {
@@ -393,3 +263,115 @@ async function setupAboutSection() {
     }
   })
 }
+
+// Function to handle the Options section modal
+async function setupOptionsSection() {
+  const optionsButton = document.getElementById('options')
+  const optionsSection = document.getElementById('optionsSection')
+  const closeButton = optionsSection.querySelector('.close')
+  const saveOptionsButton = document.getElementById('saveOptions')
+  const closeOptionsButton = document.getElementById('closeOptions')
+
+  // Get option buttons
+  const debugToggle = document.getElementById('debugToggle')
+  const healthBarsToggle = document.getElementById('healthBarsToggle')
+  const sfxVolumeSlider = document.getElementById('sfxVolumeSlider')
+  const musicVolumeSlider = document.getElementById('musicVolumeSlider')
+
+  // Function to open the modal
+  const openOptionsModal = () => {
+    playClickSound()
+
+    // Set current values based on game settings or defaults
+    debugToggle.checked = gameState.settings?.debugMode === true
+    healthBarsToggle.checked = gameState.settings?.showHealthBars === true
+    sfxVolumeSlider.value = gameState.settings?.sfxVolume ?? 0.8
+    musicVolumeSlider.value = gameState.settings?.musicVolume ?? 0.5
+
+    optionsSection.style.display = 'block'
+    setTimeout(() => {
+        optionsSection.classList.add('show')
+    }, 20)
+  }
+
+  // Function to close the modal
+  const closeOptionsModal = () => {
+    playCloseSound()
+    optionsSection.classList.remove('show')
+    setTimeout(() => {
+        optionsSection.style.display = 'none'
+    }, 600)
+  }
+
+  // Function to save options
+  const saveOptions = () => {
+    playConfirmSound()
+
+    const debugModeEnabled = debugToggle.checked
+    const showHealthBarsEnabled = healthBarsToggle.checked
+    const sfxVolume = parseFloat(sfxVolumeSlider.value)
+    const musicVolume = parseFloat(musicVolumeSlider.value)
+
+    gameState.updateSettings({
+        debugMode: debugModeEnabled,
+        showHealthBars: showHealthBarsEnabled,
+        sfxVolume: sfxVolume,
+        musicVolume: musicVolume,
+    })
+
+    closeOptionsModal()
+  }
+
+  // Add event listeners
+  optionsButton.addEventListener('click', openOptionsModal)
+  closeButton.addEventListener('click', closeOptionsModal)
+  closeOptionsButton.addEventListener('click', closeOptionsModal)
+  saveOptionsButton.addEventListener('click', saveOptions)
+
+  // Add click handlers for option buttons
+  debugToggle.addEventListener('change', playClickSound)
+  healthBarsToggle.addEventListener('change', playClickSound)
+  sfxVolumeSlider.addEventListener('change', playClickSound)
+  musicVolumeSlider.addEventListener('change', playClickSound)
+
+  // Close the modal if the user clicks outside of it
+  window.addEventListener('click', (event) => {
+      if (event.target === optionsSection) {
+          closeOptionsModal()
+      }
+  })
+
+  // Escape key also closes the modal
+  window.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && optionsSection.classList.contains('show')) {
+          closeOptionsModal()
+      }
+  })
+}
+
+// Function to show the main menu buttons
+function showMainMenu() {
+  document.getElementById('mainMenuButtons').style.display = 'block'
+  document.getElementById('playOptionsButtons').style.display = 'none'
+  document.getElementById('playButton').addEventListener('click', showPlayOptions)
+}
+
+// Function to show the play options (Campaign, Skirmish, Back)
+function showPlayOptions() {
+  playClickSound()
+  document.getElementById('mainMenuButtons').style.display = 'none'
+  document.getElementById('playOptionsButtons').style.display = 'block'
+  document.getElementById('backButton').addEventListener('click', () => {
+    playCloseSound()
+    showMainMenu()
+  })
+  document.getElementById('campaignButton').addEventListener('click', () => {
+    playClickSound()
+    console.log('Campaign button clicked - functionality to be implemented')
+    // TODO: Implement campaign selection/start logic
+  })
+  document.getElementById('skirmishButton').addEventListener('click', () => {
+    openSkirmishSetupModal()
+  })
+}
+
