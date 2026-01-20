@@ -1,6 +1,6 @@
-# Gemini Code Assistant Context
+# Claude Code Assistant Context
 
-This document provides context for the Gemini code assistant to effectively assist with the development of the "Pixel Fortress" game.
+This document provides context for Claude Code to effectively assist with the development of the "Pixel Fortress" game.
 
 ## Project Description
 
@@ -13,7 +13,6 @@ The project can run:
 ## General Instructions
 
 - The project uses vanilla JavaScript (ES6 Modules with `.mjs` extension). Do not introduce build tools, compilers (like TypeScript), or additional package managers without explicit instruction.
-- Do not try to launch external commands (like npx or eslint).
 - All source code is organized into modules within the `js/` directory. Maintain this modular structure.
 - The game is launched by opening `index.html` directly in a browser or via `npm run start` for Electron.
 - Run tests with `npm run test` before submitting changes.
