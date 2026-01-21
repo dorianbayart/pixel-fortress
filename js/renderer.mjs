@@ -13,6 +13,7 @@ export {
   updateProgressIndicator,
   updateZoom,
   worldObjectSpriteMap,
+  drawMinimap,
 }
 
 'use strict'
@@ -21,6 +22,7 @@ import { getCanvasDimensions, getMapDimensions, getTileSize } from 'dimensions'
 import { isPositionExplored, isPositionVisible } from 'fogOfWar'
 import { TERRAIN_TYPES } from 'game'
 import { DEBUG, backDrawn } from 'globals'
+import { initMinimap, updateMinimap, resizeMinimap } from 'minimap'
 import { ParticleEffect, createParticleEmitter, initParticleSystem } from 'particles'
 import * as PIXI from 'pixijs'
 import { UNIT_SPRITE_SIZE, sprites } from 'sprites'
@@ -148,6 +150,9 @@ async function initCanvases() {
 
   // Initialize particle system
   initParticleSystem()
+
+  // Initialize minimap
+  initMinimap(containers.ui)
   
   console.log("Canvas initialized:", app.canvas.width, "x", app.canvas.height, app)
 
@@ -177,9 +182,12 @@ function resizeCanvases() {
 
   // Set renderer resolution based on device pixel ratio
   app.renderer.resolution = dpr
-  
+
   // Resize the renderer
   app.renderer.resize(width, height)
+
+  // Resize minimap
+  resizeMinimap()
 
   // Force update for mouse controller
   if (gameState.UI?.mouse) {
@@ -570,7 +578,7 @@ function drawBackground(map) {
 async function updateZoom() {
   // Get current view transform
   const viewTransform = gameState.UI?.mouse?.getViewTransform()
-  
+
   // Apply transformations to all containers that should be affected by zoom/pan
   const containersToTransform = [
     containers.background,
@@ -578,27 +586,35 @@ async function updateZoom() {
     containers.indicators,
     containers.debug
   ];
-  
+
   // Apply scale to each container
   containersToTransform.forEach(container => {
     if (!container) return;
     // Apply new scale and position
     container.scale.set(viewTransform.scale, viewTransform.scale)
-    
+
     // Invert the translation caused by scale
     const offsetX = -viewTransform.x * viewTransform.scale
     const offsetY = -viewTransform.y * viewTransform.scale
-    
+
     // Apply translation
     container.position.set(offsetX, offsetY)
   })
 
   // Update the viewport for culling calculations
   updateViewport(viewTransform)
-  
+
   // UI container shouldn't be affected by zoom/pan (for cursor and HUD)
   containers.ui.scale.set(1, 1)
   containers.ui.position.set(0, 0)
+}
+
+/**
+ * Draw the minimap
+ * @param {number} timestamp - Current timestamp for throttling updates
+ */
+function drawMinimap(timestamp) {
+  updateMinimap(timestamp)
 }
 
 /**

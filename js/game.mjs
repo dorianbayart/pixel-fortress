@@ -10,7 +10,7 @@ import { drawBack, isDrawBackRequested } from 'globals'
 import { updateAllParticles } from 'particles'
 import { clearPathCache, searchPath, updateMapDimensionsInWorker, updateMapInWorker } from 'pathfinding'
 import { Player, PlayerType } from 'players'
-import { drawBackground, drawMain, app } from 'renderer'
+import { drawBackground, drawMain, drawMinimap, app } from 'renderer'
 import { sprites } from 'sprites'
 import gameState from 'state'
 import { handleMouseInteraction, updateUI, showModal } from 'ui'
@@ -641,7 +641,10 @@ const gameLoop = async () => {
   
   // Render game
   drawMain(gameState.humanPlayer, gameState.aiPlayers)
-  
+
+  // Render minimap (throttled to once per second)
+  drawMinimap(now)
+
   // Render fog of war
   if (gameState.settings.fogOfWar) {
     renderFog(delay)

@@ -34,7 +34,7 @@ Details: The AI builds structures and manages units similarly to the player.
 Details: The menu presents what the User can do: Play on random map, Play a predefined map, Play a campaign, Manage options (details, SpecialFX, sound, etc.), etc.
 - [ ] **Health Display:** Visual representation of the unit's health. *(Not Planned)*
 - [x] **Resource Display:** Show the player's current resources.
-- [ ] **Mini-Map:** Overview of the game world.
+- [x] **Mini-Map:** Overview of the game world.
 
 
 ## Gameplay

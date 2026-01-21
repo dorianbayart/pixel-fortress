@@ -6,6 +6,7 @@ This is the first release of Pixel Fortress ! ✨
 
 ### New Features
 - Add CI to build artifacts and publish them on GitHub
-- Combat units are exploring the map until they find enemies, to remove fog of war
+- Combat units are exploring the map to uncover fog of war until they find an enemy
+- Add a minimap displaying the world
 
 Thank you for playing!
