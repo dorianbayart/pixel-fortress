@@ -50,3 +50,13 @@ app.on('window-all-closed', () => {
     app.quit();
   }
 });
+
+// Steam stuff
+// const greenworks = require('greenworks');
+// const client = greenworks.init();
+
+
+
+// Used to make the steam overlay work
+app.commandLine.appendSwitch('in-process-gpu')
+app.commandLine.appendSwitch('disable-direct-composition')

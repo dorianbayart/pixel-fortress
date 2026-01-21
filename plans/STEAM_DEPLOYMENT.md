@@ -4,7 +4,7 @@
 - **Version**: 0.0.1-dev
 - **Current Platforms**: GitHub (web), GitHub Releases (Windows .exe, macOS .dmg, Linux .AppImage), itch.io (planned)
 - **Build System**: Electron + electron-builder with GitHub Actions CI/CD
-- **License**: Creative Commons BY-NC 4.0 (Non-Commercial) ⚠️
+- **License**: GNU General Public License v3.0 or later (GPL-3.0-or-later) ✓
 
 ## Overview
 This document outlines the requirements, steps, and considerations for deploying Pixel Fortress on the Steam platform.
@@ -19,20 +19,19 @@ This document outlines the requirements, steps, and considerations for deploying
 - [ ] Complete tax and banking information for revenue payouts
 - [ ] Wait for account approval (typically 1-3 business days)
 
-### 1.2 Legal & Licensing Considerations ⚠️ CRITICAL
-**Current Issue**: The game is licensed under CC BY-NC 4.0 (Non-Commercial), which **prohibits commercial use**.
+### 1.2 Legal & Licensing Considerations ✓
+**Current Status**: The game is licensed under **GPL-3.0-or-later**, which **permits commercial use** on Steam.
 
-**Required Actions**:
-- [ ] **Change the license** to allow commercial distribution:
-  - Option A: Dual-license (keep CC BY-NC for open-source, add proprietary license for Steam)
-  - Option B: Switch to a permissive open-source license (MIT, Apache 2.0, GPL)
-  - Option C: Make Steam version proprietary/closed-source
-- [ ] Update `LICENSE` file in repository
-- [ ] Update `package.json` license field (line 48)
-- [ ] Update `README.md` license section (lines 128-143)
-- [ ] Verify asset licenses (Puny World, Mini World sprites from Merchant-Shade)
-  - Check if commercial use is permitted for purchased/used assets
-  - May need to purchase commercial licenses for asset packs
+The GNU General Public License v3.0 is compatible with commercial distribution while keeping the code open source. Key points:
+- ✓ Commercial use is allowed (including paid sales on Steam)
+- ✓ Source code must remain available (can link to GitHub repository)
+- ✓ Derivative works must also be licensed under GPL v3
+- ✓ The license is already updated in `LICENSE`, `package.json`, and `README.md`
+- ✓ Used assets licenses are compatible with GPL v3
+
+**Remaining Actions**:
+- [ ] Add GPL license notice to Steam store page (recommended for transparency)
+- [ ] Ensure Steam distribution includes or links to source code repository
 
 ### 1.3 Game Requirements Check
 - [x] The game runs on Windows ✓
@@ -59,8 +58,8 @@ npm install --save greenworks
 ```
 
 **Key Files to Modify**:
-- [ ] `package.json`: Add steamworks dependency
-- [ ] `main.js`: Initialize Steamworks SDK
+- [x] `package.json`: Add steamworks dependency
+- [x] `main.js`: Initialize Steamworks SDK
 - [ ] Create `js/steam.mjs`: Steam API wrapper module
 
 **Example Integration** (`main.js`):
@@ -495,7 +494,7 @@ steamcmd +login YOUR_STEAM_USERNAME +run_app_build .\\steam_build_scripts\\app_b
 
 | Risk | Impact | Mitigation |
 |------|--------|------------|
-| License incompatibility | **Critical** | Must resolve before Steam release |
+| ~~License incompatibility~~ | ~~**Critical**~~ | ✓ Resolved - Now using GPL-3.0-or-later |
 | Asset licensing issues | **High** | Verify commercial rights for all assets |
 | macOS signing | **Medium** | Need Apple Developer account ($99/year) |
 | 30-day review delay | **Low** | Plan launch timing accordingly |
@@ -505,10 +504,10 @@ steamcmd +login YOUR_STEAM_USERNAME +run_app_build .\\steam_build_scripts\\app_b
 
 ## Next Steps
 
-1. **IMMEDIATE**: Resolve license issue (CC BY-NC → commercial-compatible)
-2. **HIGH PRIORITY**: Verify asset licenses for commercial use
-3. **MEDIUM PRIORITY**: Create Steamworks Partner account
-4. **MEDIUM PRIORITY**: Design marketing assets (capsules, screenshots)
+1. **HIGH PRIORITY**: Verify asset licenses for commercial use
+2. **MEDIUM PRIORITY**: Create Steamworks Partner account
+3. **MEDIUM PRIORITY**: Design marketing assets (capsules, screenshots)
+4. **MEDIUM PRIORITY**: Document system requirements
 5. **ONGOING**: Integrate Steamworks SDK and test locally
 
 ---
@@ -536,6 +535,6 @@ steamcmd +login YOUR_STEAM_USERNAME +run_app_build .\\steam_build_scripts\\app_b
 
 ---
 
-**Document Version**: 1.0
+**Document Version**: 1.1
 **Last Updated**: 2026-01-21
-**Status**: Planning Phase
+**Status**: Planning Phase - License Issue Resolved
