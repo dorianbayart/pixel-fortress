@@ -45,7 +45,7 @@
     "survival"
   ],
   "author": "Dorian Bayart (https://github.com/dorianbayart)",
-  "license": "CC BY-NC",
+  "license": "GPL-3.0-or-later",
   "build": {
     "appId": "com.dorianbayart.pixelfortress",
     "productName": "Pixel Fortress",

@@ -100,6 +100,7 @@ When making changes, refer to these core files to understand the game's architec
 │   └── fonts/      Custom fonts
 ├── lib/            Third-party libraries (PixiJS)
 ├── maps/           Predefined map data (seeds.json)
+├── plans/          Planning documents and roadmaps
 ├── tests/          Unit tests (.mjs files)
 ├── scripts/        Build/utility scripts
 └── build/          Electron build configuration
@@ -151,9 +152,26 @@ See `KNOWN_BUGS.md` for current known issues including:
 - Building destruction sprite replacement
 - Mobile UI responsiveness issues
 
-## Roadmap
+## Planning Documents
 
-See `ROADMAP.md` for planned features and their status. Key areas in progress:
+The `plans/` directory contains strategic planning documents for major features and milestones:
+- **`plans/ROADMAP.md`**: Development roadmap with planned features and their status
+- **`plans/LICENSING_BUSINESS_MODEL.md`**: Open source licensing strategy and business model (freemium with feature flags)
+- **`plans/STEAM_DEPLOYMENT.md`**: Comprehensive guide for Steam platform deployment
+
+Key areas in progress:
 - Sound effects and background music
 - Game menu improvements
 - AI opponent enhancements
+- Steam deployment preparation
+
+## License
+
+This project is licensed under the **GNU General Public License v3.0 or later (GPL-3.0-or-later)**.
+
+Key implications:
+- All code is open source and must remain open source
+- Derivative works must also be licensed under GPL v3
+- Commercial use is permitted (including Steam distribution)
+- Source code must be made available with any distribution
+- When adding new code files, include the GPL v3 header comment (see existing files for examples)

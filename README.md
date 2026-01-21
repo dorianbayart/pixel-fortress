@@ -106,14 +106,21 @@ Here's a look at the planned features and improvements:
 8. **Sound Effects and Music:** Integrate sound effects and music to create a more immersive experience.
 9. **User Interface Enhancements:** Improve the user interface for better clarity and usability.
    
-These are just some of the ideas I have in mind, and I am open to suggestions and feedback. 
+These are just some of the ideas I have in mind, and I am open to suggestions and feedback.
 Stay tuned for updates as I continue to develop and expand Pixel Fortress!
 
-A detailed roadmap can be found here: [ROADMAP.md](ROADMAP.md)
+A detailed roadmap can be found here: [plans/ROADMAP.md](plans/ROADMAP.md)
+
+## 📋 Planning & Documentation
+
+The `plans/` directory contains strategic planning documents for major features and development milestones:
+- **[ROADMAP.md](plans/ROADMAP.md)**: Development roadmap with planned features and their status
+- **[LICENSING_BUSINESS_MODEL.md](plans/LICENSING_BUSINESS_MODEL.md)**: Open source licensing strategy and freemium business model
+- **[STEAM_DEPLOYMENT.md](plans/STEAM_DEPLOYMENT.md)**: Comprehensive guide for Steam platform deployment
 
 ## 🤖 AI Assistant Guidelines
 
-This project includes a `GEMINI.md` file with detailed context for AI code assistants. If you are using an AI to help with development, please ensure it has access to this file to understand the project's conventions and architecture.
+This project includes `CLAUDE.md` and `GEMINI.md` files with detailed context for AI code assistants. If you are using an AI to help with development, please ensure it has access to these files to understand the project's conventions and architecture.
 
 
 
@@ -127,20 +134,25 @@ This project includes a `GEMINI.md` file with detailed context for AI code assis
 
 ## 📜 License
 
-This project is licensed under the **Creative Commons Non-Commercial 4.0 International License**.
+This project is licensed under the **GNU General Public License v3.0 or later (GPL-3.0-or-later)**.
 
 This means you are free to:
 
-* **Share** — copy and redistribute the material in any medium or format
-* **Adapt** — remix, transform, and build upon the material
+* **Use** — run the program for any purpose
+* **Study** — examine how the program works and modify it
+* **Share** — redistribute copies of the original program
+* **Improve** — distribute copies of your modified versions to others
 
 Under the following terms:
 
-* **Attribution** — You must give appropriate credit, provide a link to the license, and indicate if changes were made. You may do so in any reasonable manner, but not in any way that suggests the licensor endorses you or your use.
-* **Non-Commercial** — You may not use the material for commercial purposes.
-* **No Additional Restrictions** — You may not apply legal terms or technological measures that legally restrict others from doing anything the license permits.
+* **Copyleft** — If you distribute modified versions, you must also license them under GPL v3 and make the source code available
+* **Attribution** — You must provide appropriate credit and indicate if changes were made
+* **No Additional Restrictions** — You may not impose further restrictions on the recipients' exercise of the rights granted herein
+* **Commercial Use Allowed** — You may use this software commercially, including selling it (e.g., on Steam), as long as you comply with the GPL v3 terms
 
-**Full License Text:** [https://creativecommons.org/licenses/by-nc/4.0/](https://creativecommons.org/licenses/by-nc/4.0/)
+**Full License Text:** See the [LICENSE](LICENSE) file in the repository root.
+
+**Learn More:** [https://www.gnu.org/licenses/gpl-3.0.html](https://www.gnu.org/licenses/gpl-3.0.html)
 
 
 ## #️⃣ Keywords
