@@ -14,6 +14,9 @@ export {
   updateZoom,
   worldObjectSpriteMap,
   drawMinimap,
+  createHealthBar,
+  updateHealthBar,
+  removeHealthBar,
 }
 
 'use strict'
@@ -43,6 +46,7 @@ const containers = {
 }
 
 const indicatorMap = new Map()
+const healthBarMap = new Map()
 const unitSpriteMap = new Map()
 const backgroundSpriteMap = new Map()
 const worldObjectSpriteMap = new Map()
@@ -169,6 +173,10 @@ async function initCanvases() {
     }
   }
   unitSpriteMap.clear()
+  // Clean up health bars
+  healthBarMap.clear()
+  // Clean up indicators
+  indicatorMap.clear()
 }
 
 /**
@@ -338,6 +346,21 @@ function drawMain(player, AIs) {
       // Remove indicator if it's no longer needed
       removeProgressIndicator(entity.uid)
     }
+
+    // --- Health Bar Handling (for both units and buildings) ---
+    // Only show health bars when enabled, entity has health properties, and is damaged (life < maxLife)
+    if (gameState.settings.showHealthBars && entity.life !== undefined && entity.maxLife !== undefined && entity.life < entity.maxLife && entity.visible) {
+      let healthBar = healthBarMap.get(entity.uid)
+      if (!healthBar) {
+        // Create health bar if it doesn't exist
+        healthBar = createHealthBar(entity, 10)
+      }
+      healthBar.visible = true
+      updateHealthBar(entity)
+    } else if (healthBarMap.has(entity.uid)) {
+      // Remove health bar if it's no longer needed
+      removeHealthBar(entity.uid)
+    }
   })
 
   // Remove sprites for units that no longer exist
@@ -352,6 +375,13 @@ function drawMain(player, AIs) {
   for (const entityId of indicatorMap.keys()) {
     if (!currentEntityIds.has(entityId)) {
       removeProgressIndicator(entityId)
+    }
+  }
+
+  // Remove health bars for entities that no longer exist
+  for (const entityId of healthBarMap.keys()) {
+    if (!currentEntityIds.has(entityId)) {
+      removeHealthBar(entityId)
     }
   }
   
@@ -693,5 +723,96 @@ async function removeProgressIndicator(entityUid) {
   if (indicator) {
     containers.indicators.removeChild(indicator)
     indicatorMap.delete(entityUid)
+  }
+}
+
+/**
+ * Create a health bar for an entity
+ * @param {Object} entity - Unit or building to create health bar for
+ * @param {number} width - Width of the health bar
+ * @returns {PIXI.Container} The created health bar container
+ */
+function createHealthBar(entity, width = 10) {
+  const healthBar = new PIXI.Container()
+
+  // Create pixelated background (dark border)
+  const background = new PIXI.Graphics()
+    .rect(0, 0, width, 3)
+    .fill({ color: 0x000000, alpha: 0.6 })
+
+  // Create health bar (initially full)
+  const bar = new PIXI.Graphics()
+    .rect(2, 2, width-2, 1)
+    .fill({ color: 0x00FF00, alpha: 1 })
+
+  healthBar.addChild(background)
+  healthBar.addChild(bar)
+
+  // Add to container and map
+  containers.indicators.addChild(healthBar)
+  healthBarMap.set(entity.uid, healthBar)
+
+  return healthBar
+}
+
+/**
+ * Get color based on health percentage
+ * @param {number} healthPercent - Health percentage (0-1)
+ * @returns {number} Color hex value
+ */
+function getHealthBarColor(healthPercent) {
+  if (healthPercent > 0.6) {
+    return 0x00FF00 // Green
+  } else if (healthPercent > 0.3) {
+    return 0xFFFF00 // Yellow
+  } else {
+    return 0xFF0000 // Red
+  }
+}
+
+/**
+ * Update a health bar's position and value
+ * @param {Object} entity - Unit or building the health bar belongs to
+ */
+async function updateHealthBar(entity) {
+  const healthBar = healthBarMap.get(entity.uid)
+  if (!healthBar) return
+
+  const SPRITE_SIZE = getTileSize()
+
+  // Calculate health percentage
+  const healthPercent = Math.max(0, Math.min(1, entity.life / entity.maxLife))
+
+  // Position above entity (different for units vs buildings)
+  if (entity.currentNode) {
+    // Unit
+    healthBar.x = entity.x + 3
+    healthBar.y = entity.y - 6
+  } else {
+    // Building
+    healthBar.x = entity.x * SPRITE_SIZE + SPRITE_SIZE/4 - 1
+    healthBar.y = entity.y * SPRITE_SIZE - 3
+  }
+
+  // Update health bar width and color (similar to progress indicator)
+  const background = healthBar.getChildAt(0)
+  const bar = healthBar.getChildAt(1)
+  const barWidth = (background.width - 2) * healthPercent
+  const color = getHealthBarColor(healthPercent)
+
+  bar.clear()
+    .rect(1, 1, barWidth, 1) // 1px border around bar, 1px height
+    .fill({ color: color, alpha: 1 })
+}
+
+/**
+ * Remove a health bar
+ * @param {number} entityUid - UID of entity to remove health bar for
+ */
+async function removeHealthBar(entityUid) {
+  const healthBar = healthBarMap.get(entityUid)
+  if (healthBar) {
+    containers.indicators.removeChild(healthBar)
+    healthBarMap.delete(entityUid)
   }
 }

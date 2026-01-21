@@ -1401,8 +1401,9 @@ class PeonSoldier extends MeleeUnit {
   constructor(x, y, owner) {
     super(x, y, owner)
     this.spriteName = 'human-worker-' + this.owner.getColor()
-    this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']  
+    this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']
     this.life = 5
+    this.maxLife = this.life // Set maxLife to match life
     this.attack = 1
     this.speed = 1
   }
@@ -1417,8 +1418,9 @@ class Mage extends RangedUnit {
   constructor(x, y, owner) {
     super(x, y, owner)
     this.spriteName = 'mage-' + this.owner.getColor()
-    this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']  
+    this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']
     this.life = 8
+    this.maxLife = this.life // Set maxLife to match life
     this.attack = 10
     this.speed = 0.9
   }
@@ -1431,8 +1433,9 @@ class Soldier extends MeleeUnit {
   constructor(x, y, owner) {
     super(x, y, owner)
     this.spriteName = 'human-soldier-' + this.owner.getColor()
-    this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']  
+    this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']
     this.life = 12
+    this.maxLife = this.life // Set maxLife to match life
     this.attack = 5
     this.speed = 0.925
   }
@@ -1447,8 +1450,9 @@ class HeavyInfantry extends MeleeUnit {
   constructor(x, y, owner) {
     super(x, y, owner)
     this.spriteName = 'soldier-' + this.owner.getColor() // Placeholder sprite for now
-    this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']  
+    this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']
     this.life = 40
+    this.maxLife = this.life // Set maxLife to match life
     this.attack = 5
     this.range = 0.5 * getTileSize()
     this.speed = 0.8
@@ -1462,8 +1466,9 @@ class EliteWarrior extends MeleeUnit {
   constructor(x, y, owner) {
     super(x, y, owner)
     this.spriteName = 'warrior-' + this.owner.getColor() // Placeholder sprite for now
-    this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']  
+    this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']
     this.life = 25
+    this.maxLife = this.life // Set maxLife to match life
     this.attack = 12
     this.speed = 0.85
   }

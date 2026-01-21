@@ -32,7 +32,7 @@ Details: The AI builds structures and manages units similarly to the player.
 - [x] **Tower/Building Selection UI:** Display available towers/buildings and allow players to select them.
 - [ ] **Game Menu:** Implement a main menu, pause menu, and options menu. *(In Progress)*  
 Details: The menu presents what the User can do: Play on random map, Play a predefined map, Play a campaign, Manage options (details, SpecialFX, sound, etc.), etc.
-- [ ] **Health Display:** Visual representation of the unit's health. *(Not Planned)*
+- [x] **Health Display:** Visual representation of the unit's health.
 - [x] **Resource Display:** Show the player's current resources.
 - [x] **Mini-Map:** Overview of the game world.
 
