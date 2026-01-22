@@ -186,7 +186,7 @@ pixel-fortress/
 
 ### 🔲 Phase 6: Asset Creation (TODO)
 - [ ] Take 4-6 gameplay screenshots
-- [ ] Create Open Graph image (1200x630px)
+- [x] Create Open Graph image (1200x630px)
 - [ ] Optimize all images (WebP conversion)
 - [ ] Add alt text to all images
 - [ ] Optional: Create pixel art icons
