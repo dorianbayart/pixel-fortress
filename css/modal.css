@@ -173,6 +173,8 @@
 /* GitHub links styling */
 .github-links {
   margin: 20px 0;
+  display: flex;
+  justify-content: space-evenly;
 }
 
 .github-links h3 {
