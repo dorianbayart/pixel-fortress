@@ -1,6 +1,17 @@
 /* Pixel Fortress Landing Page Styles */
 
 /* ============================================
+   Font Declarations
+   ============================================ */
+@font-face {
+  font-family: 'Jacquarda Bastarda 9';
+  src: url('../assets/fonts/Jacquarda-Bastarda-9.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ============================================
    CSS Variables & Root Styles
    ============================================ */
 :root {
