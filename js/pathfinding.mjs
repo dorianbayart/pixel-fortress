@@ -6,11 +6,28 @@ import { getMapDimensions } from 'dimensions'
 import gameState from "state"
 
 const NUM_PATHFINDING_WORKERS = 4
+const MAX_CONCURRENT_PER_WORKER = 3 // Max concurrent pathfinding requests per worker
 const pathfindingWorkers = []
+const workerQueues = Array.from({ length: NUM_PATHFINDING_WORKERS }, () => [])
+const workerActiveCount = Array.from({ length: NUM_PATHFINDING_WORKERS }, () => 0)
 let nextWorkerIndex = 0
 const pathfindingPromises = new Map()
 let nextPathfindingId = 0
 const workerCalculations = Array.from({ length: NUM_PATHFINDING_WORKERS }, () => [])
+
+/**
+ * Process the next queued request for a worker if it has capacity
+ * @param {number} workerIndex - Index of the worker
+ */
+function processNextQueuedRequest(workerIndex) {
+  // If worker has capacity and there are queued requests
+  if (workerActiveCount[workerIndex] < MAX_CONCURRENT_PER_WORKER && workerQueues[workerIndex].length > 0) {
+    const request = workerQueues[workerIndex].shift()
+    workerActiveCount[workerIndex]++
+    workerCalculations[workerIndex].push(performance.now())
+    pathfindingWorkers[workerIndex].postMessage(request.message)
+  }
+}
 
 /**
  * Sends a pathfinding request to the worker and returns a Promise that resolves with the path.
@@ -30,6 +47,9 @@ for (let i = 0; i < NUM_PATHFINDING_WORKERS; i++) {
     if (resolve) {
       if (type === 'PATH_RESULT') {
         resolve(path)
+        // Decrement active count and process next queued request
+        workerActiveCount[i]--
+        processNextQueuedRequest(i)
       } else if (type === 'CACHE_CLEARED') {
         resolve()
       }
@@ -41,6 +61,7 @@ for (let i = 0; i < NUM_PATHFINDING_WORKERS; i++) {
 /**
  * Sends a pathfinding request to a worker and returns a Promise that resolves with the path.
  * Uses a round-robin approach to distribute requests among workers.
+ * Queues requests when workers are at capacity to prevent overload.
  * @param {number} startX - Starting X coordinate
  * @param {number} startY - Starting Y coordinate
  * @param {number} endX - Destination X coordinate
@@ -49,20 +70,30 @@ for (let i = 0; i < NUM_PATHFINDING_WORKERS; i++) {
  */
 function searchPath(startX, startY, endX, endY) {
   const id = nextPathfindingId++
-  const worker = pathfindingWorkers[nextWorkerIndex]
-  workerCalculations[nextWorkerIndex].push(performance.now())
+  const workerIndex = nextWorkerIndex
   nextWorkerIndex = (nextWorkerIndex + 1) % NUM_PATHFINDING_WORKERS
+
+  const message = {
+    type: 'FIND_PATH',
+    id,
+    startX,
+    startY,
+    endX,
+    endY,
+  }
 
   return new Promise((resolve) => {
     pathfindingPromises.set(id, resolve)
-    worker.postMessage({
-      type: 'FIND_PATH',
-      id,
-      startX,
-      startY,
-      endX,
-      endY,
-    })
+
+    // If worker has capacity, send immediately
+    if (workerActiveCount[workerIndex] < MAX_CONCURRENT_PER_WORKER) {
+      workerActiveCount[workerIndex]++
+      workerCalculations[workerIndex].push(performance.now())
+      pathfindingWorkers[workerIndex].postMessage(message)
+    } else {
+      // Otherwise, queue the request
+      workerQueues[workerIndex].push({ message })
+    }
   })
 }
 

@@ -1204,11 +1204,23 @@ class CombatUnit extends Unit {
   async handleTasks(delay, time) {
     this.timeSinceLastTargetReevaluation = (this.timeSinceLastTargetReevaluation || 0) + delay
 
-    // If current goal is dead or invalid, clear it and go idle
+    // If current goal is dead or invalid, try to find a nearby enemy quickly
     if (this.goal && this.goal.life <= 0) {
+      const deadTargetPos = this.goal.currentNode ?? { x: this.goal.x, y: this.goal.y }
       this.goal = null
       this.path = null
-      this.task = 'idle'
+
+      // Quick scan: find enemies near the dead target without pathfinding
+      const nearbyEnemy = this.findNearbyEnemy(deadTargetPos, 15) // Within 15 tiles
+      if (nearbyEnemy) {
+        // Set goal directly, pathfinding will happen in normal update cycle
+        this.goal = nearbyEnemy
+        this.task = 'moving'
+        // Reset timer so it doesn't immediately trigger full reevaluation
+        this.timeSinceLastTargetReevaluation = 0
+      } else {
+        this.task = 'idle'
+      }
     }
 
     // Periodically re-evaluate nearest enemy, even if currently attacking
@@ -1252,6 +1264,33 @@ class CombatUnit extends Unit {
     }
   }
 
+
+  /**
+   * Find a nearby enemy using simple distance checks (no pathfinding)
+   * This is used for quick target acquisition when previous target dies
+   * @param {Object} referencePos - Position to search from (usually dead target's position)
+   * @param {number} maxDistance - Maximum distance to search
+   * @returns {Object|null} Nearby enemy or null if none found
+   */
+  findNearbyEnemy(referencePos, maxDistance) {
+    const enemies = this.owner.getVisibleEnemies()
+    let nearestEnemy = null
+    let nearestDistance = maxDistance
+
+    for (const enemy of enemies) {
+      if (enemy.life <= 0) continue // Skip dead enemies
+
+      const enemyPos = enemy.currentNode ?? { x: enemy.x, y: enemy.y }
+      const dist = distance(referencePos, enemyPos)
+
+      if (dist < nearestDistance) {
+        nearestDistance = dist
+        nearestEnemy = enemy
+      }
+    }
+
+    return nearestEnemy
+  }
 
   /**
    * Find path to nearest enemy
