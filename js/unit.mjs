@@ -4,6 +4,7 @@ export {
 
 'use strict'
 
+import { Building } from 'building'
 import { getMapDimensions, getTileSize } from 'dimensions'
 import { TERRAIN_TYPES, updateSprite } from 'game'
 import { isPositionExplored } from 'fogOfWar'
@@ -141,7 +142,7 @@ class Unit {
 
     if(!this.goal) return
 
-    if(distance(this.currentNode, this.goal.currentNode ? { x: this.goal.x / getTileSize(), y: this.goal.y / getTileSize() } : this.goal) > this.getEffectiveRange()) {
+    if(!this.isAtGoal()) {
       this.updatePath(delay, time)
     } else {
       this.goalReached(delay, time)
@@ -186,20 +187,40 @@ class Unit {
 
   /**
    * Get effective attack range for the current goal
-   * Targets need extra range since they occupy space
+   * Different goal types need different effective ranges:
+   * - Units (combat): Add buffer for unit-to-unit interaction
+   * - Buildings (workers enter): Very small range to force walking onto building
+   * - Buildings (workers stay outside): Range allowing orthogonal adjacency only
+   * - Resources (trees, etc.): Range allowing orthogonal adjacency only
    * @returns {number} Effective range in tiles
    */
   getEffectiveRange() {
     const baseRange = this.range / getTileSize()
     if (!this.goal) return baseRange
 
-    // If goal is a building (no currentNode), add larger buffer for building size
-    if (!this.goal.currentNode) {
-      return baseRange + 0.5 // Add half tile for building's radius
+    // If goal is a unit (has currentNode), add buffer for unit-to-unit interaction
+    if (this.goal.currentNode) {
+      return baseRange + 0.35 // Add buffer so melee units can attack adjacent units
     }
 
-    // For unit-to-unit combat, add smaller buffer since both units occupy space
-    return baseRange + 0.35 // Add buffer so melee units can attack adjacent units
+    // If goal is a building (has uid property - Building instances have this)
+    if (this.goal.uid !== undefined) {
+      // For Quarry and Gold Mine, workers go inside the building (they get hidden)
+      // Use very small range to force workers to walk onto the building tile
+      const buildingType = this.goal.type
+      if (buildingType === Building.TYPES.QUARRY ||
+          buildingType === Building.TYPES.GOLD_MINE) {
+        return baseRange // Very small range - forces worker to walk onto building
+      }
+
+      // For other buildings (Lumberjack, Well), workers work from adjacent tiles
+      // Use range that allows orthogonal adjacency but not diagonal
+      return 1.05 // Allows distance ~1.0 (orthogonal adjacent) but not ~1.41 (diagonal)
+    }
+
+    // For resource tiles (trees, rocks, etc.) - these are simple coordinate objects {x, y}
+    // Workers should only interact from orthogonally adjacent tiles, not diagonals
+    return 1.05 // Allows distance ~1.0 (orthogonal adjacent) but not ~1.41 (diagonal)
   }
 
   /**
@@ -360,7 +381,7 @@ class Unit {
     let vy = this.speed * (delay/1000) * Math.sin(theta) * speedFactor * SPRITE_SIZE
 
     let type = 'static'
-    if (distance(this.currentNode, this.goal?.currentNode ? { x: this.goal.x / getTileSize(), y: this.goal.y / getTileSize() } : this.goal) <= this.getEffectiveRange()) {
+    if (this.isAtGoal()) {
       // Stop walking if arrived at goal
       vx = vy = 0
     }
@@ -1249,7 +1270,7 @@ class CombatUnit extends Unit {
     }
 
     // If we have a goal and are within range, attack
-    if (this.goal && distance(this.currentNode, this.goal.currentNode ? { x: this.goal.x / getTileSize(), y: this.goal.y / getTileSize() } : this.goal) <= this.getEffectiveRange()) {
+    if (this.goal && this.isAtGoal()) {
       this.task = 'attack'
     } else if (this.goal && this.path) {
       // If we have a goal and a path, and not attacking, we are moving (either to enemy or to explore)

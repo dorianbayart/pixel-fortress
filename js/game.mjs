@@ -70,10 +70,14 @@ const initGame = async () => {
   let isMapCorrect = true
   updateMapDimensionsInWorker()
   do {
-    if(!isMapCorrect) gameState.mapSeed = null
+    if(!isMapCorrect) {
+      console.log(`Map generation attempt ${i + 1} failed, retrying...`)
+      gameState.mapSeed = null
+    }
     await generateMap()
     isMapCorrect = await placeTents()
   } while(!isMapCorrect && ++i < 150)
+  console.log(`Map generation ${isMapCorrect ? 'succeeded' : 'failed'} after ${i + 1} attempts`)
 
   updateMapInWorker() // Initial map update
   await assignSpritesOnMap()
@@ -207,9 +211,11 @@ const placeTents = async () => {
     }
   }
 
+  console.log(`placeTents: Searching path from (${centerX}, ${humanY}) to (${centerX}, ${aiY})`)
   updateMapInWorker()
   const path = await searchPath(centerX, humanY, centerX, aiY)
   const weight = path?.reduce((p, c) => p + c.weight, 0)
+  console.log(`placeTents: Path result - length: ${path?.length || 0}, weight: ${weight || 'N/A'}`)
 
   if(path?.length && weight < 3 * (MAP_WIDTH + MAP_HEIGHT)) {
     console.log('Path between the 2 tents:', path, weight)
