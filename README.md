@@ -2,27 +2,48 @@
 
 # <img src="assets/base_512_pixelated.png" alt="Favicon" width="auto" height="32"> Pixel Fortress
 
-A 2D pixel-based strategy game that uniquely merges the depth of Tower Defense with the addictive simplicity of Clicker styles.
+**Pixel Fortress combines strategic base-building with automated warfare.** Design your fortress, establish resource production, and deploy self-directed units that explore, gather, and battle autonomously. Strategic depth without the micro-management.
 
 ➡️ [Play live](https://dorianbayart.github.io/pixel-fortress/)
+
+## 🎯 Genre
+**Base Building • Automated Strategy • Resource Management • Auto-battler • Pixel Art**
+
+<!-- Marketing Tagline Options:
+- "Build smart. Let them fight."
+- "Strategy without the stress."
+- "Your fortress. Their war."
+- "Design. Deploy. Dominate."
+-->
 
 
 
 
 ## ✨ Features
 
-* **Strategic Gameplay:** Build up your Fortress to produce units and defend your fortress against enemies.
-* **Dynamic Map:** Explore huge randomly generated maps with various terrains and obstacles.
-* **Unit Management:** Control multiple units with unique abilities and stats.
-* **Zoom:** Use the mouse wheel to zoom in and out for a detailed view of the battlefield.
-* **Pathfinding:** Units intelligently navigate the map to reach their destinations.
+* **Strategic Base Building:** Choose what and where to build - buildings automatically produce specialized units
+* **Automated Warfare:** Units move, explore, gather resources, and battle enemies autonomously
+* **Resource Management:** Build gathering buildings (lumberjacks, quarries, wells) to fuel your economy
+* **Multiple AI Opponents:** Play against up to 3 AI players with different difficulty levels (easy, normal, hard)
+* **Diverse Unit Types:** Deploy workers, soldiers, archers, and mages - each with unique abilities and stats
+* **Procedural Maps:** Unlimited randomly generated maps in 3 different sizes, plus many predefined scenarios
+* **Dynamic Exploration:** Huge maps with fog of war - your units automatically explore uncharted territory
+* **Intelligent Pathfinding:** Units navigate complex terrain autonomously using A* pathfinding
+* **Future Towers:** Defensive tower buildings (planned feature)
+* **Game Modes:** Classic, speedier gameplay, fast gathering units, and more variants (planned)
+* **Campaign Mode:** Story-driven missions (planned)
 
 ## 🎮 Game Modes
 
-**Single-player (vs AI):** Currently, the game can be played against an AI opponent. This mode allows you to practice and familiarize yourself with the game mechanics, through campaigns, and predefined or randomly generated maps.
+**Single-player (vs AI):** Face off against 1-3 AI opponents across:
+- **Classic Mode:** Standard gameplay with balanced pacing
+- **Speed Variants:** Faster game speed multipliers for quick matches
+- **Difficulty Levels:** Easy, Normal, and Hard AI challenges
+- **Map Selection:** Choose from predefined scenarios or procedurally generated maps (small, medium, large)
 
-**Multiplayer (vs Player):** Multiplayer functionality will hopefully be added in a future release. This will allow you to play against other players online and compete for dominance on the battlefield.  
-Stay tuned for updates! 
+**Campaign Mode (Planned):** Story-driven missions with unique objectives and challenges.
+
+**Multiplayer (Planned):** Online player-versus-player functionality is planned for a future release. 
 
 
 ## 💻 Technologies Used
@@ -35,12 +56,24 @@ Stay tuned for updates!
 
 ## 🕹️ Game Mechanics (Brief Overview)
 
-* **Unit Management**  
-In Pixel Fortress, you build structures that automatically produce units. These units operate independently, with some dedicated to resource gathering (food, wood, gold, stone, whatever) and others focused on combat against enemy units and structures. You don't directly control individual units; instead, you manage your resource production and building placement to optimize your unit's effectiveness.  
-The AI opponent uses the same automated unit management system.
+* **Automated Unit System**
+Buildings automatically produce units that operate completely independently. You **never** directly command individual units. Instead, you make strategic decisions about:
+  - **What to build:** Economy (resource gatherers) vs military (unit producers)
+  - **Where to place buildings:** Proximity to resources, defensive positioning, expansion strategy
+  - **Resource allocation:** Balancing wood, stone, water, and gold production
 
-* **Attack**  
-Units automatically attack nearby enemies within their range or navigate to engage them.
+* **Unit Behavior**
+Units handle everything autonomously:
+  - **Workers:** Automatically gather resources (wood, stone, water, gold) and return to your base
+  - **Combat Units:** Explore the map, engage enemies within range, and defend your territory
+  - **Pathfinding:** All units intelligently navigate terrain using A* pathfinding
+  - **Exploration:** Units automatically reveal fog of war and discover enemy positions
+
+* **Combat**
+Combat is fully automated - units attack nearby enemies within range or move to engage threats. Your strategic choices in building composition and placement determine the outcome.
+
+* **Victory Conditions**
+Eliminate all enemy players by destroying their buildings and units. The AI opponents use the same automated systems you do.
 
 
 ## 🚀 Getting Started
@@ -157,4 +190,4 @@ Under the following terms:
 
 ## #️⃣ Keywords
 
-pixel, fortress, game, strategy, tower defense, TD, clicker, pixel art, 2D, HTML5, JavaScript, canvas, web, browser, pixijs, open source, dungeon, monsters, waves, upgrades, skills, achievements, resource management, base building, survival
+pixel fortress, base building, automated strategy, auto-battler, resource management, pixel art, 2D strategy, HTML5 game, JavaScript, canvas, web game, browser game, pixijs, open source, achievements, procedural generation, AI opponent, autonomous units, strategic gameplay, casual strategy, idle strategy, automated warfare, exploration, fog of war, pathfinding

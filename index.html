@@ -1,571 +1,394 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport"
-    content="width=device-width, height=device-height, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=contain, shrink-to-fit=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Pixel Fortress - A 2D pixel-based strategy game</title>
-  <meta name="description"
-    content="A 2D pixel-based strategy game that uniquely merges the depth of Tower Defense with the addictive simplicity of Clicker styles.">
-  <meta name="author" content="Dorian Bayart">
-  <meta name="keywords"
-    content="pixel, fortress, game, strategy, tower defense, TD, clicker, pixel art, 2D, HTML5, JavaScript, canvas, web, browser, open source, dungeon, monsters, waves, upgrades, skills, achievements, resource management, base building, survival">
+  <title>Pixel Fortress - Open Source Auto-Battler | Play Free</title>
+  <meta name="description" content="Strategic base-building with automated warfare. Design your fortress, establish resource production, and deploy self-directed units. 100% open source, play free in browser.">
+  <meta name="keywords" content="pixel fortress, auto-battler, base building, automated strategy, resource management, pixel art, open source game, browser game, idle strategy, autonomous units, GPL license">
   <link rel="canonical" href="https://dorianbayart.github.io/pixel-fortress/">
 
-  <!-- Open Graph / Facebook -->
+  <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://dorianbayart.github.io/pixel-fortress/">
-  <meta property="og:title" content="Pixel Fortress - A 2D pixel-based strategy game">
-  <meta property="og:description"
-    content="A 2D pixel-based strategy game that uniquely merges the depth of Tower Defense with the addictive simplicity of Clicker styles.">
-  <meta property="og:image" content="https://dorianbayart.github.io/pixel-fortress/logo.svg">
+  <meta property="og:title" content="Pixel Fortress - Open Source Auto-Battler">
+  <meta property="og:description" content="Build smart. Let them fight. Strategic base-building with automated warfare. 100% open source.">
+  <meta property="og:image" content="https://dorianbayart.github.io/pixel-fortress/assets/base_512_pixelated.png">
+  <meta property="og:image:width" content="512">
+  <meta property="og:image:height" content="512">
 
-  <!-- Twitter -->
-  <meta property="twitter:card" content="summary_large_image">
-  <meta property="twitter:url" content="https://dorianbayart.github.io/pixel-fortress/">
-  <meta property="twitter:title" content="Pixel Fortress - A 2D pixel-based strategy game">
-  <meta property="twitter:description"
-    content="A 2D pixel-based strategy game that uniquely merges the depth of Tower Defense with the addictive simplicity of Clicker styles.">
-  <meta property="twitter:image" content="https://dorianbayart.github.io/pixel-fortress/logo.svg">
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://dorianbayart.github.io/pixel-fortress/">
+  <meta name="twitter:title" content="Pixel Fortress - Open Source Auto-Battler">
+  <meta name="twitter:description" content="Build smart. Let them fight. Strategic depth without the micro-management.">
+  <meta name="twitter:image" content="https://dorianbayart.github.io/pixel-fortress/assets/base_512_pixelated.png">
 
-  <!-- iOS -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-  <link rel="apple-touch-icon" sizes="192x192" type="image/png" href="assets/base_512_pixelated.png">
-  <link rel="icon" sizes="192x192" type="image/png" href="assets/base_512_pixelated.png">
-  <link rel="icon" type="image/png" href="favicon.png">
-
-  <link rel="manifest" href="manifest.json">
-
-  <style>
-    /* Font is dynamically loaded by JS */
-    /* @import url('https://fonts.googleapis.com/css2?family=Jacquarda+Bastarda+9&display=swap'); */
-
-    :root {
-      --sat: env(safe-area-inset-top, 0px);
-      --sar: env(safe-area-inset-right, 0px);
-      --sab: env(safe-area-inset-bottom, 0px);
-      --sal: env(safe-area-inset-left, 0px);
-      
-      --font-base: "Jacquarda-Bastarda-9", fantasy, monospace, system-ui, sans-serif;
-      --font-color: gold;
-    }
-
-    * {
-      box-sizing: border-box;
-      user-select: none;
-    }
-
-    .font-to-load {
-      opacity: 0;
-    }
-
-    body,
-    html {
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      overflow: hidden;
-      height: 100dvh;
-      width: 100dvw;
-      background: linear-gradient(0deg, #228b22, #1a1a1a);
-      background-size: 100% 125%;
-      font-family: var(--font-base);
-      font-size: max(1.75dvh, 16px);
-      display: flex;
-      justify-content: center;
-      cursor: crosshair;
-    }
-
-    body {
-      /* Apply safe area padding */
-      padding: var(--sat) var(--sar) var(--sab) var(--sal);
-      /*background-image: url('assets/punyworld-overworld-tileset.png');
-      background-size: 200px 200px;
-      animation: backgroundPan 60s linear infinite;*/
-    }
-
-    @keyframes backgroundPan {
-      0% { background-position: 0% 0%; }
-      100% { background-position: 200% 200%; }
-    }
-
-    body.playing-mode {
-      background: #1a1a1a; /* Dark background, but not true black */
-      background-size: 100% 100%;
-      animation: none; /* Disable background animation when playing */
-    }
-
-    canvas {
-      height: 100dvh;
-      width: 100dvw;
-      overflow: hidden;
-      object-fit: contain;
-      cursor: none;
-      touch-action: none;
-      image-rendering: pixelated;
-    }
-
-    #stats {
-      z-index: -100;
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      font-family: monospace;
-      font-size: smaller;
-    }
-
-    #homeMenu {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      height: 100dvh;
-      width: 100dvw;
-      z-index: 50;
-      text-align: center;
-      padding: 0;
-      font-family: var(--font-base);
-      font-weight: 400;
-      color: var(--font-color);
-      /* text-shadow: 3px 5px 4px #000000; */
-      text-shadow: 0 0 5px forestgreen, 0 0 10px forestgreen, 0 0 15px forestgreen, 0 0 20px forestgreen, 0 0 25px forestgreen;
-      display: flex;
-      flex-flow: column;
-      align-items: center;
-      justify-content: center;
-    }
-
-    /* Add subtle animation to the game logo */
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.1); }
-      100% { transform: scale(1); }
-    }
-
-    @keyframes blink-caret {
-      from, to { border-color: transparent }
-      50% { border-color: var(--font-color); }
-    }
-
-    /* Blinking caret for typewriter effect */
-    .typewriter-caret {
-      border-right: 0.15em solid var(--font-color);
-      animation: blink-caret 1s step-end infinite;
-    }
-
-    #gameLogo {
-      margin: max(4dvh, 1.5rem);
-    }
-
-    #gameLogo img {
-      animation: pulse 3s infinite ease-in-out;
-      filter: drop-shadow(0 0 30px var(--font-color)) drop-shadow(0 0 15px var(--font-color));
-    }
-
-    /* Make the title more prominent */
-    #homeMenu h1 {
-      opacity: 0;
-      font-size: clamp(2rem, 5vw, 3rem);
-      margin: 1.5dvh;
-      text-shadow: 0 0 15px forestgreen, 0 0 25px forestgreen, 0 0 35px forestgreen;
-      filter: drop-shadow(0 0 5px var(--font-color));
-      /* animation: pulse 8.5s infinite ease-in-out; */
-    }
-
-    #homeMenu h2 {
-      cursor: pointer;
-      margin: 1.5dvh;
-      padding: 0.75dvh 4dvw;
-    }
-
-    #homeMenu h2:first-of-type {
-      margin-top: 3.5dvh;
-    }
-
-    #homeMenu h2:hover {
-      text-decoration: underline;
-    }
-
-    #mainMenuButtons {
-      opacity: 0;
-      display: flex;
-      flex-flow: column;
-      width: min(95%, 300px);
-    }
-
-    .menu-button {
-      cursor: pointer;
-      padding: 0.75dvh 2.5dvw;
-      margin: 1.5dvh auto;
-      background: rgba(34, 139, 34, 0.3);
-      border: 2px solid var(--font-color);
-      border-radius: 6px;
-      color: var(--font-color);
-      font-family: var(--font-base);
-      font-size: 1.5rem;
-      text-align: center;
-      transition: all 0.2s ease-in-out;
-      width: 95%;
-      text-shadow: 0 0 5px forestgreen;
-      box-shadow: 0 0 10px rgba(34, 139, 34, 0.5);
-    }
-
-    .menu-button:hover {
-      background: rgba(34, 139, 34, 0.7);
-      transform: translateY(-3px) scale(1.02);
-      box-shadow: 0 6px 15px rgba(34, 139, 34, 0.9), 0 0 20px var(--font-color);
-      filter: brightness(1.2);
-    }
-
-    .menu-button:active {
-      transform: translateY(0) scale(0.98);
-      box-shadow: 0 2px 8px rgba(34, 139, 34, 0.7);
-      filter: brightness(0.9);
-    }
-
-    #audioToggleButton {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      font-size: 1.25rem;
-      width: 225px;
-      padding: 0.75dvh 0;
-    }
-
-    #progressBar {
-      z-index: 100; /* Above everything else */
-      position: absolute;
-      top: 60dvh;
-      left: 50dvw;
-      transform: translate(-50%, -50%);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      min-width: max-content;
-      background: rgba(0, 0, 0, 0.7);
-      border-radius: 10px;
-      padding: 20px;
-    }
-
-    #progressBar label {
-      font-family: fantasy, monospace, system-ui, Arial;
-      font-size: x-large;
-      color: gold;
-      /* text-shadow: 3px 4px 4px #000000; */
-      text-shadow: 0 0 5px forestgreen, 0 0 10px forestgreen, 0 0 15px forestgreen, 0 0 20px forestgreen, 0 0 25px forestgreen;
-    }
-
-    #progressBar progress {
-      /* width: max(20dvw, 180px); */
-    }
-
-    /* button {
-      z-index: 105;
-      position: absolute;
-      top: 25dvh;
-      right: 0;
-      background-color: forestgreen;
-      border: none;
-      padding: 0.2rem 0.4rem;
-      display: none;
-    } */
-  </style>
-
-  <script>
-    // Font loading first
-    const font = new FontFace('Jacquarda-Bastarda-9', `url('assets/fonts/Jacquarda-Bastarda-9.woff2')`)
-    font.load().then(f => document.fonts.add(f)).catch(e => console.log(e))
-    font.load().then((f) => {
-      // Add Font to document
-      document.fonts.add(f)
-      // Hide loader when fonts are ready
-      document.getElementById('progressBar').style.opacity = 0
-      setTimeout(() => {
-        document.getElementById('progressBar').style.display = 'none'
-        document.getElementById('mainMenuButtons').style.opacity = 1
-      }, 500)
-    }).catch(e => console.log('Error loading font:', e))
-  </script>
-
-  <link rel="stylesheet" href="css/modal.css">
-
-  <script type="importmap">
-    {
-      "imports": {
-        "audio": "./js/audio.mjs",
-        "building": "./js/building.mjs",
-        "constants": "./js/constants.mjs",
-        "dimensions": "./js/dimensions.mjs",
-        "fogOfWar": "./js/fogOfWar.mjs",
-        "game": "./js/game.mjs",
-        "globals": "./js/globals.mjs",
-        "init": "./js/init.mjs",
-        "maps": "./js/maps.mjs",
-        "menu": "./js/menu.mjs",
-        "minimap": "./js/minimap.mjs",
-        "mouse": "./js/mouse.mjs",
-        "pathfinding": "./js/pathfinding.mjs",
-        "particles": "./js/particles.mjs",
-        "players": "./js/players.mjs",
-        "renderer": "./js/renderer.mjs",
-        "state": "./js/state.mjs",
-        "sprites": "./js/sprites.mjs",
-        "ui": "./js/ui.mjs",
-        "unit": "./js/unit.mjs",
-        "utils": "./js/utils.mjs",
-        "viewport": "./js/viewport.mjs",
-        "worker": "./js/worker.mjs",
-        "pixijs": "./lib/pixi.mjs"
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "VideoGame",
+    "name": "Pixel Fortress",
+    "description": "Strategic base-building with automated warfare. Design your fortress, establish resource production, and deploy self-directed units that explore, gather, and battle autonomously.",
+    "genre": "Auto-battler, Strategy",
+    "url": "https://dorianbayart.github.io/pixel-fortress/",
+    "author": {
+      "@type": "Person",
+      "name": "Dorian Bayart"
+    },
+    "offers": [
+      {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/InStock",
+        "url": "https://dorianbayart.github.io/pixel-fortress/play.html"
       }
-    }
+    ],
+    "applicationCategory": "Game",
+    "operatingSystem": "Web Browser, Windows, macOS, Linux"
+  }
   </script>
 
-  <script type="module" src="js/index.mjs"></script>
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/landing.css">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png">
 </head>
-
 <body>
-  
-  <div id="homeMenu">
-    <h1 id="gameName">Pixel Fortress</h1>
-
-    <div id="gameLogo">
-      <img src="assets/base_512_pixelated.png" alt="Game Logo" width="48" height="48">
-    </div>
-
-    <div id="mainMenuButtons" class="menu-options">
-      <button id="playButton" class="menu-button">Play</button>
-      <button id="options" class="menu-button">Options</button>
-      <button id="about" class="menu-button">About</button>
-    </div>
-
-    <div id="playOptionsButtons" class="menu-options" style="display: none;">
-      <button id="campaignButton" class="menu-button" disabled>Campaign</button>
-      <button id="skirmishButton" class="menu-button">Skirmish</button>
-      <button id="backButton" class="menu-button cancelButton">Back</button>
-    </div>
-    <button id="audioToggleButton" class="menu-button cancelButton" style="display: none;">🎵 Unmute Audio</button>
-  </div>
-
-  
-  <canvas id="canvas" width="100" height="100"></canvas>
-
-  <div id="progressBar">
-    <label>Loading game assets...</label>
-    <progress></progress>
-  </div>
-</body>
-
-</html>
-
-
-
-<!-- In-game menu modal -->
-<div id="gameMenuSection" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2>Game Menu</h2>
-      <span class="close">&times;</span>
-    </div>
-    <div class="modal-body">
-      <div class="menu-options">
-        <button id="resumeGame" class="menu-button">Resume Game</button>
-        <button id="resetMap" class="menu-button">Reset Map</button>
-        <button id="quitToHome" class="menu-button">Quit to Home</button>
+  <!-- Navigation Bar (Sticky) -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-logo">
+        <img src="assets/base_512_pixelated.png" alt="Pixel Fortress Logo" width="32" height="32">
+        <span>Pixel Fortress</span>
       </div>
-    </div>
-  </div>
-</div>
-
-<!-- Generic Modal for Game Over, etc. -->
-<div id="genericModalSection" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2 id="genericModalTitle"></h2>
-      <span class="close" id="genericModalCloseButton">&times;</span>
-    </div>
-    <div class="modal-body">
-      <p id="genericModalMessage"></p>
-    </div>
-    <div class="modal-footer">
-      <button id="modalCloseButton" class="footerButton cancelButton">Close</button>
-    </div>
-  </div>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-<!-- Skirmish Setup section modal -->
-<div id="skirmishSetupSection" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2>Skirmish Setup</h2>
-      <span class="close">&times;</span>
-    </div>
-    <div class="modal-body">
-      <div class="option-group">
-        <h3>Map Size</h3>
-        <div class="option-controls">
-          <button class="option-btn" data-map-size="small">Small</button>
-          <button class="option-btn selected" data-map-size="medium">Medium</button>
-          <button class="option-btn" data-map-size="large">Large</button>
-        </div>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#opensource">Open Source</a>
+        <a href="https://github.com/dorianbayart/pixel-fortress" target="_blank">GitHub</a>
+        <a href="play.html" class="btn-play">Play Now</a>
       </div>
+      <button class="nav-toggle" aria-label="Toggle navigation">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </nav>
 
-      <div class="option-group">
-        <h3>AI Opponents</h3>
-        <div class="option-controls">
-          <button class="option-btn selected" data-ai-count="1">1</button>
-          <button class="option-btn" data-ai-count="2" disabled>2</button>
-          <button class="option-btn" data-ai-count="3" disabled>3</button>
-        </div>
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-background"></div>
+    <div class="hero-content">
+      <img src="assets/base_512_pixelated.png" alt="Pixel Fortress" class="hero-logo">
+      <h1 class="hero-title">Pixel Fortress</h1>
+      <p class="hero-tagline">Build Smart. Let Them Fight.</p>
+      <p class="hero-subtitle">100% Open Source Auto-Battler</p>
+      <p class="hero-genre">Base Building • Automated Strategy • Pixel Art</p>
+      <div class="hero-cta">
+        <a href="play.html" class="btn btn-primary btn-large">Play Free Now</a>
+        <a href="#pricing" class="btn btn-secondary btn-large">Wishlist on Steam (Soon)</a>
       </div>
-      
-      <div class="option-group">
-        <h3>Difficulty</h3>
-        <div class="option-controls">
-          <button class="option-btn selected" data-difficulty="easy">Easy</button>
-          <button class="option-btn" data-difficulty="medium">Medium</button>
-          <button class="option-btn" data-difficulty="hard">Hard</button>
-        </div>
-      </div>
+      <p class="hero-note">No download required • Play in browser • Full GPL v3 source code</p>
+    </div>
+  </section>
 
-      <div class="option-group">
-        <h3>Game Speed</h3>
-        <div class="option-controls">
-          <button class="option-btn" data-game-speed="normal">Normal</button>
-          <button class="option-btn" data-game-speed="accelerated">Accelerated</button>
-          <button class="option-btn" data-game-speed="very_fast">Very Fast</button>
-        </div>
-      </div>
-
-      <div class="option-group">
-        <div class="option-controls">
-          <label class="toggle-label">
-            <input type="checkbox" id="skirmishFogToggle" checked>
-            <span class="toggle-text">Enable Fog of War</span>
-          </label>
+  <!-- Game Preview Section -->
+  <section class="preview">
+    <div class="container">
+      <h2>Strategic Depth Without the Micro-Management</h2>
+      <p class="preview-intro">Design your fortress and watch your autonomous units explore, gather, and battle</p>
+      <div class="preview-gallery">
+        <div class="preview-placeholder">
+          <p>🎮 Gameplay Screenshots Coming Soon</p>
+          <p>Base building • Automated warfare • Resource management</p>
         </div>
       </div>
     </div>
-    <div class="modal-footer">
-      <button id="startSkirmishGame" class="footerButton actionButton">Start Game</button>
-      <button id="closeSkirmishSetup" class="footerButton cancelButton">Cancel</button>
-    </div>
-  </div>
-</div>
+  </section>
 
-<!-- Options section modal that appears when "Options" is clicked -->
-<div id="optionsSection" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2>Game Options</h2>
-      <span class="close">&times;</span>
-    </div>
-    <div class="modal-body">
-      
-      <div class="option-group">
-        <div class="option-controls">
-          <label class="toggle-label">
-            <input type="checkbox" id="debugToggle">
-            <span class="toggle-text">Show FPS and Debug Info</span>
-          </label>
+  <!-- Features Section -->
+  <section id="features" class="features">
+    <div class="container">
+      <h2>Game Features</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🏰</div>
+          <h3>Strategic Base Building</h3>
+          <p>Construct lumber mills, mines, and barracks. Manage resources and expand your fortress.</p>
         </div>
-      </div>
-      
-      <div class="option-group">
-        <div class="option-controls">
-          <label class="toggle-label">
-            <input type="checkbox" id="healthBarsToggle">
-            <span class="toggle-text">Show Health Bars</span>
-          </label>
+        <div class="feature-card">
+          <div class="feature-icon">⚔️</div>
+          <h3>Fully Automated Combat</h3>
+          <p>Units fight completely autonomously. Watch them explore, engage enemies, and defend your fortress without any direct control.</p>
         </div>
-      </div>
-      
-      <div class="option-group">
-        <h3>Sound Effects Volume</h3>
-        <div class="option-controls">
-          <input type="range" id="sfxVolumeSlider" min="0" max="1" step="0.1" value="0.8">
+        <div class="feature-card">
+          <div class="feature-icon">🤖</div>
+          <h3>AI Opponents</h3>
+          <p>Battle against up to 3 AI opponents with adjustable difficulty (Easy, Normal, Hard). They use the same autonomous systems you do.</p>
         </div>
-      </div>
-
-      <div class="option-group">
-        <h3>Music Volume</h3>
-        <div class="option-controls">
-          <input type="range" id="musicVolumeSlider" min="0" max="1" step="0.1" value="0.5">
+        <div class="feature-card">
+          <div class="feature-icon">🗺️</div>
+          <h3>Diverse Maps</h3>
+          <p>Procedurally generated maps in 3 sizes (small to huge), plus many handcrafted predefined scenarios to challenge your strategy.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">👁️</div>
+          <h3>Dynamic Exploration</h3>
+          <p>Your units automatically explore and reveal the map. Strategic building placement determines what gets discovered first.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🎮</div>
+          <h3>Specialized Unit Types</h3>
+          <p>Buildings auto-produce workers, gatherers, soldiers, heavy infantry, and elite warriors - each with unique abilities and resistances.</p>
         </div>
       </div>
     </div>
-    <div class="modal-footer">
-      <button id="saveOptions" class="footerButton actionButton">Save</button>
-      <button id="closeOptions" class="footerButton cancelButton">Cancel</button>
-    </div>
-  </div>
-</div>
+  </section>
 
+  <!-- Pricing Comparison Section -->
+  <section id="pricing" class="pricing">
+    <div class="container">
+      <h2>Choose Your Version</h2>
+      <div class="pricing-grid">
+        <div class="pricing-card pricing-free">
+          <div class="pricing-header">
+            <h3>Free Version</h3>
+            <div class="pricing-price">$0</div>
+            <p class="pricing-subtitle">Forever</p>
+          </div>
+          <ul class="pricing-features">
+            <li>✅ Core auto-battler gameplay</li>
+            <li>✅ Play in browser or desktop</li>
+            <li>✅ Single-player vs AI</li>
+            <li>✅ Multiple difficulty levels (Easy, Normal, Hard)</li>
+            <li>✅ Random map generation (3 sizes)</li>
+            <li>✅ Selected predefined maps</li>
+            <li>✅ All current units and buildings</li>
+            <li>✅ Full source code (GPL v3)</li>
+            <li class="limited">⚠️ Local save progression only (desktop apps)</li>
+          </ul>
+          <a href="play.html" class="btn btn-primary">Play Free Now</a>
+        </div>
 
-
-<!-- About section modal that appears when "About" is clicked -->
-<div id="aboutSection" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2>About</h2>
-      <span class="close">&times;</span>
-    </div>
-    <div class="modal-body">
-      <div class="game-description">
-        <p>Pixel Fortress is a 2D pixel-based strategy game that uniquely merges the depth of Tower Defense with the addictive simplicity of Clicker styles.</p>
+        <div class="pricing-card pricing-premium">
+          <div class="pricing-badge">Planned</div>
+          <div class="pricing-header">
+            <h3>Steam Premium</h3>
+            <div class="pricing-price">Coming Soon</div>
+            <p class="pricing-subtitle">One-time purchase (planned ~$4.99)</p>
+          </div>
+          <ul class="pricing-features">
+            <li>✅ Everything in Free version</li>
+            <li>🌟 Full campaign mode (continuously updated)</li>
+            <li>🌟 Extensive additional premium maps</li>
+            <li>🌟 Exclusive game modes</li>
+            <li>🌟 Map editor (planned)</li>
+            <li>🌟 Steam achievements</li>
+            <li>🌟 Cloud save progression</li>
+            <li>🌟 Auto-updates & Steam integration</li>
+            <li>🌟 Support continued development</li>
+          </ul>
+          <a href="#opensource" class="btn btn-steam">Learn More About Steam Release</a>
+        </div>
       </div>
-      
-      <div class="version-info">
+      <p class="pricing-note">
+        💡 The entire codebase is open source. Steam version is in development and will provide convenience features, Steam integration, and support continued development. No release date yet - stay tuned!
+      </p>
+    </div>
+  </section>
+
+  <!-- Open Source Section -->
+  <section id="opensource" class="opensource">
+    <div class="container">
+      <h2>100% Open Source</h2>
+      <p class="opensource-intro">
+        Every line of code is public under the GPL v3 License. Learn from it, contribute to it, or build your own version.
+      </p>
+
+      <div class="opensource-grid">
+        <div class="opensource-card">
+          <h3>📖 Transparent Code</h3>
+          <p>All game logic, premium features, and systems are visible on GitHub. Nothing is hidden.</p>
+        </div>
+        <div class="opensource-card">
+          <h3>🤝 Community Driven</h3>
+          <p>Contributions welcome! Add features, fix bugs, create maps, or improve documentation.</p>
+        </div>
+        <div class="opensource-card">
+          <h3>🎓 Educational</h3>
+          <p>Learn game development by studying a complete auto-battler implementation in vanilla JavaScript with PixiJS.</p>
+        </div>
+        <div class="opensource-card">
+          <h3>🔓 Freedom</h3>
+          <p>GPL v3 ensures derivative works remain open. Fork, modify, and share freely.</p>
+        </div>
+      </div>
+
+      <div class="opensource-cta">
+        <a href="https://github.com/dorianbayart/pixel-fortress" class="btn btn-github" target="_blank">
+          View on GitHub
+        </a>
+        <a href="https://github.com/dorianbayart/pixel-fortress/blob/main/LICENSE" class="btn btn-outline" target="_blank">
+          Read License
+        </a>
+      </div>
+
+      <div class="opensource-faq">
+        <h3>Steam Version Coming Soon!</h3>
+        <p>
+          The game is being prepared for Steam release (no date announced yet). When released, you'll be able to compile it yourself from source or purchase on Steam for convenience.
+        </p>
+        <p><strong>Planned Steam features:</strong></p>
+        <ul>
+          <li><strong>Cloud Saves</strong> - Steam API integration for persistent progression across devices</li>
+          <li><strong>Achievements</strong> - Track your accomplishments</li>
+          <li><strong>Convenience</strong> - One-click install, auto-updates, Steam Workshop</li>
+          <li><strong>Support Development</strong> - Directly fund continued development and new content</li>
+        </ul>
+        <p>
+          Think of it like supporting a musician by buying their album even though they offer free streaming.
+          The Steam version will offer convenience features while supporting the creator.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Platform Links Section -->
+  <section class="platforms">
+    <div class="container">
+      <h2>Play Anywhere</h2>
+      <div class="platforms-grid">
+        <a href="play.html" class="platform-card">
+          <div class="platform-icon">🌐</div>
+          <h3>Web Browser</h3>
+          <p>Play instantly, no download required. Works on any modern browser.</p>
+          <span class="platform-tag">Free</span>
+        </a>
+
+        <a href="#pricing" class="platform-card">
+          <div class="platform-icon">🎮</div>
+          <h3>Steam</h3>
+          <p>Premium version with cloud saves, achievements, and full campaign.</p>
+          <span class="platform-tag premium">Coming Soon</span>
+        </a>
+
+        <a href="https://github.com/dorianbayart/pixel-fortress" class="platform-card" target="_blank">
+          <div class="platform-icon">💻</div>
+          <h3>GitHub</h3>
+          <p>View source code, contribute, or build your own desktop version.</p>
+          <span class="platform-tag">Open Source</span>
+        </a>
+
+        <a href="https://github.com/dorianbayart/pixel-fortress/releases" class="platform-card" target="_blank">
+          <div class="platform-icon">📦</div>
+          <h3>Desktop Builds</h3>
+          <p>Free standalone builds for Windows, macOS, and Linux.</p>
+          <span class="platform-tag">Free</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section class="faq">
+    <div class="container">
+      <h2>Frequently Asked Questions</h2>
+      <div class="faq-list">
+        <div class="faq-item">
+          <button class="faq-question">Is the game really free?</button>
+          <div class="faq-answer">
+            <p>Yes! The free version includes full auto-battler gameplay, single-player vs AI, unlimited random maps, selected predefined maps, and all current units. Play in browser or download desktop builds.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">What's the difference between free and Steam versions?</button>
+          <div class="faq-answer">
+            <p>The free version includes the complete game with a selection of predefined maps and local saves on desktop apps. The planned Steam version will add cloud saves across devices, Steam achievements, extensive additional premium content (maps, game modes, campaign), and supports continued development.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">Can I compile the "premium" version myself?</button>
+          <div class="faq-answer">
+            <p>Technically yes! The code is 100% public. However, you won't get Steam features like cloud saves and achievements without the Steam API. Most players prefer the convenience of Steam.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">How do I contribute to the project?</button>
+          <div class="faq-answer">
+            <p>Fork the repository on GitHub, make your changes, and submit a pull request. See CONTRIBUTING.md for guidelines. Contributions to all features (including premium) are welcome!</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">Will new content be added?</button>
+          <div class="faq-answer">
+            <p>Yes! The game is actively developed. The free version receives core updates, bug fixes, and new features. When released, the Steam version will include extensive additional premium content including campaigns, exclusive maps, game modes, and continuous updates.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-section">
+          <h4>Pixel Fortress</h4>
+          <p>100% Open Source Auto-Battler</p>
+          <p>Licensed under GPL v3</p>
+        </div>
+
+        <div class="footer-section">
+          <h4>Quick Links</h4>
+          <ul>
+            <li><a href="play.html">Play Now</a></li>
+            <li><a href="https://github.com/dorianbayart/pixel-fortress" target="_blank">GitHub</a></li>
+            <li><a href="https://github.com/dorianbayart/pixel-fortress/releases" target="_blank">Downloads</a></li>
+            <li><a href="https://github.com/dorianbayart/pixel-fortress/blob/main/LICENSE" target="_blank">License</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-section">
+          <h4>Resources</h4>
+          <ul>
+            <li><a href="https://github.com/dorianbayart/pixel-fortress/blob/main/README.md" target="_blank">Documentation</a></li>
+            <li><a href="https://github.com/dorianbayart/pixel-fortress/blob/main/CONTRIBUTING.md" target="_blank">Contribute</a></li>
+            <li><a href="https://github.com/dorianbayart/pixel-fortress/blob/main/CREDITS.md" target="_blank">Credits</a></li>
+            <li><a href="https://github.com/dorianbayart/pixel-fortress/issues" target="_blank">Report Bug</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-section">
+          <h4>Community</h4>
+          <ul>
+            <li><a href="https://github.com/dorianbayart/pixel-fortress/discussions" target="_blank">Discussions</a></li>
+            <li><a href="https://discord.gg/YOUR_INVITE" target="_blank">Discord</a></li>
+            <li><a href="https://github.com/dorianbayart" target="_blank">Developer</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2026 Dorian Bayart. Licensed under GNU GPL v3.</p>
         <p>v0.0.1</p>
       </div>
-      
-      <div class="github-links">
-        <h3>Find the project on GitHub</h3>
-        <div class="link-container">
-          <a href="https://github.com/dorianbayart/pixel-fortress" target="_blank" rel="noopener noreferrer">
-            <img src="https://raw.githubusercontent.com/hackernoon/pixel-icon-library/refs/heads/main/icons/SVG/brands/github.svg" alt="GitHub Logo" class="github-logo">
-            <span>Game Repository</span>
-          </a>
-        </div>
-        <div class="link-container">
-          <a href="https://github.com/dorianbayart" target="_blank" rel="noopener noreferrer">
-            <img src="https://raw.githubusercontent.com/hackernoon/pixel-icon-library/refs/heads/main/icons/SVG/brands/github.svg" alt="GitHub Logo" class="github-logo">
-            <span>Developer Profile</span>
-          </a>
-        </div>
-      </div>
-      
-      <div class="credits">
-        <h3>Credits</h3>
-        <p>Developed by Dorian Bayart</p>
-        <p>Pixel art assets from various open source collections</p>
-        <p>Built with PixiJS, HTML5 and JavaScript</p>
-      </div>
-      
-      <div class="license">
-        <h3>License</h3>
-        <p>This project is licensed under the <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener noreferrer">Creative Commons Non-Commercial 4.0 International License</a>.</p>
-      </div>
     </div>
-    <div class="modal-footer">
-      <button id="closeAbout" class="footerButton cancelButton">Close</button>
-    </div>
-  </div>
-</div>
+  </footer>
+
+  <!-- JavaScript -->
+  <script src="js/landing.js"></script>
+</body>
+</html>

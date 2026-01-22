@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, height=device-height, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=contain, shrink-to-fit=no">
+
+  <title>Pixel Fortress - A 2D pixel-based strategy game</title>
+  <meta name="description"
+    content="A 2D pixel-based strategy game that uniquely merges the depth of Tower Defense with the addictive simplicity of Clicker styles.">
+  <meta name="author" content="Dorian Bayart">
+  <meta name="keywords"
+    content="pixel, fortress, game, strategy, tower defense, TD, clicker, pixel art, 2D, HTML5, JavaScript, canvas, web, browser, open source, dungeon, monsters, waves, upgrades, skills, achievements, resource management, base building, survival">
+  <link rel="canonical" href="https://dorianbayart.github.io/pixel-fortress/">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://dorianbayart.github.io/pixel-fortress/">
+  <meta property="og:title" content="Pixel Fortress - A 2D pixel-based strategy game">
+  <meta property="og:description"
+    content="A 2D pixel-based strategy game that uniquely merges the depth of Tower Defense with the addictive simplicity of Clicker styles.">
+  <meta property="og:image" content="https://dorianbayart.github.io/pixel-fortress/logo.svg">
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://dorianbayart.github.io/pixel-fortress/">
+  <meta property="twitter:title" content="Pixel Fortress - A 2D pixel-based strategy game">
+  <meta property="twitter:description"
+    content="A 2D pixel-based strategy game that uniquely merges the depth of Tower Defense with the addictive simplicity of Clicker styles.">
+  <meta property="twitter:image" content="https://dorianbayart.github.io/pixel-fortress/logo.svg">
+
+  <!-- iOS -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link rel="apple-touch-icon" sizes="192x192" type="image/png" href="assets/base_512_pixelated.png">
+  <link rel="icon" sizes="192x192" type="image/png" href="assets/base_512_pixelated.png">
+  <link rel="icon" type="image/png" href="favicon.png">
+
+  <link rel="manifest" href="manifest.json">
+
+  <style>
+    /* Font is dynamically loaded by JS */
+    /* @import url('https://fonts.googleapis.com/css2?family=Jacquarda+Bastarda+9&display=swap'); */
+
+    :root {
+      --sat: env(safe-area-inset-top, 0px);
+      --sar: env(safe-area-inset-right, 0px);
+      --sab: env(safe-area-inset-bottom, 0px);
+      --sal: env(safe-area-inset-left, 0px);
+      
+      --font-base: "Jacquarda-Bastarda-9", fantasy, monospace, system-ui, sans-serif;
+      --font-color: gold;
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    .font-to-load {
+      opacity: 0;
+    }
+
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      overflow: hidden;
+      height: 100dvh;
+      width: 100dvw;
+      background: linear-gradient(0deg, #228b22, #1a1a1a);
+      background-size: 100% 125%;
+      font-family: var(--font-base);
+      font-size: max(1.75dvh, 16px);
+      display: flex;
+      justify-content: center;
+      cursor: crosshair;
+    }
+
+    body {
+      /* Apply safe area padding */
+      padding: var(--sat) var(--sar) var(--sab) var(--sal);
+      /*background-image: url('assets/punyworld-overworld-tileset.png');
+      background-size: 200px 200px;
+      animation: backgroundPan 60s linear infinite;*/
+    }
+
+    @keyframes backgroundPan {
+      0% { background-position: 0% 0%; }
+      100% { background-position: 200% 200%; }
+    }
+
+    body.playing-mode {
+      background: #1a1a1a; /* Dark background, but not true black */
+      background-size: 100% 100%;
+      animation: none; /* Disable background animation when playing */
+    }
+
+    canvas {
+      height: 100dvh;
+      width: 100dvw;
+      overflow: hidden;
+      object-fit: contain;
+      cursor: none;
+      touch-action: none;
+      image-rendering: pixelated;
+    }
+
+    #stats {
+      z-index: -100;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      font-family: monospace;
+      font-size: smaller;
+    }
+
+    #homeMenu {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      height: 100dvh;
+      width: 100dvw;
+      z-index: 50;
+      text-align: center;
+      padding: 0;
+      font-family: var(--font-base);
+      font-weight: 400;
+      color: var(--font-color);
+      /* text-shadow: 3px 5px 4px #000000; */
+      text-shadow: 0 0 5px forestgreen, 0 0 10px forestgreen, 0 0 15px forestgreen, 0 0 20px forestgreen, 0 0 25px forestgreen;
+      display: flex;
+      flex-flow: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Add subtle animation to the game logo */
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes blink-caret {
+      from, to { border-color: transparent }
+      50% { border-color: var(--font-color); }
+    }
+
+    /* Blinking caret for typewriter effect */
+    .typewriter-caret {
+      border-right: 0.15em solid var(--font-color);
+      animation: blink-caret 1s step-end infinite;
+    }
+
+    #gameLogo {
+      margin: max(4dvh, 1.5rem);
+    }
+
+    #gameLogo img {
+      animation: pulse 3s infinite ease-in-out;
+      filter: drop-shadow(0 0 30px var(--font-color)) drop-shadow(0 0 15px var(--font-color));
+    }
+
+    /* Make the title more prominent */
+    #homeMenu h1 {
+      opacity: 0;
+      font-size: clamp(2rem, 5vw, 3rem);
+      margin: 1.5dvh;
+      text-shadow: 0 0 15px forestgreen, 0 0 25px forestgreen, 0 0 35px forestgreen;
+      filter: drop-shadow(0 0 5px var(--font-color));
+      /* animation: pulse 8.5s infinite ease-in-out; */
+    }
+
+    #homeMenu h2 {
+      cursor: pointer;
+      margin: 1.5dvh;
+      padding: 0.75dvh 4dvw;
+    }
+
+    #homeMenu h2:first-of-type {
+      margin-top: 3.5dvh;
+    }
+
+    #homeMenu h2:hover {
+      text-decoration: underline;
+    }
+
+    #mainMenuButtons {
+      opacity: 0;
+      display: flex;
+      flex-flow: column;
+      width: min(95%, 300px);
+    }
+
+    .menu-button {
+      cursor: pointer;
+      padding: 0.75dvh 2.5dvw;
+      margin: 1.5dvh auto;
+      background: rgba(34, 139, 34, 0.3);
+      border: 2px solid var(--font-color);
+      border-radius: 6px;
+      color: var(--font-color);
+      font-family: var(--font-base);
+      font-size: 1.5rem;
+      text-align: center;
+      transition: all 0.2s ease-in-out;
+      width: 95%;
+      text-shadow: 0 0 5px forestgreen;
+      box-shadow: 0 0 10px rgba(34, 139, 34, 0.5);
+    }
+
+    .menu-button:hover {
+      background: rgba(34, 139, 34, 0.7);
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 6px 15px rgba(34, 139, 34, 0.9), 0 0 20px var(--font-color);
+      filter: brightness(1.2);
+    }
+
+    .menu-button:active {
+      transform: translateY(0) scale(0.98);
+      box-shadow: 0 2px 8px rgba(34, 139, 34, 0.7);
+      filter: brightness(0.9);
+    }
+
+    #audioToggleButton {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 1.25rem;
+      width: 225px;
+      padding: 0.75dvh 0;
+    }
+
+    #progressBar {
+      z-index: 100; /* Above everything else */
+      position: absolute;
+      top: 60dvh;
+      left: 50dvw;
+      transform: translate(-50%, -50%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-width: max-content;
+      background: rgba(0, 0, 0, 0.7);
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    #progressBar label {
+      font-family: fantasy, monospace, system-ui, Arial;
+      font-size: x-large;
+      color: gold;
+      /* text-shadow: 3px 4px 4px #000000; */
+      text-shadow: 0 0 5px forestgreen, 0 0 10px forestgreen, 0 0 15px forestgreen, 0 0 20px forestgreen, 0 0 25px forestgreen;
+    }
+
+    #progressBar progress {
+      /* width: max(20dvw, 180px); */
+    }
+
+    /* button {
+      z-index: 105;
+      position: absolute;
+      top: 25dvh;
+      right: 0;
+      background-color: forestgreen;
+      border: none;
+      padding: 0.2rem 0.4rem;
+      display: none;
+    } */
+  </style>
+
+  <script>
+    // Font loading first
+    const font = new FontFace('Jacquarda-Bastarda-9', `url('assets/fonts/Jacquarda-Bastarda-9.woff2')`)
+    font.load().then(f => document.fonts.add(f)).catch(e => console.log(e))
+    font.load().then((f) => {
+      // Add Font to document
+      document.fonts.add(f)
+      // Hide loader when fonts are ready
+      document.getElementById('progressBar').style.opacity = 0
+      setTimeout(() => {
+        document.getElementById('progressBar').style.display = 'none'
+        document.getElementById('mainMenuButtons').style.opacity = 1
+      }, 500)
+    }).catch(e => console.log('Error loading font:', e))
+  </script>
+
+  <link rel="stylesheet" href="css/modal.css">
+
+  <script type="importmap">
+    {
+      "imports": {
+        "audio": "./js/audio.mjs",
+        "building": "./js/building.mjs",
+        "constants": "./js/constants.mjs",
+        "dimensions": "./js/dimensions.mjs",
+        "fogOfWar": "./js/fogOfWar.mjs",
+        "game": "./js/game.mjs",
+        "globals": "./js/globals.mjs",
+        "init": "./js/init.mjs",
+        "maps": "./js/maps.mjs",
+        "menu": "./js/menu.mjs",
+        "minimap": "./js/minimap.mjs",
+        "mouse": "./js/mouse.mjs",
+        "pathfinding": "./js/pathfinding.mjs",
+        "particles": "./js/particles.mjs",
+        "players": "./js/players.mjs",
+        "renderer": "./js/renderer.mjs",
+        "state": "./js/state.mjs",
+        "sprites": "./js/sprites.mjs",
+        "ui": "./js/ui.mjs",
+        "unit": "./js/unit.mjs",
+        "utils": "./js/utils.mjs",
+        "viewport": "./js/viewport.mjs",
+        "worker": "./js/worker.mjs",
+        "pixijs": "./lib/pixi.mjs"
+      }
+    }
+  </script>
+
+  <script type="module" src="js/index.mjs"></script>
+</head>
+
+<body>
+  
+  <div id="homeMenu">
+    <h1 id="gameName">Pixel Fortress</h1>
+
+    <div id="gameLogo">
+      <img src="assets/base_512_pixelated.png" alt="Game Logo" width="48" height="48">
+    </div>
+
+    <div id="mainMenuButtons" class="menu-options">
+      <button id="playButton" class="menu-button">Play</button>
+      <button id="options" class="menu-button">Options</button>
+      <button id="about" class="menu-button">About</button>
+    </div>
+
+    <div id="playOptionsButtons" class="menu-options" style="display: none;">
+      <button id="campaignButton" class="menu-button" disabled>Campaign</button>
+      <button id="skirmishButton" class="menu-button">Skirmish</button>
+      <button id="backButton" class="menu-button cancelButton">Back</button>
+    </div>
+    <button id="audioToggleButton" class="menu-button cancelButton" style="display: none;">🎵 Unmute Audio</button>
+  </div>
+
+  
+  <canvas id="canvas" width="100" height="100"></canvas>
+
+  <div id="progressBar">
+    <label>Loading game assets...</label>
+    <progress></progress>
+  </div>
+</body>
+
+</html>
+
+
+
+<!-- In-game menu modal -->
+<div id="gameMenuSection" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Game Menu</h2>
+      <span class="close">&times;</span>
+    </div>
+    <div class="modal-body">
+      <div class="menu-options">
+        <button id="resumeGame" class="menu-button">Resume Game</button>
+        <button id="resetMap" class="menu-button">Reset Map</button>
+        <button id="quitToHome" class="menu-button">Quit to Home</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Generic Modal for Game Over, etc. -->
+<div id="genericModalSection" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="genericModalTitle"></h2>
+      <span class="close" id="genericModalCloseButton">&times;</span>
+    </div>
+    <div class="modal-body">
+      <p id="genericModalMessage"></p>
+    </div>
+    <div class="modal-footer">
+      <button id="modalCloseButton" class="footerButton cancelButton">Close</button>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+<!-- Skirmish Setup section modal -->
+<div id="skirmishSetupSection" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Skirmish Setup</h2>
+      <span class="close">&times;</span>
+    </div>
+    <div class="modal-body">
+      <div class="option-group">
+        <h3>Map Size</h3>
+        <div class="option-controls">
+          <button class="option-btn" data-map-size="small">Small</button>
+          <button class="option-btn selected" data-map-size="medium">Medium</button>
+          <button class="option-btn" data-map-size="large">Large</button>
+        </div>
+      </div>
+
+      <div class="option-group">
+        <h3>AI Opponents</h3>
+        <div class="option-controls">
+          <button class="option-btn selected" data-ai-count="1">1</button>
+          <button class="option-btn" data-ai-count="2" disabled>2</button>
+          <button class="option-btn" data-ai-count="3" disabled>3</button>
+        </div>
+      </div>
+      
+      <div class="option-group">
+        <h3>Difficulty</h3>
+        <div class="option-controls">
+          <button class="option-btn selected" data-difficulty="easy">Easy</button>
+          <button class="option-btn" data-difficulty="medium">Medium</button>
+          <button class="option-btn" data-difficulty="hard">Hard</button>
+        </div>
+      </div>
+
+      <div class="option-group">
+        <h3>Game Speed</h3>
+        <div class="option-controls">
+          <button class="option-btn" data-game-speed="normal">Normal</button>
+          <button class="option-btn" data-game-speed="accelerated">Accelerated</button>
+          <button class="option-btn" data-game-speed="very_fast">Very Fast</button>
+        </div>
+      </div>
+
+      <div class="option-group">
+        <div class="option-controls">
+          <label class="toggle-label">
+            <input type="checkbox" id="skirmishFogToggle" checked>
+            <span class="toggle-text">Enable Fog of War</span>
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button id="startSkirmishGame" class="footerButton actionButton">Start Game</button>
+      <button id="closeSkirmishSetup" class="footerButton cancelButton">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Options section modal that appears when "Options" is clicked -->
+<div id="optionsSection" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Game Options</h2>
+      <span class="close">&times;</span>
+    </div>
+    <div class="modal-body">
+      
+      <div class="option-group">
+        <div class="option-controls">
+          <label class="toggle-label">
+            <input type="checkbox" id="debugToggle">
+            <span class="toggle-text">Show FPS and Debug Info</span>
+          </label>
+        </div>
+      </div>
+      
+      <div class="option-group">
+        <div class="option-controls">
+          <label class="toggle-label">
+            <input type="checkbox" id="healthBarsToggle">
+            <span class="toggle-text">Show Health Bars</span>
+          </label>
+        </div>
+      </div>
+      
+      <div class="option-group">
+        <h3>Sound Effects Volume</h3>
+        <div class="option-controls">
+          <input type="range" id="sfxVolumeSlider" min="0" max="1" step="0.1" value="0.8">
+        </div>
+      </div>
+
+      <div class="option-group">
+        <h3>Music Volume</h3>
+        <div class="option-controls">
+          <input type="range" id="musicVolumeSlider" min="0" max="1" step="0.1" value="0.5">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button id="saveOptions" class="footerButton actionButton">Save</button>
+      <button id="closeOptions" class="footerButton cancelButton">Cancel</button>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- About section modal that appears when "About" is clicked -->
+<div id="aboutSection" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>About</h2>
+      <span class="close">&times;</span>
+    </div>
+    <div class="modal-body">
+      <div class="game-description">
+        <p>Pixel Fortress is a 2D pixel-based strategy game that uniquely merges the depth of Tower Defense with the addictive simplicity of Clicker styles.</p>
+      </div>
+      
+      <div class="version-info">
+        <p>v0.0.1</p>
+      </div>
+      
+      <div class="github-links">
+        <h3>Find the project on GitHub</h3>
+        <div class="link-container">
+          <a href="https://github.com/dorianbayart/pixel-fortress" target="_blank" rel="noopener noreferrer">
+            <img src="https://raw.githubusercontent.com/hackernoon/pixel-icon-library/refs/heads/main/icons/SVG/brands/github.svg" alt="GitHub Logo" class="github-logo">
+            <span>Game Repository</span>
+          </a>
+        </div>
+        <div class="link-container">
+          <a href="https://github.com/dorianbayart" target="_blank" rel="noopener noreferrer">
+            <img src="https://raw.githubusercontent.com/hackernoon/pixel-icon-library/refs/heads/main/icons/SVG/brands/github.svg" alt="GitHub Logo" class="github-logo">
+            <span>Developer Profile</span>
+          </a>
+        </div>
+      </div>
+      
+      <div class="credits">
+        <h3>Credits</h3>
+        <p>Developed by Dorian Bayart</p>
+        <p>Pixel art assets from various open source collections</p>
+        <p>Built with PixiJS, HTML5 and JavaScript</p>
+      </div>
+      
+      <div class="license">
+        <h3>License</h3>
+        <p>This project is licensed under the <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener noreferrer">Creative Commons Non-Commercial 4.0 International License</a>.</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button id="closeAbout" class="footerButton cancelButton">Close</button>
+    </div>
+  </div>
+</div>

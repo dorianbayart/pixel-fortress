@@ -30,9 +30,7 @@ function createWindow () {
     }
   });
 
-  win.loadFile('index.html'); // Load your existing index.html
-  // Open the DevTools.
-  // win.webContents.openDevTools();
+  win.loadFile('play.html'); // Load the game HTML file
 }
 
 app.whenReady().then(() => {
@@ -51,11 +49,10 @@ app.on('window-all-closed', () => {
   }
 });
 
+
 // Steam stuff
 // const greenworks = require('greenworks');
 // const client = greenworks.init();
-
-
 
 // Used to make the steam overlay work
 app.commandLine.appendSwitch('in-process-gpu')
