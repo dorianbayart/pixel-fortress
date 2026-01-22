@@ -7,14 +7,14 @@ This document provides context for Claude Code to effectively assist with the de
 "Pixel Fortress" is a 2D real-time strategy (RTS) game built to run in a web browser. It is written entirely in vanilla JavaScript, using the PixiJS library for WebGL rendering on an HTML `<canvas>`. The game involves base building, resource gathering (wood, stone, water, gold), and automated unit combat against an AI opponent on a randomly generated map.
 
 The project can run:
-- Directly in a browser by opening `index.html`
+- Directly in a browser by opening `index.html` (landing page) or `play.html` (game)
 - As a desktop application via Electron (`npm run start`)
 
 ## General Instructions
 
 - The project uses vanilla JavaScript (ES6 Modules with `.mjs` extension). Do not introduce build tools, compilers (like TypeScript), or additional package managers without explicit instruction.
 - All source code is organized into modules within the `js/` directory. Maintain this modular structure.
-- The game is launched by opening `index.html` directly in a browser or via `npm run start` for Electron.
+- The game is launched by opening `play.html` directly in a browser or via `npm run start` for Electron. The `index.html` file serves as the landing/marketing page.
 - Run tests with `npm run test` before submitting changes.
 
 ## Coding Style & Conventions
@@ -45,7 +45,8 @@ The project can run:
 When making changes, refer to these core files to understand the game's architecture:
 
 ### Entry Points
-- **`index.html`**: Main entry point. Contains the import map defining module paths, inline styles, and the home menu UI.
+- **`index.html`**: Landing/marketing page with project information and links.
+- **`play.html`**: Game entry point. Contains the import map defining module paths, inline styles, and the game menu UI.
 - **`js/index.mjs`**: JavaScript entry point that bootstraps the game.
 
 ### Core Game Logic
@@ -81,7 +82,8 @@ When making changes, refer to these core files to understand the game's architec
 
 ```
 /                   Root directory
-├── index.html      Main HTML entry point
+├── index.html      Landing/marketing page
+├── play.html       Game HTML entry point
 ├── main.js         Electron main process
 ├── sw.js           Service worker for PWA
 ├── manifest.json   PWA manifest
@@ -130,7 +132,7 @@ gameState.events.on('settings-changed', ({ oldSettings, newSettings }) => { /* h
 
 ## Module Import Pattern
 
-The project uses an import map defined in `index.html`:
+The project uses an import map defined in `play.html`:
 
 ```javascript
 // Import by module name (resolved via import map)

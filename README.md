@@ -4,7 +4,7 @@
 
 **Pixel Fortress combines strategic base-building with automated warfare.** Design your fortress, establish resource production, and deploy self-directed units that explore, gather, and battle autonomously. Strategic depth without the micro-management.
 
-➡️ [Play live](https://dorianbayart.github.io/pixel-fortress/)
+➡️ [Play live](https://dorianbayart.github.io/pixel-fortress/play.html)
 
 ## 🎯 Genre
 **Base Building • Automated Strategy • Resource Management • Auto-battler • Pixel Art**
@@ -92,7 +92,7 @@ Eliminate all enemy players by destroying their buildings and units. The AI oppo
 
 ### ▶️ Running the Game
 
-1. Open the `index.html` file in your web browser, or run `npm run start` to launch the Electron app.
+1. Open `index.html` (landing page) or `play.html` (game) in your web browser, or run `npm run start` to launch the Electron app.
 2. Enjoy!
 
 ### ⚠️ Troubleshooting

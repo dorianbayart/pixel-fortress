@@ -5,6 +5,7 @@ const CACHE_NAME = 'PixelFortress_Cache_0.0.1'
 const CACHED_URLS = [
   '',
   'index.html',
+  'play.html',
   'manifest.json',
   'sw.js',
   'favicon.ico',
