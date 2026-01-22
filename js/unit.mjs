@@ -141,7 +141,7 @@ class Unit {
 
     if(!this.goal) return
 
-    if(distance(this.currentNode, this.goal.currentNode ? { x: this.goal.x / getTileSize(), y: this.goal.y / getTileSize() } : this.goal) > (this.range) / getTileSize()) {
+    if(distance(this.currentNode, this.goal.currentNode ? { x: this.goal.x / getTileSize(), y: this.goal.y / getTileSize() } : this.goal) > this.getEffectiveRange()) {
       this.updatePath(delay, time)
     } else {
       this.goalReached(delay, time)
@@ -185,6 +185,24 @@ class Unit {
   }
 
   /**
+   * Get effective attack range for the current goal
+   * Targets need extra range since they occupy space
+   * @returns {number} Effective range in tiles
+   */
+  getEffectiveRange() {
+    const baseRange = this.range / getTileSize()
+    if (!this.goal) return baseRange
+
+    // If goal is a building (no currentNode), add larger buffer for building size
+    if (!this.goal.currentNode) {
+      return baseRange + 0.5 // Add half tile for building's radius
+    }
+
+    // For unit-to-unit combat, add smaller buffer since both units occupy space
+    return baseRange + 0.35 // Add buffer so melee units can attack adjacent units
+  }
+
+  /**
    * Check if unit is at goal or very close to it
    * @returns {boolean} True if the unit is at or very close to its goal
    */
@@ -193,7 +211,7 @@ class Unit {
     const goalX = this.goal.currentNode?.x || this.goal.x;
     const goalY = this.goal.currentNode?.y || this.goal.y;
     const dist = distance({ x: this.currentNode.x, y: this.currentNode.y }, { x: goalX, y: goalY });
-    return dist <= (this.range / getTileSize());
+    return dist <= this.getEffectiveRange();
   }
 
   /**
@@ -205,8 +223,8 @@ class Unit {
     const goalX = this.goal.currentNode?.x || this.goal.x;
     const goalY = this.goal.currentNode?.y || this.goal.y;
     const dist = distance({ x: this.currentNode.x, y: this.currentNode.y }, { x: goalX, y: goalY });
-    // Consider "near" as within 5 tiles or the unit's range, whichever is larger
-    return dist <= Math.max(5, this.range / getTileSize() * 2);
+    // Consider "near" as within 5 tiles or the unit's effective range * 2, whichever is larger
+    return dist <= Math.max(5, this.getEffectiveRange() * 2);
   }
 
   /**
@@ -342,7 +360,7 @@ class Unit {
     let vy = this.speed * (delay/1000) * Math.sin(theta) * speedFactor * SPRITE_SIZE
 
     let type = 'static'
-    if (distance(this.currentNode, this.goal?.currentNode ? { x: this.goal.x / getTileSize(), y: this.goal.y / getTileSize() } : this.goal) <= this.range/getTileSize()) {
+    if (distance(this.currentNode, this.goal?.currentNode ? { x: this.goal.x / getTileSize(), y: this.goal.y / getTileSize() } : this.goal) <= this.getEffectiveRange()) {
       // Stop walking if arrived at goal
       vx = vy = 0
     }
@@ -1219,7 +1237,7 @@ class CombatUnit extends Unit {
     }
 
     // If we have a goal and are within range, attack
-    if (this.goal && distance(this.currentNode, this.goal.currentNode ? { x: this.goal.x / getTileSize(), y: this.goal.y / getTileSize() } : this.goal) < (this.range) / getTileSize()) {
+    if (this.goal && distance(this.currentNode, this.goal.currentNode ? { x: this.goal.x / getTileSize(), y: this.goal.y / getTileSize() } : this.goal) <= this.getEffectiveRange()) {
       this.task = 'attack'
     } else if (this.goal && this.path) {
       // If we have a goal and a path, and not attacking, we are moving (either to enemy or to explore)
