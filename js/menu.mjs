@@ -86,6 +86,8 @@ const closeSkirmishSetupModalButton = skirmishSetupSection.querySelector('.close
 const startSkirmishGameButton = document.getElementById('startSkirmishGame')
 const closeSkirmishSetupButton = document.getElementById('closeSkirmishSetup')
 const skirmishFogToggle = document.getElementById('skirmishFogToggle')
+const mapSeedInput = document.getElementById('mapSeedInput')
+const randomSeedButton = document.getElementById('randomSeedButton')
 
 // Get option buttons
 const mapSizeButtons = skirmishSetupSection.querySelectorAll('.option-btn[data-map-size]')
@@ -116,6 +118,9 @@ const openSkirmishSetupModal = () => {
   updateSelection(gameSpeedButtons, Object.keys(CONSTANTS.GAME_SPEED_MULTIPLIERS).find(key => CONSTANTS.GAME_SPEED_MULTIPLIERS[key] === gameState.settings?.gameSpeedMultiplier)?.toLowerCase() || 'normal', 'gameSpeed')
   skirmishFogToggle.checked = gameState.settings?.fogOfWar !== false
 
+  // Set seed input (empty for random, or show current seed if exists)
+  mapSeedInput.value = gameState.mapSeed || ''
+
   skirmishSetupSection.style.display = 'block'
   setTimeout(() => {
       skirmishSetupSection.classList.add('show')
@@ -141,6 +146,10 @@ const startSkirmishGame = () => {
   const selectedGameSpeed = skirmishSetupSection.querySelector('.option-btn[data-game-speed].selected')?.dataset.gameSpeed || 'normal'
   const fogOfWarEnabled = skirmishFogToggle.checked
 
+  // Get seed from input (null if empty for random generation)
+  const seedValue = mapSeedInput.value.trim()
+  const mapSeed = seedValue ? parseInt(seedValue, 10) : null
+
   gameState.updateSettings({
       mapSize: selectedMapSize,
       aiCount: selectedAiCount,
@@ -148,6 +157,9 @@ const startSkirmishGame = () => {
       gameSpeedMultiplier: CONSTANTS.GAME_SPEED_MULTIPLIERS[selectedGameSpeed.toUpperCase()],
       fogOfWar: fogOfWarEnabled,
   })
+
+  // Set map seed (null for random)
+  gameState.mapSeed = mapSeed
 
   gameState.gameStatus = 'initialize'
   document.getElementById('homeMenu').style.display = 'none'
@@ -159,6 +171,16 @@ async function setupSkirmishSection() {
   closeSkirmishSetupModalButton.addEventListener('click', closeSkirmishSetupModal)
   closeSkirmishSetupButton.addEventListener('click', closeSkirmishSetupModal)
   startSkirmishGameButton.addEventListener('click', startSkirmishGame)
+
+  // Random seed button generates a random seed number
+  randomSeedButton.addEventListener('click', () => {
+    playClickSound()
+    mapSeedInput.value = Math.floor(Math.random() * 10000)
+  })
+
+  // Play click sound when focusing seed input
+  mapSeedInput.addEventListener('focus', playClickSound)
+
   // Escape key also closes the modal
   window.addEventListener('keydown', (event) => {
       if (event.key === 'Escape' && document.getElementById('skirmishSetupSection').classList.contains('show')) {

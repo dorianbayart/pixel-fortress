@@ -147,6 +147,11 @@ function setupEventListeners() {
 
   // Keyboard shortcuts
   window.addEventListener('keypress', (event) => {
+    // Don't prevent default if user is typing in an input field
+    if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+      return
+    }
+
     event.preventDefault()
     switch(event.key) {
       case 'd':

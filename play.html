@@ -62,6 +62,15 @@
       user-select: none;
     }
 
+    input[type="number"],
+    input[type="text"],
+    input[type="search"] {
+      user-select: auto !important;
+      -webkit-user-select: auto !important;
+      cursor: text !important;
+      pointer-events: auto !important;
+    }
+
     .font-to-load {
       opacity: 0;
     }
@@ -424,6 +433,18 @@
           <button class="option-btn" data-map-size="small">Small</button>
           <button class="option-btn selected" data-map-size="medium">Medium</button>
           <button class="option-btn" data-map-size="large">Large</button>
+        </div>
+      </div>
+
+      <div class="option-group">
+        <h3>Map Seed (Optional)</h3>
+        <div class="option-controls" style="gap: 10px;">
+          <input type="number" id="mapSeedInput" placeholder="Leave empty for random" min="0" max="9999"
+                 style="flex: 1; padding: 8px; font-family: var(--font-base); font-size: 1rem;
+                        background: rgba(34, 139, 34, 0.2); border: 2px solid rgba(255, 215, 0, 0.5);
+                        border-radius: 4px; color: var(--font-color); text-align: center;
+                        user-select: auto; -webkit-user-select: auto; cursor: text;">
+          <button class="option-btn" id="randomSeedButton" style="flex: 0 0 auto; min-width: 120px;">Random Seed</button>
         </div>
       </div>
 
