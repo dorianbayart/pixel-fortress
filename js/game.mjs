@@ -65,21 +65,58 @@ const initGame = async () => {
   new Player(PlayerType.HUMAN)
   new Player(PlayerType.AI, gameState.settings.difficulty)
 
-  // Generate map (with smart tent placement, this should always succeed)
   updateMapDimensionsInWorker()
 
-  console.log('Generating map...')
-  await generateMap()
+  // Check if user specified a seed or wants random
+  const isRandomMode = gameState.mapSeed === null
+  const userSpecifiedSeed = gameState.mapSeed
 
-  console.log('Placing tents with smart positioning...')
-  const isMapCorrect = await placeTents()
+  console.log(isRandomMode ? 'Generating random map...' : `Generating map with seed ${userSpecifiedSeed}...`)
 
-  if (!isMapCorrect) {
-    console.error('Map generation failed unexpectedly! This should not happen with smart tent placement.')
-    return false
+  if (isRandomMode) {
+    // Random mode: Keep trying different seeds until we find a naturally valid one
+    let attempts = 0
+    let maxAttempts = 150
+    let foundValidMap = false
+
+    while (!foundValidMap && attempts < maxAttempts) {
+      attempts++
+
+      // Generate a new random seed for each attempt
+      gameState.mapSeed = Math.floor(Math.random() * 10000)
+
+      console.log(`Attempt ${attempts}: Trying seed ${gameState.mapSeed}`)
+      await generateMap()
+
+      const result = await placeTents(false) // false = no carving allowed
+
+      if (result) {
+        foundValidMap = true
+        console.log(`✓ Found naturally valid map after ${attempts} attempts with seed ${gameState.mapSeed}`)
+      } else {
+        console.log(`  Seed ${gameState.mapSeed} has no natural path, trying another...`)
+      }
+    }
+
+    if (!foundValidMap) {
+      console.error(`Failed to find naturally valid map after ${maxAttempts} attempts`)
+      return false
+    }
+
+  } else {
+    // User specified a seed: Use smart placement + carving if needed
+    console.log(`Using user-specified seed: ${userSpecifiedSeed}`)
+    await generateMap()
+
+    const result = await placeTents(true) // true = allow carving if needed
+
+    if (!result) {
+      console.error('Map generation failed unexpectedly!')
+      return false
+    }
+
+    console.log(`✓ Map generated successfully with seed ${userSpecifiedSeed}`)
   }
-
-  console.log('✓ Map generation succeeded!')
 
   updateMapInWorker() // Initial map update
   await assignSpritesOnMap()
@@ -408,11 +445,12 @@ const checkNearbyTerrain = (x, y, terrainType) => {
 
 /**
  * Place starting tents for human and AI players
- * Tries to find naturally connected positions, falls back to path carving if needed.
+ * Tries to find naturally connected positions, falls back to path carving if allowed.
  *
+ * @param {boolean} allowCarving - Whether to allow path carving if no natural positions found
  * @returns {boolean} True if tents were successfully placed with a valid path between them
  */
-const placeTents = async () => {
+const placeTents = async (allowCarving = true) => {
   const { width: MAP_WIDTH, height: MAP_HEIGHT } = getMapDimensions()
 
   // Step 1: Try to find naturally valid positions
@@ -430,7 +468,14 @@ const placeTents = async () => {
     return true
   }
 
-  // Step 2: No natural positions found - use default positions and carve a path
+  // Step 2: No natural positions found
+  if (!allowCarving) {
+    // Random mode: Don't carve, just return false to try another seed
+    console.log('✗ No naturally valid positions found (carving not allowed)')
+    return false
+  }
+
+  // User specified seed: Carve a path to make it playable
   console.log('⚠ No naturally valid positions found. Carving path between default positions...')
 
   const humanX = Math.floor(MAP_WIDTH / 2)
