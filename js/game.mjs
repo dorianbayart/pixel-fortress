@@ -64,27 +64,29 @@ const initGame = async () => {
   // Create players
   new Player(PlayerType.HUMAN)
   new Player(PlayerType.AI, gameState.settings.difficulty)
-  
-  // Generate map until we get a valid one
-  let i = 0
-  let isMapCorrect = true
+
+  // Generate map (with smart tent placement, this should always succeed)
   updateMapDimensionsInWorker()
-  do {
-    if(!isMapCorrect) {
-      console.log(`Map generation attempt ${i + 1} failed, retrying...`)
-      gameState.mapSeed = null
-    }
-    await generateMap()
-    isMapCorrect = await placeTents()
-  } while(!isMapCorrect && ++i < 150)
-  console.log(`Map generation ${isMapCorrect ? 'succeeded' : 'failed'} after ${i + 1} attempts`)
+
+  console.log('Generating map...')
+  await generateMap()
+
+  console.log('Placing tents with smart positioning...')
+  const isMapCorrect = await placeTents()
+
+  if (!isMapCorrect) {
+    console.error('Map generation failed unexpectedly! This should not happen with smart tent placement.')
+    return false
+  }
+
+  console.log('✓ Map generation succeeded!')
 
   updateMapInWorker() // Initial map update
   await assignSpritesOnMap()
 
   elapsedBack = elapsed = performance.now()
 
-  return isMapCorrect
+  return true
 }
 
 let lastMapUpdateTime = 0
@@ -170,63 +172,292 @@ const generateMap = async () => {
 }
 
 /**
- * Place starting tents for human and AI players
- * Creates bases at opposite sides of the map (human at bottom, AI at top).
- * Ensures there's a valid path between bases and clears terrain around them.
- * 
- * @returns {boolean} True if tents were successfully placed with a valid path between them
+ * Test if two tent positions have a valid path between them
+ * @param {number} x1 - First position X
+ * @param {number} y1 - First position Y
+ * @param {number} x2 - Second position X
+ * @param {number} y2 - Second position Y
+ * @returns {Promise<{valid: boolean, path: Array, weight: number, pathLength: number}>}
  */
-const placeTents = async () => {
+const testTentPositionPair = async (x1, y1, x2, y2) => {
   const { width: MAP_WIDTH, height: MAP_HEIGHT } = getMapDimensions()
-  
-  // Find suitable locations for tents
-  const humanY = MAP_HEIGHT * 19 / 20 // Near bottom for player
-  const aiY = MAP_HEIGHT / 20 // Near top for AI
 
-  const centerX = MAP_WIDTH / 2
+  // Search for path (test natural terrain without modifications)
+  const path = await searchPath(x1, y1, x2, y2)
+  const pathLength = path?.length || 0
+  const weight = path?.reduce((p, c) => p + c.weight, 0) || Infinity
+  const maxWeight = 3 * (MAP_WIDTH + MAP_HEIGHT)
 
+  return {
+    valid: pathLength > 0 && weight < maxWeight,
+    path,
+    weight,
+    pathLength
+  }
+}
 
-  for (let x = centerX - 2; x <= centerX + 2; x++) {
-    for (let y = -2; y <= 2; y++) {
-      if(
-        (x === centerX - 2 && y === -2)
-        || (x === centerX - 2 && y === 2)
-        || (x === centerX + 2 && y === -2)
-        || (x === centerX + 2 && y === 2)
-      ) continue
+/**
+ * Find valid tent positions by trying multiple candidate locations
+ * Tests all combinations and returns the one with the longest valid path
+ * @returns {Promise<{humanX: number, humanY: number, aiX: number, aiY: number, pathLength: number} | null>}
+ */
+const findValidTentPositions = async () => {
+  const { width: MAP_WIDTH, height: MAP_HEIGHT } = getMapDimensions()
 
-      // Clean the zone around human tent
-      gameState.map[x][humanY + y] = {
-        uid: (humanY + y) * MAP_WIDTH + x,
-        type: TERRAIN_TYPES.GRASS.type,
-        weight: TERRAIN_TYPES.GRASS.weight
+  // Fixed Y positions using the original ratios
+  const humanY = Math.floor(MAP_HEIGHT * 19 / 20)
+  const aiY = Math.floor(MAP_HEIGHT / 20)
+
+  // X positions to try (center, left quarter, right quarter, far left, far right)
+  const xPositions = [
+    Math.floor(MAP_WIDTH / 2),           // Center
+    Math.floor(MAP_WIDTH / 4),           // Left quarter
+    Math.floor(MAP_WIDTH * 3 / 4),       // Right quarter
+    Math.floor(MAP_WIDTH / 5),           // Far left
+    Math.floor(MAP_WIDTH * 4 / 5),       // Far right
+  ]
+
+  // Generate all combinations of positions
+  const candidates = []
+  for (const humanX of xPositions) {
+    for (const aiX of xPositions) {
+      candidates.push({ humanX, humanY, aiX, aiY })
+    }
+  }
+
+  console.log(`findValidTentPositions: Testing ${candidates.length} candidate position combinations...`)
+
+  // Update pathfinding worker once before testing
+  updateMapInWorker()
+
+  let bestCandidate = null
+  let longestPathLength = 0
+
+  // Test all candidates and keep track of the best one (longest path)
+  for (let i = 0; i < candidates.length; i++) {
+    const candidate = candidates[i]
+    const { humanX, humanY, aiX, aiY } = candidate
+    console.log(`[${i + 1}/${candidates.length}] Testing: Human(${humanX}, ${humanY}) vs AI(${aiX}, ${aiY})`)
+
+    const result = await testTentPositionPair(humanX, humanY, aiX, aiY)
+
+    if (result.valid) {
+      console.log(`  ✓ Valid path! Length: ${result.pathLength}, Weight: ${result.weight}`)
+
+      // Keep the candidate with the longest path
+      if (result.pathLength > longestPathLength) {
+        longestPathLength = result.pathLength
+        bestCandidate = {
+          humanX,
+          humanY,
+          aiX,
+          aiY,
+          pathLength: result.pathLength,
+          pathWeight: result.weight
+        }
+        console.log(`  → NEW BEST! This is now the longest path found`)
+      } else {
+        console.log(`  → Not better than current best (${longestPathLength})`)
+      }
+    } else {
+      console.log(`  ✗ Invalid - no path or path too long`)
+    }
+  }
+
+  if (bestCandidate) {
+    console.log(`\n✓✓✓ BEST POSITIONS SELECTED ✓✓✓`)
+    console.log(`  Human: (${bestCandidate.humanX}, ${bestCandidate.humanY})`)
+    console.log(`  AI: (${bestCandidate.aiX}, ${bestCandidate.aiY})`)
+    console.log(`  Path Length: ${bestCandidate.pathLength}`)
+    console.log(`  Path Weight: ${bestCandidate.pathWeight}`)
+    return bestCandidate
+  }
+
+  console.log('No naturally valid tent positions found in any combination')
+  return null
+}
+
+/**
+ * Carve a small clearing at a position
+ * @param {number} centerX - Center X
+ * @param {number} centerY - Center Y
+ * @param {number} radius - Radius of clearing
+ */
+const carveClearing = (centerX, centerY, radius = 2) => {
+  const { width: MAP_WIDTH, height: MAP_HEIGHT } = getMapDimensions()
+
+  for (let offsetX = -radius; offsetX <= radius; offsetX++) {
+    for (let offsetY = -radius; offsetY <= radius; offsetY++) {
+      const carveX = centerX + offsetX
+      const carveY = centerY + offsetY
+
+      // Check bounds
+      if (carveX < 0 || carveX >= MAP_WIDTH || carveY < 0 || carveY >= MAP_HEIGHT) {
+        continue
       }
 
-      // Clean the zone around AI tent
-      gameState.map[x][aiY + y] = {
-        uid: (aiY + y) * MAP_WIDTH + x,
-        type: TERRAIN_TYPES.GRASS.type,
-        weight: TERRAIN_TYPES.GRASS.weight
+      const tile = gameState.map[carveX][carveY]
+
+      // Only carve through obstacles
+      if (tile.type === TERRAIN_TYPES.WATER.type ||
+          tile.type === TERRAIN_TYPES.ROCK.type ||
+          tile.type === TERRAIN_TYPES.TREE.type) {
+
+        const isNearWater = checkNearbyTerrain(carveX, carveY, TERRAIN_TYPES.WATER.type)
+
+        gameState.map[carveX][carveY] = {
+          uid: carveY * MAP_WIDTH + carveX,
+          type: isNearWater ? TERRAIN_TYPES.SAND.type : TERRAIN_TYPES.GRASS.type,
+          weight: isNearWater ? TERRAIN_TYPES.SAND.weight : TERRAIN_TYPES.GRASS.weight
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Carve a path between two positions by converting obstacles to passable terrain
+ * Creates a natural-looking path that follows a line between start and end
+ * @param {number} x1 - Start X
+ * @param {number} y1 - Start Y
+ * @param {number} x2 - End X
+ * @param {number} y2 - End Y
+ */
+const carvePathBetweenPositions = (x1, y1, x2, y2) => {
+  const { width: MAP_WIDTH, height: MAP_HEIGHT } = getMapDimensions()
+
+  console.log(`Carving path from (${x1}, ${y1}) to (${x2}, ${y2})`)
+
+  // First, carve clearings at start and end positions (for tent placement)
+  carveClearing(x1, y1, 2)
+  carveClearing(x2, y2, 2)
+
+  // Calculate distance and steps
+  const dx = x2 - x1
+  const dy = y2 - y1
+  const distance = Math.sqrt(dx * dx + dy * dy)
+  const steps = Math.ceil(distance)
+
+  // Interpolate points along the line
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps
+    const x = Math.round(x1 + dx * t)
+    const y = Math.round(y1 + dy * t)
+
+    // Carve a 3-wide path (center + 1 on each side)
+    for (let offsetX = -1; offsetX <= 1; offsetX++) {
+      for (let offsetY = -1; offsetY <= 1; offsetY++) {
+        const carveX = x + offsetX
+        const carveY = y + offsetY
+
+        // Check bounds
+        if (carveX < 0 || carveX >= MAP_WIDTH || carveY < 0 || carveY >= MAP_HEIGHT) {
+          continue
+        }
+
+        const tile = gameState.map[carveX][carveY]
+
+        // Only carve through obstacles (water, rocks, heavy trees)
+        // Don't modify grass or sand
+        if (tile.type === TERRAIN_TYPES.WATER.type ||
+            tile.type === TERRAIN_TYPES.ROCK.type ||
+            tile.type === TERRAIN_TYPES.TREE.type) {
+
+          // Convert to passable terrain
+          // Use sand near water edges for natural look, otherwise grass
+          const isNearWater = checkNearbyTerrain(carveX, carveY, TERRAIN_TYPES.WATER.type)
+
+          gameState.map[carveX][carveY] = {
+            uid: carveY * MAP_WIDTH + carveX,
+            type: isNearWater ? TERRAIN_TYPES.SAND.type : TERRAIN_TYPES.GRASS.type,
+            weight: isNearWater ? TERRAIN_TYPES.SAND.weight : TERRAIN_TYPES.GRASS.weight
+          }
+        }
       }
     }
   }
 
-  console.log(`placeTents: Searching path from (${centerX}, ${humanY}) to (${centerX}, ${aiY})`)
-  updateMapInWorker()
-  const path = await searchPath(centerX, humanY, centerX, aiY)
-  const weight = path?.reduce((p, c) => p + c.weight, 0)
-  console.log(`placeTents: Path result - length: ${path?.length || 0}, weight: ${weight || 'N/A'}`)
+  console.log('Path carved successfully')
+}
 
-  if(path?.length && weight < 3 * (MAP_WIDTH + MAP_HEIGHT)) {
-    console.log('Path between the 2 tents:', path, weight)
+/**
+ * Check if there's a specific terrain type nearby
+ * @param {number} x - Center X
+ * @param {number} y - Center Y
+ * @param {string} terrainType - Terrain type to look for
+ * @returns {boolean}
+ */
+const checkNearbyTerrain = (x, y, terrainType) => {
+  const { width: MAP_WIDTH, height: MAP_HEIGHT } = getMapDimensions()
 
-    // Create actual tent buildings
-    gameState.humanPlayer.addBuilding(centerX, humanY, Building.TYPES.TENT)
-    gameState.aiPlayers[0].addBuilding(centerX, aiY, Building.TYPES.TENT)
+  for (let dx = -2; dx <= 2; dx++) {
+    for (let dy = -2; dy <= 2; dy++) {
+      const checkX = x + dx
+      const checkY = y + dy
+
+      if (checkX >= 0 && checkX < MAP_WIDTH && checkY >= 0 && checkY < MAP_HEIGHT) {
+        if (gameState.map[checkX][checkY].type === terrainType) {
+          return true
+        }
+      }
+    }
+  }
+
+  return false
+}
+
+/**
+ * Place starting tents for human and AI players
+ * Tries to find naturally connected positions, falls back to path carving if needed.
+ *
+ * @returns {boolean} True if tents were successfully placed with a valid path between them
+ */
+const placeTents = async () => {
+  const { width: MAP_WIDTH, height: MAP_HEIGHT } = getMapDimensions()
+
+  // Step 1: Try to find naturally valid positions
+  const positions = await findValidTentPositions()
+
+  if (positions) {
+    // Success! Place tents at the naturally valid positions
+    console.log(`✓ Placing tents at best positions (path length: ${positions.pathLength})`)
+    console.log(`  Human tent at: (${positions.humanX}, ${positions.humanY})`)
+    console.log(`  AI tent at: (${positions.aiX}, ${positions.aiY})`)
+
+    gameState.humanPlayer.addBuilding(positions.humanX, positions.humanY, Building.TYPES.TENT)
+    gameState.aiPlayers[0].addBuilding(positions.aiX, positions.aiY, Building.TYPES.TENT)
 
     return true
   }
 
+  // Step 2: No natural positions found - use default positions and carve a path
+  console.log('⚠ No naturally valid positions found. Carving path between default positions...')
+
+  const humanX = Math.floor(MAP_WIDTH / 2)
+  const humanY = Math.floor(MAP_HEIGHT * 19 / 20)
+  const aiX = Math.floor(MAP_WIDTH / 2)
+  const aiY = Math.floor(MAP_HEIGHT / 20)
+
+  // Carve a path between them (this will create passable terrain)
+  carvePathBetweenPositions(humanX, humanY, aiX, aiY)
+
+  // Update pathfinding and verify
+  updateMapInWorker()
+  const path = await searchPath(humanX, humanY, aiX, aiY)
+
+  if (path?.length > 0) {
+    console.log(`✓ Path carved successfully! Length: ${path.length}`)
+    console.log(`  Human tent at: (${humanX}, ${humanY})`)
+    console.log(`  AI tent at: (${aiX}, ${aiY})`)
+
+    // Place tents
+    gameState.humanPlayer.addBuilding(humanX, humanY, Building.TYPES.TENT)
+    gameState.aiPlayers[0].addBuilding(aiX, aiY, Building.TYPES.TENT)
+
+    return true
+  }
+
+  console.error('✗ Path carving failed - this should not happen!')
   return false
 }
 

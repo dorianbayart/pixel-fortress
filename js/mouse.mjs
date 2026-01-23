@@ -612,7 +612,7 @@ class Mouse {
   }
   
   /**
-   * Set the initial camera position to the bottom center of the map
+   * Set the initial camera position centered on the human player's tent
    */
   setInitialCameraPosition() {
     if (this.initialPositionSet || !app.renderer) return
@@ -621,29 +621,42 @@ class Mouse {
     const initialZoom = this.setInitialZoom()
     this.scale = initialZoom
     this.viewTransform.scale = initialZoom
-    
+
     // Get map dimensions in pixels
     const mapWidth = getMapDimensions().width * getTileSize()
     const mapHeight = getMapDimensions().height * getTileSize()
-    
+    const tileSize = getTileSize()
+
     // Calculate visible view dimensions in world space at current scale
     const viewWidth = app.renderer.width / this.viewTransform.scale
     const viewHeight = (app.renderer.height - CONSTANTS.UI.BOTTOM_BAR_HEIGHT) / this.viewTransform.scale
-    
-    // Set x position to center the view horizontally on the map
-    this.viewTransform.x = (mapWidth - viewWidth) / 2 | 0
-    
-    // Set y position to show the bottom of the map
-    this.viewTransform.y = mapHeight - viewHeight | 0
-    
+
+    // Get human player's tent position
+    const humanTents = gameState.humanPlayer?.getTents()
+    if (humanTents && humanTents.length > 0) {
+      const tent = humanTents[0]
+      const tentWorldX = tent.x * tileSize
+      const tentWorldY = tent.y * tileSize
+
+      // Center the view on the tent position
+      this.viewTransform.x = (tentWorldX - viewWidth / 2) | 0
+      this.viewTransform.y = (tentWorldY - viewHeight / 2) | 0
+
+      console.log(`Initial camera centered on tent at (${tent.x}, ${tent.y})`)
+    } else {
+      // Fallback to center bottom if no tent found (shouldn't happen)
+      this.viewTransform.x = (mapWidth - viewWidth) / 2 | 0
+      this.viewTransform.y = mapHeight - viewHeight | 0
+
+      console.warn('No tent found, using fallback camera position')
+    }
+
     // Apply constraints to ensure valid position
     this.applyBoundaryConstraints()
-    
+
     // Mark as set and trigger redraw
     this.initialPositionSet = true
     this.zoomChanged = true
-    
-    // console.log("Initial camera position set to bottom center", JSON.stringify(this.getViewTransform()))
   }
   
   /*
