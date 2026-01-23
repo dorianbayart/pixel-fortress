@@ -97,7 +97,7 @@ const generateMap = async () => {
             uid: y * MAP_WIDTH + x,
             type: terrainType.type,
             weight: terrainType.weight,
-            resource: Math.floor(Math.random() * 100) + 150 // 150-250 resources
+            resource: Math.floor(Math.random() * 15) + 25 // 25-40 resources
           }
         } else {
           gameState.map[x][y] = {
