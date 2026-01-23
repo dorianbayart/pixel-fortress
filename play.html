@@ -430,17 +430,15 @@
     <div class="modal-body">
       <div class="option-group">
         <h3>Map Size</h3>
-        <div class="option-controls">
-          <button class="option-btn" data-map-size="small">Small</button>
-          <button class="option-btn selected" data-map-size="medium">Medium</button>
-          <button class="option-btn" data-map-size="large">Large</button>
+        <div class="option-controls" id="mapSizeButtons">
+          <!-- Map size buttons dynamically generated from CONSTANTS -->
         </div>
       </div>
 
       <div class="option-group">
         <h3>Map Seed (Optional)</h3>
         <div class="option-controls" style="gap: 10px;">
-          <input type="number" id="mapSeedInput" placeholder="Leave empty for random" min="0" max="999999999"
+          <input type="number" id="mapSeedInput" placeholder="Leave empty for random"
                  style="flex: 1; padding: 8px; font-family: var(--font-base); font-size: 1rem;
                         background: rgba(34, 139, 34, 0.2); border: 2px solid rgba(255, 215, 0, 0.5);
                         border-radius: 4px; color: var(--font-color); text-align: center;

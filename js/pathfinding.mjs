@@ -2,11 +2,12 @@ export { clearPathCache, getPathfindingStats, searchPath, updateMapDimensionsInW
 
 'use strict'
 
+import CONSTANTS from 'constants'
 import { getMapDimensions } from 'dimensions'
 import gameState from "state"
 
-const NUM_PATHFINDING_WORKERS = 4
-const MAX_CONCURRENT_PER_WORKER = 3 // Max concurrent pathfinding requests per worker
+const NUM_PATHFINDING_WORKERS = CONSTANTS.PATHFINDING.NUM_WORKERS
+const MAX_CONCURRENT_PER_WORKER = CONSTANTS.PATHFINDING.MAX_CONCURRENT_PER_WORKER
 const pathfindingWorkers = []
 const workerQueues = Array.from({ length: NUM_PATHFINDING_WORKERS }, () => [])
 const workerActiveCount = Array.from({ length: NUM_PATHFINDING_WORKERS }, () => 0)

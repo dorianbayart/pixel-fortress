@@ -16,16 +16,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-export { TERRAIN_TYPES, ZOOM, gameLoop, initGame, updateSprite }
+export { gameLoop, initGame, updateSprite }
 
 'use strict'
 
 import * as PIXI from 'pixijs'
+import CONSTANTS from 'constants'
 import { getMapDimensions, getTileSize } from 'dimensions'
 import { renderFog, updateVisibility } from 'fogOfWar'
 import { drawBack, isDrawBackRequested } from 'globals'
 import {
-  TERRAIN_TYPES,
   generateMap,
   placeTents,
   getSandSpriteCoordinates,
@@ -39,13 +39,8 @@ import { sprites } from 'sprites'
 import gameState from 'state'
 import { handleMouseInteraction, updateUI, showModal } from 'ui'
 
-// Zoom configuration
-const ZOOM = {
-  FACTOR: 1.1,
-  MAX: 1.4,
-  MIN: 1,
-  current: 1
-}
+// Re-export constants for backward compatibility
+const TERRAIN_TYPES = CONSTANTS.TERRAIN.TYPES
 
 // Game timing variables
 let elapsed = -5000
@@ -77,7 +72,7 @@ const initGame = async () => {
       attempts++
 
       // Generate a new random seed for each attempt
-      gameState.mapSeed = Math.floor(Math.random() * 1000000000)
+      gameState.mapSeed = Math.floor(Math.random() * (CONSTANTS.SEED.MAX + 1))
 
       console.log(`Attempt ${attempts}: Trying seed ${gameState.mapSeed}`)
       await generateMap()

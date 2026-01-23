@@ -89,11 +89,27 @@ const skirmishFogToggle = document.getElementById('skirmishFogToggle')
 const mapSeedInput = document.getElementById('mapSeedInput')
 const randomSeedButton = document.getElementById('randomSeedButton')
 
-// Get option buttons
-const mapSizeButtons = skirmishSetupSection.querySelectorAll('.option-btn[data-map-size]')
+// Get option button containers
+const mapSizeContainer = skirmishSetupSection.querySelector('#mapSizeButtons')
 const aiCountButtons = skirmishSetupSection.querySelectorAll('.option-btn[data-ai-count]')
 const difficultyButtons = skirmishSetupSection.querySelectorAll('.option-btn[data-difficulty]')
 const gameSpeedButtons = skirmishSetupSection.querySelectorAll('.option-btn[data-game-speed]')
+
+// Dynamically create map size buttons from constants
+let mapSizeButtons = []
+if (mapSizeContainer) {
+  CONSTANTS.MAP_SIZES.getAll().forEach((size, index) => {
+    const button = document.createElement('button')
+    button.className = 'option-btn'
+    button.dataset.mapSize = size.id
+    button.textContent = size.label
+    if (size.id === 'medium') {
+      button.classList.add('selected')
+    }
+    mapSizeContainer.appendChild(button)
+    mapSizeButtons.push(button)
+  })
+}
 
 // Function to update selected button in a group (reused from options)
 const updateSelection = (buttons, value, datasetKey) => {
@@ -167,6 +183,10 @@ const startSkirmishGame = () => {
 }
 
 async function setupSkirmishSection() {
+  // Set seed input constraints from constants
+  mapSeedInput.min = CONSTANTS.SEED.MIN
+  mapSeedInput.max = CONSTANTS.SEED.MAX
+
   // Add event listeners
   closeSkirmishSetupModalButton.addEventListener('click', closeSkirmishSetupModal)
   closeSkirmishSetupButton.addEventListener('click', closeSkirmishSetupModal)
@@ -175,7 +195,7 @@ async function setupSkirmishSection() {
   // Random seed button generates a random seed number
   randomSeedButton.addEventListener('click', () => {
     playClickSound()
-    mapSeedInput.value = Math.floor(Math.random() * 10000)
+    mapSeedInput.value = Math.floor(Math.random() * (CONSTANTS.SEED.MAX + 1))
   })
 
   // Play click sound when focusing seed input

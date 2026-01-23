@@ -3,16 +3,17 @@ export { initFogOfWar, isPositionExplored, isPositionVisible, renderFog, updateV
 
 'use strict'
 
+import CONSTANTS from 'constants'
 import { getMapDimensions, getTileSize } from 'dimensions'
 import { drawBack } from 'globals'
 import * as PIXI from 'pixijs'
 import { app, containers } from 'renderer'
 import gameState from 'state'
 
-// Fog of war constants
-const FOG_UPDATE_INTERVAL = 400 // ms between fog updates
-const FOG_COLOR = 0x000000 // Black fog
-const FOG_ALPHA_EXPLORED = 0.7 // Alpha for explored but not visible areas
+// Fog of war constants (from centralized constants)
+const FOG_UPDATE_INTERVAL = CONSTANTS.FOG_OF_WAR.UPDATE_INTERVAL
+const FOG_COLOR = CONSTANTS.FOG_OF_WAR.COLOR
+const FOG_ALPHA_EXPLORED = CONSTANTS.FOG_OF_WAR.ALPHA_EXPLORED
 
 // Internal state
 let fogContainer = null

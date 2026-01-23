@@ -6,30 +6,15 @@ import * as PIXI from 'pixijs'
 import CONSTANTS from 'constants'
 import { getCanvasDimensions, getMapDimensions, getTileSize } from 'dimensions'
 import { isPositionExplored, isPositionVisible } from 'fogOfWar'
-import { TERRAIN_TYPES } from 'game'
 import gameState from 'state'
 
-// Minimap configuration
-const MINIMAP_SIZE = 220 // Size in pixels
-const MINIMAP_PADDING = 1 // Distance from bottom-right corner
-const MINIMAP_CONTENT_ALPHA = 0.7 // Global alpha for all minimap content
-const MINIMAP_UPDATE_INTERVAL = 40 // Update minimap every 40ms (25fps) for smooth viewport tracking
-
-// Color scheme for the minimap
-const COLORS = {
-  WATER: 0x66bce4,      // Blue
-  GRASS: 0x27ae60,      // Green
-  SAND: 0xf39c12,       // Orange/tan
-  TREE: 0x1e8449,       // Dark green
-  DEPLETED_TREE: 0x7d6608, // Brown
-  ROCK: 0x7f8c8d,       // Gray
-  GOLD: 0xf1c40f,       // Gold
-  UNEXPLORED: 0x1a1a1a, // Very dark gray
-  HUMAN_UNIT: 0x00ffff, // Cyan
-  AI_UNIT: 0xff0000,    // Red
-  HUMAN_BUILDING: 0x00ffff, // Blue
-  AI_BUILDING: 0xff0000  // Red
-}
+// Minimap configuration (from constants)
+const MINIMAP_SIZE = CONSTANTS.MINIMAP.SIZE
+const MINIMAP_PADDING = CONSTANTS.MINIMAP.PADDING
+const MINIMAP_CONTENT_ALPHA = CONSTANTS.MINIMAP.CONTENT_ALPHA
+const MINIMAP_UPDATE_INTERVAL = CONSTANTS.MINIMAP.UPDATE_INTERVAL
+const COLORS = CONSTANTS.MINIMAP.COLORS
+const TERRAIN_TYPES = CONSTANTS.TERRAIN.TYPES
 
 let minimapContainer = null
 let minimapGraphics = null

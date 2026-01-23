@@ -16,11 +16,7 @@ import { app, containers, indicatorMap, updateZoom, unitSpriteMap, backgroundSpr
 import gameState from 'state'
 import { getPathfindingStats } from 'pathfinding'
 
-const UI_FONTS = {
-  PRIMARY: "system-ui, 'Open Sans', Arial, sans-serif",
-  MONOSPACE: "monospace, 'Courier New', Courier",
-  DESIGN: "Jacquarda-Bastarda-9"
-}
+const UI_FONTS = CONSTANTS.UI.FONTS
 
 // Mouse object (will be initialized in initUI)
 let mouse = null

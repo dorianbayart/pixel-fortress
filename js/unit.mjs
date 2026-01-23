@@ -5,8 +5,9 @@ export {
 'use strict'
 
 import { Building } from 'building'
+import CONSTANTS from 'constants'
 import { getMapDimensions, getTileSize } from 'dimensions'
-import { TERRAIN_TYPES, updateSprite } from 'game'
+import { updateSprite } from 'game'
 import { isPositionExplored } from 'fogOfWar'
 import { ParticleEffect, createParticleEmitter } from 'particles'
 import { searchPath, updateMapInWorker } from 'pathfinding'
@@ -15,10 +16,9 @@ import { UNIT_SPRITE_SIZE, unitsSprites, unitsSpritesDescription } from 'sprites
 import gameState from 'state'
 import { distance } from 'utils'
 
-const PI = Math.PI
-
-const TENT_REEVALUATION_COOLDOWN = 5000 // 5 seconds
-
+const PI = CONSTANTS.MATH.PI
+const TENT_REEVALUATION_COOLDOWN = CONSTANTS.UNITS.TENT_REEVALUATION_COOLDOWN
+const TERRAIN_TYPES = CONSTANTS.TERRAIN.TYPES
 
 /*
 Class hierarchy

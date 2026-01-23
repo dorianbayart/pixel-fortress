@@ -3,13 +3,15 @@ export { Player, PlayerType }
 'use strict'
 
 import { Building } from 'building'
+import CONSTANTS from 'constants'
 import gameState, { EventSystem } from 'state'
 import { getMapDimensions } from 'dimensions'
-import { TERRAIN_TYPES } from 'game'
 import { isPositionVisible, isPositionExplored } from 'fogOfWar'
 import { EliteWarrior, GoldMiner, HeavyInfantry, LumberjackWorker, Peon, PeonSoldier, QuarryMiner, Soldier, WaterCarrier, WorkerUnit } from 'unit'
 import { searchPath } from 'pathfinding'
 import { distance } from 'utils'
+
+const TERRAIN_TYPES = CONSTANTS.TERRAIN.TYPES
 
 const PlayerType = {
   HUMAN: 'human',

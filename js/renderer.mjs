@@ -21,15 +21,17 @@ export {
 
 'use strict'
 
+import CONSTANTS from 'constants'
 import { getCanvasDimensions, getMapDimensions, getTileSize } from 'dimensions'
 import { isPositionExplored, isPositionVisible } from 'fogOfWar'
-import { TERRAIN_TYPES } from 'game'
 import { DEBUG, backDrawn } from 'globals'
 import { initMinimap, updateMinimap, resizeMinimap } from 'minimap'
 import { ParticleEffect, createParticleEmitter, initParticleSystem } from 'particles'
 import * as PIXI from 'pixijs'
 import { UNIT_SPRITE_SIZE, sprites } from 'sprites'
 import gameState from 'state'
+
+const TERRAIN_TYPES = CONSTANTS.TERRAIN.TYPES
 
 // Pixi.js Application
 let app = null

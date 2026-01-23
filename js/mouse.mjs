@@ -10,14 +10,7 @@ import { app, updateZoom } from 'renderer'
 import { loadAndSplitImage } from 'sprites'
 import gameState from 'state'
 
-
-const ZOOM = {
-  TILES: 24,
-  FACTOR: 0.05,
-  MAX: 10,
-  MIN: 0.75,
-  initial: null,
-}
+const ZOOM = CONSTANTS.ZOOM.CAMERA
 
 class Mouse {
   constructor(xPixels = 0, yPixels = 0) {

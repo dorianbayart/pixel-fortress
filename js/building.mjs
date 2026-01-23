@@ -3,9 +3,9 @@ export { Building, CombatBuilding, GoldMine, Quarry, Tent, Well, WorkerBuilding,
 'use strict'
 
 import { playBuildingSound } from 'audio'
+import CONSTANTS from 'constants'
 import { getMapDimensions, getTileSize } from 'dimensions'
 import { isPositionVisible } from 'fogOfWar'
-import { TERRAIN_TYPES } from 'game'
 import { ParticleEffect, createParticleEmitter } from 'particles'
 import { searchPath, updateMapInWorker } from 'pathfinding'
 import { Player } from 'players'
@@ -15,6 +15,8 @@ import gameState from 'state'
 import { showDebugMessage } from 'ui'
 import { GoldMiner, LumberjackWorker, Peon, QuarryMiner, WaterCarrier } from 'unit'
 import { distance } from 'utils'
+
+const TERRAIN_TYPES = CONSTANTS.TERRAIN.TYPES
 
 /**
  * Finds the best available spawn location around a building.
@@ -70,8 +72,8 @@ async function findBestSpawnLocation(buildingX, buildingY, targetX, targetY) {
 }
 
 
-const TREE_PROCESSING_BATCH_SIZE = 8 // Process 8 trees at once
-const TREE_PROCESSING_DELAY = 80 // 80ms delay between batches
+const TREE_PROCESSING_BATCH_SIZE = CONSTANTS.BUILDINGS.TREE_PROCESSING_BATCH_SIZE
+const TREE_PROCESSING_DELAY = CONSTANTS.BUILDINGS.TREE_PROCESSING_DELAY
 
 
 /**

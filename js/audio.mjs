@@ -10,12 +10,13 @@ export {
   isMuted
 }
 
-const NOT_ALLOWED_ERROR = 'NotAllowedError'
-let isMuted = false
-
 'use strict'
 
+import CONSTANTS from 'constants'
 import gameState from 'state'
+
+const NOT_ALLOWED_ERROR = CONSTANTS.AUDIO.NOT_ALLOWED_ERROR
+let isMuted = false
 
 /* Sounds */
 // const hoverSound = new Audio('assets/sounds/menu_hover.wav')

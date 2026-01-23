@@ -25,7 +25,6 @@
  */
 
 export {
-  TERRAIN_TYPES,
   generateMap,
   testTentPositionPair,
   findValidTentPositions,
@@ -40,22 +39,14 @@ export {
 'use strict'
 
 import { Building } from 'building'
+import CONSTANTS from 'constants'
 import { getMapDimensions } from 'dimensions'
 import { clearPathCache, searchPath, updateMapInWorker } from 'pathfinding'
 import gameState from 'state'
 import { PerlinNoise } from 'utils'
 
-// Terrain type definitions
-const TERRAIN_TYPES = {
-  WATER: { type: 'WATER', weight: getMapDimensions().maxWeight / 4 | 0, spriteRange: { x: [0, 0], y: [17, 17] } },
-  ROCK: { type: 'ROCK', weight: getMapDimensions().maxWeight, spriteRange: { x: [0], y: [26] } },
-  GOLD: { type: 'GOLD', weight: getMapDimensions().maxWeight, spriteRange: { x: [1], y: [26] } },
-  TREE: { type: 'TREE', weight: 1024, spriteRange: { x: [2, 3], y: [26, 27] } },
-  DEPLETED_TREE: { type: 'DEPLETED_TREE', weight: 3, spriteRange: { x: [1], y: [27] } },
-  GRASS: { type: 'GRASS', weight: 1.5, spriteRange: { x: [0, 2], y: [0, 2] } },
-  SAND: { type: 'SAND', weight: 1, spriteRange: { x: [3, 3], y: [3, 3] } },
-  BUILDING: { type: 'BUILDING', weight: getMapDimensions().maxWeight * 0.99999 | 0 }
-}
+// Terrain type definitions (imported from centralized constants)
+const TERRAIN_TYPES = CONSTANTS.TERRAIN.TYPES
 
 /**
  * Generate the game map using Perlin noise
@@ -70,21 +61,12 @@ const generateMap = async () => {
 
   // Create the map structure
   gameState.map = new Array(MAP_WIDTH).fill(null).map(() => new Array(MAP_HEIGHT).fill(null))
-  gameState.mapSeed  = gameState.mapSeed ?? Math.floor(Math.random() * 1000000000)
+  gameState.mapSeed  = gameState.mapSeed ?? Math.floor(Math.random() * (CONSTANTS.SEED.MAX + 1))
 
   const noise = new PerlinNoise(gameState.mapSeed)
 
-  const NOISE_SCALE = 0.08; // Controls terrain smoothness
-  const TERRAIN_THRESHOLD = {
-    WATER: 0.33,
-    ROCK: 0.34,
-    TREE_NEXT_TO_WATER: 0.35,
-    GRASS_NEXT_TO_WATER: 0.45,
-    SAND: 0.5,
-    GRASS: 0.56,
-    GOLD: 0.8,
-    TREE: 1,
-  }
+  const NOISE_SCALE = CONSTANTS.TERRAIN.NOISE_SCALE
+  const TERRAIN_THRESHOLD = CONSTANTS.TERRAIN.THRESHOLD
 
   for (let x = 0; x < MAP_WIDTH; x++) {
     for (let y = 0; y < MAP_HEIGHT; y++) {
