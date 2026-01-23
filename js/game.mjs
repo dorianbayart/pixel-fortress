@@ -83,7 +83,7 @@ const initGame = async () => {
       attempts++
 
       // Generate a new random seed for each attempt
-      gameState.mapSeed = Math.floor(Math.random() * 10000)
+      gameState.mapSeed = Math.floor(Math.random() * 1000000000)
 
       console.log(`Attempt ${attempts}: Trying seed ${gameState.mapSeed}`)
       await generateMap()
@@ -149,7 +149,7 @@ const generateMap = async () => {
 
   // Create the map structure
   gameState.map = new Array(MAP_WIDTH).fill(null).map(() => new Array(MAP_HEIGHT).fill(null))
-  gameState.mapSeed  = gameState.mapSeed ?? Math.floor(Math.random() * 10000)
+  gameState.mapSeed  = gameState.mapSeed ?? Math.floor(Math.random() * 1000000000)
 
   const noise = new PerlinNoise(gameState.mapSeed)
 
