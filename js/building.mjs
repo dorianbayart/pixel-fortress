@@ -653,19 +653,19 @@ class Lumberjack extends WorkerBuilding {
         this.treeProcessingInProgress = true
         const { width, height } = getMapDimensions()
         this.treeProcessingQueue = []
-        
+
         // First, find all trees within radius
         for (let dx = -this.treeSearchRadius; dx <= this.treeSearchRadius; dx++) {
             for (let dy = -this.treeSearchRadius; dy <= this.treeSearchRadius; dy++) {
                 const tileX = this.x + dx
                 const tileY = this.y + dy
-                
+
                 // Check if coordinates are valid
                 if (tileX >= 0 && tileX < width && tileY >= 0 && tileY < height) {
                     const tile = gameState.map[tileX][tileY]
-                    
+
                     // Check if it's a harvestable tree
-                    if (tile?.type === 'TREE' && tile?.lifeRemaining > 0) {
+                    if (tile?.type === 'TREE' && tile?.resource > 0) {
                         // Use geometric distance for initial filtering
                         const geoDist = Math.sqrt(dx * dx + dy * dy)
                         if (geoDist <= this.treeSearchRadius) {
@@ -719,7 +719,7 @@ class Lumberjack extends WorkerBuilding {
             this.treeProcessingQueue = []
             return
         }
-        
+
         const startX = this.assignedWorkers[0]?.currentNode?.x ?? this.x
         const startY = this.assignedWorkers[0]?.currentNode?.y ?? this.y
 
@@ -746,10 +746,10 @@ class Lumberjack extends WorkerBuilding {
                 })
             }
         })
-        
+
         // Re-sort and trim the list after processing the batch
         this.sortTreesByPathQuality()
-        
+
         // Process next batch after a delay
         setTimeout(() => this.processNextTreeInQueue(), TREE_PROCESSING_DELAY)
     }
@@ -764,13 +764,13 @@ class Lumberjack extends WorkerBuilding {
         for (let i = 0; i < this.nearbyTrees?.length; i++) {
             const tree = this.nearbyTrees[i]
             // Verify the tree still exists and harvestable
-            if (gameState.map[tree.x][tree.y].type === 'TREE' && gameState.map[tree.x][tree.y].lifeRemaining > 0) {
+            if (gameState.map[tree.x][tree.y].type === 'TREE' && gameState.map[tree.x][tree.y].resource > 0) {
                 return tree
             } else {
                 this.removeTree(tree)
             }
         }
-        
+
         // No valid trees found
         return null
     }

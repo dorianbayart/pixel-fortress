@@ -70,7 +70,9 @@ class GameState {
     
     // Map state
     this._map = null
-    
+    this.customMapId = null // Custom map identifier (e.g., "custom_4698963")
+    this.customMapData = null // Custom map metadata
+
     // Game status
     this._gameStatus = 'menu' // 'menu', 'initialize', 'playing', 'paused', 'gameOver', 'win'
     

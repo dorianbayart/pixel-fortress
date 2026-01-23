@@ -6,6 +6,7 @@ import gameState from 'state'
 import CONSTANTS from 'constants'
 import { playClickSound, playCloseSound, playConfirmSound } from 'audio'
 import { setupEventListeners } from 'ui'
+import { getPredefinedMaps } from 'maps'
 
 
 // Function to simulate a typewriter effect
@@ -86,8 +87,16 @@ const closeSkirmishSetupModalButton = skirmishSetupSection.querySelector('.close
 const startSkirmishGameButton = document.getElementById('startSkirmishGame')
 const closeSkirmishSetupButton = document.getElementById('closeSkirmishSetup')
 const skirmishFogToggle = document.getElementById('skirmishFogToggle')
+const mapIdInput = document.getElementById('mapIdInput')
+const clearMapIdButton = document.getElementById('clearMapIdButton')
 const mapSeedInput = document.getElementById('mapSeedInput')
 const randomSeedButton = document.getElementById('randomSeedButton')
+
+// Get tab elements
+const tabButtons = skirmishSetupSection.querySelectorAll('.tab-button')
+const randomMapTab = document.getElementById('randomMapTab')
+const predefinedMapTab = document.getElementById('predefinedMapTab')
+const predefinedMapsList = document.getElementById('predefinedMapsList')
 
 // Get option button containers
 const mapSizeContainer = skirmishSetupSection.querySelector('#mapSizeButtons')
@@ -123,8 +132,116 @@ const updateSelection = (buttons, value, datasetKey) => {
   })
 }
 
+// Function to render the predefined maps list
+const renderPredefinedMapsList = async () => {
+  try {
+    const maps = await getPredefinedMaps()
+
+    if (!maps || maps.length === 0) {
+      predefinedMapsList.innerHTML = '<p style="opacity: 0.7; text-align: center;">No predefined maps available</p>'
+      return
+    }
+
+    // Build the list HTML
+    let html = '<div style="display: grid; gap: 10px;">'
+
+    maps.forEach(map => {
+      // Create a difficulty badge
+      const difficultyColors = {
+        easy: '#228b22',
+        medium: '#ffa500',
+        hard: '#dc143c'
+      }
+      const difficultyColor = difficultyColors[map.difficulty] || '#808080'
+
+      // Create a size badge
+      const sizeBadge = map.size ? `<span style="background: rgba(255, 215, 0, 0.3); padding: 2px 6px; border-radius: 3px; font-size: 0.85em;">${map.size}</span>` : ''
+
+      html += `
+        <div class="predefined-map-item" data-map-id="${map.id}" style="
+          padding: 12px;
+          background: rgba(34, 139, 34, 0.2);
+          border: 2px solid rgba(255, 215, 0, 0.3);
+          border-radius: 6px;
+          cursor: pointer;
+          transition: all 0.2s ease-in-out;
+        ">
+          <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 6px;">
+            <h4 style="margin: 0; font-size: 1.1em;">${map.name}</h4>
+            <span style="background: ${difficultyColor}; padding: 2px 8px; border-radius: 3px; font-size: 0.85em; font-weight: bold;">${map.difficulty}</span>
+          </div>
+          <p style="margin: 4px 0; font-size: 0.9em; opacity: 0.85;">${map.description || ''}</p>
+          <div style="display: flex; gap: 8px; margin-top: 6px; font-size: 0.85em;">
+            <span style="background: rgba(0, 0, 0, 0.3); padding: 2px 6px; border-radius: 3px;">${map.type}</span>
+            ${sizeBadge}
+            <span style="opacity: 0.7; font-family: monospace; font-size: 0.8em;">${map.id}</span>
+          </div>
+        </div>
+      `
+    })
+
+    html += '</div>'
+    predefinedMapsList.innerHTML = html
+
+    // Add click handlers to map items
+    const mapItems = predefinedMapsList.querySelectorAll('.predefined-map-item')
+    mapItems.forEach(item => {
+      item.addEventListener('mouseenter', () => {
+        item.style.background = 'rgba(34, 139, 34, 0.4)'
+        item.style.borderColor = 'rgba(255, 215, 0, 0.6)'
+        item.style.transform = 'translateY(-2px)'
+      })
+
+      item.addEventListener('mouseleave', () => {
+        item.style.background = 'rgba(34, 139, 34, 0.2)'
+        item.style.borderColor = 'rgba(255, 215, 0, 0.3)'
+        item.style.transform = 'translateY(0)'
+      })
+
+      item.addEventListener('click', () => {
+        playClickSound()
+        const mapId = item.dataset.mapId
+        mapIdInput.value = mapId
+
+        // Highlight selected map
+        mapItems.forEach(mi => {
+          mi.style.borderColor = 'rgba(255, 215, 0, 0.3)'
+          mi.style.boxShadow = 'none'
+        })
+        item.style.borderColor = '#ffd700'
+        item.style.boxShadow = '0 0 10px rgba(255, 215, 0, 0.5)'
+      })
+    })
+
+  } catch (error) {
+    console.error('Error rendering predefined maps:', error)
+    predefinedMapsList.innerHTML = '<p style="color: #dc143c; text-align: center;">Error loading maps</p>'
+  }
+}
+
+// Function to switch tabs
+const switchTab = (tabName) => {
+  // Update tab buttons
+  tabButtons.forEach(button => {
+    if (button.dataset.tab === tabName) {
+      button.classList.add('active')
+    } else {
+      button.classList.remove('active')
+    }
+  })
+
+  // Update tab content
+  if (tabName === 'randomMap') {
+    randomMapTab.classList.add('active')
+    predefinedMapTab.classList.remove('active')
+  } else if (tabName === 'predefinedMap') {
+    randomMapTab.classList.remove('active')
+    predefinedMapTab.classList.add('active')
+  }
+}
+
 // Function to open the Skirmish Setup modal
-const openSkirmishSetupModal = () => {
+const openSkirmishSetupModal = async () => {
   playClickSound()
 
   // Set current values based on game settings or defaults
@@ -134,8 +251,21 @@ const openSkirmishSetupModal = () => {
   updateSelection(gameSpeedButtons, Object.keys(CONSTANTS.GAME_SPEED_MULTIPLIERS).find(key => CONSTANTS.GAME_SPEED_MULTIPLIERS[key] === gameState.settings?.gameSpeedMultiplier)?.toLowerCase() || 'normal', 'gameSpeed')
   skirmishFogToggle.checked = gameState.settings?.fogOfWar !== false
 
+  // Set map ID input (empty or show current custom map ID)
+  mapIdInput.value = gameState.customMapId || ''
+
   // Set seed input (empty for random, or show current seed if exists)
   mapSeedInput.value = gameState.mapSeed || ''
+
+  // Load and render predefined maps list
+  await renderPredefinedMapsList()
+
+  // Switch to appropriate tab based on current state
+  if (gameState.customMapId) {
+    switchTab('predefinedMap')
+  } else {
+    switchTab('randomMap')
+  }
 
   skirmishSetupSection.style.display = 'block'
   setTimeout(() => {
@@ -162,9 +292,21 @@ const startSkirmishGame = () => {
   const selectedGameSpeed = skirmishSetupSection.querySelector('.option-btn[data-game-speed].selected')?.dataset.gameSpeed || 'normal'
   const fogOfWarEnabled = skirmishFogToggle.checked
 
-  // Get seed from input (null if empty for random generation)
-  const seedValue = mapSeedInput.value.trim()
-  const mapSeed = seedValue ? parseInt(seedValue, 10) : null
+  // Check which tab is active
+  const activeTab = skirmishSetupSection.querySelector('.tab-button.active')?.dataset.tab
+
+  let mapId = null
+  let mapSeed = null
+
+  if (activeTab === 'predefinedMap') {
+    // Get map ID from predefined maps tab
+    const mapIdValue = mapIdInput.value.trim()
+    mapId = mapIdValue || null
+  } else {
+    // Get seed from random map tab (null if empty for random generation)
+    const seedValue = mapSeedInput.value.trim()
+    mapSeed = seedValue ? parseInt(seedValue, 10) : null
+  }
 
   gameState.updateSettings({
       mapSize: selectedMapSize,
@@ -174,7 +316,8 @@ const startSkirmishGame = () => {
       fogOfWar: fogOfWarEnabled,
   })
 
-  // Set map seed (null for random)
+  // Set custom map ID or seed based on active tab
+  gameState.customMapId = mapId
   gameState.mapSeed = mapSeed
 
   gameState.gameStatus = 'initialize'
@@ -192,13 +335,28 @@ async function setupSkirmishSection() {
   closeSkirmishSetupButton.addEventListener('click', closeSkirmishSetupModal)
   startSkirmishGameButton.addEventListener('click', startSkirmishGame)
 
+  // Tab switching
+  tabButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      playClickSound()
+      switchTab(button.dataset.tab)
+    })
+  })
+
+  // Clear map ID button
+  clearMapIdButton.addEventListener('click', () => {
+    playClickSound()
+    mapIdInput.value = ''
+  })
+
   // Random seed button generates a random seed number
   randomSeedButton.addEventListener('click', () => {
     playClickSound()
     mapSeedInput.value = Math.floor(Math.random() * (CONSTANTS.SEED.MAX + 1))
   })
 
-  // Play click sound when focusing seed input
+  // Play click sound when focusing inputs
+  mapIdInput.addEventListener('focus', playClickSound)
   mapSeedInput.addEventListener('focus', playClickSound)
 
   // Escape key also closes the modal

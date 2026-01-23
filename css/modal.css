@@ -355,3 +355,103 @@
 #quitToHome {
   background-color: rgba(139, 0, 0, 0.7);
 }
+
+/** Map info section */
+.map-info-section {
+  background-color: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 215, 0, 0.4);
+  border-radius: 6px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.map-info-section h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 1.2em;
+  text-align: center;
+  color: var(--font-color);
+  text-shadow: 0 0 5px forestgreen;
+}
+
+.map-info-content {
+  margin-bottom: 15px;
+}
+
+.map-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.map-info-row:last-child {
+  border-bottom: none;
+}
+
+.map-info-label {
+  font-weight: 600;
+  color: rgba(255, 215, 0, 0.9);
+}
+
+.map-info-value {
+  font-family: monospace;
+  color: var(--font-color);
+  font-weight: 500;
+  background-color: rgba(0, 0, 0, 0.3);
+  padding: 4px 8px;
+  border-radius: 3px;
+}
+
+.export-button {
+  width: 100%;
+  background-color: rgba(34, 139, 34, 0.5);
+  border: 1px solid var(--font-color);
+}
+
+.export-button:hover {
+  background-color: rgba(34, 139, 34, 0.8);
+}
+
+/* Tab navigation styles */
+.tab-navigation {
+  display: flex;
+  gap: 0;
+  margin-bottom: 20px;
+  border-bottom: 2px solid var(--font-color);
+}
+
+.tab-button {
+  flex: 1;
+  padding: 12px 16px;
+  background-color: rgba(34, 139, 34, 0.2);
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--font-color);
+  font-family: var(--font-base);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  opacity: 0.7;
+}
+
+.tab-button:hover {
+  background-color: rgba(34, 139, 34, 0.4);
+  opacity: 0.9;
+}
+
+.tab-button.active {
+  background-color: rgba(34, 139, 34, 0.5);
+  border-bottom-color: var(--font-color);
+  opacity: 1;
+  font-weight: bold;
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}

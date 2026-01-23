@@ -21,8 +21,9 @@ export { gameLoop, initGame, updateSprite }
 'use strict'
 
 import * as PIXI from 'pixijs'
+import { Building } from 'building'
 import CONSTANTS from 'constants'
-import { getMapDimensions, getTileSize } from 'dimensions'
+import { getMapDimensions, getTileSize, initMapDimensions, setMapDimensions } from 'dimensions'
 import { renderFog, updateVisibility } from 'fogOfWar'
 import { drawBack, isDrawBackRequested } from 'globals'
 import {
@@ -31,6 +32,7 @@ import {
   getSandSpriteCoordinates,
   getWaterSpriteCoordinates
 } from 'mapGeneration'
+import { loadCustomMap, applyCustomMap } from 'maps'
 import { updateAllParticles } from 'particles'
 import { updateMapDimensionsInWorker, updateMapInWorker } from 'pathfinding'
 import { Player, PlayerType } from 'players'
@@ -56,7 +58,59 @@ const initGame = async () => {
 
   updateMapDimensionsInWorker()
 
-  // Check if user specified a seed or wants random
+  // Check if user wants to load a custom map
+  const customMapId = gameState.customMapId
+
+  if (customMapId) {
+    // Load custom map from JSON file
+    console.log(`Loading custom map: ${customMapId}`)
+
+    const mapData = await loadCustomMap(customMapId)
+    if (!mapData) {
+      console.error(`Failed to load custom map: ${customMapId}`)
+      // Fall back to random generation
+      gameState.customMapId = null
+    } else {
+      // Apply the custom map data
+      const success = await applyCustomMap(mapData)
+      if (!success) {
+        console.error(`Failed to apply custom map: ${customMapId}`)
+        return false
+      }
+
+      // Set dimensions directly from the loaded map (not from constants)
+      setMapDimensions(mapData.mapSize.width, mapData.mapSize.height)
+
+      // Update map dimensions for the loaded map
+      updateMapDimensionsInWorker()
+
+      // Place tents at predefined positions
+      const startingPositions = mapData.startingPositions
+      if (startingPositions && startingPositions.length > 0) {
+        // Place human tent
+        const humanPos = startingPositions.find(pos => pos.player === 'human')
+        if (humanPos && gameState.humanPlayer) {
+          gameState.humanPlayer.addBuilding(humanPos.x, humanPos.y, Building.TYPES.TENT)
+        }
+
+        // Place AI tents
+        gameState.aiPlayers.forEach((ai, index) => {
+          const aiPos = startingPositions.find(pos => pos.player === `ai_${index + 1}`)
+          if (aiPos) {
+            ai.addBuilding(aiPos.x, aiPos.y, Building.TYPES.TENT)
+          }
+        })
+      }
+
+      updateMapInWorker()
+      await assignSpritesOnMap()
+
+      console.log(`✓ Custom map loaded successfully: ${mapData.name}`)
+      return true
+    }
+  }
+
+  // Standard map generation (random or seed-based)
   const isRandomMode = gameState.mapSeed === null
   const userSpecifiedSeed = gameState.mapSeed
 

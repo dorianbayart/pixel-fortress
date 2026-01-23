@@ -385,6 +385,24 @@
       <span class="close">&times;</span>
     </div>
     <div class="modal-body">
+      <!-- Map info section -->
+      <div id="mapInfoSection" class="map-info-section">
+        <h3>Map Information</h3>
+        <div class="map-info-content">
+          <div class="map-info-row">
+            <span class="map-info-label">Seed:</span>
+            <span class="map-info-value" id="currentMapSeed">-</span>
+          </div>
+          <div class="map-info-row">
+            <span class="map-info-label">Size:</span>
+            <span class="map-info-value" id="currentMapSize">-</span>
+          </div>
+        </div>
+        <button id="exportMapButton" class="menu-button export-button">
+          Export Map
+        </button>
+      </div>
+
       <div class="menu-options">
         <button id="resumeGame" class="menu-button">Resume Game</button>
         <button id="resetMap" class="menu-button">Reset Map</button>
@@ -428,22 +446,62 @@
       <span class="close">&times;</span>
     </div>
     <div class="modal-body">
-      <div class="option-group">
-        <h3>Map Size</h3>
-        <div class="option-controls" id="mapSizeButtons">
-          <!-- Map size buttons dynamically generated from CONSTANTS -->
+      <!-- Tab Navigation -->
+      <div class="tab-navigation">
+        <button class="tab-button active" data-tab="predefinedMap">Predefined Maps</button>
+        <button class="tab-button" data-tab="randomMap">Random Map</button>
+      </div>
+
+      <!-- Random Map Tab Content -->
+      <div id="randomMapTab" class="tab-content">
+        <div class="option-group">
+          <h3>Map Size</h3>
+          <div class="option-controls" id="mapSizeButtons">
+            <!-- Map size buttons dynamically generated from CONSTANTS -->
+          </div>
+        </div>
+
+        <div class="option-group">
+          <h3>Map Seed (Optional)</h3>
+          <div class="option-controls" style="gap: 10px; flex-direction: column;">
+            <div style="display: flex; gap: 10px; width: 100%;">
+              <input type="number" id="mapSeedInput" placeholder="Enter a seed number"
+                     style="flex: 1; padding: 8px; font-family: var(--font-base); font-size: 1rem;
+                            background: rgba(34, 139, 34, 0.2); border: 2px solid rgba(255, 215, 0, 0.5);
+                            border-radius: 4px; color: var(--font-color); text-align: center;
+                            user-select: auto; -webkit-user-select: auto; cursor: text;">
+              <button class="option-btn" id="randomSeedButton" style="flex: 0 0 auto; min-width: 120px;">Random Seed</button>
+            </div>
+            <p style="font-size: 0.85em; opacity: 0.8; margin: 5px 0 0 0; text-align: center;">
+              Leave empty for random generation
+            </p>
+          </div>
         </div>
       </div>
 
-      <div class="option-group">
-        <h3>Map Seed (Optional)</h3>
-        <div class="option-controls" style="gap: 10px;">
-          <input type="number" id="mapSeedInput" placeholder="Leave empty for random"
-                 style="flex: 1; padding: 8px; font-family: var(--font-base); font-size: 1rem;
-                        background: rgba(34, 139, 34, 0.2); border: 2px solid rgba(255, 215, 0, 0.5);
-                        border-radius: 4px; color: var(--font-color); text-align: center;
-                        user-select: auto; -webkit-user-select: auto; cursor: text;">
-          <button class="option-btn" id="randomSeedButton" style="flex: 0 0 auto; min-width: 120px;">Random Seed</button>
+      <!-- Predefined Maps Tab Content -->
+      <div id="predefinedMapTab" class="tab-content active">
+        <div class="option-group">
+          <h3>Available Maps</h3>
+          <div id="predefinedMapsList" style="max-height: 200px; overflow-y: auto; margin-bottom: 15px; padding-top: 5px;">
+            <!-- Maps will be dynamically loaded here -->
+          </div>
+        </div>
+        <div class="option-group">
+          <h3>Map ID</h3>
+          <div class="option-controls" style="gap: 10px; flex-direction: column;">
+            <div style="display: flex; gap: 10px; width: 100%;">
+              <input type="text" id="mapIdInput" placeholder="Map ID (e.g., custom_4698963)"
+                     style="flex: 1; padding: 8px; font-family: var(--font-base); font-size: 1rem;
+                            background: rgba(34, 139, 34, 0.2); border: 2px solid rgba(255, 215, 0, 0.5);
+                            border-radius: 4px; color: var(--font-color); text-align: center;
+                            user-select: auto; -webkit-user-select: auto; cursor: text;">
+              <button class="option-btn" id="clearMapIdButton" style="flex: 0 0 auto; min-width: 100px;">Clear</button>
+            </div>
+            <p style="font-size: 0.85em; opacity: 0.8; margin: 5px 0 0 0; text-align: center;">
+              Enter a predefined map ID to load a custom map
+            </p>
+          </div>
         </div>
       </div>
 

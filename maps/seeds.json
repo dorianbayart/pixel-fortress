@@ -25,5 +25,61 @@
 
 
     ],
-    "valid_seeds": []
+    "valid_seeds": [],
+    "predefined_maps": [
+        {
+            "id": "custom_4698963",
+            "name": "Map Seed 4698963",
+            "type": "custom",
+            "data_file": "maps/custom_4698963.json",
+            "difficulty": "easy",
+            "size": "large",
+            "description": "Exported large map from Pixel Fortress"
+        },
+        {
+            "id": "roads_574",
+            "name": "Roads",
+            "type": "seed",
+            "seed": 574,
+            "difficulty": "medium",
+            "size": "medium",
+            "description": "A map with natural road-like paths"
+        },
+        {
+            "id": "paths_734",
+            "name": "Paths",
+            "type": "seed",
+            "seed": 734,
+            "difficulty": "medium",
+            "size": "medium",
+            "description": "Interconnected pathways across the terrain"
+        },
+        {
+            "id": "complex_830",
+            "name": "Complex",
+            "type": "seed",
+            "seed": 830,
+            "difficulty": "hard",
+            "size": "medium",
+            "description": "Complex terrain with challenging navigation"
+        },
+        {
+            "id": "bottlenecks_1360",
+            "name": "Bottlenecks",
+            "type": "seed",
+            "seed": 1360,
+            "difficulty": "hard",
+            "size": "medium",
+            "description": "Strategic chokepoints control the battlefield"
+        },
+        {
+            "id": "bases_859",
+            "name": "Bases",
+            "type": "seed",
+            "seed": 859,
+            "difficulty": "easy",
+            "size": "medium",
+            "description": "Well-defined starting positions with clear bases"
+        }
+    ]
 }

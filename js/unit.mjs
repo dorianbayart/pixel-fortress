@@ -576,7 +576,7 @@ class LumberjackWorker extends WorkerUnit {
 
     // Get a tree from the assigned building's list
     const tree = this.assignedBuilding?.getNextHarvestableTree()
-    
+
     if (tree) {
       this.lastPathUpdate = time
       this.path = await searchPath(this.currentNode.x, this.currentNode.y, tree.x, tree.y)
@@ -595,11 +595,11 @@ class LumberjackWorker extends WorkerUnit {
     const tree = gameState.map[this.goal.x][this.goal.y]
 
     // Check if this is still a valid tree
-    if (tree?.type === 'TREE' && tree?.lifeRemaining > 0) {
+    if (tree?.type === 'TREE' && tree?.resource > 0) {
       // Calculate how much to harvest (limited by what's left in the tree)
       const amountToHarvest = Math.min(
         this.harvestRate * delay / 1000,
-        tree.lifeRemaining,
+        tree.resource,
         this.maxResources - this.resources
       )
 
@@ -610,7 +610,7 @@ class LumberjackWorker extends WorkerUnit {
       this.progress = this.resources / this.maxResources
 
       // Reduce tree's remaining resources
-      tree.lifeRemaining -= amountToHarvest
+      tree.resource -= amountToHarvest
 
       // Add harvest particles (occasionally, not every frame)
       if (Math.random() < 0.15) { // 15% chance per frame
@@ -622,7 +622,7 @@ class LumberjackWorker extends WorkerUnit {
       }
 
       // Check if tree is depleted
-      if (tree.lifeRemaining <= 0) {
+      if (tree.resource <= 0) {
         this.depleteTree({ x: this.goal.x, y: this.goal.y })
         this.goal = null
         this.path = null

@@ -9,6 +9,7 @@ import { Building, WorkerBuilding } from 'building'
 import CONSTANTS from 'constants'
 import { getCanvasDimensions, getMapDimensions, getTileSize } from 'dimensions'
 import { DEBUG, drawBack, toggleDebug } from 'globals'
+import { downloadMapJSON } from 'maps'
 import { ParticleEffect, createParticleEmitter } from 'particles'
 import * as PIXI from 'pixijs'
 import { sprites } from 'sprites'
@@ -175,26 +176,30 @@ function setupGameMenuEventListeners() {
   const resumeGameButton = document.getElementById('resumeGame')
   const resetMapButton = document.getElementById('resetMap')
   const quitToHomeButton = document.getElementById('quitToHome')
-  
+  const exportMapButton = document.getElementById('exportMapButton')
+
   // Resume game button
   resumeGameButton.addEventListener('click', closeGameMenu)
-  
+
   // Close button
   closeButton.addEventListener('click', closeGameMenu)
-  
+
   // Reset map button
   resetMapButton.addEventListener('click', resetCurrentMap)
-  
+
   // Quit to home button
   quitToHomeButton.addEventListener('click', quitToHome)
-  
+
+  // Export map button
+  exportMapButton.addEventListener('click', handleExportMap)
+
   // Close the modal if the user clicks outside of it
   window.addEventListener('click', (event) => {
     if (event.target === gameMenuSection) {
       closeGameMenu('game')
     }
   })
-  
+
   // Escape key toggles the menu
   window.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
@@ -1365,18 +1370,50 @@ function openGameMenu() {
   // Pause the game
   //const previousStatus = gameState.gameStatus
   gameState.gameStatus = 'paused'
-  
+
   // Store previous status to return to it when closing
   //gameState._previousStatus = previousStatus
-  
+
+  // Update map info display
+  updateMapInfo()
+
   // Show the menu
   const gameMenuSection = document.getElementById('gameMenuSection')
   gameMenuSection.style.display = 'block'
-  
+
   // Slight delay for fade-in effect
   setTimeout(() => {
     gameMenuSection.classList.add('show')
   }, 20)
+}
+
+/**
+ * Update the map information display in the game menu
+ */
+function updateMapInfo() {
+  const seedElement = document.getElementById('currentMapSeed')
+  const sizeElement = document.getElementById('currentMapSize')
+
+  // Check if this is a custom map
+  if (gameState.customMapId) {
+    // Display custom map ID
+    seedElement.textContent = gameState.customMapId
+    // Show custom map name if available
+    if (gameState.customMapData?.name) {
+      seedElement.title = gameState.customMapData.name
+    }
+  } else {
+    // Display seed or "Random" if no seed
+    if (gameState.mapSeed !== null && gameState.mapSeed !== undefined) {
+      seedElement.textContent = gameState.mapSeed
+    } else {
+      seedElement.textContent = 'Random'
+    }
+  }
+
+  // Display map size
+  const mapSizeLabel = gameState.settings.mapSize || 'medium'
+  sizeElement.textContent = mapSizeLabel.charAt(0).toUpperCase() + mapSizeLabel.slice(1)
 }
 
 /**
@@ -1438,11 +1475,43 @@ function quitToHome() {
 
   // Close the menu first
   closeGameMenu('home')
-  
+
   // Set game status to menu
   gameState.gameStatus = 'menu'
-  
+
   showDebugMessage('Returning to main menu...')
+}
+
+/**
+ * Handle map export button click
+ */
+function handleExportMap() {
+  playConfirmSound()
+
+  try {
+    // Get map name - use custom map name if available, otherwise use seed
+    let mapName
+    if (gameState.customMapData?.name) {
+      mapName = `${gameState.customMapData.name} (Modified)`
+    } else if (gameState.mapSeed !== null && gameState.mapSeed !== undefined) {
+      mapName = `Map Seed ${gameState.mapSeed}`
+    } else {
+      mapName = 'Random Map'
+    }
+
+    const mapSize = gameState.settings.mapSize || 'medium'
+    const description = gameState.customMapData?.description
+      ? `Modified from: ${gameState.customMapData.description}`
+      : `Exported ${mapSize} map from Pixel Fortress`
+
+    // Download the map as JSON
+    const filename = downloadMapJSON(mapName, description)
+
+    showDebugMessage(`Map exported successfully: ${filename}`)
+  } catch (error) {
+    console.error('Error exporting map:', error)
+    showDebugMessage('Error exporting map')
+  }
 }
 
 

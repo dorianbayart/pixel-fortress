@@ -3,6 +3,7 @@ export {
     getMapDimensions,
     getTileSize,
     initMapDimensions,
+    setMapDimensions,
     updateDimensions
 }
 
@@ -41,6 +42,17 @@ const initMapDimensions = () => {
 
     // Log new map dimensions
     console.log(`Map initialized: ${MAP_WIDTH} x ${MAP_HEIGHT} tiles (${mapSize.label} size)`)
+}
+
+/**
+ * Set map dimensions directly (for custom maps with non-standard sizes)
+ * @param {number} width - Map width in tiles
+ * @param {number} height - Map height in tiles
+ */
+const setMapDimensions = (width, height) => {
+    MAP_WIDTH = width
+    MAP_HEIGHT = height
+    console.log(`Map dimensions set: ${MAP_WIDTH} x ${MAP_HEIGHT} tiles`)
 }
 
 /**
