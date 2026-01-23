@@ -7,6 +7,7 @@ import CONSTANTS from 'constants'
 import { playClickSound, playCloseSound, playConfirmSound } from 'audio'
 import { setupEventListeners } from 'ui'
 import { getPredefinedMaps } from 'maps'
+import { renderCustomMapPreview, generateMapPreviewFromSeed } from 'map-preview'
 
 
 // Function to simulate a typewriter effect
@@ -145,7 +146,7 @@ const renderPredefinedMapsList = async () => {
     // Build the list HTML
     let html = '<div style="display: grid; gap: 10px;">'
 
-    maps.forEach(map => {
+    maps.forEach((map, index) => {
       // Create a difficulty badge
       const difficultyColors = {
         easy: '#228b22',
@@ -158,7 +159,9 @@ const renderPredefinedMapsList = async () => {
       const sizeBadge = map.size ? `<span style="background: rgba(255, 215, 0, 0.3); padding: 2px 6px; border-radius: 3px; font-size: 0.85em;">${map.size}</span>` : ''
 
       html += `
-        <div class="predefined-map-item" data-map-id="${map.id}" style="
+        <div class="predefined-map-item" data-map-id="${map.id}" data-map-index="${index}" style="
+          display: flex;
+          gap: 12px;
           padding: 12px;
           background: rgba(34, 139, 34, 0.2);
           border: 2px solid rgba(255, 215, 0, 0.3);
@@ -166,15 +169,32 @@ const renderPredefinedMapsList = async () => {
           cursor: pointer;
           transition: all 0.2s ease-in-out;
         ">
-          <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 6px;">
-            <h4 style="margin: 0; font-size: 1.1em;">${map.name}</h4>
-            <span style="background: ${difficultyColor}; padding: 2px 8px; border-radius: 3px; font-size: 0.85em; font-weight: bold;">${map.difficulty}</span>
+          <div style="flex-shrink: 0;">
+            <canvas
+              class="map-preview-canvas"
+              data-map-id="${map.id}"
+              style="
+                width: 80px;
+                height: 80px;
+                background: rgba(0, 0, 0, 0.3);
+                border: 1px solid rgba(255, 215, 0, 0.3);
+                border-radius: 4px;
+                image-rendering: pixelated;
+                image-rendering: crisp-edges;
+              "
+            ></canvas>
           </div>
-          <p style="margin: 4px 0; font-size: 0.9em; opacity: 0.85;">${map.description || ''}</p>
-          <div style="display: flex; gap: 8px; margin-top: 6px; font-size: 0.85em;">
-            <span style="background: rgba(0, 0, 0, 0.3); padding: 2px 6px; border-radius: 3px;">${map.type}</span>
-            ${sizeBadge}
-            <span style="opacity: 0.7; font-family: monospace; font-size: 0.8em;">${map.id}</span>
+          <div style="flex-grow: 1; min-width: 0;">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 6px;">
+              <h4 style="margin: 0; font-size: 1.1em;">${map.name}</h4>
+              <span style="background: ${difficultyColor}; padding: 2px 8px; border-radius: 3px; font-size: 0.85em; font-weight: bold;">${map.difficulty}</span>
+            </div>
+            <p style="margin: 4px 0; font-size: 0.9em; opacity: 0.85;">${map.description || ''}</p>
+            <div style="display: flex; gap: 8px; margin-top: 6px; font-size: 0.85em;">
+              <span style="background: rgba(0, 0, 0, 0.3); padding: 2px 6px; border-radius: 3px;">${map.type}</span>
+              ${sizeBadge}
+              <span style="opacity: 0.7; font-family: monospace; font-size: 0.8em;">${map.id}</span>
+            </div>
           </div>
         </div>
       `
@@ -182,6 +202,44 @@ const renderPredefinedMapsList = async () => {
 
     html += '</div>'
     predefinedMapsList.innerHTML = html
+
+    // Render map previews sequentially to avoid gameState conflicts
+    const canvases = predefinedMapsList.querySelectorAll('.map-preview-canvas')
+
+    // Show loading state for all canvases first
+    canvases.forEach((canvas, index) => {
+      const ctx = canvas.getContext('2d')
+      canvas.width = 80
+      canvas.height = 80
+      ctx.fillStyle = '#1a1a1a'
+      ctx.fillRect(0, 0, 80, 80)
+      ctx.fillStyle = '#ffffff'
+      ctx.font = '10px monospace'
+      ctx.textAlign = 'center'
+      ctx.fillText('Loading...', 40, 40)
+    })
+
+    // Generate previews sequentially to prevent gameState race conditions
+    for (let index = 0; index < canvases.length; index++) {
+      const canvas = canvases[index]
+      const map = maps[index]
+
+      try {
+        // Render preview based on map type
+        if (map.type === 'custom') {
+          await renderCustomMapPreview(canvas, map.id, 80)
+        } else if (map.type === 'seed') {
+          await generateMapPreviewFromSeed(canvas, map.seed, map.size || 'medium', 80)
+        }
+      } catch (error) {
+        console.error(`Error rendering preview for ${map.name}:`, error)
+        // Show error state on canvas
+        const ctx = canvas.getContext('2d')
+        ctx.fillStyle = '#dc143c'
+        ctx.font = '9px monospace'
+        ctx.fillText('Error', 40, 40)
+      }
+    }
 
     // Add click handlers to map items
     const mapItems = predefinedMapsList.querySelectorAll('.predefined-map-item')
@@ -261,10 +319,10 @@ const openSkirmishSetupModal = async () => {
   await renderPredefinedMapsList()
 
   // Switch to appropriate tab based on current state
-  if (gameState.customMapId) {
-    switchTab('predefinedMap')
-  } else {
+  if (gameState.mapSeed) {
     switchTab('randomMap')
+  } else {
+    switchTab('predefinedMap')
   }
 
   skirmishSetupSection.style.display = 'block'

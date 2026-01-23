@@ -37,12 +37,21 @@
             "description": "Exported large map from Pixel Fortress"
         },
         {
+            "id": "landscapes_232871831",
+            "name": "Landscapes",
+            "type": "seed",
+            "seed": 232871831,
+            "difficulty": "easy",
+            "size": "medium",
+            "description": "Explorable landscapes"
+        },
+        {
             "id": "roads_574",
             "name": "Roads",
             "type": "seed",
             "seed": 574,
-            "difficulty": "medium",
-            "size": "medium",
+            "difficulty": "easy",
+            "size": "huge",
             "description": "A map with natural road-like paths"
         },
         {
@@ -50,36 +59,18 @@
             "name": "Paths",
             "type": "seed",
             "seed": 734,
-            "difficulty": "medium",
-            "size": "medium",
+            "difficulty": "hard",
+            "size": "huge",
             "description": "Interconnected pathways across the terrain"
         },
         {
-            "id": "complex_830",
-            "name": "Complex",
-            "type": "seed",
-            "seed": 830,
-            "difficulty": "hard",
-            "size": "medium",
-            "description": "Complex terrain with challenging navigation"
-        },
-        {
-            "id": "bottlenecks_1360",
-            "name": "Bottlenecks",
-            "type": "seed",
-            "seed": 1360,
-            "difficulty": "hard",
-            "size": "medium",
-            "description": "Strategic chokepoints control the battlefield"
-        },
-        {
-            "id": "bases_859",
-            "name": "Bases",
+            "id": "long_path_859",
+            "name": "Long Path",
             "type": "seed",
             "seed": 859,
-            "difficulty": "easy",
-            "size": "medium",
-            "description": "Well-defined starting positions with clear bases"
+            "difficulty": "hard",
+            "size": "huge",
+            "description": "A long path leads to a dead end"
         }
     ]
 }
