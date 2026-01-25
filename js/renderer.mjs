@@ -507,16 +507,16 @@ function drawBackground(map) {
               const selectionSquare = new PIXI.Graphics()
                 .rect(0, 0, SPRITE_SIZE, SPRITE_SIZE)
                 .stroke({ width: 0.25, color: 0xFFFF00 }) // Yellow square, 2px thick
-              
+
               backSprite.addChild(selectionSquare)
               backSprite.selectionIndicator = selectionSquare
             }
+            // Make sure it's visible
+            backSprite.selectionIndicator.visible = true
           } else {
-            // If not selected, remove any existing indicator
+            // If not selected, hide the indicator instead of destroying it
             if (backSprite.selectionIndicator) {
-              backSprite.removeChild(backSprite.selectionIndicator)
-              backSprite.selectionIndicator.destroy()
-              backSprite.selectionIndicator = null
+              backSprite.selectionIndicator.visible = false
             }
           }
       }
@@ -658,24 +658,32 @@ function drawMinimap(timestamp) {
  */
 function createProgressIndicator(entity, width = 10, color = 0x00FF00) {
   const indicator = new PIXI.Container()
-  
+
   // Create pixelated background (dark border)
   const background = new PIXI.Graphics()
     .rect(0, 0, width, 3)
     .fill({ color: 0x000000, alpha: 0.6 })
-  
-  // Create progress bar (initially empty)
+
+  // Create progress bar at full width - we'll scale it to show progress
   const progressBar = new PIXI.Graphics()
-    .rect(1, 1, 0, 1) // 1px border around progress
+    .rect(0, 0, width - 2, 1) // Full width minus 2px for border
     .fill({ color: color, alpha: 1 })
-  
+
+  // Position the bar with 1px offset for border
+  progressBar.x = 1
+  progressBar.y = 1
+
+  // Store the max width for scaling calculations
+  progressBar._maxWidth = width - 2
+  progressBar._lastColor = color
+
   indicator.addChild(background)
   indicator.addChild(progressBar)
-  
+
   // Add to container and map
   containers.indicators.addChild(indicator)
   indicatorMap.set(entity.uid, indicator)
-  
+
   return indicator
 }
 
@@ -689,7 +697,7 @@ async function updateProgressIndicator(entity, progress) {
   if (!indicator) return
 
   const SPRITE_SIZE = getTileSize()
-  
+
   // Position above entity (different for units vs buildings)
   if (entity.currentNode) {
     // Unit
@@ -707,13 +715,22 @@ async function updateProgressIndicator(entity, progress) {
     indicator.x = entity.x * SPRITE_SIZE + SPRITE_SIZE/4 - 1
     indicator.y = entity.y * SPRITE_SIZE - 5
   }
-  
-  // Update progress bar width (max width is background width minus 2px for border)
-  const background = indicator.getChildAt(0)
-  indicator.getChildAt(1)
-    .clear()
-    .rect(1, 1, (background.width - 2) * Math.min(1, Math.max(0, progress)), 1)
-    .fill({ color: entity.indicatorColor|| 0x00FF00, alpha: 1 })
+
+  // Update progress bar using scale instead of redrawing (avoids GC)
+  const progressBar = indicator.getChildAt(1)
+  const clampedProgress = Math.min(1, Math.max(0, progress))
+
+  // Use scale.x to adjust width - much faster than clear/redraw
+  progressBar.scale.x = clampedProgress
+
+  // Only redraw if color changed (rare case)
+  const newColor = entity.indicatorColor || 0x00FF00
+  if (progressBar._lastColor !== newColor) {
+    progressBar._lastColor = newColor
+    progressBar.clear()
+      .rect(0, 0, progressBar._maxWidth, 1)
+      .fill({ color: newColor, alpha: 1 })
+  }
 }
 
 /**
@@ -742,10 +759,18 @@ function createHealthBar(entity, width = 10) {
     .rect(0, 0, width, 3)
     .fill({ color: 0x000000, alpha: 0.6 })
 
-  // Create health bar (initially full)
+  // Create health bar at full width - we'll scale it to show health
   const bar = new PIXI.Graphics()
-    .rect(2, 2, width-2, 1)
+    .rect(0, 0, width - 2, 1)
     .fill({ color: 0x00FF00, alpha: 1 })
+
+  // Position the bar with 1px offset for border
+  bar.x = 1
+  bar.y = 1
+
+  // Store the max width and last color for optimization
+  bar._maxWidth = width - 2
+  bar._lastColor = 0x00FF00
 
   healthBar.addChild(background)
   healthBar.addChild(bar)
@@ -796,15 +821,20 @@ async function updateHealthBar(entity) {
     healthBar.y = entity.y * SPRITE_SIZE - 3
   }
 
-  // Update health bar width and color (similar to progress indicator)
-  const background = healthBar.getChildAt(0)
+  // Update health bar using scale and tint (avoids GC)
   const bar = healthBar.getChildAt(1)
-  const barWidth = (background.width - 2) * healthPercent
   const color = getHealthBarColor(healthPercent)
 
-  bar.clear()
-    .rect(1, 1, barWidth, 1) // 1px border around bar, 1px height
-    .fill({ color: color, alpha: 1 })
+  // Use scale.x to adjust width - much faster than clear/redraw
+  bar.scale.x = healthPercent
+
+  // Only redraw if color changed (health crossed a threshold)
+  if (bar._lastColor !== color) {
+    bar._lastColor = color
+    bar.clear()
+      .rect(0, 0, bar._maxWidth, 1)
+      .fill({ color: color, alpha: 1 })
+  }
 }
 
 /**
