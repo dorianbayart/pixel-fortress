@@ -138,7 +138,31 @@ async function updateMapDimensionsInWorker() {
 }
 
 async function updateMapInWorker() {
+  // Start with base tile weights
   const mapData = gameState.map.map(column => column.map(tile => ({ weight: tile.weight })))
+
+  // Collect all units from all players
+  const allUnits = []
+  if (gameState.humanPlayer) {
+    allUnits.push(...gameState.humanPlayer.getUnits())
+  }
+  gameState.aiPlayers.forEach(aiPlayer => {
+    allUnits.push(...aiPlayer.getUnits())
+  })
+
+  // Add weight for each unit on a tile (2 per unit)
+  allUnits.forEach(unit => {
+    const x = unit.currentNode?.x !== undefined ? unit.currentNode.x : unit.x
+    const y = unit.currentNode?.y !== undefined ? unit.currentNode.y : unit.y
+
+    // Ensure coordinates are valid
+    if (x !== undefined && y !== undefined &&
+        x >= 0 && x < mapData.length &&
+        y >= 0 && y < mapData[0].length) {
+      mapData[x][y].weight += 8
+    }
+  })
+
   pathfindingWorkers.forEach(worker => {
     worker.postMessage({
       type: 'UPDATE_MAP',
