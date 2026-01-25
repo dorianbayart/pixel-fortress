@@ -581,24 +581,36 @@ function drawBackground(map) {
   // Debug: draw unit paths
   if (DEBUG()) {
     if(Math.random() > 0.5) {
-      const debugBatch = new PIXI.Container()
-      
+      // Reuse existing sprites instead of creating new ones
+      let spriteIndex = 0
+
       if (gameState.humanPlayer) {
         gameState.humanPlayer.getUnits().forEach((unit) => {
           for (var i = 1; i < (unit.path || []).length; i++) {
-            const pathSprite = new PIXI.Sprite(sprites[`tile_${spriteCoords_Path.x}_${spriteCoords_Path.y}`])
+            let pathSprite = containers.debug.children[spriteIndex]
+
+            if (!pathSprite) {
+              // Create new sprite only if needed
+              pathSprite = new PIXI.Sprite(sprites[`tile_${spriteCoords_Path.x}_${spriteCoords_Path.y}`])
+              containers.debug.addChild(pathSprite)
+            }
+
             pathSprite.x = unit.path[i].x * SPRITE_SIZE
             pathSprite.y = unit.path[i].y * SPRITE_SIZE
-            debugBatch.addChild(pathSprite)
+            pathSprite.visible = true
+            spriteIndex++
           }
         })
       }
-      
-      containers.debug.removeChildren()
-      containers.debug.addChild(debugBatch)
+
+      // Hide extra sprites instead of removing them
+      for (let i = spriteIndex; i < containers.debug.children.length; i++) {
+        containers.debug.children[i].visible = false
+      }
     }
   } else if (containers.debug.children?.length) {
-    containers.debug.removeChildren()
+    // Hide all debug sprites when debug is off
+    containers.debug.children.forEach(child => child.visible = false)
   }
   
   backDrawn()

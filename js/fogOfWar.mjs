@@ -29,7 +29,8 @@ let fogGridsByTeam = new Map() // Map<teamId, 2D array> - fog grid per team
 let exploredGridsByTeam = new Map() // Map<teamId, 2D array> - explored grid per team
 let lastFogUpdate = 0
 let fogTime = 0
-let fogGraphics = null
+let fogSpriteMap = new Map() // Map<tileKey, PIXI.Sprite> - cached fog sprites per tile
+let fogTexture = null // Cached texture for fog tiles
 
 /**
  * Get the team ID for a player
@@ -108,24 +109,29 @@ function initFogOfWar() {
   // Create fog container
   fogContainer = new PIXI.Container()
   fogContainer.sortableChildren = true
-  
-  // Cleanup fog graphics if any
-  if (fogGraphics) {
-    fogGraphics.destroy(!!fogGraphics.context)
+
+  // Clear fog sprite map (we'll recreate sprites as needed)
+  fogSpriteMap.clear()
+
+  // Create fog texture if not exists (reusable texture for all fog tiles)
+  if (!fogTexture) {
+    const tileSize = getTileSize()
+    const graphics = new PIXI.Graphics()
+      .rect(0, 0, tileSize, tileSize)
+      .fill({ color: FOG_COLOR })
+    fogTexture = app.renderer.generateTexture(graphics)
+    graphics.destroy()
   }
-  // Create fog graphics object
-  fogGraphics = new PIXI.Graphics()
-  fogContainer.addChild(fogGraphics)
-  
+
   // Add container to stage (between terrain and UI)
   containers.ui.addChild(fogContainer)
-  
+
   // Initialize visibility around starting position
   updateStartingVisibility()
-  
+
   // Make immediate first update
   updateVisibility(0, true)
-  
+
   return true
 }
 
@@ -201,7 +207,7 @@ function updatePlayerVisibility(player) {
 function updateVisibility(delay, force = false) {
   lastFogUpdate += delay
 
-  if (!fogGraphics || !fogContainer) return
+  if (!fogContainer) return
 
   // Only update at set intervals to save performance
   if (!force && lastFogUpdate < FOG_UPDATE_INTERVAL) {
@@ -280,17 +286,14 @@ function updateStartingVisibility() {
  * @param {number} delay - Time since last frame
  */
 function renderFog(delay) {
-  if (!fogGraphics || !fogContainer) return
-  
+  if (!fogContainer || !fogTexture) return
+
   // Update fog animation
   fogTime += delay
-  
-  // Clear previous drawing
-  fogGraphics.clear()
-  
+
   const { width, height } = getMapDimensions()
   const tileSize = getTileSize()
-  
+
   // Reposition fog (in case of camera movement)
   const viewTransform = gameState.UI?.mouse?.getViewTransform()
   if (viewTransform) {
@@ -300,7 +303,7 @@ function renderFog(delay) {
       -viewTransform.y * viewTransform.scale
     )
   }
-  
+
   // Get the visible viewport for culling
   const viewport = {
     x: Math.max(0, Math.floor(viewTransform?.x / tileSize) || 0),
@@ -308,7 +311,7 @@ function renderFog(delay) {
     width: Math.ceil(app.renderer.width / (tileSize * (viewTransform?.scale || 1))),
     height: Math.ceil(app.renderer.height / (tileSize * (viewTransform?.scale || 1)))
   }
-  
+
   // Add buffer to prevent edge artifacts while scrolling
   const buffer = 2
   const startX = Math.max(0, viewport.x - buffer)
@@ -321,7 +324,10 @@ function renderFog(delay) {
   const humanTeamId = getTeamId(gameState.humanPlayer)
   const { fogGrid, exploredGrid } = getTeamGrids(humanTeamId)
 
-  // Draw fog for visible viewport only
+  // Track which fog sprites should be visible this frame
+  const visibleFogTiles = new Set()
+
+  // Update fog sprites for visible viewport only
   for (let x = startX; x < endX; x++) {
     for (let y = startY; y < endY; y++) {
       // Skip if coordinates are invalid
@@ -329,22 +335,62 @@ function renderFog(delay) {
 
       const isExplored = exploredGrid[x][y]
 
-      // Skip completely unexplored areas (no need to draw fog since we're not rendering these tiles)
+      // Skip completely unexplored areas
       if (!isExplored) continue
 
       const fogValue = fogGrid[x][y]
-      
-      // If explored but not visible, draw partial fog
+
+      // Skip completely visible tiles (no fog needed)
+      if (fogValue <= 0.1) continue
+
+      // This tile needs fog - get or create sprite
+      const tileKey = `${x}_${y}`
+      visibleFogTiles.add(tileKey)
+
+      let fogSprite = fogSpriteMap.get(tileKey)
+
+      if (!fogSprite) {
+        // Create new fog sprite
+        fogSprite = new PIXI.Sprite(fogTexture)
+        fogSprite.x = x * tileSize
+        fogSprite.y = y * tileSize
+        fogSpriteMap.set(tileKey, fogSprite)
+        fogContainer.addChild(fogSprite)
+      }
+
+      // Update alpha based on fog value (no redraw, just property update)
       if (fogValue > 0.9) {
-        fogGraphics.rect(x * tileSize, y * tileSize, tileSize, tileSize)
-        fogGraphics.fill({ color: FOG_COLOR, alpha: FOG_ALPHA_EXPLORED })
+        // Explored but not visible
+        fogSprite.alpha = FOG_ALPHA_EXPLORED
+      } else {
+        // Partially fogged (gradient)
+        fogSprite.alpha = fogValue * FOG_ALPHA_EXPLORED
       }
-      // If currently visible but partially fogged, draw gradient fog
-      else if (fogValue > 0.1) {
-        fogGraphics.rect(x * tileSize, y * tileSize, tileSize, tileSize)
-        fogGraphics.fill({ color: FOG_COLOR, alpha: fogValue * FOG_ALPHA_EXPLORED })
+
+      fogSprite.visible = true
+    }
+  }
+
+  // Hide fog sprites that are no longer in viewport (with extended buffer)
+  const extendedBuffer = buffer * 4
+  const farStartX = Math.max(0, viewport.x - extendedBuffer)
+  const farStartY = Math.max(0, viewport.y - extendedBuffer)
+  const farEndX = Math.min(width, viewport.x + viewport.width + extendedBuffer)
+  const farEndY = Math.min(height, viewport.y + viewport.height + extendedBuffer)
+
+  for (const [tileKey, fogSprite] of fogSpriteMap.entries()) {
+    if (!visibleFogTiles.has(tileKey)) {
+      const [x, y] = tileKey.split('_').map(Number)
+
+      // If far outside viewport, remove sprite to free memory
+      if (x < farStartX || x >= farEndX || y < farStartY || y >= farEndY) {
+        fogContainer.removeChild(fogSprite)
+        fogSprite.destroy()
+        fogSpriteMap.delete(tileKey)
+      } else {
+        // Just hide if within extended buffer
+        fogSprite.visible = false
       }
-      // Completely visible tiles don't need fog
     }
   }
 
