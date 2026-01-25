@@ -1268,9 +1268,17 @@ class CombatUnit extends Unit {
       }
     }
 
-    // If we have a goal and are within range, attack
+    // If we have a goal and are within range, check if it's an enemy to attack
     if (this.goal && this.isAtGoal()) {
-      this.task = 'attack'
+      // Only set task to 'attack' if the goal is an enemy (has life property)
+      if (this.goal.life !== undefined) {
+        this.task = 'attack'
+      } else if (this.task === 'explore') {
+        // If exploring and reached goal, stay in explore mode to find next goal
+        this.task = 'explore'
+      } else {
+        this.task = 'idle'
+      }
     } else if (this.goal && this.path) {
       // If we have a goal and a path, and not attacking, we are moving (either to enemy or to explore)
       if (this.task !== 'attack') {
