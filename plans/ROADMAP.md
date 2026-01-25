@@ -18,7 +18,7 @@ Details: Buildings generate worker units (gather resources) and combat units (at
 Details: Combat units automatically engage and attack enemy units and buildings.
 - [x] **Game Over Condition:** Handling game over scenarios (base health reaches zero).
 - [x] **Win Condition:** Handling win scenarios (enemy base health reaches zero).
-- [x] **AI Opponent:** Implement AI opponent with automated unit management. *(In Progress)*  
+- [x] **AI Opponent:** Implement AI opponent with automated unit management.  
 Details: The AI builds structures and manages units similarly to the player.
 - [x] **Market:** Market sells ressources against Money.
 - [ ] **Tower Placement:** Allow players to strategically place towers. *(Not Planned)*
@@ -30,7 +30,7 @@ Details: The AI builds structures and manages units similarly to the player.
 ## User Interface
 
 - [x] **Tower/Building Selection UI:** Display available towers/buildings and allow players to select them.
-- [ ] **Game Menu:** Implement a main menu, pause menu, and options menu. *(In Progress)*  
+- [x] **Game Menu:** Implement a main menu, pause menu, and options menu.
 Details: The menu presents what the User can do: Play on random map, Play a predefined map, Play a campaign, Manage options (details, SpecialFX, sound, etc.), etc.
 - [x] **Health Display:** Visual representation of the unit's health.
 - [x] **Resource Display:** Show the player's current resources.
@@ -42,7 +42,7 @@ Details: The menu presents what the User can do: Play on random map, Play a pred
 - [x] **Fog of War:** Implement a fog of war mechanism.
 - [x] **Building prices:** Prices of buildings are increasing with the amount of buildings already built. *(In Progress)*  
 Details: The price of a building is based on the amount of buildings already built. Maybe 25% more expensive for each building.
-- [ ] **Special Maps:** Add predefined maps. *(Not Planned)*
+- [ ] **Special Maps:** Add predefined maps. *(In progress)*
 - [ ] **Campaign Mode:** Add campaigns maps with scenarii. *(Not Planned)*
 - [ ] **Unit Resistance:** Implement unit resistance to certain types of damage. *(Not Planned)*
 

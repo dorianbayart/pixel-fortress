@@ -206,10 +206,10 @@ mapType: 'random'     // 'random' or 'predefined'
 - [x] Create 2-3 additional test custom maps - OPTIONAL
 
 ### Phase 2: Preview System (Week 2-3)
-- [ ] Implement canvas-based preview renderer (js/map-preview.mjs)
+- [x] Implement canvas-based preview renderer (js/map-preview.mjs)
 - [ ] Development preview tool (scripts/preview-map.mjs)
-- [ ] In-game preview rendering for skirmish menu
-- [ ] Test preview generation for various map sizes
+- [x] In-game preview rendering for skirmish menu
+- [x] Test preview generation for various map sizes
 
 ### Phase 3: UI Integration (Week 3-4)
 - [ ] Update maps/seeds.json with predefined maps structure
