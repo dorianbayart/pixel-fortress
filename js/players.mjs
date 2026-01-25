@@ -155,8 +155,8 @@ class Player {
     for (let x = 0; x < MAP_WIDTH; x++) {
       for (let y = 0; y < MAP_HEIGHT; y++) {
         const tile = gameState.map[x]?.[y]
-        // Check if it's a walkable tile
-        if (isPositionExplored(x, y) && tile && (tile.type === TERRAIN_TYPES.GRASS.type || tile.type === TERRAIN_TYPES.SAND.type || tile.type === TERRAIN_TYPES.DEPLETED_TREE.type)) {
+        // Check if it's a walkable tile (use this player's explored grid)
+        if (isPositionExplored(x, y, this) && tile && (tile.type === TERRAIN_TYPES.GRASS.type || tile.type === TERRAIN_TYPES.SAND.type || tile.type === TERRAIN_TYPES.DEPLETED_TREE.type)) {
           const tileKey = `${x},${y}`
           // Check neighbors
           for (let dx = -1; dx <= 1; dx++) {
@@ -168,8 +168,8 @@ class Player {
               const nx = x + dx
               const ny = y + dy
 
-              // Check bounds, and if neighbor is unexplored
-              if (nx >= 0 && nx < MAP_WIDTH && ny >= 0 && ny < MAP_HEIGHT && !isPositionExplored(nx, ny)) {
+              // Check bounds, and if neighbor is unexplored (use this player's explored grid)
+              if (nx >= 0 && nx < MAP_WIDTH && ny >= 0 && ny < MAP_HEIGHT && !isPositionExplored(nx, ny, this)) {
                 if (!uniqueBorderTiles.has(tileKey)) {
                   uniqueBorderTiles.add(tileKey)
                   borderTiles.push({ x: x, y: y })
@@ -190,7 +190,8 @@ class Player {
     return this.getEnemies().filter(enemy => {
       const x = enemy.currentNode?.x !== undefined ? enemy.currentNode.x : enemy.x
       const y = enemy.currentNode?.y !== undefined ? enemy.currentNode.y : enemy.y
-      return isPositionVisible(x, y)
+      // Use this player's visibility grid
+      return isPositionVisible(x, y, this)
     })
   }
 

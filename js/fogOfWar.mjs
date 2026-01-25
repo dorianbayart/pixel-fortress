@@ -1,5 +1,13 @@
 // js/fogOfWar.js
-export { initFogOfWar, isPositionExplored, isPositionVisible, renderFog, updateVisibility }
+export {
+  initFogOfWar,
+  isPositionExplored,
+  isPositionVisible,
+  renderFog,
+  updateVisibility,
+  updatePlayerVisibility,
+  getTeamId
+}
 
 'use strict'
 
@@ -17,22 +25,81 @@ const FOG_ALPHA_EXPLORED = CONSTANTS.FOG_OF_WAR.ALPHA_EXPLORED
 
 // Internal state
 let fogContainer = null
-let fogGrid = null
-let exploredGrid = null
+let fogGridsByTeam = new Map() // Map<teamId, 2D array> - fog grid per team
+let exploredGridsByTeam = new Map() // Map<teamId, 2D array> - explored grid per team
 let lastFogUpdate = 0
 let fogTime = 0
 let fogGraphics = null
 
 /**
+ * Get the team ID for a player
+ * For now, each player is their own team (player === team)
+ * In the future, this will support multiple players on the same team
+ * @param {Player} player - The player object
+ * @returns {string} - The team ID
+ */
+function getTeamId(player) {
+  // For now, each player is their own team
+  // Use player type + index to create unique team IDs
+  if (player === gameState.humanPlayer) {
+    return 'human'
+  }
+  // For AI players, find their index
+  const aiIndex = gameState.aiPlayers.indexOf(player)
+  return `ai-${aiIndex}`
+}
+
+/**
+ * Initialize fog grids for a specific team
+ * @param {string} teamId - The team ID
+ * @returns {object} - Object containing fogGrid and exploredGrid
+ */
+function initTeamGrids(teamId) {
+  const { width, height } = getMapDimensions()
+
+  const fogGrid = Array(width).fill().map(() => Array(height).fill(1)) // 1 = fully fogged
+  const exploredGrid = Array(width).fill().map(() => Array(height).fill(false)) // false = not explored
+
+  fogGridsByTeam.set(teamId, fogGrid)
+  exploredGridsByTeam.set(teamId, exploredGrid)
+
+  return { fogGrid, exploredGrid }
+}
+
+/**
+ * Get fog grids for a specific team (creates if not exists)
+ * @param {string} teamId - The team ID
+ * @returns {object} - Object containing fogGrid and exploredGrid
+ */
+function getTeamGrids(teamId) {
+  if (!fogGridsByTeam.has(teamId)) {
+    return initTeamGrids(teamId)
+  }
+  return {
+    fogGrid: fogGridsByTeam.get(teamId),
+    exploredGrid: exploredGridsByTeam.get(teamId)
+  }
+}
+
+/**
  * Initialize the fog of war system
  */
 function initFogOfWar() {
-  const { width, height } = getMapDimensions()
-  
-  // Create fog grids
-  fogGrid = Array(width).fill().map(() => Array(height).fill(1)) // 1 = fully fogged
-  exploredGrid = Array(width).fill().map(() => Array(height).fill(false)) // false = not explored
-  
+  // Clear existing grids
+  fogGridsByTeam.clear()
+  exploredGridsByTeam.clear()
+
+  // Initialize fog grids for all players
+  // Human player
+  if (gameState.humanPlayer) {
+    initTeamGrids('human')
+  }
+
+  // AI players
+  gameState.aiPlayers.forEach((aiPlayer, index) => {
+    initTeamGrids(`ai-${index}`)
+  })
+
   // Cleanup fog container
   if (fogContainer) {
     containers.ui?.removeChild(fogContainer)
@@ -63,31 +130,21 @@ function initFogOfWar() {
 }
 
 /**
- * Update the visibility grid based on unit and building positions
- * @param {number} delay - Time since last update
- * @param {boolean} force - Force update regardless of interval
+ * Update visibility for a specific player
+ * @param {Player} player - The player to update visibility for
  */
-function updateVisibility(delay, force = false) {
-  lastFogUpdate += delay
-
-  if (!fogGraphics || !fogContainer) return
-  
-  // Only update at set intervals to save performance
-  if (!force && lastFogUpdate < FOG_UPDATE_INTERVAL) {
-    return
-  }
-  
-  lastFogUpdate = 0
-  
+function updatePlayerVisibility(player) {
   const { width, height } = getMapDimensions()
-  
+  const teamId = getTeamId(player)
+  const { fogGrid, exploredGrid } = getTeamGrids(teamId)
+
   // Reset fog to fully dark
   for (let x = 0; x < width; x++) {
     for (let y = 0; y < height; y++) {
       fogGrid[x][y] = 1 // 1 = fully fogged
     }
   }
-  
+
   // Reveal areas around player's units
   const revealFromEntities = (entities) => {
     entities.forEach(entity => {
@@ -96,18 +153,18 @@ function updateVisibility(delay, force = false) {
       const tileX = entity.currentNode?.x ? Math.round(entity.x / getTileSize()) : entity.x
       const tileY = entity.currentNode?.y ? Math.round(entity.y / getTileSize()) : entity.y
       const visibilityRange = entity.visibilityRange / getTileSize()
-      
+
       // Reveal circular area around entity
       const rangeSquared = visibilityRange * visibilityRange
-      
+
       for (let dx = -Math.ceil(visibilityRange); dx <= Math.ceil(visibilityRange); dx++) {
         for (let dy = -Math.ceil(visibilityRange); dy <= Math.ceil(visibilityRange); dy++) {
           const distanceSquared = dx * dx + dy * dy
-          
+
           if (distanceSquared <= rangeSquared) {
             const x = tileX + dx
             const y = tileY + dy
-            
+
             // Check if within map bounds
             if (x >= 0 && x < width && y >= 0 && y < height) {
               // Defensive check: Ensure fogGrid[x] is an array
@@ -118,10 +175,10 @@ function updateVisibility(delay, force = false) {
 
               // Calculate fog factor based on distance (closer = clearer)
               const distanceFactor = Math.min(1, 1 - Math.log(0.4 + (Math.sqrt(distanceSquared) / visibilityRange)))
-              
+
               // Brighter at center, darker at edges
               fogGrid[x][y] = Math.min(fogGrid[x][y], 1 - distanceFactor)
-              
+
               // Mark as explored
               exploredGrid[x][y] = true
             }
@@ -130,51 +187,92 @@ function updateVisibility(delay, force = false) {
       }
     })
   }
-  
+
   // Update from player's units and buildings
-  if (gameState.humanPlayer) {
-    revealFromEntities(gameState.humanPlayer.getUnits())
-    revealFromEntities(gameState.humanPlayer.getBuildings())
+  revealFromEntities(player.getUnits())
+  revealFromEntities(player.getBuildings())
+}
+
+/**
+ * Update the visibility grid based on unit and building positions for all players
+ * @param {number} delay - Time since last update
+ * @param {boolean} force - Force update regardless of interval
+ */
+function updateVisibility(delay, force = false) {
+  lastFogUpdate += delay
+
+  if (!fogGraphics || !fogContainer) return
+
+  // Only update at set intervals to save performance
+  if (!force && lastFogUpdate < FOG_UPDATE_INTERVAL) {
+    return
   }
-  
-  // Mark that we need to render the fog
+
+  lastFogUpdate = 0
+
+  // Update visibility for human player
+  if (gameState.humanPlayer) {
+    updatePlayerVisibility(gameState.humanPlayer)
+  }
+
+  // Update visibility for all AI players
+  gameState.aiPlayers.forEach(aiPlayer => {
+    updatePlayerVisibility(aiPlayer)
+  })
+
+  // Mark that we need to render the fog (human player only)
   renderFog(delay)
 }
 
 /**
- * Set initial visibility for player's starting area
+ * Set initial visibility for a player's starting area
+ * @param {Player} player - The player to update
  */
-function updateStartingVisibility() {
+function updatePlayerStartingVisibility(player) {
   const { width, height } = getMapDimensions()
-  
-  // Find player's starting building (usually a tent)
-  if (gameState.humanPlayer) {
-    const startingBuildings = gameState.humanPlayer.getBuildings()
-    
-    if (startingBuildings.length > 0) {
-      const startBuilding = startingBuildings[0]
-      const tileX = Math.floor(startBuilding.x)
-      const tileY = Math.floor(startBuilding.y)
-      const initialRange = 12 // Initial visibility range in tiles
-      
-      // Reveal a large area around starting position
-      for (let dx = -initialRange; dx <= initialRange; dx++) {
-        for (let dy = -initialRange; dy <= initialRange; dy++) {
-          const distSq = dx*dx + dy*dy
-          if (distSq > initialRange*initialRange) continue
-          
-          const x = tileX + dx
-          const y = tileY + dy
-          
-          // Check if within map bounds
-          if (x >= 0 && x < width && y >= 0 && y < height) {
-            // Mark as explored
-            exploredGrid[x][y] = true
-          }
+  const teamId = getTeamId(player)
+  const { exploredGrid } = getTeamGrids(teamId)
+
+  const startingBuildings = player.getBuildings()
+
+  if (startingBuildings.length > 0) {
+    const startBuilding = startingBuildings[0]
+    const tileX = Math.floor(startBuilding.x)
+    const tileY = Math.floor(startBuilding.y)
+    const initialRange = 12 // Initial visibility range in tiles
+
+    // Reveal a large area around starting position
+    for (let dx = -initialRange; dx <= initialRange; dx++) {
+      for (let dy = -initialRange; dy <= initialRange; dy++) {
+        const distSq = dx*dx + dy*dy
+        if (distSq > initialRange*initialRange) continue
+
+        const x = tileX + dx
+        const y = tileY + dy
+
+        // Check if within map bounds
+        if (x >= 0 && x < width && y >= 0 && y < height) {
+          // Mark as explored
+          exploredGrid[x][y] = true
         }
       }
     }
   }
+}
+
+/**
+ * Set initial visibility for all players' starting areas
+ */
+function updateStartingVisibility() {
+  // Update human player
+  if (gameState.humanPlayer) {
+    updatePlayerStartingVisibility(gameState.humanPlayer)
+  }
+
+  // Update all AI players
+  gameState.aiPlayers.forEach(aiPlayer => {
+    updatePlayerStartingVisibility(aiPlayer)
+  })
 }
 
 /**
@@ -217,13 +315,18 @@ function renderFog(delay) {
   const startY = Math.max(0, viewport.y - buffer)
   const endX = Math.min(width, viewport.x + viewport.width + buffer)
   const endY = Math.min(height, viewport.y + viewport.height + buffer)
-  
+
+  // Get human player's grids for rendering
+  if (!gameState.humanPlayer) return
+  const humanTeamId = getTeamId(gameState.humanPlayer)
+  const { fogGrid, exploredGrid } = getTeamGrids(humanTeamId)
+
   // Draw fog for visible viewport only
   for (let x = startX; x < endX; x++) {
     for (let y = startY; y < endY; y++) {
       // Skip if coordinates are invalid
       if (x < 0 || x >= width || y < 0 || y >= height) continue
-      
+
       const isExplored = exploredGrid[x][y]
 
       // Skip completely unexplored areas (no need to draw fog since we're not rendering these tiles)
@@ -252,17 +355,25 @@ function renderFog(delay) {
  * Check if a position is visible
  * @param {number} x - X coordinate in tiles
  * @param {number} y - Y coordinate in tiles
+ * @param {Player} player - Optional player to check visibility for (defaults to human player)
  * @returns {boolean} True if visible
  */
-function isPositionVisible(x, y) {
-  // Always return true if fog of war is disabled
+function isPositionVisible(x, y, player = null) {
+  // Default to human player if no player specified
+  const checkPlayer = player || gameState.humanPlayer
+  if (!checkPlayer) return true
+
+  const teamId = getTeamId(checkPlayer)
+  const { fogGrid } = getTeamGrids(teamId)
+
+  // Always return true if fog of war is disabled or no grid exists
   if (!fogGrid) return true
-  
+
   // Check if coordinates are valid
   if (x < 0 || x >= fogGrid.length || y < 0 || y >= fogGrid[0].length) {
     return false
   }
-  
+
   // Return true if fog value is less than 0.9 (10% or more visible)
   return fogGrid[x][y] < 0.9
 }
@@ -271,17 +382,25 @@ function isPositionVisible(x, y) {
  * Check if a position has been explored
  * @param {number} x - X coordinate in tiles
  * @param {number} y - Y coordinate in tiles
+ * @param {Player} player - Optional player to check exploration for (defaults to human player)
  * @returns {boolean} True if explored
  */
-function isPositionExplored(x, y) {
-  // Always return true if fog of war is disabled
+function isPositionExplored(x, y, player = null) {
+  // Default to human player if no player specified
+  const checkPlayer = player || gameState.humanPlayer
+  if (!checkPlayer) return true
+
+  const teamId = getTeamId(checkPlayer)
+  const { exploredGrid } = getTeamGrids(teamId)
+
+  // Always return true if fog of war is disabled or no grid exists
   if (!exploredGrid) return true
-  
+
   // Check if coordinates are valid
   if (x < 0 || x >= exploredGrid.length || y < 0 || y >= exploredGrid[0].length) {
     return false
   }
-  
+
   // Return true if the position has been explored
   return exploredGrid[x][y]
 }
