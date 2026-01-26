@@ -70,7 +70,7 @@ Details: This should include: pseudo, host a map, join a map
 
 ## Others
 
-- [ ] **Animated water:** Manage the different water sprites to animate. *(Not Planned)*
+- [x] **Animated water:** Manage the different water sprites to animate.
 
 
 ## Future Features and Ideas

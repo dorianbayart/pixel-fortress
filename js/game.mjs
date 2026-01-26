@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-export { gameLoop, initGame, updateSprite }
+export { gameLoop, initGame, updateSprite, getCurrentWaterFrame }
 
 'use strict'
 
@@ -48,6 +48,7 @@ const TERRAIN_TYPES = CONSTANTS.TERRAIN.TYPES
 let elapsed = -5000
 let elapsedBack = -5000
 let delays = new Uint8Array(60).fill(255)
+let waterAnimationTimer = 0 // Global timer for water animation (cycles through 4 frames)
 let delaysIndex = 0
 
 // Initialize the game
@@ -171,6 +172,33 @@ const initGame = async () => {
 
 let lastMapUpdateTime = 0
 
+// Get all 4 animation frames for a water sprite
+const getWaterAnimationFrames = (spriteX, spriteY) => {
+  const frames = []
+
+  // For X between 0-3: Y animation frames are at +4 intervals
+  // For X between 4-9: Y animation frames are at +3 intervals
+  // For X between 10-11: Y animation frames are at +2 intervals
+  const yIncrement = spriteX >= 0 && spriteX <= 3 ? 4 : spriteX < 10 ? 3 : 2
+
+  for (let i = 0; i < 4; i++) {
+    const frameY = spriteY + (i * yIncrement)
+    const frameName = `tile_${spriteX}_${frameY}`
+    if (sprites[frameName]) {
+      frames.push(sprites[frameName])
+    }
+  }
+
+  // Fallback to first frame if not all frames are available
+  return frames.length === 4 ? frames : [sprites[`tile_${spriteX}_${spriteY}`]]
+}
+
+// Get current water animation frame index (0-3)
+const getCurrentWaterFrame = () => {
+  // Each frame lasts 300ms, 4 frames total
+  return Math.floor(waterAnimationTimer / 300) % 4
+}
+
 // Assign sprites to map tiles
 const assignSpritesOnMap = async () => {
 
@@ -221,7 +249,9 @@ const assignSpritesOnMap = async () => {
           break
         case TERRAIN_TYPES.WATER.type:
           const { spriteX: waterSpriteX, spriteY: waterSpriteY } = getWaterSpriteCoordinates(x, y, gameState.map, MAP_WIDTH, MAP_HEIGHT)
-          gameState.map[x][y].sprite = sprites[`tile_${waterSpriteX}_${waterSpriteY}`]
+          const waterFrames = getWaterAnimationFrames(waterSpriteX, waterSpriteY)
+          gameState.map[x][y].waterFrames = waterFrames
+          gameState.map[x][y].sprite = waterFrames[0] // Start with first frame
           break
         default:
           gameState.map[x][y].back = sprites[`tile_${grassSpriteX}_${grassSpriteY}`]
@@ -273,6 +303,12 @@ const gameLoop = async () => {
   gameState.UI?.mouse?.applyKeyboardMovement(delay)
   // Handle drag momentum
   gameState.UI?.mouse?.applyDragMomentum(delay)
+
+  // Update water animation timer (300ms per frame, 4 frames total = 1200ms cycle)
+  waterAnimationTimer += gameState.gameSpeedMultiplier * delay
+  if (waterAnimationTimer >= 1200) {
+    waterAnimationTimer -= 1200
+  }
 
   // Handle mouse interaction
   handleMouseInteraction(gameState.map, gameState.humanPlayer)

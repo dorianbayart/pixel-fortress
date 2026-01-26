@@ -24,6 +24,7 @@ export {
 import CONSTANTS from 'constants'
 import { getCanvasDimensions, getMapDimensions, getTileSize } from 'dimensions'
 import { isPositionExplored, isPositionVisible } from 'fogOfWar'
+import { getCurrentWaterFrame } from 'game'
 import { DEBUG, backDrawn } from 'globals'
 import { initMinimap, updateMinimap, resizeMinimap } from 'minimap'
 import { ParticleEffect, createParticleEmitter, initParticleSystem } from 'particles'
@@ -489,11 +490,19 @@ function drawBackground(map) {
         visibleBackgroundSprites.add(tileKey)
         let backSprite = backgroundSpriteMap.get(tileKey)
 
-        if (!backSprite || backSprite.texture !== map[x][y].sprite) {
+        // Get the appropriate sprite texture (animated water or static terrain)
+        let spriteTexture = map[x][y].sprite
+        if (map[x][y].waterFrames && map[x][y].waterFrames.length === 4) {
+          // Use animated water frame
+          const currentFrame = getCurrentWaterFrame()
+          spriteTexture = map[x][y].waterFrames[currentFrame]
+        }
+
+        if (!backSprite || backSprite.texture !== spriteTexture) {
             if (backSprite) {
                 containers.background.removeChild(backSprite)
             }
-            backSprite = new PIXI.Sprite(map[x][y].sprite)
+            backSprite = new PIXI.Sprite(spriteTexture)
             backSprite.x = x * SPRITE_SIZE
             backSprite.y = y * SPRITE_SIZE
             backgroundSpriteMap.set(tileKey, backSprite)
