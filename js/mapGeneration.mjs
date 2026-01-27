@@ -620,7 +620,19 @@ const getWaterSpriteCoordinates = (x, y, map, MAP_WIDTH, MAP_HEIGHT) => {
   else if (N && S && E && W && NE && SE && !NW && !SW) {
     spriteX = 4; spriteY = 11
   }
-
+  // Missing 3 diagonals
+  else if (N && S && E && W && !NW && !SW && SE && !NE) {
+    spriteX = 4; spriteY = 10
+  }
+  else if (N && S && E && W && !NW && SW && !SE && !NE) {
+    spriteX = 6; spriteY = 10
+  }
+  else if (N && S && E && W && !NW && !SW && !SE && NE) {
+    spriteX = 4; spriteY = 12
+  }
+  else if (N && S && E && W && NW && !SW && !SE && !NE) {
+    spriteX = 6; spriteY = 12
+  }
   // 3. Outer corners (L-shape with diagonal)
   else if (N && E && NE && !S && !W) {
     spriteX = 7; spriteY = 12
