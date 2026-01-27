@@ -392,12 +392,25 @@ class Player {
     // For resource buildings, check path for a limited number of closest candidates
     if ([Building.TYPES.LUMBERJACK, Building.TYPES.QUARRY, Building.TYPES.WELL, Building.TYPES.GOLD_MINE].includes(buildingType)) {
       const candidatesToCheck = potentialPlacements.slice(0, 5); // Check up to 5 closest candidates
+
+      // Check all combinations concurrently
+      const pathChecks = []
       for (const placement of candidatesToCheck) {
         for (const tent of tents) {
-          const path = await searchPath(tent.x, tent.y, placement.x, placement.y);
-          if (path) {
-            return placement; // Return the first accessible placement
-          }
+          pathChecks.push(
+            searchPath(tent.x, tent.y, placement.x, placement.y)
+              .then(path => ({ placement, path }))
+          )
+        }
+      }
+
+      // Wait for all path checks
+      const results = await Promise.all(pathChecks)
+
+      // Return first placement with a valid path
+      for (const { placement, path } of results) {
+        if (path) {
+          return placement
         }
       }
     } else {

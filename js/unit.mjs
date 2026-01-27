@@ -783,12 +783,12 @@ class QuarryMiner extends WorkerUnit {
     this.lastTentReevaluationTime = time // Update re-evaluation time
 
     const tents = this.assignedBuilding.owner.getTents()
-    
+
     // If there's only one tent, return it immediately
     if (tents.length === 1) {
       this.nearestTentCache = tents[0]
       return this.nearestTentCache
-    } 
+    }
     // If we have multiple tents, find the nearest one
     else if (tents.length > 1) {
       // Sort tents by Euclidean distance first to prioritize closer ones
@@ -800,27 +800,31 @@ class QuarryMiner extends WorkerUnit {
 
       let nearestTent = null
       let shortestPathLength = Infinity
-      
-      // Only calculate full paths for the top few closest tents
-      for (let i = 0; i < Math.min(sortedTents.length, 3); i++) {
-        const tent = sortedTents[i]
-        const path = await searchPath(
-          this.assignedBuilding.x, 
+
+      // Calculate paths concurrently for the top few closest tents
+      const closestTents = sortedTents.slice(0, Math.min(sortedTents.length, 3))
+      const pathPromises = closestTents.map(tent =>
+        searchPath(
+          this.assignedBuilding.x,
           this.assignedBuilding.y,
           tent.x,
           tent.y
-        )
-        
+        ).then(path => ({ tent, path }))
+      )
+
+      const results = await Promise.all(pathPromises)
+
+      for (const { tent, path } of results) {
         if (path && path.length < shortestPathLength) {
           shortestPathLength = path.length
           nearestTent = tent
         }
       }
-      
+
       this.nearestTentCache = nearestTent || tents[0]
       return this.nearestTentCache
     }
-    
+
     this.nearestTentCache = null
     return null
   }
@@ -975,38 +979,42 @@ class WaterCarrier extends WorkerUnit {
     this.lastTentReevaluationTime = time // Update re-evaluation time
 
     const tents = this.assignedBuilding.owner.getTents()
-    
+
     // If there's only one tent, return it immediately
     if (tents.length === 1) {
       this.nearestTentCache = tents[0]
       return this.nearestTentCache
-    } 
+    }
     // If we have multiple tents, find the nearest one
     else if (tents.length > 1) {
       let nearestTent = null
       let shortestDistance = Infinity
-      
-      for (const tent of tents) {
-        // Calculate path to this tent
-        const path = await searchPath(
-          this.currentNode.x, 
+
+      // Calculate paths concurrently to all tents
+      const pathPromises = tents.map(tent =>
+        searchPath(
+          this.currentNode.x,
           this.currentNode.y,
           tent.x,
           tent.y
-        )
-        
+        ).then(path => ({ tent, path }))
+      )
+
+      const results = await Promise.all(pathPromises)
+
+      for (const { tent, path } of results) {
         // If path exists and is shorter than current shortest
         if (path && path.length < shortestDistance) {
           shortestDistance = path.length
           nearestTent = tent
         }
       }
-      
+
       // Return nearest tent, or first tent if no path found
       this.nearestTentCache = nearestTent || tents[0]
       return this.nearestTentCache
     }
-    
+
     this.nearestTentCache = null
     return null
   }
@@ -1143,38 +1151,42 @@ class GoldMiner extends WorkerUnit {
     this.lastTentReevaluationTime = time // Update re-evaluation time
 
     const tents = this.assignedBuilding.owner.getTents()
-    
+
     // If there's only one tent, return it immediately
     if (tents.length === 1) {
       this.nearestTentCache = tents[0]
       return this.nearestTentCache
-    } 
+    }
     // If we have multiple tents, find the nearest one
     else if (tents.length > 1) {
       let nearestTent = null
       let shortestDistance = Infinity
-      
-      for (const tent of tents) {
-        // Calculate path to this tent
-        const path = await searchPath(
-          this.currentNode.x, 
+
+      // Calculate paths concurrently to all tents
+      const pathPromises = tents.map(tent =>
+        searchPath(
+          this.currentNode.x,
           this.currentNode.y,
           tent.x,
           tent.y
-        )
-        
+        ).then(path => ({ tent, path }))
+      )
+
+      const results = await Promise.all(pathPromises)
+
+      for (const { tent, path } of results) {
         // If path exists and is shorter than current shortest
         if (path && path.length < shortestDistance) {
           shortestDistance = path.length
           nearestTent = tent
         }
       }
-      
+
       // Return nearest tent, or first tent if no path found
       this.nearestTentCache = nearestTent || tents[0]
       return this.nearestTentCache
     }
-    
+
     this.nearestTentCache = null
     return null
   }
@@ -1256,15 +1268,21 @@ class CombatUnit extends Unit {
       } else {
         // No visible enemies, try to explore
         this.task = 'explore'
-        this.findPathToUnexploredTile().then(newExplorePath => {
-          if (newExplorePath) {
-            this.path = newExplorePath
-            this.lastPathUpdate = time
-            this.task = 'explore' // Set task to explore
-          } else {
-            this.task = 'idle' // No enemies and no unexplored areas, remain idle
-          }
-        })
+
+        // Add randomized delay (0-500ms) to spread out exploration pathfinding requests
+        // This prevents spikes when many units transition to explore mode simultaneously
+        const explorationDelay = Math.random() * 500
+        setTimeout(() => {
+          this.findPathToUnexploredTile().then(newExplorePath => {
+            if (newExplorePath) {
+              this.path = newExplorePath
+              this.lastPathUpdate = time
+              this.task = 'explore' // Set task to explore
+            } else {
+              this.task = 'idle' // No enemies and no unexplored areas, remain idle
+            }
+          })
+        }, explorationDelay)
       }
     }
 
@@ -1380,8 +1398,16 @@ class CombatUnit extends Unit {
       candidates.push(borderTiles[Math.floor(Math.random() * borderTiles.length)])
     }
 
-    for (const tile of candidates) {
-      const path = await searchPath(currentTile.x, currentTile.y, tile.x, tile.y)
+    // Check all paths concurrently instead of sequentially to avoid long delays
+    const pathPromises = candidates.map(tile =>
+      searchPath(currentTile.x, currentTile.y, tile.x, tile.y)
+        .then(path => ({ tile, path }))
+    )
+
+    const results = await Promise.all(pathPromises)
+
+    // Find the shortest valid path
+    for (const { tile, path } of results) {
       if (path && path.length < shortestPathLength) {
         shortestPathLength = path.length
         shortestPath = path

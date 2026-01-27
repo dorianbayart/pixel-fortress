@@ -1,4 +1,4 @@
-export { clearPathCache, getPathfindingStats, searchPath, updateMapDimensionsInWorker, updateMapInWorker }
+export { clearPathCache, getPathfindingStats, searchPath, updateMapDimensionsInWorker, updateMapInWorker, getQueueStats }
 
 'use strict'
 
@@ -8,13 +8,29 @@ import gameState from "state"
 
 const NUM_PATHFINDING_WORKERS = CONSTANTS.PATHFINDING.NUM_WORKERS
 const MAX_CONCURRENT_PER_WORKER = CONSTANTS.PATHFINDING.MAX_CONCURRENT_PER_WORKER
+
+// Worker management
 const pathfindingWorkers = []
 const workerQueues = Array.from({ length: NUM_PATHFINDING_WORKERS }, () => [])
 const workerActiveCount = Array.from({ length: NUM_PATHFINDING_WORKERS }, () => 0)
 let nextWorkerIndex = 0
+
+// Promise management
 const pathfindingPromises = new Map()
 let nextPathfindingId = 0
+
+// Stats tracking
 const workerCalculations = Array.from({ length: NUM_PATHFINDING_WORKERS }, () => [])
+
+// Request deduplication - track pending requests by coordinate key
+const pendingRequests = new Map() // key -> [promise resolvers]
+
+/**
+ * Create a unique key for deduplication
+ */
+function getRequestKey(startX, startY, endX, endY) {
+  return `${startX},${startY}->${endX},${endY}`
+}
 
 /**
  * Process the next queued request for a worker if it has capacity
@@ -30,13 +46,9 @@ function processNextQueuedRequest(workerIndex) {
   }
 }
 
+
 /**
- * Sends a pathfinding request to the worker and returns a Promise that resolves with the path.
- * @param {number} startX - Starting X coordinate
- * @param {number} startY - Starting Y coordinate
- * @param {number} endX - Destination X coordinate
- * @param {number} endY - Destination Y coordinate
- * @returns {Promise<Array|null>} Promise that resolves with an array of path nodes or null if no path found
+ * Initialize pathfinding workers
  */
 for (let i = 0; i < NUM_PATHFINDING_WORKERS; i++) {
   const worker = new Worker('./js/worker.mjs', { type: 'module' })
@@ -44,25 +56,44 @@ for (let i = 0; i < NUM_PATHFINDING_WORKERS; i++) {
 
   worker.onmessage = (event) => {
     const { type, id, path } = event.data
-    const resolve = pathfindingPromises.get(id)
-    if (resolve) {
-      if (type === 'PATH_RESULT') {
+
+    if (type === 'PATH_RESULT') {
+      // Get the request key for deduplication
+      const resolve = pathfindingPromises.get(id)
+      if (resolve) {
+        const requestKey = resolve.requestKey
+
+        // Always resolve the primary request
         resolve(path)
-        // Decrement active count and process next queued request
-        workerActiveCount[i]--
-        processNextQueuedRequest(i)
-      } else if (type === 'CACHE_CLEARED') {
-        resolve()
+
+        // Also resolve any duplicate requests waiting for the same path
+        if (requestKey && pendingRequests.has(requestKey)) {
+          const resolvers = pendingRequests.get(requestKey)
+          resolvers.forEach(r => r(path))
+          pendingRequests.delete(requestKey)
+        }
+
+        pathfindingPromises.delete(id)
       }
-      pathfindingPromises.delete(id)
+
+      // Decrement active count and process next queued request
+      workerActiveCount[i]--
+      processNextQueuedRequest(i)
+    } else if (type === 'CACHE_CLEARED') {
+      const resolve = pathfindingPromises.get(id)
+      if (resolve) {
+        resolve()
+        pathfindingPromises.delete(id)
+      }
     }
   }
 }
 
 /**
  * Sends a pathfinding request to a worker and returns a Promise that resolves with the path.
- * Uses a round-robin approach to distribute requests among workers.
- * Queues requests when workers are at capacity to prevent overload.
+ * Uses round-robin worker distribution and request deduplication.
+ * Requests are queued if workers are at capacity.
+ *
  * @param {number} startX - Starting X coordinate
  * @param {number} startY - Starting Y coordinate
  * @param {number} endX - Destination X coordinate
@@ -70,6 +101,17 @@ for (let i = 0; i < NUM_PATHFINDING_WORKERS; i++) {
  * @returns {Promise<Array|null>} Promise that resolves with an array of path nodes or null if no path found
  */
 function searchPath(startX, startY, endX, endY) {
+  // Check for duplicate pending requests
+  const requestKey = getRequestKey(startX, startY, endX, endY)
+
+  // If this exact path is already being calculated, return a promise that will be resolved
+  // when the original request completes (deduplication)
+  if (pendingRequests.has(requestKey)) {
+    return new Promise((resolve) => {
+      pendingRequests.get(requestKey).push(resolve)
+    })
+  }
+
   const id = nextPathfindingId++
   const workerIndex = nextWorkerIndex
   nextWorkerIndex = (nextWorkerIndex + 1) % NUM_PATHFINDING_WORKERS
@@ -84,7 +126,15 @@ function searchPath(startX, startY, endX, endY) {
   }
 
   return new Promise((resolve) => {
-    pathfindingPromises.set(id, resolve)
+    // Store resolver with request key for deduplication
+    const resolverWithKey = resolve
+    resolverWithKey.requestKey = requestKey
+    pathfindingPromises.set(id, resolverWithKey)
+
+    // Track this as a pending request for deduplication
+    if (!pendingRequests.has(requestKey)) {
+      pendingRequests.set(requestKey, [])
+    }
 
     // If worker has capacity, send immediately
     if (workerActiveCount[workerIndex] < MAX_CONCURRENT_PER_WORKER) {
@@ -92,7 +142,7 @@ function searchPath(startX, startY, endX, endY) {
       workerCalculations[workerIndex].push(performance.now())
       pathfindingWorkers[workerIndex].postMessage(message)
     } else {
-      // Otherwise, queue the request
+      // Otherwise, queue the request for this worker
       workerQueues[workerIndex].push({ message })
     }
   })
@@ -110,6 +160,18 @@ function getPathfindingStats() {
   })
 }
 
+/**
+ * Get queue statistics for monitoring
+ * @returns {Object} Queue stats including per-worker queues and active counts
+ */
+function getQueueStats() {
+  return {
+    workerQueueSizes: workerQueues.map(q => q.length),
+    workerActiveCounts: [...workerActiveCount],
+    pendingRequestCount: pendingRequests.size
+  }
+}
+
 /** Clears the path cache in all workers. */
 function clearPathCache() {
   const id = nextPathfindingId++
@@ -119,6 +181,10 @@ function clearPathCache() {
       worker.postMessage({ type: 'CLEAR_CACHE', id })
     })
   })
+
+  // Clear pending requests tracking
+  pendingRequests.clear()
+
   return Promise.all(promises)
 }
 

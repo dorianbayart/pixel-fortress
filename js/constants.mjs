@@ -153,7 +153,7 @@ export default {
     // ===== PATHFINDING =====
     PATHFINDING: {
         NUM_WORKERS: 4, // Number of pathfinding web workers
-        MAX_CONCURRENT_PER_WORKER: 3 // Max concurrent pathfinding requests per worker
+        MAX_CONCURRENT_PER_WORKER: 4 // Max concurrent pathfinding requests per worker
     },
 
     // ===== AUDIO =====
