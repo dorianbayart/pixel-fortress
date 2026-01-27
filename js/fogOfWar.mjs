@@ -405,6 +405,9 @@ function renderFog(delay) {
  * @returns {boolean} True if visible
  */
 function isPositionVisible(x, y, player = null) {
+  // Always return true if fog of war is disabled
+  if (!gameState.settings?.fogOfWar) return true
+
   // Default to human player if no player specified
   const checkPlayer = player || gameState.humanPlayer
   if (!checkPlayer) return true
@@ -412,7 +415,7 @@ function isPositionVisible(x, y, player = null) {
   const teamId = getTeamId(checkPlayer)
   const { fogGrid } = getTeamGrids(teamId)
 
-  // Always return true if fog of war is disabled or no grid exists
+  // Always return true if no grid exists
   if (!fogGrid) return true
 
   // Check if coordinates are valid
@@ -432,6 +435,9 @@ function isPositionVisible(x, y, player = null) {
  * @returns {boolean} True if explored
  */
 function isPositionExplored(x, y, player = null) {
+  // Always return true if fog of war is disabled
+  if (!gameState.settings?.fogOfWar) return true
+
   // Default to human player if no player specified
   const checkPlayer = player || gameState.humanPlayer
   if (!checkPlayer) return true
@@ -439,7 +445,7 @@ function isPositionExplored(x, y, player = null) {
   const teamId = getTeamId(checkPlayer)
   const { exploredGrid } = getTeamGrids(teamId)
 
-  // Always return true if fog of war is disabled or no grid exists
+  // Always return true if no grid exists
   if (!exploredGrid) return true
 
   // Check if coordinates are valid
