@@ -177,9 +177,8 @@ const getWaterAnimationFrames = (spriteX, spriteY) => {
   const frames = []
 
   // For X between 0-3: Y animation frames are at +4 intervals
-  // For X between 4-9: Y animation frames are at +3 intervals
-  // For X between 10-11: Y animation frames are at +2 intervals
-  const yIncrement = spriteX >= 0 && spriteX <= 3 ? 4 : spriteX < 10 ? 3 : 2
+  // For X between 4-11: Y animation frames are at +3 intervals
+  const yIncrement = spriteX >= 0 && spriteX <= 3 ? 4 : 3
 
   for (let i = 0; i < 4; i++) {
     const frameY = spriteY + (i * yIncrement)
