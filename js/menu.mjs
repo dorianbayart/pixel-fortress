@@ -104,6 +104,15 @@ const mapSizeContainer = skirmishSetupSection.querySelector('#mapSizeButtons')
 const aiCountButtons = skirmishSetupSection.querySelectorAll('.option-btn[data-ai-count]')
 const difficultyButtons = skirmishSetupSection.querySelectorAll('.option-btn[data-difficulty]')
 const gameSpeedButtons = skirmishSetupSection.querySelectorAll('.option-btn[data-game-speed]')
+const gameModeButtons = skirmishSetupSection.querySelectorAll('.option-btn[data-game-mode]')
+const gameModeDescription = document.getElementById('gameModeDescription')
+
+// Game mode descriptions
+const gameModeDescriptions = {
+  'classic': 'Standard gameplay with balanced combat and gathering.',
+  'one-shot': 'Every unit and building has exactly one life point. Any damage is fatal.',
+  'turbo-gathering': 'All resource gatherers work at significantly increased speed.',
+}
 
 // Dynamically create map size buttons from constants
 let mapSizeButtons = []
@@ -307,6 +316,12 @@ const openSkirmishSetupModal = async () => {
   updateSelection(aiCountButtons, gameState.settings?.aiCount || 1, 'aiCount')
   updateSelection(difficultyButtons, gameState.settings?.difficulty || 'medium', 'difficulty')
   updateSelection(gameSpeedButtons, Object.keys(CONSTANTS.GAME_SPEED_MULTIPLIERS).find(key => CONSTANTS.GAME_SPEED_MULTIPLIERS[key] === gameState.settings?.gameSpeedMultiplier)?.toLowerCase() || 'normal', 'gameSpeed')
+  const currentGameMode = gameState.settings?.gameMode || 'classic'
+  updateSelection(gameModeButtons, currentGameMode, 'gameMode')
+  // Update game mode description
+  if (gameModeDescription && gameModeDescriptions[currentGameMode]) {
+    gameModeDescription.textContent = gameModeDescriptions[currentGameMode]
+  }
   skirmishFogToggle.checked = gameState.settings?.fogOfWar !== false
 
   // Set map ID input (empty or show current custom map ID)
@@ -348,6 +363,7 @@ const startSkirmishGame = () => {
   const selectedAiCount = parseInt(skirmishSetupSection.querySelector('.option-btn[data-ai-count].selected')?.dataset.aiCount || '1', 10)
   const selectedDifficulty = skirmishSetupSection.querySelector('.option-btn[data-difficulty].selected')?.dataset.difficulty || 'medium'
   const selectedGameSpeed = skirmishSetupSection.querySelector('.option-btn[data-game-speed].selected')?.dataset.gameSpeed || 'normal'
+  const selectedGameMode = skirmishSetupSection.querySelector('.option-btn[data-game-mode].selected')?.dataset.gameMode || 'classic'
   const fogOfWarEnabled = skirmishFogToggle.checked
 
   // Check which tab is active
@@ -371,6 +387,7 @@ const startSkirmishGame = () => {
       aiCount: selectedAiCount,
       difficulty: selectedDifficulty,
       gameSpeedMultiplier: CONSTANTS.GAME_SPEED_MULTIPLIERS[selectedGameSpeed.toUpperCase()],
+      gameMode: selectedGameMode,
       fogOfWar: fogOfWarEnabled,
   })
 
@@ -443,6 +460,16 @@ async function setupSkirmishSection() {
   gameSpeedButtons.forEach(button => {
       button.addEventListener('click', () => {
           updateSelection(gameSpeedButtons, button.dataset.gameSpeed, 'gameSpeed')
+      })
+  })
+  gameModeButtons.forEach(button => {
+      button.addEventListener('click', () => {
+          updateSelection(gameModeButtons, button.dataset.gameMode, 'gameMode')
+          // Update description
+          const mode = button.dataset.gameMode
+          if (gameModeDescription && gameModeDescriptions[mode]) {
+            gameModeDescription.textContent = gameModeDescriptions[mode]
+          }
       })
   })
   skirmishFogToggle.addEventListener('change', playClickSound)

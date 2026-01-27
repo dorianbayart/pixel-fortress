@@ -85,7 +85,8 @@ class GameState {
       sfxVolume: 0.8,
       musicVolume: 0.5,
       gameSpeedMultiplier: 1,
-      showHealthBars: false
+      showHealthBars: false,
+      gameMode: 'classic'
     }
 
     // UI references

@@ -24,13 +24,12 @@ Details: The AI builds structures and manages units similarly to the player.
 - [ ] **Tower Placement:** Allow players to strategically place towers. *(Not Planned)*
 - [ ] **Tower Attacks:** Towers automatically attack enemies within their range. *(Not Planned)*
 - [x] **Explorer:** Add an explorer that will be able to move around the map.
-- [ ] **Fortification:** Implement a system for building fortifications. *(Not Planned)*
 
 
 ## User Interface
 
 - [x] **Tower/Building Selection UI:** Display available towers/buildings and allow players to select them.
-- [x] **Game Menu:** Implement a main menu, pause menu, and options menu.
+- [x] **Game Menu:** Implement a main menu, pause menu, and options menu.  
 Details: The menu presents what the User can do: Play on random map, Play a predefined map, Play a campaign, Manage options (details, SpecialFX, sound, etc.), etc.
 - [x] **Health Display:** Visual representation of the unit's health.
 - [x] **Resource Display:** Show the player's current resources.
@@ -40,17 +39,27 @@ Details: The menu presents what the User can do: Play on random map, Play a pred
 ## Gameplay
 
 - [x] **Fog of War:** Implement a fog of war mechanism.
-- [x] **Building prices:** Prices of buildings are increasing with the amount of buildings already built. *(In Progress)*  
+- [x] **Building prices:** Prices of buildings are increasing with the amount of buildings already built.  
 Details: The price of a building is based on the amount of buildings already built. Maybe 25% more expensive for each building.
 - [ ] **Special Maps:** Add predefined maps. *(In progress)*
 - [ ] **Campaign Mode:** Add campaigns maps with scenarii. *(Not Planned)*
 - [ ] **Unit Resistance:** Implement unit resistance to certain types of damage. *(Not Planned)*
 
 
+## Game Modes
+
+- [x] **Classic Mode:** Standard gameplay with balanced combat and gathering.
+Details: Default game mode with normal unit and building health, standard resource gathering rates.
+- [ ] **One Shot Mode:** Every unit and building has exactly one life point. Any damage is fatal. *(Not Implemented)*
+Details: Extreme difficulty mode where any damage is fatal. Requires careful positioning and strategic planning.
+- [ ] **Turbo Gathering Mode:** All resource gatherers work at significantly increased speed. *(Not Implemented)*
+Details: Accelerated resource gathering allows for rapid base expansion and army building. Focus on economic strategy.
+
+
 ## Upgrades and Power-ups
 
 - [ ] **Tower Upgrades:** Allow players to upgrade towers to increase their effectiveness. *(Not Planned)*
-- [x] **Building Upgrades:** Allow players to upgrade buildings to increase their capacity.
+- [x] **Building Upgrades:** Allow players to upgrade buildings to increase their capacity.  
 Details: Can affect more workers, can produce quicklyer units, etc.
 - [ ] **Global Upgrades:** Implement upgrades that affect the entire game (e.g., increased resource gain). *(Not Planned)*
 
@@ -80,5 +89,4 @@ Details: This should include: pseudo, host a map, join a map
 - [ ] **Level Editor:** Allow players to create their own custom levels. *(Not Planned)* 
 - [ ] **Endless Mode:** Implement an endless mode with increasing difficulty. *(Not Planned)*
 - [x] **High Speed:** High speed mode: the time is 1x, 1.33x or 2x accelerated.
-- [ ] **Rapid Gathering:** Gathering workers are faster like Speedy Gonsalves. *(Not Planned)*
 - [ ] **PNJs:** Add PNJs enemies on the map. *(Not Planned)*
