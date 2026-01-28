@@ -560,8 +560,19 @@ async function setupOptionsSection() {
   // Get option buttons
   const debugToggle = document.getElementById('debugToggle')
   const healthBarsToggle = document.getElementById('healthBarsToggle')
+  const antialiasingToggle = document.getElementById('antialiasingToggle')
+  const antialiasingStatus = document.getElementById('antialiasingStatus')
   const sfxVolumeSlider = document.getElementById('sfxVolumeSlider')
   const musicVolumeSlider = document.getElementById('musicVolumeSlider')
+
+  // Function to update antialiasing status text
+  const updateAntialiasingStatus = () => {
+    if (antialiasingToggle.checked) {
+      antialiasingStatus.textContent = '(2x resolution)'
+    } else {
+      antialiasingStatus.textContent = ''
+    }
+  }
 
   // Function to open the modal
   const openOptionsModal = () => {
@@ -570,8 +581,12 @@ async function setupOptionsSection() {
     // Set current values based on game settings or defaults
     debugToggle.checked = gameState.settings?.debugMode === true
     healthBarsToggle.checked = gameState.settings?.showHealthBars === true
+    antialiasingToggle.checked = gameState.settings?.antialiasing ?? false
     sfxVolumeSlider.value = gameState.settings?.sfxVolume ?? 0.8
     musicVolumeSlider.value = gameState.settings?.musicVolume ?? 0.5
+
+    // Update antialiasing status text
+    updateAntialiasingStatus()
 
     optionsSection.style.display = 'block'
     setTimeout(() => {
@@ -594,12 +609,14 @@ async function setupOptionsSection() {
 
     const debugModeEnabled = debugToggle.checked
     const showHealthBarsEnabled = healthBarsToggle.checked
+    const antialiasingEnabled = antialiasingToggle.checked
     const sfxVolume = parseFloat(sfxVolumeSlider.value)
     const musicVolume = parseFloat(musicVolumeSlider.value)
 
     gameState.updateSettings({
         debugMode: debugModeEnabled,
         showHealthBars: showHealthBarsEnabled,
+        antialiasing: antialiasingEnabled,
         sfxVolume: sfxVolume,
         musicVolume: musicVolume,
     })
@@ -616,6 +633,10 @@ async function setupOptionsSection() {
   // Add click handlers for option buttons
   debugToggle.addEventListener('change', playClickSound)
   healthBarsToggle.addEventListener('change', playClickSound)
+  antialiasingToggle.addEventListener('change', () => {
+    playClickSound()
+    updateAntialiasingStatus()
+  })
   sfxVolumeSlider.addEventListener('change', playClickSound)
   musicVolumeSlider.addEventListener('change', playClickSound)
 

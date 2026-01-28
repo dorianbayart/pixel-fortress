@@ -406,6 +406,7 @@
 
       <div class="menu-options">
         <button id="resumeGame" class="menu-button">Resume Game</button>
+        <button id="openOptionsFromGame" class="menu-button">Options</button>
         <button id="resetMap" class="menu-button">Reset Map</button>
         <button id="quitToHome" class="menu-button">Quit to Home</button>
       </div>
@@ -587,7 +588,16 @@
           </label>
         </div>
       </div>
-      
+
+      <div class="option-group">
+        <div class="option-controls">
+          <label class="toggle-label">
+            <input type="checkbox" id="antialiasingToggle">
+            <span class="toggle-text">High Quality Rendering <span id="antialiasingStatus" style="opacity: 0.7; font-size: 0.9em;"></span></span>
+          </label>
+        </div>
+      </div>
+
       <div class="option-group">
         <h3>Sound Effects Volume</h3>
         <div class="option-controls">

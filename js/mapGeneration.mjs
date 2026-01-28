@@ -165,8 +165,6 @@ const findValidTentPositions = async () => {
     }
   }
 
-  console.log(`findValidTentPositions: Testing ${candidates.length} candidate position combinations...`)
-
   // Update pathfinding worker once before testing
   updateMapInWorker()
 
@@ -177,39 +175,23 @@ const findValidTentPositions = async () => {
   for (let i = 0; i < candidates.length; i++) {
     const candidate = candidates[i]
     const { humanX, humanY, aiX, aiY } = candidate
-    console.log(`[${i + 1}/${candidates.length}] Testing: Human(${humanX}, ${humanY}) vs AI(${aiX}, ${aiY})`)
 
     const result = await testTentPositionPair(humanX, humanY, aiX, aiY)
 
-    if (result.valid) {
-      console.log(`  ✓ Valid path! Length: ${result.pathLength}, Weight: ${result.weight}`)
-
-      // Keep the candidate with the longest path
-      if (result.pathLength > longestPathLength) {
-        longestPathLength = result.pathLength
-        bestCandidate = {
-          humanX,
-          humanY,
-          aiX,
-          aiY,
-          pathLength: result.pathLength,
-          pathWeight: result.weight
-        }
-        console.log(`  → NEW BEST! This is now the longest path found`)
-      } else {
-        console.log(`  → Not better than current best (${longestPathLength})`)
+    if (result.valid && result.pathLength > longestPathLength) {
+      longestPathLength = result.pathLength
+      bestCandidate = {
+        humanX,
+        humanY,
+        aiX,
+        aiY,
+        pathLength: result.pathLength,
+        pathWeight: result.weight
       }
-    } else {
-      console.log(`  ✗ Invalid - no path or path too long`)
     }
   }
 
   if (bestCandidate) {
-    console.log(`\n✓✓✓ BEST POSITIONS SELECTED ✓✓✓`)
-    console.log(`  Human: (${bestCandidate.humanX}, ${bestCandidate.humanY})`)
-    console.log(`  AI: (${bestCandidate.aiX}, ${bestCandidate.aiY})`)
-    console.log(`  Path Length: ${bestCandidate.pathLength}`)
-    console.log(`  Path Weight: ${bestCandidate.pathWeight}`)
     return bestCandidate
   }
 
@@ -361,10 +343,6 @@ const placeTents = async (allowCarving = true) => {
 
   if (positions) {
     // Success! Place tents at the naturally valid positions
-    console.log(`✓ Placing tents at best positions (path length: ${positions.pathLength})`)
-    console.log(`  Human tent at: (${positions.humanX}, ${positions.humanY})`)
-    console.log(`  AI tent at: (${positions.aiX}, ${positions.aiY})`)
-
     gameState.humanPlayer.addBuilding(positions.humanX, positions.humanY, Building.TYPES.TENT)
     gameState.aiPlayers[0].addBuilding(positions.aiX, positions.aiY, Building.TYPES.TENT)
 
@@ -374,12 +352,10 @@ const placeTents = async (allowCarving = true) => {
   // Step 2: No natural positions found
   if (!allowCarving) {
     // Random mode: Don't carve, just return false to try another seed
-    console.log('✗ No naturally valid positions found (carving not allowed)')
     return false
   }
 
   // User specified seed: Carve a path to make it playable
-  console.log('⚠ No naturally valid positions found. Carving path between default positions...')
 
   const humanX = Math.floor(MAP_WIDTH / 2)
   const humanY = Math.floor(MAP_HEIGHT * 19 / 20)
@@ -394,10 +370,6 @@ const placeTents = async (allowCarving = true) => {
   const path = await searchPath(humanX, humanY, aiX, aiY)
 
   if (path?.length > 0) {
-    console.log(`✓ Path carved successfully! Length: ${path.length}`)
-    console.log(`  Human tent at: (${humanX}, ${humanY})`)
-    console.log(`  AI tent at: (${aiX}, ${aiY})`)
-
     // Place tents
     gameState.humanPlayer.addBuilding(humanX, humanY, Building.TYPES.TENT)
     gameState.aiPlayers[0].addBuilding(aiX, aiY, Building.TYPES.TENT)

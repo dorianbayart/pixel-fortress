@@ -1,4 +1,4 @@
-export { UNIT_SPRITE_SIZE, loadAndSplitImage, loadSprites, sprites, unitsSprites, unitsSpritesDescription }
+export { UNIT_SPRITE_SIZE, loadAndSplitImage, loadSprites, sprites, unitsSprites, unitsSpritesDescription, updateAllTexturesScaleMode }
 
 'use strict'
 
@@ -9,6 +9,72 @@ const SPRITE_SIZE = getTileSize(), UNIT_SPRITE_SIZE = getTileSize() * 2
 
 /** Exposed variables that stores the sprites and their descriptor */
 let sprites, unitsSprites, unitsSpritesDescription
+
+/** Store base textures for dynamic scale mode updates */
+const baseTextures = []
+
+/**
+ * Get the appropriate scale mode based on antialiasing setting
+ * @returns {string} PIXI scale mode
+ */
+function getScaleMode() {
+  // Always use NEAREST to prevent texture bleeding and blur
+  // Antialiasing comes from 2x supersampling + WebGL MSAA, not texture filtering
+  return PIXI.SCALE_MODES.NEAREST
+}
+
+/**
+ * Update scale mode for all loaded textures
+ * This allows dynamic switching without reloading sprites
+ */
+function updateAllTexturesScaleMode() {
+  const scaleMode = getScaleMode()
+  console.log('Updating all textures to scale mode:', scaleMode === PIXI.SCALE_MODES.LINEAR ? 'LINEAR (smooth)' : 'NEAREST (pixelated)')
+
+  // Update all stored base textures
+  baseTextures.forEach(baseTexture => {
+    if (baseTexture && baseTexture.source) {
+      baseTexture.source.scaleMode = scaleMode
+      baseTexture.source.update()
+    }
+  })
+
+  // Update terrain and building sprites
+  if (sprites) {
+    for (const spriteName in sprites) {
+      if (sprites[spriteName] && sprites[spriteName].source) {
+        sprites[spriteName].source.scaleMode = scaleMode
+        sprites[spriteName].source.update()
+      }
+    }
+  }
+
+  // Update unit sprites
+  if (unitsSprites) {
+    for (const unitName in unitsSprites) {
+      if (unitsSprites[unitName]) {
+        for (const animationType in unitsSprites[unitName]) {
+          if (unitsSprites[unitName][animationType]) {
+            for (const frameKey in unitsSprites[unitName][animationType]) {
+              if (unitsSprites[unitName][animationType][frameKey]) {
+                for (const direction in unitsSprites[unitName][animationType][frameKey]) {
+                  const texture = unitsSprites[unitName][animationType][frameKey][direction]
+                  if (texture && texture.source) {
+                    texture.source.scaleMode = scaleMode
+                    texture.source.update()
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Note: UI textures (icons, cursor) are loaded separately and not tracked here
+  // They will use the correct scale mode when initially loaded via getScaleMode()
+}
 
 
 /**
@@ -21,9 +87,11 @@ let sprites, unitsSprites, unitsSpritesDescription
  */
 const loadSprites = async () => {
   sprites = unitsSprites = unitsSpritesDescription = null
+  baseTextures.length = 0  // Clear previous base textures
 
   const baseTexture = await PIXI.Assets.load('./assets/punyworld-overworld-tileset.png')
-  baseTexture.source.scaleMode = PIXI.SCALE_MODES.NEAREST
+  baseTexture.source.scaleMode = getScaleMode()
+  baseTextures.push(baseTexture)  // Store for later updates
 
   const frames = {}
   const cols = baseTexture.width / SPRITE_SIZE
@@ -58,7 +126,8 @@ const loadSprites = async () => {
     if (unitsSpritesDescription.hasOwnProperty(spriteName)) {
       const unitDesc = unitsSpritesDescription[spriteName]
       const baseTexture = await PIXI.Assets.load(unitDesc.relativeToRoot)
-      baseTexture.source.scaleMode = PIXI.SCALE_MODES.NEAREST
+      baseTexture.source.scaleMode = getScaleMode()
+      baseTextures.push(baseTexture)  // Store for later updates
 
       const unitFrames = {}
       for (const animationType in unitDesc) {
@@ -118,6 +187,9 @@ const loadSprites = async () => {
 
 const loadAndSplitImage = async (url, spriteSize) => {
   const baseTexture = await PIXI.Assets.load(url)
+  baseTexture.source.scaleMode = getScaleMode()
+  baseTextures.push(baseTexture)  // Store for later updates
+
   const textures = []
   const cols = baseTexture.width / spriteSize
   const rows = baseTexture.height / spriteSize

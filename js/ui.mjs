@@ -1,5 +1,5 @@
 export {
-  handleMouseInteraction, initUI, mouse, setupEventListeners, setupGameMenuEventListeners, showDebugMessage, showModal, updateUI
+  handleMouseInteraction, initUI, mouse, setupEventListeners, setupGameMenuEventListeners, showDebugMessage, showModal, updateUI, recreateUIElements
 }
   
 'use strict'
@@ -133,14 +133,46 @@ async function initUI(mouseInstance) {
   containers.ui.addChild(statsText)
 }
 
+/**
+ * Recreate UI elements after renderer recreation
+ * Call this after containers have been recreated
+ */
+function recreateUIElements() {
+  // Recreate debug stats text
+  statsText = new PIXI.Text({
+    text: '',
+    style: {
+      fontFamily: UI_FONTS.MONOSPACE,
+      fontSize: 14 * (window.devicePixelRatio || 1),
+    },
+    resolution: window.devicePixelRatio || 1,
+    fill: 0xffffff,
+    stroke: 0x000000,
+    strokeThickness: 2
+  })
+  statsText.position.set(10, 38)
+  statsText.scale.set(1 / (window.devicePixelRatio || 1))
+  statsText.visible = DEBUG()
+  containers.ui.addChild(statsText)
 
+  // Recreate cursor sprite if mouse exists
+  if (mouse?.sprite) {
+    cursorSprite = new PIXI.Sprite(mouse.sprite)
+    cursorSprite.pivot.set(4.5, 4.5)
+    containers.ui.addChild(cursorSprite)
+  }
+
+  // Recreate top and bottom bars if game is playing
+  if (gameState.gameStatus === 'playing') {
+    createTopBar()
+    createBottomBar()
+  }
+}
 
 /**
  * Setup all event listeners for UI interaction
  */
 function setupEventListeners() {
-
-  
 
   // Keyboard shortcuts
   window.addEventListener('keypress', (event) => {
@@ -174,6 +206,7 @@ function setupGameMenuEventListeners() {
   const gameMenuSection = document.getElementById('gameMenuSection')
   const closeButton = gameMenuSection.querySelector('.close')
   const resumeGameButton = document.getElementById('resumeGame')
+  const openOptionsButton = document.getElementById('openOptionsFromGame')
   const resetMapButton = document.getElementById('resetMap')
   const quitToHomeButton = document.getElementById('quitToHome')
   const exportMapButton = document.getElementById('exportMapButton')
@@ -183,6 +216,16 @@ function setupGameMenuEventListeners() {
 
   // Close button
   closeButton.addEventListener('click', closeGameMenu)
+
+  // Options button - close game menu and open options
+  openOptionsButton.addEventListener('click', () => {
+    playClickSound()
+    closeGameMenu()
+    // Small delay to let the game menu close animation finish
+    setTimeout(() => {
+      openOptionsModal()
+    }, 100)
+  })
 
   // Reset map button
   resetMapButton.addEventListener('click', resetCurrentMap)
@@ -210,6 +253,39 @@ function setupGameMenuEventListeners() {
       }
     }
   })
+}
+
+/**
+ * Open the Options modal from in-game
+ */
+function openOptionsModal() {
+  const optionsSection = document.getElementById('optionsSection')
+  const debugToggle = document.getElementById('debugToggle')
+  const healthBarsToggle = document.getElementById('healthBarsToggle')
+  const antialiasingToggle = document.getElementById('antialiasingToggle')
+  const antialiasingStatus = document.getElementById('antialiasingStatus')
+  const sfxVolumeSlider = document.getElementById('sfxVolumeSlider')
+  const musicVolumeSlider = document.getElementById('musicVolumeSlider')
+
+  // Set current values based on game settings
+  debugToggle.checked = gameState.settings?.debugMode === true
+  healthBarsToggle.checked = gameState.settings?.showHealthBars === true
+  antialiasingToggle.checked = gameState.settings?.antialiasing ?? false
+  sfxVolumeSlider.value = gameState.settings?.sfxVolume ?? 0.8
+  musicVolumeSlider.value = gameState.settings?.musicVolume ?? 0.5
+
+  // Update antialiasing status text
+  if (antialiasingToggle.checked) {
+    antialiasingStatus.textContent = '(2x resolution)'
+  } else {
+    antialiasingStatus.textContent = ''
+  }
+
+  // Show the modal
+  optionsSection.style.display = 'block'
+  setTimeout(() => {
+    optionsSection.classList.add('show')
+  }, 20)
 }
 
 /**

@@ -17,20 +17,23 @@ export {
   createHealthBar,
   updateHealthBar,
   removeHealthBar,
+  recreateRenderer,
 }
 
 'use strict'
 
 import CONSTANTS from 'constants'
 import { getCanvasDimensions, getMapDimensions, getTileSize } from 'dimensions'
-import { isPositionExplored, isPositionVisible } from 'fogOfWar'
+import { isPositionExplored, isPositionVisible, initFogOfWar, resetFogTexture } from 'fogOfWar'
 import { getCurrentWaterFrame } from 'game'
 import { DEBUG, backDrawn } from 'globals'
+import { handleWindowResize } from 'init'
 import { initMinimap, updateMinimap, resizeMinimap } from 'minimap'
 import { ParticleEffect, createParticleEmitter, initParticleSystem } from 'particles'
 import * as PIXI from 'pixijs'
-import { UNIT_SPRITE_SIZE, sprites } from 'sprites'
+import { UNIT_SPRITE_SIZE, sprites, updateAllTexturesScaleMode } from 'sprites'
 import gameState from 'state'
+import { recreateUIElements } from 'ui'
 
 const TERRAIN_TYPES = CONSTANTS.TERRAIN.TYPES
 
@@ -84,18 +87,28 @@ async function initCanvases() {
 
   // Create Pixi Application
   if(!app) {
+    const useAntialiasing = gameState.settings?.antialiasing ?? false
+    // Use supersampling when antialiasing is enabled: render at 2x resolution
+    const renderResolution = useAntialiasing ? dpr * 2 : dpr
+
     app = new PIXI.Application()
     await app.init({
       width: width,
       height: height,
       // backgroundColor: 0x228b22, // Forestgreen background
       backgroundAlpha: 0,
-      resolution: dpr,
+      resolution: renderResolution,  // Higher resolution for antialiasing
       autoDensity: true, // This adjusts the CSS size automatically
-      antialias: false,
+      antialias: useAntialiasing,  // WebGL multisampling antialiasing
       canvas: document.getElementById('canvas'),
-      roundPixels: true,
+      roundPixels: true,  // Always keep true to prevent gaps between tiles
+      preference: 'webgl',  // Force WebGL for best performance
     })
+
+    // Log renderer information
+    const rendererType = app.renderer.type || 'unknown'
+    console.log('Renderer initialized. Type:', rendererType)
+    console.log('Resolution:', renderResolution, 'Antialias:', useAntialiasing)
     
     // Add the view to the document
     document.getElementById('canvas').replaceWith(app.canvas)
@@ -163,6 +176,23 @@ async function initCanvases() {
   
   console.log("Canvas initialized:", app.canvas.width, "x", app.canvas.height, app)
 
+  // Apply initial canvas rendering mode
+  updateCanvasRendering(gameState.settings?.antialiasing ?? false)
+
+  // Listen for antialiasing setting changes
+  gameState.events.on('settings-changed', async ({ newSettings, oldSettings }) => {
+    if (newSettings.antialiasing !== undefined && newSettings.antialiasing !== oldSettings?.antialiasing) {
+      // Recreate the entire renderer with new settings
+      await recreateRenderer()
+
+      // Trigger a full redraw
+      if (gameState.gameStatus === 'playing') {
+        // Force redraw on next frame
+        console.log('Antialiasing toggled - renderer recreated')
+      }
+    }
+  })
+
   // Reset cached sprite maps
   backgroundSpriteMap.clear()
   worldObjectSpriteMap.clear()
@@ -180,6 +210,189 @@ async function initCanvases() {
   healthBarMap.clear()
   // Clean up indicators
   indicatorMap.clear()
+}
+
+/**
+ * Update canvas CSS rendering mode based on antialiasing setting
+ */
+function updateCanvasRendering(antialiasing) {
+  const canvas = document.getElementById('canvas')
+  if (!canvas) return
+
+  if (antialiasing) {
+    canvas.style.imageRendering = 'auto'  // Standard smooth rendering
+  } else {
+    canvas.style.imageRendering = 'pixelated'  // Sharp, pixelated rendering
+  }
+
+  console.log('Canvas CSS rendering updated:', antialiasing ? 'smooth' : 'pixelated')
+}
+
+/**
+ * Recreate the entire renderer with new antialiasing settings
+ * This allows dynamic quality changes without page refresh
+ */
+async function recreateRenderer() {
+  console.log('Recreating renderer with new settings...')
+
+  // Store game status and pause during recreation
+  const previousStatus = gameState.gameStatus
+  if (previousStatus === 'playing') {
+    gameState.gameStatus = 'paused'
+  }
+
+  const useAntialiasing = gameState.settings?.antialiasing ?? false
+  const { width, height, dpr } = getCanvasDimensions()
+
+  // Use supersampling when antialiasing is enabled
+  const renderResolution = useAntialiasing ? dpr * 2 : dpr
+
+  // Store reference to canvas parent and position before destroying
+  const oldCanvas = document.getElementById('canvas')
+  const canvasParent = oldCanvas ? oldCanvas.parentNode : document.body
+
+  // CRITICAL: Store current camera position and zoom before destroying
+  const savedViewTransform = gameState.UI?.mouse?.getViewTransform()
+  console.log('Saved view transform:', savedViewTransform)
+
+  // Destroy old renderer and containers
+  if (app) {
+    // Remove all children from stage first
+    if (app.stage) {
+      app.stage.removeChildren()
+    }
+
+    // Clear sprite maps
+    backgroundSpriteMap.clear()
+    worldObjectSpriteMap.clear()
+    unitSpriteMap.clear()
+    healthBarMap.clear()
+    indicatorMap.clear()
+
+    // Destroy containers individually
+    for (const key in containers) {
+      if (containers[key] && containers[key].destroy) {
+        try {
+          containers[key].destroy({ children: true, texture: false, baseTexture: false })
+        } catch (e) {
+          console.warn('Error destroying container:', key, e)
+        }
+      }
+      containers[key] = null
+    }
+
+    // Destroy the application properly
+    try {
+      await app.destroy(true, { children: true, texture: false, baseTexture: false })
+    } catch (e) {
+      console.warn('Error destroying app:', e)
+    }
+    app = null
+  }
+
+  // Remove old canvas from DOM if it still exists
+  if (oldCanvas && oldCanvas.parentNode) {
+    oldCanvas.parentNode.removeChild(oldCanvas)
+  }
+
+  // Create new application with updated settings
+  app = new PIXI.Application()
+  await app.init({
+    width: width,
+    height: height,
+    backgroundAlpha: 0,
+    resolution: renderResolution,
+    autoDensity: true,
+    antialias: useAntialiasing,
+    roundPixels: true,  // Always keep true to prevent gaps between tiles
+    preference: 'webgl',  // Force WebGL for best performance
+  })
+
+  // Log renderer information
+  const rendererType = app.renderer.type || 'unknown'
+  console.log('Renderer recreated. Type:', rendererType)
+  console.log('Resolution:', renderResolution, 'Antialias:', useAntialiasing)
+
+  // Set canvas properties
+  app.canvas.id = 'canvas'
+  app.canvas.style.cursor = 'none'
+  app.canvas.style.opacity = 1
+
+  // Insert new canvas as FIRST child of body (important for z-index and event handling)
+  if (canvasParent === document.body) {
+    document.body.insertBefore(app.canvas, document.body.firstChild)
+  } else {
+    canvasParent.appendChild(app.canvas)
+  }
+
+  // Re-add event listeners
+  app.canvas.addEventListener('mouseenter', () => {
+    if(gameState.gameStatus === 'paused') gameState.gameStatus = 'playing'
+  })
+
+  app.canvas.addEventListener('mouseleave', () => {
+    if(gameState.gameStatus === 'playing') gameState.gameStatus = 'paused'
+  })
+
+  // Recreate containers
+  containers.background = new PIXI.Container()
+  containers.world = new PIXI.Container()
+  containers.particles = new PIXI.Container()
+  containers.indicators = new PIXI.Container()
+  containers.ui = new PIXI.Container()
+  containers.debug = new PIXI.Container()
+
+  containers.world.sortableChildren = true
+
+  app.stage.addChild(containers.background)
+  app.stage.addChild(containers.debug)
+  app.stage.addChild(containers.world)
+  app.stage.addChild(containers.particles)
+  app.stage.addChild(containers.indicators)
+  app.stage.addChild(containers.ui)
+
+  // Reinitialize systems
+  initParticleSystem()
+  initMinimap(containers.ui)
+  resetFogTexture()  // Reset fog texture before reinitializing
+  initFogOfWar()  // Reinitialize fog of war
+
+  // Update CSS rendering
+  updateCanvasRendering(useAntialiasing)
+
+  // Update texture scale modes
+  updateAllTexturesScaleMode()
+
+  // Clear all cached sprites to force regeneration with new renderer
+  backgroundSpriteMap.clear()
+  worldObjectSpriteMap.clear()
+  unitSpriteMap.clear()
+
+  console.log('Renderer recreated successfully with antialiasing:', useAntialiasing)
+  console.log('Resolution:', renderResolution, 'DPR:', dpr)
+
+  // Reinitialize mouse with new canvas - CRITICAL for event listeners
+  if (gameState.UI?.mouse) {
+    await gameState.UI.mouse.initMouse(app.canvas)
+
+    // Restore camera position and zoom
+    if (savedViewTransform) {
+      gameState.UI.mouse.viewTransform.x = savedViewTransform.x
+      gameState.UI.mouse.viewTransform.y = savedViewTransform.y
+      gameState.UI.mouse.viewTransform.scale = savedViewTransform.scale
+    }
+  }
+
+  // Emit event to notify that renderer was recreated (UI will be recreated via event listener)
+  recreateUIElements()
+
+  // Restore game status LAST - this ensures game loop runs immediately
+  if (previousStatus === 'playing') {
+    gameState.gameStatus = 'playing'
+  }
+
+  // Trigger window resize handler to force viewport update and render
+  handleWindowResize()
 }
 
 /**

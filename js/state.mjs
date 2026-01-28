@@ -86,7 +86,8 @@ class GameState {
       musicVolume: 0.5,
       gameSpeedMultiplier: 1,
       showHealthBars: false,
-      gameMode: 'classic'
+      gameMode: 'classic',
+      antialiasing: false
     }
 
     // UI references

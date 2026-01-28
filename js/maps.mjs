@@ -86,8 +86,6 @@ const loadCustomMap = async (mapId) => {
     // Construct file path based on map ID
     const filePath = `../maps/${mapId}.json`
 
-    console.log(`Loading custom map: ${filePath}`)
-
     // Fetch the map JSON file
     const response = await fetch(filePath)
     if (!response.ok) {
@@ -100,8 +98,6 @@ const loadCustomMap = async (mapId) => {
     if (!mapData.terrain || !mapData.mapSize || !mapData.startingPositions) {
       throw new Error('Invalid map data structure')
     }
-
-    console.log(`✓ Loaded custom map: ${mapData.name} (${mapData.mapSize.width}x${mapData.mapSize.height})`)
 
     return mapData
   } catch (error) {

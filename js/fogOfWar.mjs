@@ -6,7 +6,8 @@ export {
   renderFog,
   updateVisibility,
   updatePlayerVisibility,
-  getTeamId
+  getTeamId,
+  resetFogTexture
 }
 
 'use strict'
@@ -133,6 +134,17 @@ function initFogOfWar() {
   updateVisibility(0, true)
 
   return true
+}
+
+/**
+ * Reset fog texture to force regeneration with new renderer
+ * Call this after renderer recreation
+ */
+function resetFogTexture() {
+  if (fogTexture) {
+    fogTexture.destroy()
+    fogTexture = null
+  }
 }
 
 /**
