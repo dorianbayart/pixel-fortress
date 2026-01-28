@@ -19,6 +19,23 @@ import { distance } from 'utils'
 const TERRAIN_TYPES = CONSTANTS.TERRAIN.TYPES
 
 /**
+ * Apply game mode modifiers to buildings
+ * @param {Building} building - The building to modify
+ */
+function applyGameModeModifiers(building) {
+  const gameMode = gameState.settings?.gameMode
+
+  if (gameMode === 'one-shot') {
+    // One Shot mode: all buildings have 1 HP
+    building.life = 1
+    building.maxLife = 1
+  } else if (gameMode === 'turbo-gathering') {
+    // Turbo Gathering mode: no building-specific modifiers
+    // (gathering speed is handled at the unit level)
+  }
+}
+
+/**
  * Finds the best available spawn location around a building.
  * @param {number} buildingX - The x-coordinate of the building.
  * @param {number} buildingY - The y-coordinate of the building.
@@ -233,6 +250,7 @@ class Building {
     this.level = 1
     this.life = 100
     this.maxLife = 100
+    applyGameModeModifiers(this)
     this.productionTimer = 0
     this.productionCooldown = 10000 // 10 seconds by default
     this.visibilityRange = getTileSize() * 8
@@ -292,8 +310,15 @@ class Building {
     if (benefits) {
       // Apply benefits
       if (benefits.life) {
-        this.maxLife += benefits.life
-        this.life += benefits.life // Also heal the building
+        const gameMode = gameState.settings?.gameMode
+        if (gameMode === 'one-shot') {
+          // In one-shot mode, keep health at 1
+          this.maxLife = 1
+          this.life = 1
+        } else {
+          this.maxLife += benefits.life
+          this.life += benefits.life // Also heal the building
+        }
       }
       if (benefits.productionSpeed) {
         this.productionCooldown *= (1 - benefits.productionSpeed / 100)
@@ -531,6 +556,7 @@ class Tent extends WorkerBuilding {
     this.type = Building.TYPES.TENT
     this.life = 200
     this.maxLife = 200
+    applyGameModeModifiers(this)
     this.productionCooldown = 10000 // 10 seconds
     this.indicatorColor = 0x00FF00 // Green color
     this.showProgressIndicator = owner === gameState.humanPlayer
@@ -587,6 +613,7 @@ class Lumberjack extends WorkerBuilding {
         this.type = Building.TYPES.LUMBERJACK
         this.life = 150
         this.maxLife = 150
+        applyGameModeModifiers(this)
 
         this.maxWorkers = 1
 
@@ -887,6 +914,7 @@ class Quarry extends WorkerBuilding {
       this.type = Building.TYPES.QUARRY
       this.life = 150
       this.maxLife = 150
+      applyGameModeModifiers(this)
 
       this.maxWorkers = 1
   }
@@ -1011,6 +1039,7 @@ class Well extends WorkerBuilding {
     this.type = Building.TYPES.WELL
     this.life = 150
     this.maxLife = 150
+    applyGameModeModifiers(this)
 
     this.maxWorkers = 1
   }
@@ -1135,6 +1164,7 @@ class GoldMine extends WorkerBuilding {
     this.type = Building.TYPES.GOLD_MINE
     this.life = 150
     this.maxLife = 150
+    applyGameModeModifiers(this)
 
     this.maxWorkers = 1
   }
@@ -1257,6 +1287,7 @@ class Barracks extends CombatBuilding {
     this.type = Building.TYPES.BARRACKS
     this.life = 50
     this.maxLife = 50
+    applyGameModeModifiers(this)
     this.productionCooldown = 12000 // 12 seconds to train a soldier
   }
 
@@ -1290,6 +1321,7 @@ class Armory extends CombatBuilding {
     this.type = Building.TYPES.ARMORY
     this.life = 150
     this.maxLife = 150
+    applyGameModeModifiers(this)
     this.productionCooldown = 20000 // 20 seconds to train heavy infantry
   }
 
@@ -1323,6 +1355,7 @@ class Citadel extends CombatBuilding {
     this.type = Building.TYPES.CITADEL
     this.life = 250
     this.maxLife = 250
+    applyGameModeModifiers(this)
     this.productionCooldown = 30000 // 30 seconds to train an elite warrior
   }
 
@@ -1356,6 +1389,7 @@ class Market extends Building {
     this.type = Building.TYPES.MARKET
     this.life = 100
     this.maxLife = 100
+    applyGameModeModifiers(this)
     this.productionCooldown = 15000 // Sell every 15 seconds
     this.indicatorColor = 0xFFA500 // Orange color for market
     this.sellingResource = 'wood' // Default resource to sell

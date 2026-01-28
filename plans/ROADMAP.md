@@ -50,10 +50,10 @@ Details: The price of a building is based on the amount of buildings already bui
 
 - [x] **Classic Mode:** Standard gameplay with balanced combat and gathering.
 Details: Default game mode with normal unit and building health, standard resource gathering rates.
-- [ ] **One Shot Mode:** Every unit and building has exactly one life point. Any damage is fatal. *(Not Implemented)*
+- [x] **One Shot Mode:** Every unit and building has exactly one life point. Any damage is fatal.
 Details: Extreme difficulty mode where any damage is fatal. Requires careful positioning and strategic planning.
-- [ ] **Turbo Gathering Mode:** All resource gatherers work at significantly increased speed. *(Not Implemented)*
-Details: Accelerated resource gathering allows for rapid base expansion and army building. Focus on economic strategy.
+- [x] **Turbo Gathering Mode:** All resource gatherers work at significantly increased speed.
+Details: Accelerated resource gathering (5x faster) allows for rapid base expansion and army building. Focus on economic strategy.
 
 
 ## Upgrades and Power-ups

@@ -19,6 +19,32 @@ const PI = CONSTANTS.MATH.PI
 const TENT_REEVALUATION_COOLDOWN = CONSTANTS.UNITS.TENT_REEVALUATION_COOLDOWN
 const TERRAIN_TYPES = CONSTANTS.TERRAIN.TYPES
 
+/**
+ * Apply game mode modifiers to units
+ * @param {Unit} unit - The unit to modify
+ */
+function applyGameModeModifiers(unit) {
+  const gameMode = gameState.settings?.gameMode
+
+  if (gameMode === 'one-shot') {
+    // One Shot mode: all units have 1 HP
+    unit.life = 1
+    unit.maxLife = 1
+  } else if (gameMode === 'turbo-gathering') {
+    // Turbo Gathering mode: worker units gather 5x faster
+    // Multiply gathering rates by 5 (divides gathering time by 5)
+    if (unit.harvestRate) {
+      unit.harvestRate *= 5 // LumberjackWorker
+    }
+    if (unit.miningRate) {
+      unit.miningRate *= 5 // QuarryMiner and GoldMiner
+    }
+    if (unit.collectionRate) {
+      unit.collectionRate *= 5 // WaterCarrier
+    }
+  }
+}
+
 /*
 Class hierarchy
 
@@ -458,6 +484,7 @@ class WorkerUnit extends Unit {
     // Peon units have weaker stats but can collect resources
     this.life = 5
     this.maxLife = this.life // Set maxLife to initial life
+    applyGameModeModifiers(this)
     this.attack = 1
     this.range = 1 * getTileSize()
     this.speed = 1 // 1 tile per second
@@ -508,8 +535,8 @@ class LumberjackWorker extends WorkerUnit {
   constructor(x, y, owner) {
     super(x, y, owner)
     this.spriteName = 'human-worker-' + this.owner.getColor()
-    this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']  
-      
+    this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']
+
     // Specialized properties
     this.harvestRate = 0.2 // Wood per second
     this.maxResources = 1
@@ -519,6 +546,9 @@ class LumberjackWorker extends WorkerUnit {
     this.indicatorColor = 0x804729 // Brown for wood
 
     this.task = 'gathering'
+
+    // Apply game mode modifiers after setting rates
+    applyGameModeModifiers(this)
   }
 
   async handleTasks(delay, time) {
@@ -680,8 +710,8 @@ class QuarryMiner extends WorkerUnit {
   constructor(x, y, owner) {
     super(x, y, owner)
     this.spriteName = 'human-worker-' + this.owner.getColor()
-    this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']  
-    
+    this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']
+
     // Specialized properties
     this.miningRate = 0.2 // Stone per second
     this.maxResources = 1
@@ -692,6 +722,9 @@ class QuarryMiner extends WorkerUnit {
 
     this.task = 'mining'
     this.timeSinceLastTask = 0
+
+    // Apply game mode modifiers after setting rates
+    applyGameModeModifiers(this)
   }
 
   async handleTasks(delay, time) {
@@ -857,8 +890,8 @@ class WaterCarrier extends WorkerUnit {
   constructor(x, y, owner) {
     super(x, y, owner)
     this.spriteName = 'human-worker-' + this.owner.getColor()
-    this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']  
-    
+    this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']
+
     // Specialized properties
     this.collectionRate = 0.2 // Water per second
     this.maxResources = 1
@@ -870,6 +903,9 @@ class WaterCarrier extends WorkerUnit {
     this.task = 'collecting'
     this.timeSinceLastTask = 0
     this.waterSource = null
+
+    // Apply game mode modifiers after setting rates
+    applyGameModeModifiers(this)
   }
 
   async handleTasks(delay, time) {
@@ -1047,8 +1083,8 @@ class GoldMiner extends WorkerUnit {
   constructor(x, y, owner) {
     super(x, y, owner)
     this.spriteName = 'human-worker-' + this.owner.getColor()
-    this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']  
-    
+    this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']
+
     // Specialized properties
     this.miningRate = 0.2 // Gold per second
     this.maxResources = 1
@@ -1059,6 +1095,9 @@ class GoldMiner extends WorkerUnit {
 
     this.task = 'mining'
     this.timeSinceLastTask = 0
+
+    // Apply game mode modifiers after setting rates
+    applyGameModeModifiers(this)
   }
 
   async handleTasks(delay, time) {
@@ -1222,6 +1261,7 @@ class CombatUnit extends Unit {
     this.range = 0.75 * getTileSize()
     this.life = 10
     this.maxLife = this.life // Set maxLife to initial life
+    applyGameModeModifiers(this)
     this.speed = 1
     this.attack = 2
 
@@ -1471,8 +1511,17 @@ class CombatUnit extends Unit {
   levelUp() {
     this.level++
     this.attack *= 1.2
-    this.life *= 1.1
-    this.maxLife = this.life // Update maxLife when life increases
+
+    const gameMode = gameState.settings?.gameMode
+    if (gameMode === 'one-shot') {
+      // In one-shot mode, keep health at 1
+      this.life = 1
+      this.maxLife = 1
+    } else {
+      this.life *= 1.1
+      this.maxLife = this.life // Update maxLife when life increases
+    }
+
     this.experience = 0
 
     // console.log(`Unit level up !`, this)
@@ -1515,6 +1564,7 @@ class PeonSoldier extends MeleeUnit {
     this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']
     this.life = 5
     this.maxLife = this.life // Set maxLife to match life
+    applyGameModeModifiers(this)
     this.attack = 1
     this.speed = 1
   }
@@ -1532,6 +1582,7 @@ class Mage extends RangedUnit {
     this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']
     this.life = 8
     this.maxLife = this.life // Set maxLife to match life
+    applyGameModeModifiers(this)
     this.attack = 10
     this.speed = 0.9
   }
@@ -1547,6 +1598,7 @@ class Soldier extends MeleeUnit {
     this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']
     this.life = 12
     this.maxLife = this.life // Set maxLife to match life
+    applyGameModeModifiers(this)
     this.attack = 5
     this.speed = 0.925
   }
@@ -1564,6 +1616,7 @@ class HeavyInfantry extends MeleeUnit {
     this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']
     this.life = 40
     this.maxLife = this.life // Set maxLife to match life
+    applyGameModeModifiers(this)
     this.attack = 5
     this.range = 0.5 * getTileSize()
     this.speed = 0.8
@@ -1580,6 +1633,7 @@ class EliteWarrior extends MeleeUnit {
     this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']
     this.life = 25
     this.maxLife = this.life // Set maxLife to match life
+    applyGameModeModifiers(this)
     this.attack = 12
     this.speed = 0.85
   }
