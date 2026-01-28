@@ -7,7 +7,7 @@ import { getTileSize, initMapDimensions } from 'dimensions'
 import { initFogOfWar } from 'fogOfWar'
 import { gameLoop, initGame } from 'game'
 import { initHomeMenu } from 'menu'
-import { app, initCanvases, resizeCanvases } from 'renderer'
+import { app, containers, initCanvases, resizeCanvases } from 'renderer'
 import { loadSprites } from 'sprites'
 import gameState from 'state'
 import { initUI, showDebugMessage } from 'ui'
@@ -116,10 +116,22 @@ async function initializeGame() {
 
       
     } else if (status === 'menu') {
-      if(app?.canvas) app.canvas.style.opacity = 0.2
-
       // Remove the playing-mode class when returning to menu
       document.body.classList.remove('playing-mode')
+
+      // Clear the canvas renderer
+      if (app?.renderer) {
+        app.renderer.clear()
+      }
+
+      // Clear all containers to remove sprites
+      if (containers) {
+        Object.values(containers).forEach(container => {
+          if (container) {
+            container.removeChildren()
+          }
+        })
+      }
 
       // Clear game state
       gameState.map = null

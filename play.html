@@ -95,9 +95,48 @@
     body {
       /* Apply safe area padding */
       padding: var(--sat) var(--sar) var(--sab) var(--sal);
+      position: relative;
       /*background-image: url('assets/punyworld-overworld-tileset.png');
       background-size: 200px 200px;
       animation: backgroundPan 60s linear infinite;*/
+    }
+
+    body::before {
+      content: '';
+      position: absolute;
+      top: -10%;
+      left: -10%;
+      width: 120%;
+      height: 120%;
+      background-image: url('assets/screenshots/wallpaper.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      opacity: 0.25;
+      pointer-events: none;
+      animation: wallpaperDrift 35s ease-in-out infinite alternate;
+    }
+
+    @keyframes wallpaperDrift {
+      0% {
+        transform: translate(0, 0);
+      }
+      25% {
+        transform: translate(-8%, 0);
+      }
+      50% {
+        transform: translate(-8%, -8%);
+      }
+      75% {
+        transform: translate(0, -8%);
+      }
+      100% {
+        transform: translate(0, 0);
+      }
+    }
+
+    body.playing-mode::before {
+      display: none; /* Hide wallpaper during gameplay */
     }
 
     @keyframes backgroundPan {

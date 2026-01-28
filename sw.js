@@ -37,6 +37,7 @@ const CACHED_URLS = [
   'assets/logo_banner.svg',
   'assets/base_512_pixelated.png',
   'assets/punyworld-overworld-tileset.png',
+  'assets/screenshots/wallpaper.png',
   'assets/unitsSpritesDescription.json',
   'assets/fonts/Jacquarda-Bastarda-9.woff2',
   'assets/units/Character-Base.png',
