@@ -2,12 +2,34 @@
 
 ## Version {{version}}
 
-This is the first release of Pixel Fortress ! ✨
-
 ### New Features
-- Add CI to build artifacts and publish them on GitHub
-- Combat units are exploring the map to uncover fog of war until they find an enemy
-- Add a minimap displaying the world
-- Add an option to display health bar on damaged units
+- **Game Modes**: Three new gameplay modes - Classic, One Shot (1 HP units), and Turbo Gatherer (5x resource speed)
+- **Animated Water**: Fully animated water sprites with expanded tileset
+- **Huge Maps**: New "Huge" map size + billion possible seeds (1,000,000,000 unique maps!)
+- **Skirmish menu**: Rework the menu to implement a "Skirmish" mode
+- **Predefined Maps**: Preview and play curated maps
+
+### Performance
+- Optimized pathfinding logic to prevent spikes and unit freezes
+- Improved fog of war and progress indicator rendering
+
+### Bug Fixes
+- Fixed health bar display
+- Fixed so many bugs...
+
+---
+
+## Version 0.0.1
+
+This is the first release of Pixel Fortress ! ✨
+Already fully playable and ready for testing.
+
+### Features
+- **Landing Page**: Dedicated landing page at index.html, game at play.html
+- **CI/CD**: Automated builds for Windows and Linux (MacOS build is broken at this time)
+- **Minimap**: Overview of the entire game world
+- **Health Bars**: Optional health bar display on damaged units
+- **Fog of War**: Visibility system with explorer units
+- **Smart Map Generation**: Intelligent tent placement ensuring all seeds are valid
 
 Thank you for playing!
