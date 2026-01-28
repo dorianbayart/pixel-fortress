@@ -141,43 +141,46 @@ async function generateMapPreviewFromSeed(canvas, seed, size = 'medium', maxSize
     const originalSettings = { ...gameState.settings }
     const originalGameStatus = gameState.gameStatus
 
-    // Temporarily update settings for map generation
-    gameState.updateSettings({ mapSize: size })
-    gameState.mapSeed = seed
+    try {
+      // Temporarily update settings for map generation
+      gameState.updateSettings({ mapSize: size })
+      gameState.mapSeed = seed
 
-    initMapDimensions()
+      initMapDimensions()
 
-    // Generate the map
-    await generateMap()
+      // Get map dimensions
+      const { width: mapWidth, height: mapHeight } = getMapDimensions()
 
-    // Get map dimensions for this size
-    const { width: mapWidth, height: mapHeight } = getMapDimensions()
+      // Generate the map
+      await generateMap()
 
-    // Build terrain array from generated map
-    const terrain = []
-    for (let x = 0; x < mapWidth; x++) {
-      const column = []
-      for (let y = 0; y < mapHeight; y++) {
-        const tile = gameState.map[x][y]
-        if (!tile) {
-          column.push('GRASS') // fallback
-        } else {
-          column.push(tile.type)
+      // Extract terrain data from generated map
+      const terrain = []
+      for (let x = 0; x < mapWidth; x++) {
+        const column = []
+        for (let y = 0; y < mapHeight; y++) {
+          const tile = gameState.map[x]?.[y]
+          column.push(tile?.type || 'GRASS')
         }
+        terrain.push(column)
       }
-      terrain.push(column)
+
+      // Render the preview
+      renderMapPreview(canvas, terrain, { width: mapWidth, height: mapHeight }, maxSize)
+
+      return true
+    } finally {
+      // ALWAYS restore original game state in finally block to ensure cleanup
+      gameState.map = originalMap
+      gameState.mapSeed = originalMapSeed
+      gameState.updateSettings(originalSettings)
+      gameState.gameStatus = originalGameStatus
+
+      // Re-initialize dimensions to match restored settings
+      if (originalSettings.mapSize) {
+        initMapDimensions()
+      }
     }
-
-    // Restore original game state
-    gameState.map = originalMap
-    gameState.mapSeed = originalMapSeed
-    gameState.updateSettings(originalSettings)
-    gameState.gameStatus = originalGameStatus
-
-    // Render the preview
-    renderMapPreview(canvas, terrain, { width: mapWidth, height: mapHeight }, maxSize)
-
-    return true
   } catch (error) {
     console.error(`[Preview] ✗ Error generating map preview from seed ${seed}:`, error)
     console.error('[Preview] Error stack:', error.stack)
