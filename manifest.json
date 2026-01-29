@@ -24,6 +24,27 @@
   "name": "Pixel Fortress",
   "screenshots": [
     {
+      "form_factor": "wide",
+      "label": "Strategic base building and unit pathfinding gameplay",
+      "sizes": "1920x1080",
+      "src": "assets/screenshots/InGame_Screenshot_01_building-placement-paths.png",
+      "type": "image/png"
+    },
+    {
+      "form_factor": "wide",
+      "label": "Huge procedurally generated map exploration with large bases and resource management",
+      "sizes": "1920x1080",
+      "src": "assets/screenshots/InGame_Screenshot_02_big-maps.png",
+      "type": "image/png"
+    },
+    {
+      "form_factor": "wide",
+      "label": "Epic battles with numerous units engaging in automated combat",
+      "sizes": "1920x1080",
+      "src": "assets/screenshots/InGame_Screenshot_03_lots-of-units-going-battle.png",
+      "type": "image/png"
+    },
+    {
       "form_factor": "narrow",
       "label": "Title banner - Portrait view",
       "sizes": "1000x1800",

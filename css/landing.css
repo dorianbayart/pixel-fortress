@@ -77,7 +77,7 @@ body {
 
 /* Typography */
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-heading);
+  font-family: cursive;
   font-weight: normal;
   line-height: 1.2;
   margin-bottom: var(--spacing-sm);
@@ -85,6 +85,7 @@ h1, h2, h3, h4, h5, h6 {
 
 h1 {
   font-size: 3.5rem;
+  font-family: var(--font-heading);
 }
 
 h2 {
@@ -133,7 +134,7 @@ a:hover {
   z-index: 1000;
   background: linear-gradient(to bottom, rgba(26, 26, 26, 0.98), rgba(26, 26, 26, 0.95));
   backdrop-filter: blur(10px);
-  border-bottom: 2px solid var(--color-accent);
+  border-bottom: 3px solid var(--color-accent);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
@@ -342,7 +343,7 @@ a:hover {
 
 .github-star-link:hover {
   background: rgba(255, 215, 0, 0.2);
-  border-color: var(--color-accent);
+  border: 2px solid var(--color-accent);
   color: var(--color-text-light);
   transform: translateY(-2px);
   box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
@@ -372,7 +373,7 @@ a:hover {
 .btn-primary {
   background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
   color: var(--color-text-light);
-  border-color: var(--color-accent);
+  border: 2px solid var(--color-accent);
   box-shadow: var(--shadow-glow);
 }
 
@@ -385,7 +386,7 @@ a:hover {
 .btn-secondary {
   background: linear-gradient(135deg, var(--color-accent), var(--color-accent-dark));
   color: var(--color-bg-dark);
-  border-color: var(--color-accent);
+  border: 2px solid var(--color-accent);
   box-shadow: var(--shadow-glow);
 }
 
@@ -398,7 +399,7 @@ a:hover {
 .btn-steam {
   background: linear-gradient(135deg, #1b2838, #2a475e);
   color: var(--color-text-light);
-  border-color: var(--color-accent);
+  border: 2px solid var(--color-accent);
 }
 
 .btn-steam:hover {
@@ -410,7 +411,7 @@ a:hover {
 .btn-github {
   background: #24292e;
   color: var(--color-text-light);
-  border-color: var(--color-accent);
+  border: 2px solid var(--color-accent);
 }
 
 .btn-github:hover {
@@ -422,7 +423,7 @@ a:hover {
 .btn-outline {
   background: transparent;
   color: var(--color-accent);
-  border-color: var(--color-accent);
+  border: 2px solid var(--color-accent);
 }
 
 .btn-outline:hover {
@@ -447,6 +448,47 @@ a:hover {
 
 .preview-gallery {
   margin-top: var(--spacing-lg);
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-lg);
+}
+
+.preview-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.preview-screenshot {
+  display: block;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--color-accent);
+  box-shadow: var(--shadow-card);
+  transition: all var(--transition-normal);
+  background: var(--color-bg-darker);
+}
+
+.preview-screenshot:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: var(--shadow-glow-strong), var(--shadow-card);
+  border: 2px solid var(--color-accent);
+}
+
+.preview-screenshot img {
+  width: 100%;
+  height: auto;
+  display: block;
+  image-rendering: optimizequality;
+}
+
+.preview-caption {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1rem;
+  font-style: italic;
+  margin: 0;
+  padding: 0 var(--spacing-md);
 }
 
 .preview-placeholder {
@@ -497,7 +539,7 @@ a:hover {
 .feature-card:hover {
   transform: translateY(-8px);
   box-shadow: var(--shadow-glow-strong), var(--shadow-card);
-  border-color: var(--color-accent);
+  border: 2px solid var(--color-accent);
 }
 
 .feature-icon {
@@ -527,10 +569,10 @@ a:hover {
 
 .pricing-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
   gap: var(--spacing-lg);
   margin: var(--spacing-lg) 0;
-  max-width: 900px;
+  max-width: 950px;
   margin-left: auto;
   margin-right: auto;
 }
@@ -538,7 +580,7 @@ a:hover {
 .pricing-card {
   position: relative;
   background: linear-gradient(135deg, rgba(34, 139, 34, 0.1), rgba(26, 26, 26, 0.95));
-  border: 3px solid var(--color-accent);
+  border: 2px solid var(--color-accent);
   border-radius: var(--radius-lg);
   padding: var(--spacing-lg);
   text-align: center;
@@ -578,7 +620,7 @@ a:hover {
 
 .pricing-price {
   font-size: 3.5rem;
-  font-family: var(--font-heading);
+  font-family: cursive;
   color: var(--color-text-light);
   margin: var(--spacing-sm) 0;
   text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
@@ -753,7 +795,7 @@ a:hover {
 .platform-card:hover {
   transform: translateY(-8px);
   box-shadow: var(--shadow-glow-strong), var(--shadow-card);
-  border-color: var(--color-accent);
+  border: 2px solid var(--color-accent);
 }
 
 .platform-icon {
@@ -811,7 +853,7 @@ a:hover {
 }
 
 .faq-item:hover {
-  border-color: var(--color-accent);
+  border: 2px solid var(--color-accent);
   box-shadow: var(--shadow-glow);
 }
 
@@ -868,7 +910,7 @@ a:hover {
    ============================================ */
 .footer {
   background: var(--color-bg-darker);
-  border-top: 2px solid var(--color-accent);
+  border-top: 3px solid var(--color-accent);
   padding: var(--spacing-xl) 0 var(--spacing-md);
 }
 
@@ -976,7 +1018,7 @@ a:hover {
     background: rgba(26, 26, 26, 0.98);
     flex-direction: column;
     padding: var(--spacing-md);
-    border-bottom: 2px solid var(--color-accent);
+    border-bottom: 3px solid var(--color-accent);
     gap: var(--spacing-sm);
   }
 

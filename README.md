@@ -43,8 +43,24 @@
 
 **Campaign Mode (Planned):** Story-driven missions with unique objectives and challenges.
 
-**Multiplayer (Planned):** Online player-versus-player functionality is planned for a future release. 
+**Multiplayer (Planned):** Online player-versus-player functionality is planned for a future release.
 
+## 📸 Screenshots
+
+<p align="center">
+  <img src="assets/screenshots/InGame_Screenshot_01_building-placement-paths.png" alt="Base building and unit pathfinding" width="100%">
+  <em>Strategic base building and unit pathfinding gameplay</em>
+</p>
+
+<p align="center">
+  <img src="assets/screenshots/InGame_Screenshot_02_big-maps.png" alt="Large map exploration" width="100%">
+  <em>Huge procedurally generated map exploration with large bases and resource management</em>
+</p>
+
+<p align="center">
+  <img src="assets/screenshots/InGame_Screenshot_03_lots-of-units-going-battle.png" alt="Epic automated battles" width="100%">
+  <em>Epic battles with numerous units engaging in automated combat</em>
+</p>
 
 ## 💻 Technologies Used
 
