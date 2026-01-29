@@ -37,55 +37,95 @@ function applyGameModeModifiers(building) {
 
 /**
  * Finds the best available spawn location around a building.
+ * Calculates a path from the building to the target destination,
+ * then uses the first valid tile from that path as the spawn location.
  * @param {number} buildingX - The x-coordinate of the building.
  * @param {number} buildingY - The y-coordinate of the building.
- * @returns {Promise<{x: number, y: number}|null>} A promise that resolves to the best spawn location or null if none found.
+ * @param {number} targetX - The x-coordinate of the target destination.
+ * @param {number} targetY - The y-coordinate of the target destination.
+ * @returns {Promise<{x: number, y: number}|null>} A promise that resolves to the spawn location or null if none found.
  */
 async function findBestSpawnLocation(buildingX, buildingY, targetX, targetY) {
     const { width: MAP_WIDTH, height: MAP_HEIGHT } = getMapDimensions()
-    const potentialOffsets = [
-        /*{ dx: -1, dy: -1 },*/ { dx: 0, dy: -1 }, /*{ dx: 1, dy: -1 },*/
-        { dx: -1, dy: 0 },                     { dx: 1, dy: 0 },
-        /*{ dx: -1, dy: 1 },*/ { dx: 0, dy: 1 }, /*{ dx: 1, dy: 1 },*/
+
+    // Calculate path from building to target
+    const path = await searchPath(buildingX, buildingY, targetX, targetY)
+
+    if (!path || path.length === 0) {
+        // No path found, fallback to adjacent tiles
+        return findAdjacentWalkableTile(buildingX, buildingY)
+    }
+
+    // Try each tile in the path (starting from first step) until we find a valid spawn location
+    for (const tile of path) {
+        // Skip the building's own position
+        if (tile.x === buildingX && tile.y === buildingY) {
+            continue
+        }
+
+        // Check if this tile is valid for spawning
+        if (isValidSpawnTile(tile.x, tile.y, MAP_WIDTH, MAP_HEIGHT)) {
+            return { x: tile.x, y: tile.y }
+        }
+    }
+
+    // If no tile in path is valid, fallback to adjacent tiles
+    return findAdjacentWalkableTile(buildingX, buildingY)
+}
+
+/**
+ * Checks if a tile is valid for spawning a unit.
+ * @param {number} x - The x-coordinate of the tile.
+ * @param {number} y - The y-coordinate of the tile.
+ * @param {number} mapWidth - The width of the map.
+ * @param {number} mapHeight - The height of the map.
+ * @returns {boolean} True if the tile is valid for spawning.
+ */
+function isValidSpawnTile(x, y, mapWidth, mapHeight) {
+    // Check map boundaries
+    if (x < 0 || x >= mapWidth || y < 0 || y >= mapHeight) {
+        return false
+    }
+
+    const tile = gameState.map[x][y]
+
+    // Check if the tile is walkable and not occupied
+    return tile &&
+        tile.type !== TERRAIN_TYPES.WATER.type &&
+        tile.type !== TERRAIN_TYPES.ROCK.type &&
+        tile.type !== TERRAIN_TYPES.GOLD.type &&
+        tile.type !== TERRAIN_TYPES.TREE.type &&
+        !tile.building
+}
+
+/**
+ * Finds any adjacent walkable tile as a fallback.
+ * @param {number} x - The x-coordinate of the center tile.
+ * @param {number} y - The y-coordinate of the center tile.
+ * @returns {{x: number, y: number}|null} An adjacent walkable tile or null if none found.
+ */
+function findAdjacentWalkableTile(x, y) {
+    const { width: MAP_WIDTH, height: MAP_HEIGHT } = getMapDimensions()
+
+    // Check cardinal directions (N, S, E, W)
+    const adjacentOffsets = [
+        { dx: 0, dy: -1 },  // North
+        { dx: 0, dy: 1 },   // South
+        { dx: -1, dy: 0 },  // West
+        { dx: 1, dy: 0 }    // East
     ]
 
-    const validLocations = []
+    for (const offset of adjacentOffsets) {
+        const newX = x + offset.dx
+        const newY = y + offset.dy
 
-    for (const offset of potentialOffsets) {
-        const newX = buildingX + offset.dx
-        const newY = buildingY + offset.dy
-
-        // Check map boundaries
-        if (newX >= 0 && newX < MAP_WIDTH && newY >= 0 && newY < MAP_HEIGHT) {
-            const tile = gameState.map[newX][newY]
-
-            // Check if the tile is walkable and not occupied by a resource or building
-            if (tile &&
-                tile.type !== TERRAIN_TYPES.WATER.type &&
-                tile.type !== TERRAIN_TYPES.ROCK.type &&
-                tile.type !== TERRAIN_TYPES.GOLD.type &&
-                tile.type !== TERRAIN_TYPES.TREE.type &&
-                !tile.building) {
-                validLocations.push({ x: newX, y: newY })
-            }
+        if (isValidSpawnTile(newX, newY, MAP_WIDTH, MAP_HEIGHT)) {
+            return { x: newX, y: newY }
         }
     }
 
-    const pathPromises = validLocations.map(loc => searchPath(loc.x, loc.y, targetX, targetY))
-    const paths = await Promise.all(pathPromises)
-
-    let bestLocation = null
-    let shortestPathLength = Infinity
-
-    for (let i = 0; i < validLocations.length; i++) {
-        const path = paths[i]
-        if (path && path.length > 0 && path.length < shortestPathLength) {
-            shortestPathLength = path.length
-            bestLocation = validLocations[i]
-        }
-    }
-
-    return bestLocation
+    // no adjacent walkable tile found - fallback to the building tile itself
+    return { x: x, y: y }
 }
 
 
