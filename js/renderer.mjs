@@ -355,7 +355,6 @@ async function recreateRenderer() {
   initParticleSystem()
   initMinimap(containers.ui)
   resetFogTexture()  // Reset fog texture before reinitializing
-  initFogOfWar()  // Reinitialize fog of war
 
   // Update CSS rendering
   updateCanvasRendering(useAntialiasing)
@@ -381,6 +380,13 @@ async function recreateRenderer() {
       gameState.UI.mouse.viewTransform.y = savedViewTransform.y
       gameState.UI.mouse.viewTransform.scale = savedViewTransform.scale
     }
+  }
+
+  // Initialize fog of war AFTER mouse and view transform are restored
+  // This ensures the fog container is positioned correctly from the start
+  // Only initialize if fog of war is enabled in settings
+  if (gameState.settings?.fogOfWar) {
+    initFogOfWar()
   }
 
   // Emit event to notify that renderer was recreated (UI will be recreated via event listener)
