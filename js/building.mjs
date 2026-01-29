@@ -153,6 +153,7 @@ class Building {
             benefits: { life: 25, maxWorkers: 1 } // +25 life, +1 worker
           },
           description: "Harvests wood from nearby trees",
+          details: "Should be placed next to trees.",
           sprite_coords: {
             cyan: { x: 5, y: 33 },
             red: { x: 15, y: 33 },
@@ -167,6 +168,7 @@ class Building {
             benefits: { life: 25, productionSpeed: 10 } // +25 life, 10% faster
           },
           description: "Mines gold",
+          details: "Must be placed on gold ore.",
           sprite_coords: {
             cyan: { x: 6, y: 33 },
             red: { x: 16, y: 33 },
@@ -181,6 +183,7 @@ class Building {
             benefits: { life: 25, productionSpeed: 10 } // +25 life, 10% faster
           },
           description: "Extracts stone",
+          details: "Must be placed on rock.",
           sprite_coords: {
             cyan: { x: 6, y: 33 },
             red: { x: 16, y: 33 },
@@ -195,6 +198,7 @@ class Building {
             benefits: { life: 25, maxWorkers: 1 } // +25 life, +1 worker
           },
           description: "Produces water",
+          details: "Must be placed next to water.",
           sprite_coords: {
             cyan: { x: 4, y: 37 },
             red: { x: 14, y: 37 },
@@ -209,6 +213,7 @@ class Building {
             benefits: { life: 50, productionSpeed: 10 } // +50 life, 10% faster production
           },
           description: "Trains soldiers",
+          details: "Soldier is basic and versatile.",
           sprite_coords: {
             cyan: { x: 5, y: 34 },
             red: { x: 15, y: 34 },
@@ -223,6 +228,7 @@ class Building {
             benefits: { life: 75, productionSpeed: 10 } // +75 life, 10% faster production
           },
           description: "Trains heavy infantry",
+          details: "Heavy infantry is strong but slow.",
           sprite_coords: {
             cyan: { x: 7, y: 33 },
             red: { x: 17, y: 33 },
@@ -237,6 +243,7 @@ class Building {
             benefits: { life: 100, productionSpeed: 10 } // +100 life, 10% faster production
           },
           description: "Trains elite warriors",
+          details: "Elite warrior has high attack power.",
           sprite_coords: {
             cyan: { x: 8, y: 35 },
             red: { x: 18, y: 35 },
@@ -251,6 +258,7 @@ class Building {
             benefits: { life: 50, sellingPrice: 1 } // +50 life, +1 selling price
           },
           description: "Sell resources against money",
+          details: "Automatic exchange of resources for money.",
           sprite_coords: {
             cyan: { x: 5, y: 35 },
             red: { x: 15, y: 35 },
@@ -265,6 +273,7 @@ class Building {
             benefits: { life: 50, productionSpeed: 10 } // +50 life, 10% faster production
           },
           description: "Produces peons",
+          details: "Work work !",
           sprite_coords: {
             cyan: { x: 4, y: 33 },
             red: { x: 14, y: 33 },

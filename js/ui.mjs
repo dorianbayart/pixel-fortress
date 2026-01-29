@@ -730,7 +730,30 @@ async function displayBuildingInfo(building) {
   descText.position.set(currentX, padding + nameText.height + 5)
   bottomBarContainer.addChild(descText)
 
-  currentX += Math.max(nameText.width, descText.width) * 1.4
+  // Building Details (if present)
+  let detailsText = null
+  if (building.type.details) {
+    fontSize = 12
+    detailsText = new PIXI.Text({
+      text: building.type.details,
+      style: {
+        fontFamily: UI_FONTS.PRIMARY,
+        fontSize: fontSize,
+        fill: 0xCCCCCC,
+        fontStyle: 'italic',
+        padding: fontSize * building.type.details.length / 2,
+      }
+    })
+    detailsText.position.set(currentX, padding + nameText.height + descText.height + 8)
+    bottomBarContainer.addChild(detailsText)
+  }
+
+  const maxTextWidth = Math.max(
+    nameText.width,
+    descText.width,
+    detailsText ? detailsText.width : 0
+  )
+  currentX += maxTextWidth * 1.4
 
   // Life/MaxLife
   fontSize = 14
@@ -1314,7 +1337,20 @@ function createBuildingTooltip() {
   })
   descText.position.set(64, 48)
   tooltipContainer.addChild(descText)
-  
+
+  const detailsText = new PIXI.Text({
+    text: "",
+    style: {
+      fontFamily: UI_FONTS.PRIMARY,
+      fontSize: 11,
+      fill: 0xCCCCCC,
+      fontStyle: 'italic',
+      padding: 40
+    }
+  })
+  detailsText.position.set(64, 66)
+  tooltipContainer.addChild(detailsText)
+
   const costTitle = new PIXI.Text({
     text: "Costs:",
     style: {
@@ -1336,15 +1372,25 @@ function createBuildingTooltip() {
 // Update the tooltip with building information
 async function updateTooltip(building) {
   if (!tooltipContainer) return
-  
+
   const titleText = tooltipContainer.getChildAt(1)
   const iconContainer = tooltipContainer.getChildAt(2)
   const descText = tooltipContainer.getChildAt(3)
-  const costContainer = tooltipContainer.getChildAt(5)
-  
+  const detailsText = tooltipContainer.getChildAt(4)
+  const costContainer = tooltipContainer.getChildAt(6)
+
   // Update text content
   titleText.text = building.name
   descText.text = building.description
+
+  // Update details text if present
+  if (building.details) {
+    detailsText.text = building.details
+    detailsText.visible = true
+  } else {
+    detailsText.text = ""
+    detailsText.visible = false
+  }
   
   // Clear previous cost items
   while (costContainer.children.length > 0) {
