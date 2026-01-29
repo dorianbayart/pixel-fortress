@@ -173,7 +173,7 @@ class Unit {
       this.goalReached(delay, time)
       this.timeSinceLastTask = 0
     }
-    
+
     this.updateMovement(delay, time)
   }
 
@@ -225,21 +225,24 @@ class Unit {
 
     // If goal is a unit (has currentNode), add buffer for unit-to-unit interaction
     if (this.goal.currentNode) {
-      return baseRange + 0.35 // Add buffer so melee units can attack adjacent units
+      return baseRange + 0.35 // Add small buffer so melee units can attack adjacent units
     }
 
     // If goal is a building (has uid property - Building instances have this)
     if (this.goal.uid !== undefined) {
-      // For Quarry and Gold Mine, workers go inside the building (they get hidden)
-      // Use very small range to force workers to walk onto the building tile
+      // For combat units, use their actual attack range with buffer for diagonal attacks
+      if (this instanceof CombatUnit) {
+        return baseRange + 0.35 // Add buffer to allow attacking from diagonal adjacent positions (~1.41 tiles)
+      }
+
+      // For workers: different ranges depending on building type
       const buildingType = this.goal.type
       if (buildingType === Building.TYPES.QUARRY ||
           buildingType === Building.TYPES.GOLD_MINE) {
         return baseRange // Very small range - forces worker to walk onto building
       }
 
-      // For other buildings (Lumberjack, Well), workers work from adjacent tiles
-      // Use range that allows orthogonal adjacency but not diagonal
+      // For other buildings (Lumberjack, Well), workers work from orthogonally adjacent tiles only
       return 1.05 // Allows distance ~1.0 (orthogonal adjacent) but not ~1.41 (diagonal)
     }
 
@@ -1327,26 +1330,23 @@ class CombatUnit extends Unit {
     }
 
     // If we have a goal and are within range, check if it's an enemy to attack
-    if (this.goal && this.isAtGoal()) {
-      // Only set task to 'attack' if the goal is an enemy (has life property)
-      if (this.goal.life !== undefined) {
+    // Simple task management based on current state
+    if (this.goal && this.goal.life !== undefined) {
+      // We have an enemy target (unit or building)
+      if (this.isAtGoal()) {
         this.task = 'attack'
-      } else if (this.task === 'explore') {
-        // If exploring and reached goal, stay in explore mode to find next goal
-        this.task = 'explore'
       } else {
-        this.task = 'idle'
+        this.task = 'moving'
       }
-    } else if (this.goal && this.path) {
-      // If we have a goal and a path, and not attacking, we are moving (either to enemy or to explore)
-      if (this.task !== 'attack') {
-        this.task = this.task === 'explore' ? 'explore' : 'moving'
-      }
+    } else if (this.goal && this.task === 'explore') {
+      // Exploration mode
+      this.task = 'explore'
+    } else if (!this.goal) {
+      // No goal
+      this.task = 'idle'
     } else {
-      // If no goal or path, and not already exploring, go idle
-      if (this.task !== 'explore') {
-        this.task = 'idle'
-      }
+      // Has goal but not an enemy (shouldn't happen for combat units)
+      this.task = 'moving'
     }
   }
 
