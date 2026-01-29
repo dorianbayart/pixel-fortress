@@ -186,6 +186,10 @@ function setupEventListeners() {
       case 'd':
         toggleDebug()
         break
+      case 'h':
+        gameState.showHealthBars = !gameState.showHealthBars
+        showDebugMessage(`Health bars ${gameState.showHealthBars ? 'enabled' : 'disabled'}`)
+        break
       case 'u':
         if (gameState.selectedBuilding && gameState.humanPlayer.canAffordUpgrade(gameState.selectedBuilding)) {
           gameState.selectedBuilding.handleBuildingUpgrade()
