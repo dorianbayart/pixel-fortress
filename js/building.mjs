@@ -753,8 +753,8 @@ class Lumberjack extends WorkerBuilding {
         // Sort by geometric distance
         this.treeProcessingQueue.sort((a, b) => a.geoDist - b.geoDist)
 
-        // Initialize the tree list
-        this.nearbyTrees = []
+        // Build new list in temporary array (keep old list available)
+        this.tempNearbyTrees = []
 
         // Process trees in background
         if (this.treeProcessingQueue.length > 0) {
@@ -768,7 +768,7 @@ class Lumberjack extends WorkerBuilding {
      * Sort trees by path quality and limit the number stored
      */
     sortTreesByPathQuality() {
-        this.nearbyTrees.sort((a, b) => {
+        this.tempNearbyTrees.sort((a, b) => {
             // First compare by path weight
             if (a.pathWeight !== b.pathWeight) {
                 return a.pathWeight - b.pathWeight
@@ -776,10 +776,10 @@ class Lumberjack extends WorkerBuilding {
             // Then by path distance as a tiebreaker
             return a.pathDistance - b.pathDistance
         });
-        
+
         // Limit to 10 trees max to avoid memory issues
-        if (this.nearbyTrees.length > 10) {
-            this.nearbyTrees = this.nearbyTrees.slice(0, 10)
+        if (this.tempNearbyTrees.length > 10) {
+            this.tempNearbyTrees = this.tempNearbyTrees.slice(0, 10)
         }
     }
 
@@ -787,15 +787,24 @@ class Lumberjack extends WorkerBuilding {
      * Process next tree in the queue without blocking the main thread
      */
     async processNextTreeInQueue() {
-        // If building is destroyed or no more trees to process, stop
-        if (!this.owner || this.life <= 0 || this.treeProcessingQueue.length === 0) {
+        // If building is destroyed, stop
+        if (!this.owner || this.life <= 0) {
             this.treeProcessingInProgress = false
             this.treeProcessingQueue = []
             return
         }
 
-        const startX = this.assignedWorkers[0]?.currentNode?.x ?? this.x
-        const startY = this.assignedWorkers[0]?.currentNode?.y ?? this.y
+        // If no more trees to process, finalize
+        if (this.treeProcessingQueue.length === 0) {
+            this.treeProcessingInProgress = false
+            // Swap the completed list
+            this.nearbyTrees = this.tempNearbyTrees
+            this.tempNearbyTrees = []
+            return
+        }
+
+        const startX = this.x
+        const startY = this.y
 
         const batchPromises = []
         const treesToProcess = []
@@ -812,7 +821,7 @@ class Lumberjack extends WorkerBuilding {
         paths.forEach((path, index) => {
             const tree = treesToProcess[index]
             if (path?.length > 0) {
-                this.nearbyTrees.push({
+                this.tempNearbyTrees.push({
                     x: tree.x,
                     y: tree.y,
                     pathDistance: path.length,
@@ -834,9 +843,20 @@ class Lumberjack extends WorkerBuilding {
      * @returns {Object|null} The next tree to harvest or null if none available
      */
     getNextHarvestableTree() {
-        // Return the first valid tree in the list
+        // Get list of trees already assigned to other workers from this hut
+        // Check assignedTree, not goal (goal changes to building when returning)
+        const assignedTrees = this.assignedWorkers
+            .filter(w => w instanceof LumberjackWorker && w.assignedTree)
+            .map(w => ({ x: w.assignedTree.x, y: w.assignedTree.y }))
+
+        // Return the first valid tree that's not already assigned
         for (let i = 0; i < this.nearbyTrees?.length; i++) {
             const tree = this.nearbyTrees[i]
+
+            // Check if tree is already assigned to another worker
+            const isAssigned = assignedTrees.some(t => t.x === tree.x && t.y === tree.y)
+            if (isAssigned) continue
+
             // Verify the tree still exists and harvestable
             if (gameState.map[tree.x][tree.y].type === 'TREE' && gameState.map[tree.x][tree.y].resource > 0) {
                 return tree

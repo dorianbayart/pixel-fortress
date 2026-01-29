@@ -544,6 +544,7 @@ class LumberjackWorker extends WorkerUnit {
     this.harvestRate = 0.2 // Wood per second
     this.maxResources = 1
     this.assignedBuilding = null // Reference to lumberjack building
+    this.assignedTree = null // Remember which tree this worker is harvesting
 
     this.showProgressIndicator = true
     this.indicatorColor = 0x804729 // Brown for wood
@@ -606,13 +607,43 @@ class LumberjackWorker extends WorkerUnit {
   async findTreeToHarvest(time) {
     if (this.goal) return
 
-    // Get a tree from the assigned building's list
+    // First check if we have an assigned tree that still has resources
+    if (this.assignedTree) {
+      const tree = gameState.map[this.assignedTree.x]?.[this.assignedTree.y]
+      if (tree?.type === 'TREE' && tree?.resource > 0) {
+        // Continue with our assigned tree
+        this.goal = this.assignedTree
+        this.lastPathUpdate = time
+        this.path = await searchPath(this.currentNode.x, this.currentNode.y, this.assignedTree.x, this.assignedTree.y)
+
+        if (!this.path) {
+          this.goal = null
+          this.assignedTree = null
+        }
+        return
+      } else {
+        // Our assigned tree is gone, clear it
+        this.assignedTree = null
+      }
+    }
+
+    // Get a new tree from the assigned building's list
     const tree = this.assignedBuilding?.getNextHarvestableTree()
 
     if (tree) {
+      // Remember this tree for future trips
+      this.assignedTree = tree
+
+      // Set goal immediately to prevent other workers from claiming this tree
+      this.goal = tree
       this.lastPathUpdate = time
       this.path = await searchPath(this.currentNode.x, this.currentNode.y, tree.x, tree.y)
-      if (this.path) this.goal = tree
+
+      // If pathfinding failed, clear the goal
+      if (!this.path) {
+        this.goal = null
+        this.assignedTree = null
+      }
     } else {
       // No tree found, stay idle
       this.task = 'idle'
@@ -660,7 +691,8 @@ class LumberjackWorker extends WorkerUnit {
         this.path = null
       }
     } else {
-      // Tree is no longer valid, find a new one
+      // Tree is no longer valid, clear assignment
+      this.assignedTree = null
       this.goal = null
       this.path = null
     }
@@ -675,9 +707,12 @@ class LumberjackWorker extends WorkerUnit {
     gameState.map[tree.x][tree.y].type = 'DEPLETED_TREE'
     gameState.map[tree.x][tree.y].weight = TERRAIN_TYPES.GRASS.weight
     updateMapInWorker()
-    
+
     updateSprite(tree.x, tree.y)
-    
+
+    // Clear our assigned tree since it's depleted
+    this.assignedTree = null
+
     // Remove from lumberjack's tree list if applicable
     if (this.assignedBuilding) {
         this.assignedBuilding.removeTree(tree)
