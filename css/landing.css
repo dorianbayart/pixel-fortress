@@ -858,7 +858,7 @@ a:hover {
 }
 
 .faq-answer p {
-  padding: 0 var(--spacing-md) var(--spacing-md);
+  padding: var(--spacing-md);
   color: rgba(255, 255, 255, 0.85);
   line-height: 1.8;
 }
