@@ -390,26 +390,31 @@ class Building {
    */
   update(delay) {
     if(this.life <= 0) {
-      gameState.map[this.x][this.y].uid = null
-      gameState.map[this.x][this.y].weight = TERRAIN_TYPES.GRASS.weight
-      gameState.map[this.x][this.y].type = TERRAIN_TYPES.GRASS.type
-      gameState.map[this.x][this.y].building = undefined
-      gameState.map[this.x][this.y].sprite.destroy()
-      gameState.map[this.x][this.y].sprite = undefined
-      // Assign a Grass sprite to the cell
-      const terrainType = TERRAIN_TYPES.GRASS
-      const spriteX = Math.floor(Math.random() * 
-              (terrainType.spriteRange.x[1] - terrainType.spriteRange.x[0] + 1)) + 
-              terrainType.spriteRange.x[0]
-      const spriteY = Math.floor(Math.random() * 
-              (terrainType.spriteRange.y[1] - terrainType.spriteRange.y[0] + 1)) + 
-              terrainType.spriteRange.y[0]
-      gameState.map[this.x][this.y].sprite = sprites[`tile_${spriteX}_${spriteY}`]
+      const tile = gameState.map[this.x][this.y]
 
-      updateMapInWorker()
+      // Save reference to building sprite to destroy it later
+      const buildingSprite = tile.sprite
 
+      // Restore original terrain
+      tile.sprite = tile.originalSprite
+      tile.type = tile.originalType
+      tile.weight = tile.originalWeight
+      tile.back = tile.originalBack
+
+      tile.originalSprite = undefined
+      tile.originalType = undefined
+      tile.originalWeight = undefined
+      tile.originalBack = undefined
+
+      // Destroy the building sprite after restoration is complete
+      tile.building = undefined
+      if (buildingSprite && buildingSprite !== tile.sprite) {
+        buildingSprite.destroy()
+      }
       // Cleanup
       this.destroy()
+
+      updateMapInWorker()
 
       // Create destroyed particles
       createParticleEmitter(ParticleEffect.UNIT_DEATH, {
@@ -423,11 +428,13 @@ class Building {
   }
 
   static create(buildingType, x, y, color, owner) {
-    // Store the original terrain sprite as background if it's grass or sand
-    if (['GRASS', 'SAND'].includes(gameState.map[x][y].type)) {
-      // Save the original sprite as background before replacing it
-      gameState.map[x][y].back = gameState.map[x][y].sprite;
-    }
+    const tile = gameState.map[x][y]
+
+    // Save original terrain
+    tile.originalSprite = tile.sprite
+    tile.originalType = tile.type
+    tile.originalWeight = tile.weight
+    tile.originalBack = tile.back
     
     let building
     switch (buildingType) {
