@@ -8,6 +8,11 @@
 - **Huge Maps**: New "Huge" map size + billion possible seeds (1,000,000,000 unique maps!)
 - **Skirmish menu**: Rework the menu to implement a "Skirmish" mode
 - **Predefined Maps**: Preview and play curated maps
+- **High Quality Parameter**: Add a High Quality parameter for very fine resolution
+
+### Optimizations
+- **Exploration**: Unexplored tiles are now carefully choosen, let's reveal the map !
+- **Wood harvest**: Trees selection is more efficient
 
 ### Performance
 - Optimized pathfinding logic to prevent spikes and unit freezes
