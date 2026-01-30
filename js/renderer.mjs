@@ -76,6 +76,14 @@ let viewport = {
   buffer: 2
 }
 
+// Last viewport state for dirty tracking (optimization)
+let lastViewportCheck = {
+  x: 0,
+  y: 0,
+  width: 0,
+  height: 0
+}
+
 
 
 /**
@@ -103,6 +111,12 @@ async function initCanvases() {
       canvas: document.getElementById('canvas'),
       roundPixels: true,  // Always keep true to prevent gaps between tiles
       preference: 'webgl',  // Force WebGL for best performance
+      // Garbage collection configuration (PixiJS 8.15.0+)
+      gc: {
+        gcActive: true,
+        gcMaxUnusedTime: 3600,  // Keep unused resources longer (default: 60 seconds)
+        gcFrequency: 600        // Run GC less frequently (default: 60 frames)
+      }
     })
 
     // Log renderer information
@@ -210,6 +224,11 @@ async function initCanvases() {
   healthBarMap.clear()
   // Clean up indicators
   indicatorMap.clear()
+  // Reset viewport check state
+  lastViewportCheck.x = 0
+  lastViewportCheck.y = 0
+  lastViewportCheck.width = 0
+  lastViewportCheck.height = 0
 }
 
 /**
@@ -306,6 +325,12 @@ async function recreateRenderer() {
     antialias: useAntialiasing,
     roundPixels: true,  // Always keep true to prevent gaps between tiles
     preference: 'webgl',  // Force WebGL for best performance
+    // Garbage collection configuration (PixiJS 8.15.0+)
+    gc: {
+      gcActive: true,
+      gcMaxUnusedTime: 3600,  // Keep unused resources longer (default: 60 seconds)
+      gcFrequency: 600        // Run GC less frequently (default: 60 frames)
+    }
   })
 
   // Log renderer information
@@ -426,10 +451,29 @@ function resizeCanvases() {
 }
 
 /**
+ * Check if viewport has changed significantly enough to warrant sprite cleanup
+ * Only run expensive sprite map iteration when viewport moves significantly
+ *
+ * @returns {boolean} - True if viewport changed significantly
+ */
+function hasViewportChangedSignificantly() {
+  // Threshold in tiles - only check if viewport moved 5+ tiles or resized
+  const MOVEMENT_THRESHOLD = 5
+
+  const moved = Math.abs(viewport.x - lastViewportCheck.x) > MOVEMENT_THRESHOLD ||
+                Math.abs(viewport.y - lastViewportCheck.y) > MOVEMENT_THRESHOLD
+
+  const resized = viewport.width !== lastViewportCheck.width ||
+                  viewport.height !== lastViewportCheck.height
+
+  return moved || resized
+}
+
+/**
  * Update the viewport data based on current camera position and zoom
  * This determines which portions of the map need to be rendered
  * and calculates the visibility boundaries with buffer for smooth scrolling
- * 
+ *
  * @param {Object} viewTransform - Camera transform information containing:
  *   @param {number} viewTransform.scale - Current zoom level
  *   @param {number} viewTransform.x - X offset of the viewport
@@ -439,18 +483,18 @@ function updateViewport(viewTransform) {
   const { width, height } = getMapDimensions()
   const SPRITE_SIZE = getTileSize()
   const scale = viewTransform.scale
-  
+
   // Calculate visible area in world coordinates
   viewport.x = Math.max(0, viewTransform.x / SPRITE_SIZE | 0)
   viewport.y = Math.max(0, viewTransform.y / SPRITE_SIZE | 0)
-  
+
   // Calculate visible viewport size in tiles
   viewport.width = Math.ceil(app.renderer.width / (SPRITE_SIZE * scale))
   viewport.height = Math.ceil(app.renderer.height / (SPRITE_SIZE * scale))
-  
+
   // Add buffer area for smoother scrolling
-  // Increase buffer for larger maps to reduce re-rendering frequency
-  viewport.buffer = Math.max(4, Math.ceil(Math.min(viewport.width, viewport.height) * 0.1))
+  // Clamp buffer to prevent rendering too many tiles when zoomed out
+  viewport.buffer = 4
 
   // Calculate boundaries with buffer
   viewport.startX = Math.max(0, viewport.x - viewport.buffer)
@@ -760,50 +804,74 @@ function drawBackground(map) {
     }
   }
 
-  // Define extended viewport for memory management
-  const extendedBuffer = viewport.buffer * 3
-  const farStartX = Math.max(0, viewport.x - extendedBuffer)
-  const farStartY = Math.max(0, viewport.y - extendedBuffer)
-  const farEndX = Math.min(width, viewport.x + viewport.width + extendedBuffer)
-  const farEndY = Math.min(height, viewport.y + viewport.height + extendedBuffer)
+  // Only run expensive sprite cleanup when viewport changes significantly (dirty tracking optimization)
+  const shouldCleanup = hasViewportChangedSignificantly()
 
-  // Hide or remove background sprites outside viewport
-  for (const [key, sprite] of backgroundSpriteMap.entries()) {
-      if (!visibleBackgroundSprites.has(key)) {
-          const y = Math.floor(key / 10 / width)
-          const x = (key / 10) % width
-          
-          if (x < farStartX || x >= farEndX || y < farStartY || y >= farEndY) {
-              containers.background.removeChild(sprite)
-              backgroundSpriteMap.delete(key)
-          } else {
-              sprite.visible = false
-          }
-      }
-  }
-  
-  // Hide or remove world object sprites outside viewport
-  for (const [key, sprite] of worldObjectSpriteMap.entries()) {
-      if (!visibleWorldObjectSprites.has(key)) {
-          // Retrieve the building object using its UID (the key)
-          const building = gameState.humanPlayer.getBuildings().find(b => b.uid === key) || gameState.aiPlayers.flatMap(ai => ai.getBuildings()).find(b => b.uid === key)
-          
-          if (building) {
-              const x = building.x
-              const y = building.y
-              
-              if (x < farStartX || x >= farEndX || y < farStartY || y >= farEndY) {
-                  containers.world.removeChild(sprite)
-                  worldObjectSpriteMap.delete(key)
-              } else {
-                  sprite.visible = false
-              }
-          } else {
-              // If building object not found, remove the sprite (e.g., building was destroyed)
-              containers.world.removeChild(sprite)
-              worldObjectSpriteMap.delete(key)
-          }
-      }
+  if (shouldCleanup) {
+    // Update last viewport check state
+    lastViewportCheck.x = viewport.x
+    lastViewportCheck.y = viewport.y
+    lastViewportCheck.width = viewport.width
+    lastViewportCheck.height = viewport.height
+
+    // Define extended viewport for memory management
+    const extendedBuffer = viewport.buffer * 3
+    const farStartX = Math.max(0, viewport.x - extendedBuffer)
+    const farStartY = Math.max(0, viewport.y - extendedBuffer)
+    const farEndX = Math.min(width, viewport.x + viewport.width + extendedBuffer)
+    const farEndY = Math.min(height, viewport.y + viewport.height + extendedBuffer)
+
+    // Hide or remove background sprites outside viewport
+    for (const [key, sprite] of backgroundSpriteMap.entries()) {
+        if (!visibleBackgroundSprites.has(key)) {
+            const y = Math.floor(key / 10 / width)
+            const x = (key / 10) % width
+
+            if (x < farStartX || x >= farEndX || y < farStartY || y >= farEndY) {
+                containers.background.removeChild(sprite)
+                backgroundSpriteMap.delete(key)
+            } else {
+                sprite.visible = false
+            }
+        }
+    }
+
+    // Hide or remove world object sprites outside viewport
+    for (const [key, sprite] of worldObjectSpriteMap.entries()) {
+        if (!visibleWorldObjectSprites.has(key)) {
+            // Retrieve the building object using its UID (the key)
+            const building = gameState.humanPlayer.getBuildings().find(b => b.uid === key) || gameState.aiPlayers.flatMap(ai => ai.getBuildings()).find(b => b.uid === key)
+
+            if (building) {
+                const x = building.x
+                const y = building.y
+
+                if (x < farStartX || x >= farEndX || y < farStartY || y >= farEndY) {
+                    containers.world.removeChild(sprite)
+                    worldObjectSpriteMap.delete(key)
+                } else {
+                    sprite.visible = false
+                }
+            } else {
+                // If building object not found, remove the sprite (e.g., building was destroyed)
+                containers.world.removeChild(sprite)
+                worldObjectSpriteMap.delete(key)
+            }
+        }
+    }
+  } else {
+    // Fast path: Just hide non-visible sprites without position calculations or removal
+    for (const [key, sprite] of backgroundSpriteMap.entries()) {
+        if (!visibleBackgroundSprites.has(key)) {
+            sprite.visible = false
+        }
+    }
+
+    for (const [key, sprite] of worldObjectSpriteMap.entries()) {
+        if (!visibleWorldObjectSprites.has(key)) {
+            sprite.visible = false
+        }
+    }
   }
 
   // Debug: draw unit paths
