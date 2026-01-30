@@ -1309,6 +1309,7 @@ class CombatUnit extends Unit {
     this.level = 1
 
     this.task = 'idle' // 'idle', 'attack', 'explore'
+    this.lastExplorationUpdate = 0 // Track when exploration path was last updated
   }
 
   async handleTasks(delay, time) {
@@ -1333,9 +1334,42 @@ class CombatUnit extends Unit {
       }
     }
 
+    // Quick enemy detection for explorers: immediately switch to combat if enemy in visibility range
+    // This prevents explorers from ignoring nearby enemies during the 15s exploration cooldown
+    if (this.task === 'explore') {
+      const visibilityRangeInTiles = this.visibilityRange / getTileSize()
+      const nearbyEnemy = this.findNearbyEnemy(this.currentNode, visibilityRangeInTiles)
+      if (nearbyEnemy) {
+        // Enemy spotted! Immediately switch to combat mode
+        this.goal = nearbyEnemy
+        this.path = null // Clear exploration path
+        this.task = 'moving'
+        this.timeSinceLastTargetReevaluation = 0
+        // Continue to normal pathfinding below
+      }
+    }
+
+    // Determine re-evaluation interval based on current task
+    // Explorers get much longer cooldown to avoid constant path changes
+    let reevaluateInterval
+    if (this.task === 'explore' && this.goal && this.path) {
+      // If actively exploring with a goal, use longer cooldown (15 seconds) to prevent constant re-pathfinding
+      const timeSinceLastExploration = time - this.lastExplorationUpdate
+      if (timeSinceLastExploration < 15000) {
+        // Skip re-evaluation if we recently updated exploration path
+        return
+      }
+      reevaluateInterval = 15000
+    } else if (this.task === 'explore') {
+      // If in explore mode but no goal (reached destination), find new path immediately
+      reevaluateInterval = 0
+    } else {
+      // For combat or idle, use shorter interval
+      reevaluateInterval = Math.min(2000, (this.path?.length || 1) * 350)
+    }
+
     // Periodically re-evaluate nearest enemy, even if currently attacking
     // This allows units to switch targets if a closer or more critical enemy appears
-    const reevaluateInterval = Math.min(7500, (this.path?.length || 1) * 600) // Re-evaluate every few 600ms - max is 7500ms
     if (this.task === 'idle' || this.timeSinceLastTargetReevaluation > reevaluateInterval) {
       this.timeSinceLastTargetReevaluation = 0
       const newEnemyPath = await this.pathToNearestEnemy()
@@ -1347,14 +1381,15 @@ class CombatUnit extends Unit {
         // No visible enemies, try to explore
         this.task = 'explore'
 
-        // Add randomized delay (0-500ms) to spread out exploration pathfinding requests
+        // Add randomized delay (0-1000ms) to spread out exploration pathfinding requests
         // This prevents spikes when many units transition to explore mode simultaneously
-        const explorationDelay = Math.random() * 500
+        const explorationDelay = Math.random() * 1000
         setTimeout(() => {
           this.findPathToUnexploredTile().then(newExplorePath => {
             if (newExplorePath) {
               this.path = newExplorePath
               this.lastPathUpdate = time
+              this.lastExplorationUpdate = time // Track when exploration path was updated
               this.task = 'explore' // Set task to explore
             } else {
               this.task = 'idle' // No enemies and no unexplored areas, remain idle
@@ -1467,11 +1502,16 @@ class CombatUnit extends Unit {
     let shortestPath = null
     let shortestPathLength = Infinity
 
-    // To avoid checking all border tiles (which can still be many), pick a few random candidates
-    const candidates = []
-    for (let i = 0; i < Math.min(borderTiles.length, 10); i++) { // Check up to 10 random candidates
-      candidates.push(borderTiles[Math.floor(Math.random() * borderTiles.length)])
-    }
+    // Sort border tiles by distance to prioritize nearby exploration
+    const sortedBorderTiles = borderTiles
+      .map(tile => ({
+        tile,
+        dist: distance(currentTile, tile)
+      }))
+      .sort((a, b) => a.dist - b.dist)
+
+    // Pick the closest 10 candidates instead of random ones
+    const candidates = sortedBorderTiles.slice(0, Math.min(borderTiles.length, 10)).map(item => item.tile)
 
     // Check all paths concurrently instead of sequentially to avoid long delays
     const pathPromises = candidates.map(tile =>
@@ -1506,9 +1546,11 @@ class CombatUnit extends Unit {
         this.attackEnemy(delay)
         break
       case 'explore':
-        // Once an exploration goal is reached, immediately look for another
-        this.goal = null // Clear goal to trigger new pathfinding in handleTasks
+        // When exploration goal is reached, clear it but wait for cooldown timer
+        // to find a new path. This prevents constant re-pathfinding.
+        this.goal = null
         this.path = null
+        // Don't update lastExplorationUpdate here - let the cooldown timer control re-pathfinding
         break
     }
   }
