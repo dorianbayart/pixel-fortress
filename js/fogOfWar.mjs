@@ -168,8 +168,8 @@ function updatePlayerVisibility(player) {
     entities.forEach(entity => {
       if (!entity) return
 
-      const tileX = entity.currentNode?.x ? Math.round(entity.x / getTileSize()) : entity.x
-      const tileY = entity.currentNode?.y ? Math.round(entity.y / getTileSize()) : entity.y
+      const tileX = entity.currentNode ? Math.round(entity.x / getTileSize()) : entity.x
+      const tileY = entity.currentNode ? Math.round(entity.y / getTileSize()) : entity.y
       const visibilityRange = entity.visibilityRange / getTileSize()
 
       // Reveal circular area around entity
