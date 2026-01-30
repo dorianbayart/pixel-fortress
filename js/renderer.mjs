@@ -494,7 +494,7 @@ function updateViewport(viewTransform) {
 
   // Add buffer area for smoother scrolling
   // Clamp buffer to prevent rendering too many tiles when zoomed out
-  viewport.buffer = 4
+  viewport.buffer = 2
 
   // Calculate boundaries with buffer
   viewport.startX = Math.max(0, viewport.x - viewport.buffer)

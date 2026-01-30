@@ -214,7 +214,7 @@ class Mouse {
       // Calculate new scale
       const newScale = Math.max(
         minZoom, 
-        Math.min(this._calculateInitialZoom(), this.viewTransform.scale * (1 + zoomFactor))
+        Math.min((ZOOM.initial || 1) + 1, this.viewTransform.scale * (1 + zoomFactor))
       )
       
       // If scale changed, update transforms
@@ -563,7 +563,7 @@ class Mouse {
     const canvasHeight = app.renderer.height
     
     // Calculate zoom
-    const zoomForPortion = Math.min(canvasWidth / mapPixelWidth, canvasHeight / mapPixelHeight) * 1.66
+    const zoomForPortion = Math.min(canvasWidth / mapPixelWidth, canvasHeight / mapPixelHeight)
     
     // Ensure zoom is within reasonable bounds
     return Math.min(Math.max(zoomForPortion, ZOOM.MIN), ZOOM.MAX)

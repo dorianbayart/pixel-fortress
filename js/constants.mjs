@@ -30,10 +30,10 @@ export default {
         },
         // Mouse/Camera zoom (for viewport control)
         CAMERA: {
-            TILES: 24,
+            TILES: 16,
             FACTOR: 0.05,
-            MAX: 10,
-            MIN: 0.75,
+            MAX: 6,
+            MIN: 1.33,
             initial: null
         }
     },
