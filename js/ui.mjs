@@ -19,6 +19,125 @@ import { getPathfindingStats } from 'pathfinding'
 
 const UI_FONTS = CONSTANTS.UI.FONTS
 
+// Helper function to create text with dynamic padding based on text length
+function createText(text, style, customPadding = null) {
+  // Calculate dynamic padding based on text length and font size
+  const textLength = text.toString().length
+  const fontSize = style.fontSize || 14
+  const calculatedPadding = customPadding || Math.max(20, textLength * fontSize * 0.5)
+
+  // Clone the style and set dynamic padding
+  const dynamicStyle = style.clone()
+  dynamicStyle.padding = calculatedPadding
+
+  const textObj = new PIXI.Text({
+    text: text,
+    style: dynamicStyle,
+    resolution: 2
+  })
+  return textObj
+}
+
+// Shared TextStyle instances for better performance (PixiJS 8.13.0+)
+// Text objects that share the same TextStyle instance will share textures
+const TEXT_STYLES = {
+  resource: new PIXI.TextStyle({
+    fontFamily: UI_FONTS.PRIMARY,
+    fontSize: 14,
+    fill: 0xFFD700,
+    padding: 8,  // Increased padding to prevent clipping
+    strokeThickness: 1,
+    stroke: 0x000000,
+    wordWrap: false
+  }),
+  buildingName: new PIXI.TextStyle({
+    fontFamily: UI_FONTS.PRIMARY,
+    fontSize: 20,  // Corrected to match actual usage
+    fill: 0xFFD700,
+    fontWeight: 'bold',
+    padding: 10  // Increased for bold text which needs more space
+  }),
+  buildingDescription: new PIXI.TextStyle({
+    fontFamily: UI_FONTS.PRIMARY,
+    fontSize: 14,
+    fill: 0xFFFFFF,
+    padding: 8
+  }),
+  buildingDetails: new PIXI.TextStyle({
+    fontFamily: UI_FONTS.PRIMARY,
+    fontSize: 12,  // Corrected to match actual usage
+    fill: 0xCCCCCC,
+    fontStyle: 'italic',
+    padding: 8  // Italic text may extend beyond normal bounds
+  }),
+  buildingInfo: new PIXI.TextStyle({
+    fontFamily: UI_FONTS.PRIMARY,
+    fontSize: 14,
+    fill: 0x00FF00,
+    padding: 8
+  }),
+  buildingInfoBlue: new PIXI.TextStyle({
+    fontFamily: UI_FONTS.PRIMARY,
+    fontSize: 14,
+    fill: 0xADD8E6,
+    padding: 8
+  }),
+  marketLabel: new PIXI.TextStyle({
+    fontFamily: UI_FONTS.PRIMARY,
+    fontSize: 14,
+    fill: 0xFFD700,
+    padding: 8
+  }),
+  marketInfo: new PIXI.TextStyle({
+    fontFamily: UI_FONTS.PRIMARY,
+    fontSize: 14,
+    fill: 0xFFFFFF,
+    padding: 8
+  }),
+  upgradeButton: new PIXI.TextStyle({
+    fontFamily: UI_FONTS.PRIMARY,
+    fontSize: 16,
+    fill: 0xFFFFFF,
+    padding: 10  // Larger text needs more padding
+  }),
+  upgradeBenefits: new PIXI.TextStyle({
+    fontFamily: UI_FONTS.PRIMARY,
+    fontSize: 12,
+    fill: 0xFFFFFF,
+    padding: 8
+  }),
+  slotName: new PIXI.TextStyle({
+    fontFamily: UI_FONTS.PRIMARY,
+    fontSize: 11,
+    fill: 0xFFD700,
+    padding: 8,
+    align: 'center'
+  }),
+  tooltipTitle: new PIXI.TextStyle({
+    fontFamily: UI_FONTS.PRIMARY,
+    fontSize: 16,
+    fill: 0xFFD700,
+    fontWeight: 'bold',
+    padding: 10,
+    wordWrap: false
+  }),
+  tooltipDescription: new PIXI.TextStyle({
+    fontFamily: UI_FONTS.PRIMARY,
+    fontSize: 12,
+    fill: 0xFFFFFF,
+    padding: 8,
+    wordWrap: false
+  }),
+  tooltipDetails: new PIXI.TextStyle({
+    fontFamily: UI_FONTS.PRIMARY,
+    fontSize: 11,
+    fill: 0xCCCCCC,
+    fontStyle: 'italic',
+    padding: 8,
+    wordWrap: false
+  })
+}
+
 // Mouse object (will be initialized in initUI)
 let mouse = null
 let elapsedUI = -5000
@@ -470,19 +589,7 @@ async function createTopBar() {
     resourceContainer.addChild(icon)
     
     // Resource value
-    const text = new PIXI.Text({
-      text: resource.initial.toString(),
-      style: {
-        fontFamily: UI_FONTS.PRIMARY,
-        fontSize: 14,
-        fill: 0xFFD700,
-        padding: resource.initial.toString().length * 14,
-        strokeThickness: 1,
-        stroke: 0x000000,
-        wordWrap: true,
-        wordWrapWidth: 24
-      }
-    })
+    const text = createText(resource.initial.toString(), TEXT_STYLES.resource)
     text.position.set(24, 2) // Position after the icon
     resourceContainer.addChild(text)
     
@@ -703,30 +810,13 @@ async function displayBuildingInfo(building) {
 
   // Building Name and Level
   fontSize = 20
-  const nameText = new PIXI.Text({
-    text: `${building.type.name} (Level ${building.level})`,
-    style: {
-      fontFamily: UI_FONTS.PRIMARY,
-      fontSize: fontSize,
-      fill: 0xFFD700,
-      fontWeight: 'bold',
-      padding: fontSize * building.type.name.length / 2,
-    }
-  })
+  const nameText = createText(`${building.type.name} (Level ${building.level})`, TEXT_STYLES.buildingName)
   nameText.position.set(currentX, padding)
   bottomBarContainer.addChild(nameText)
 
   // Building Description
   fontSize = 14
-  const descText = new PIXI.Text({
-    text: building.type.description,
-    style: {
-      fontFamily: UI_FONTS.PRIMARY,
-      fontSize: fontSize,
-      fill: 0xFFFFFF,
-      padding: fontSize * building.type.description.length / 2,
-    }
-  })
+  const descText = createText(building.type.description, TEXT_STYLES.buildingDescription)
   descText.position.set(currentX, padding + nameText.height + 5)
   bottomBarContainer.addChild(descText)
 
@@ -734,16 +824,7 @@ async function displayBuildingInfo(building) {
   let detailsText = null
   if (building.type.details) {
     fontSize = 12
-    detailsText = new PIXI.Text({
-      text: building.type.details,
-      style: {
-        fontFamily: UI_FONTS.PRIMARY,
-        fontSize: fontSize,
-        fill: 0xCCCCCC,
-        fontStyle: 'italic',
-        padding: fontSize * building.type.details.length / 2,
-      }
-    })
+    detailsText = createText(building.type.details, TEXT_STYLES.buildingDetails)
     detailsText.position.set(currentX, padding + nameText.height + descText.height + 8)
     bottomBarContainer.addChild(detailsText)
   }
@@ -758,15 +839,7 @@ async function displayBuildingInfo(building) {
   // Life/MaxLife
   fontSize = 14
   const lifeLabel = `Life: ${building.life.toFixed(0)}/${building.maxLife}`
-  const lifeText = new PIXI.Text({
-    text: lifeLabel,
-    style: {
-      fontFamily: UI_FONTS.PRIMARY,
-      fontSize: fontSize,
-      fill: 0x00FF00, // Green for life
-      padding: fontSize * lifeLabel.length / 2,
-    }
-  })
+  const lifeText = createText(lifeLabel, TEXT_STYLES.buildingInfo)
   lifeText.position.set(currentX, padding)
   bottomBarContainer.addChild(lifeText)
 
@@ -775,15 +848,7 @@ async function displayBuildingInfo(building) {
   fontSize = 14
   if (building.productionCooldown > 1000 && building.productionTimer !== undefined) {
     const productionLabel = `Producing: ${(building.productionTimer / 1000).toFixed(1)}s / ${(building.productionCooldown / 1000).toFixed(1)}s`
-    productionText = new PIXI.Text({
-      text: productionLabel,
-      style: {
-        fontFamily: UI_FONTS.PRIMARY,
-        fontSize: fontSize,
-        fill: 0xADD8E6, // Light blue
-        padding: fontSize * productionLabel.length / 2,
-      }
-    })
+    productionText = createText(productionLabel, TEXT_STYLES.buildingInfoBlue)
     productionText.position.set(currentX + lifeText.width + 40, padding)
     bottomBarContainer.addChild(productionText)
   }
@@ -792,15 +857,7 @@ async function displayBuildingInfo(building) {
   fontSize = 14
   if (building.maxWorkers > 0 && building instanceof WorkerBuilding) {
     const workersLabel = `Workers: ${building.assignedWorkers?.length ?? 0} / ${building.maxWorkers}`
-    workersText = new PIXI.Text({
-      text: workersLabel,
-      style: {
-        fontFamily: UI_FONTS.PRIMARY,
-        fontSize: fontSize,
-        fill: 0xADD8E6, // Light blue
-        padding: fontSize * workersLabel.length / 2,
-      }
-    })
+    workersText = createText(workersLabel, TEXT_STYLES.buildingInfoBlue)
     workersText.position.set(currentX + lifeText.width + 40, padding)
     bottomBarContainer.addChild(workersText)
   }
@@ -814,15 +871,7 @@ async function displayBuildingInfo(building) {
       { name: 'gold', icon: '🪙' }
     ]
     
-    const sellLabel = new PIXI.Text({
-      text: 'Sell:',
-      style: {
-        fontFamily: UI_FONTS.PRIMARY,
-        fontSize: fontSize,
-        fill: 0xFFD700,
-        padding: fontSize * 'Sell:'.length / 2,
-      }
-    })
+    const sellLabel = createText('Sell:', TEXT_STYLES.marketLabel)
     sellLabel.position.set(currentX, padding + lifeText.height + 10)
     bottomBarContainer.addChild(sellLabel)
 
@@ -858,15 +907,7 @@ async function displayBuildingInfo(building) {
       sellButtonX += 50 // Spacing between buttons
     })
     
-    const currentSellingInfo = new PIXI.Text({
-      text: `Selling ${building.sellingResource} for ${building.sellingPrice} money.`,
-      style: {
-        fontFamily: UI_FONTS.PRIMARY,
-        fontSize: fontSize,
-        fill: 0xFFFFFF,
-        padding: fontSize * `Selling ${building.sellingResource} for ${building.sellingPrice} money.`.length / 2,
-      }
-    })
+    const currentSellingInfo = createText(`Selling ${building.sellingResource} for ${building.sellingPrice} money.`, TEXT_STYLES.marketInfo)
     currentSellingInfo.position.set(currentX, sellLabel.y + sellLabel.height + 10)
     bottomBarContainer.addChild(currentSellingInfo)
   }
@@ -899,22 +940,15 @@ async function displayBuildingInfo(building) {
         fontSize: 16,
         fill: 0xFFD700, // Gold color for 'U'
         fontWeight: 'bold',
+        padding: 4
       }
     })
     upgradeUText.anchor.set(0.5)
-    upgradeUText.position.set(65, 20 + padding) // Position 'U'
+    upgradeUText.position.set(65, 30) // Simplified positioning
 
-    const pgradeText = new PIXI.Text({
-      text: 'pgrade',
-      style: {
-        fontFamily: UI_FONTS.PRIMARY,
-        fontSize: 16,
-        fill: 0xFFFFFF,
-        padding: 12
-      }
-    })
-    pgradeText.anchor.set(0.5)
-    pgradeText.position.set(upgradeUText.x + upgradeUText.width / 2 + 1.3 * pgradeText.width / 2 - 5 + 12, 20 + padding + 12) // Position 'pgrade' next to 'U'
+    const pgradeText = createText('pgrade', TEXT_STYLES.upgradeButton)
+    pgradeText.anchor.set(0, 0.5)  // Anchor to left-center
+    pgradeText.position.set(upgradeUText.x + upgradeUText.width / 2 + 2, 30) // Position next to 'U' with small gap
     
 
     const upgradeButtonBg = new PIXI.Graphics()
@@ -939,15 +973,7 @@ async function displayBuildingInfo(building) {
     if (upgradeBenefits.maxWorkers) benefitsText.push(`Max Workers +${upgradeBenefits.maxWorkers}`)
 
     const benefitsLabel = `Next Level: ${benefitsText.join(', ')}`
-    const upgradeBenefitsDisplay = new PIXI.Text({
-      text: benefitsLabel,
-      style: {
-        fontFamily: UI_FONTS.PRIMARY,
-        fontSize: 12,
-        fill: 0xFFFFFF,
-        padding: fontSize * benefitsLabel.length / 2,
-      }
-    })
+    const upgradeBenefitsDisplay = createText(benefitsLabel, TEXT_STYLES.upgradeBenefits)
     upgradeBenefitsDisplay.position.set(currentX, padding + 10)
     
 
@@ -1085,18 +1111,9 @@ async function createBuildingSlots() {
     slot.addChild(icon)
     
     // Building name
-    const name = new PIXI.Text({
-      text: buildings[i].name,
-      style: {
-        fontFamily: UI_FONTS.PRIMARY,
-        fontSize: 11,
-        fill: 0xFFD700,
-        padding: 10,
-        align: 'center',
-      }
-    })
-    name.anchor.set(0.5, 0)
-    name.position.set(slotSize / 2 + 7, slotSize - 18)
+    const name = createText(buildings[i].name, TEXT_STYLES.slotName)
+    name.anchor.set(0.5, 0)  // Center horizontally
+    name.position.set(slotSize / 2, slotSize - 18)  // Removed +7 offset for proper centering
     slot.addChild(name)
 
     // Make slot interactive
@@ -1301,24 +1318,15 @@ function createBuildingTooltip() {
   tooltipContainer = new PIXI.Container()
   tooltipContainer.visible = false
   
-  // Background for the tooltip
+  // Background for the tooltip (will be resized dynamically)
   const background = new PIXI.Graphics()
-    .roundRect(0, 0, 275, 140, 8)
+    .roundRect(0, 0, 350, 140, 8)
     .fill({ color: 0x333333, alpha: 0.9 })
     .stroke({ width: 2, color: 0xFFD700, alpha: 0.8 })
   tooltipContainer.addChild(background)
   
   // Add placeholder text elements that will be updated on hover
-  const titleText = new PIXI.Text({
-    text: "",
-    style: {
-      fontFamily: UI_FONTS.PRIMARY,
-      fontSize: 16,
-      fill: 0xFFD700,
-      fontWeight: 'bold',
-      padding: 25
-    }
-  })
+  const titleText = createText("", TEXT_STYLES.tooltipTitle)
   titleText.position.set(10, 10)
   tooltipContainer.addChild(titleText)
   
@@ -1326,39 +1334,19 @@ function createBuildingTooltip() {
   iconContainer.position.set(10, 35)
   tooltipContainer.addChild(iconContainer)
   
-  const descText = new PIXI.Text({
-    text: "",
-    style: {
-      fontFamily: UI_FONTS.PRIMARY,
-      fontSize: 12,
-      fill: 0xFFFFFF,
-      padding: 40
-    }
-  })
+  const descText = createText("", TEXT_STYLES.tooltipDescription)
   descText.position.set(64, 48)
   tooltipContainer.addChild(descText)
 
-  const detailsText = new PIXI.Text({
-    text: "",
-    style: {
-      fontFamily: UI_FONTS.PRIMARY,
-      fontSize: 11,
-      fill: 0xCCCCCC,
-      fontStyle: 'italic',
-      padding: 40
-    }
-  })
+  const detailsText = createText("", TEXT_STYLES.tooltipDetails)
   detailsText.position.set(64, 66)
   tooltipContainer.addChild(detailsText)
 
-  const costTitle = new PIXI.Text({
-    text: "Costs:",
-    style: {
-      fontFamily: UI_FONTS.PRIMARY,
-      fontSize: 12,
-      fill: 0xFFD700
-    }
-  })
+  const costTitle = createText("Costs:", new PIXI.TextStyle({
+    fontFamily: UI_FONTS.PRIMARY,
+    fontSize: 12,
+    fill: 0xFFD700
+  }))
   costTitle.position.set(10, 85)
   tooltipContainer.addChild(costTitle)
   
@@ -1373,25 +1361,30 @@ function createBuildingTooltip() {
 async function updateTooltip(building) {
   if (!tooltipContainer) return
 
-  const titleText = tooltipContainer.getChildAt(1)
+  // Remove old text elements and recreate with new content for proper padding
+  const oldTitle = tooltipContainer.getChildAt(1)
+  const oldDesc = tooltipContainer.getChildAt(3)
+  const oldDetails = tooltipContainer.getChildAt(4)
+
+  tooltipContainer.removeChild(oldTitle)
+  tooltipContainer.removeChild(oldDesc)
+  tooltipContainer.removeChild(oldDetails)
+
+  const titleText = createText(building.name, TEXT_STYLES.tooltipTitle)
+  titleText.position.set(10, 10)
+  tooltipContainer.addChildAt(titleText, 1)
+
+  const descText = createText(building.description, TEXT_STYLES.tooltipDescription)
+  descText.position.set(64, 48)
+  tooltipContainer.addChildAt(descText, 3)
+
+  const detailsText = createText(building.details || "", TEXT_STYLES.tooltipDetails)
+  detailsText.position.set(64, 66)
+  tooltipContainer.addChildAt(detailsText, 4)
+
   const iconContainer = tooltipContainer.getChildAt(2)
-  const descText = tooltipContainer.getChildAt(3)
-  const detailsText = tooltipContainer.getChildAt(4)
   const costContainer = tooltipContainer.getChildAt(6)
 
-  // Update text content
-  titleText.text = building.name
-  descText.text = building.description
-
-  // Update details text if present
-  if (building.details) {
-    detailsText.text = building.details
-    detailsText.visible = true
-  } else {
-    detailsText.text = ""
-    detailsText.visible = false
-  }
-  
   // Clear previous cost items
   while (costContainer.children.length > 0) {
     costContainer.removeChildAt(0)
@@ -1424,21 +1417,15 @@ async function updateTooltip(building) {
     container.position.set(xOffset, 0)
     
     // Resource icon
-    const icon = new PIXI.Text({
-      text: resourceIcons[resource] || "❓",
-      style: { fontSize: 16 }
-    });
+    const icon = createText(resourceIcons[resource] || "❓", new PIXI.TextStyle({ fontSize: 16 }))
     container.addChild(icon)
-    
+
     // Resource amount
-    const amountText = new PIXI.Text({
-      text: amount.toString(),
-      style: {
-        fontFamily: UI_FONTS.PRIMARY,
-        fontSize: 12,
-        fill: 0xFFFFFF
-      }
-    })
+    const amountText = createText(amount.toString(), new PIXI.TextStyle({
+      fontFamily: UI_FONTS.PRIMARY,
+      fontSize: 12,
+      fill: 0xFFFFFF
+    }))
     amountText.position.set(20, 4)
     container.addChild(amountText)
     
@@ -1446,10 +1433,25 @@ async function updateTooltip(building) {
     xOffset += 55
   }
   
+  // Calculate dynamic tooltip width based on content
+  // Use text length for more accurate width estimation
+  const titleLength = building.name.length
+  const descLength = building.description.length
+  const detailsLength = (building.details || "").length
+
+  const maxLength = Math.max(titleLength * 16, descLength * 12, detailsLength * 11)
+  const tooltipWidth = Math.max(Math.min(maxLength * 0.6 + 100, 700), 300)
+
+  // Resize background
+  const background = tooltipContainer.getChildAt(0)
+  background.clear()
+    .roundRect(0, 0, tooltipWidth, 140, 8)
+    .fill({ color: 0x333333, alpha: 0.9 })
+    .stroke({ width: 2, color: 0xFFD700, alpha: 0.8 })
+
   // Position the tooltip
-  const { width } = getCanvasDimensions();
-  const tooltipWidth = 275
-  
+  const { width } = getCanvasDimensions()
+
   // Calculate position to ensure tooltip stays within screen bounds
   let tooltipX = building.slotPosition.x + 56 / 2 - tooltipWidth / 2
   if (tooltipX + tooltipWidth > width) {
