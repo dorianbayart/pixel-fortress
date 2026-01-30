@@ -313,7 +313,7 @@ const gameLoop = async () => {
   handleMouseInteraction(gameState.map, gameState.humanPlayer)
 
   // Background rendering
-  if(isDrawBackRequested() && now - elapsedBack > 40 || now - elapsedBack > 400) {
+  if(isDrawBackRequested() && now - elapsedBack > 35 || now - elapsedBack > 400) {
     elapsedBack = now
     drawBackground(gameState.map)
   }

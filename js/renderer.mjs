@@ -718,6 +718,8 @@ function drawBackground(map) {
           backSprite = new PIXI.Sprite(map[x][y].back)
           backSprite.x = x * SPRITE_SIZE
           backSprite.y = y * SPRITE_SIZE
+          backSprite._tileX = x  // Store tile position for cleanup
+          backSprite._tileY = y
           backgroundSpriteMap.set(backKey, backSprite)
           containers.background.addChild(backSprite)
         }
@@ -748,6 +750,8 @@ function drawBackground(map) {
             worldSprite = new PIXI.Sprite(actualObject.sprite)
             worldSprite.x = x * SPRITE_SIZE
             worldSprite.y = y * SPRITE_SIZE
+            worldSprite._tileX = x  // Store tile position for cleanup
+            worldSprite._tileY = y
             worldSprite.zIndex = worldSprite.y + worldSprite.height // Set zIndex based on visual bottom
             worldObjectSpriteMap.set(actualObject.uid, worldSprite)
             containers.world.addChild(worldSprite)
@@ -772,6 +776,8 @@ function drawBackground(map) {
             backSprite = new PIXI.Sprite(spriteTexture)
             backSprite.x = x * SPRITE_SIZE
             backSprite.y = y * SPRITE_SIZE
+            backSprite._tileX = x  // Store tile position for cleanup
+            backSprite._tileY = y
             backgroundSpriteMap.set(tileKey, backSprite)
             containers.background.addChild(backSprite)
         }
@@ -828,8 +834,9 @@ function drawBackground(map) {
     // Hide or remove background sprites outside viewport
     for (const [key, sprite] of backgroundSpriteMap.entries()) {
         if (!visibleBackgroundSprites.has(key)) {
-            const y = Math.floor(key / 10 / width)
-            const x = (key / 10) % width
+            // Use stored tile position instead of recalculating from key
+            const x = sprite._tileX
+            const y = sprite._tileY
 
             if (x < farStartX || x >= farEndX || y < farStartY || y >= farEndY) {
                 containers.background.removeChild(sprite)
@@ -843,23 +850,22 @@ function drawBackground(map) {
     // Hide or remove world object sprites outside viewport
     for (const [key, sprite] of worldObjectSpriteMap.entries()) {
         if (!visibleWorldObjectSprites.has(key)) {
-            // Retrieve the building object using its UID (the key)
-            const building = gameState.humanPlayer.getBuildings().find(b => b.uid === key) || gameState.aiPlayers.flatMap(ai => ai.getBuildings()).find(b => b.uid === key)
+            // Use stored tile position (works for both buildings and terrain objects)
+            const x = sprite._tileX
+            const y = sprite._tileY
 
-            if (building) {
-                const x = building.x
-                const y = building.y
-
-                if (x < farStartX || x >= farEndX || y < farStartY || y >= farEndY) {
-                    containers.world.removeChild(sprite)
-                    worldObjectSpriteMap.delete(key)
-                } else {
-                    sprite.visible = false
-                }
-            } else {
-                // If building object not found, remove the sprite (e.g., building was destroyed)
+            // If position not stored, remove sprite (shouldn't happen with current code)
+            if (x === undefined || y === undefined) {
                 containers.world.removeChild(sprite)
                 worldObjectSpriteMap.delete(key)
+                continue
+            }
+
+            if (x < farStartX || x >= farEndX || y < farStartY || y >= farEndY) {
+                containers.world.removeChild(sprite)
+                worldObjectSpriteMap.delete(key)
+            } else {
+                sprite.visible = false
             }
         }
     }
