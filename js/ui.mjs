@@ -648,7 +648,7 @@ async function createTopBar() {
 
 
 function updateTopBarPosition() {
-  if (!topBarContainer) return
+  if (!topBarContainer || topBarContainer.children.length < 1) return
   
   const { width } = getCanvasDimensions()
   const barHeight = 32
