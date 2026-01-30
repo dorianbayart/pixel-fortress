@@ -687,6 +687,11 @@ function drawBackground(map) {
   const endX = viewport.endX || width
   const endY = viewport.endY || height
 
+  // Pre-calculate values outside inner loop for performance
+  const currentWaterFrame = getCurrentWaterFrame()
+  const goldType = TERRAIN_TYPES.GOLD.type
+  const halfTileSize = SPRITE_SIZE / 2
+
   // Draw all map tiles
   for (let x = startX; x < endX; x++) {
     for (let y = startY; y < endY; y++) {
@@ -756,9 +761,8 @@ function drawBackground(map) {
         // Get the appropriate sprite texture (animated water or static terrain)
         let spriteTexture = map[x][y].sprite
         if (map[x][y].waterFrames && map[x][y].waterFrames.length === 4) {
-          // Use animated water frame
-          const currentFrame = getCurrentWaterFrame()
-          spriteTexture = map[x][y].waterFrames[currentFrame]
+          // Use animated water frame (pre-calculated outside loop)
+          spriteTexture = map[x][y].waterFrames[currentWaterFrame]
         }
 
         if (!backSprite || backSprite.texture !== spriteTexture) {
@@ -793,11 +797,11 @@ function drawBackground(map) {
           }
       }
 
-      // Add special effect on Gold tiles
-      if (gameState.map[x]?.[y]?.type === TERRAIN_TYPES.GOLD.type && Math.random() > 0.945) {
+      // Add special effect on Gold tiles (per-tile random check)
+      if (map[x][y].type === goldType && Math.random() > 0.945) {
         createParticleEmitter(ParticleEffect.GOLD_SPARKLE, {
-          x: x * getTileSize() + getTileSize()/2,
-          y: y * getTileSize() + getTileSize()/2,
+          x: x * SPRITE_SIZE + halfTileSize,
+          y: y * SPRITE_SIZE + halfTileSize,
           duration: 1000
         })
       }
