@@ -669,17 +669,10 @@ function drawBackground(map) {
 
   const { width, height } = getMapDimensions()
   const SPRITE_SIZE = getTileSize()
-  const start = performance.now()
 
   // Sets to track sprites that should be visible this frame
   const visibleBackgroundSprites = new Set()
   const visibleWorldObjectSprites = new Set()
-
-  // Get current viewport from the mouse
-  const viewTransform = gameState.UI?.mouse?.getViewTransform()
-  if (viewTransform) {
-    updateViewport(viewTransform)
-  }
 
   // Draw only visible map tiles plus buffer area
   const startX = viewport.startX || 0
