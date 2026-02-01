@@ -562,6 +562,7 @@ async function setupOptionsSection() {
   const healthBarsToggle = document.getElementById('healthBarsToggle')
   const antialiasingToggle = document.getElementById('antialiasingToggle')
   const antialiasingStatus = document.getElementById('antialiasingStatus')
+  const fpsCapSelect = document.getElementById('fpsCapSelect')
   const sfxVolumeSlider = document.getElementById('sfxVolumeSlider')
   const musicVolumeSlider = document.getElementById('musicVolumeSlider')
 
@@ -582,10 +583,11 @@ async function setupOptionsSection() {
     debugToggle.checked = gameState.settings?.debugMode === true
     healthBarsToggle.checked = gameState.settings?.showHealthBars === true
     antialiasingToggle.checked = gameState.settings?.antialiasing ?? false
+    fpsCapSelect.value = gameState.settings?.fpsCap ?? 0
     sfxVolumeSlider.value = gameState.settings?.sfxVolume ?? 0.8
     musicVolumeSlider.value = gameState.settings?.musicVolume ?? 0.5
 
-    // Update antialiasing status text
+    // Update status texts
     updateAntialiasingStatus()
 
     optionsSection.style.display = 'block'
@@ -610,6 +612,7 @@ async function setupOptionsSection() {
     const debugModeEnabled = debugToggle.checked
     const showHealthBarsEnabled = healthBarsToggle.checked
     const antialiasingEnabled = antialiasingToggle.checked
+    const fpsCap = parseInt(fpsCapSelect.value)
     const sfxVolume = parseFloat(sfxVolumeSlider.value)
     const musicVolume = parseFloat(musicVolumeSlider.value)
 
@@ -617,6 +620,7 @@ async function setupOptionsSection() {
         debugMode: debugModeEnabled,
         showHealthBars: showHealthBarsEnabled,
         antialiasing: antialiasingEnabled,
+        fpsCap: fpsCap,
         sfxVolume: sfxVolume,
         musicVolume: musicVolume,
     })
@@ -637,6 +641,7 @@ async function setupOptionsSection() {
     playClickSound()
     updateAntialiasingStatus()
   })
+  fpsCapSelect.addEventListener('change', playClickSound)
   sfxVolumeSlider.addEventListener('change', playClickSound)
   musicVolumeSlider.addEventListener('change', playClickSound)
 

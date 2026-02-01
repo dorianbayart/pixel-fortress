@@ -47,9 +47,12 @@ const TERRAIN_TYPES = CONSTANTS.TERRAIN.TYPES
 // Game timing variables
 let elapsed = -5000
 let elapsedBack = -5000
-let delays = new Uint8Array(60).fill(255)
+let delays = new Uint8Array(60).fill(255) // For game logic (capped)
+let fpsDelays = new Float32Array(60).fill(16.67) // For FPS display (uncapped)
 let waterAnimationTimer = 0 // Global timer for water animation (cycles through 4 frames)
 let delaysIndex = 0
+let fpsDelaysIndex = 0
+let nextFrameTime = 0 // For FPS limiting - when the next frame should be rendered
 
 // Initialize the game
 const initGame = async () => {
@@ -165,7 +168,7 @@ const initGame = async () => {
   updateMapInWorker() // Initial map update
   await assignSpritesOnMap()
 
-  elapsedBack = elapsed = performance.now()
+  elapsedBack = elapsed = nextFrameTime = performance.now()
 
   return true
 }
@@ -285,11 +288,12 @@ const updateSprite = async (x, y) => {
 // Main game loop
 const gameLoop = async () => {
   const now = performance.now()
-  const delay = Math.min(now - elapsed, 20) | 0
+  const actualDelay = now - elapsed // Real delay for FPS calculation
+  const delay = Math.min(actualDelay, 20) | 0 // Capped delay for game logic
   elapsed = now
 
   if(gameState.gameStatus === 'paused') {
-    requestAnimationFrame(gameLoop)
+    setTimeout(gameLoop, 125) // 8 FPS max in pause state
     elapsed -= delay
     return
   }
@@ -299,9 +303,9 @@ const gameLoop = async () => {
   }
 
   // Handle keyboard movement
-  gameState.UI?.mouse?.applyKeyboardMovement(delay)
+  gameState.UI?.mouse?.applyKeyboardMovement(actualDelay)
   // Handle drag momentum
-  gameState.UI?.mouse?.applyDragMomentum(delay)
+  gameState.UI?.mouse?.applyDragMomentum(actualDelay)
 
   // Update water animation timer (300ms per frame, 4 frames total = 1200ms cycle)
   waterAnimationTimer += gameState.gameSpeedMultiplier * delay
@@ -313,7 +317,7 @@ const gameLoop = async () => {
   handleMouseInteraction(gameState.map, gameState.humanPlayer)
 
   // Background rendering
-  if(isDrawBackRequested() && now - elapsedBack > 35 || now - elapsedBack > 400) {
+  if(isDrawBackRequested() && now - elapsedBack > 50 || now - elapsedBack > 400) {
     elapsedBack = now
     drawBackground(gameState.map)
   }
@@ -357,19 +361,49 @@ const gameLoop = async () => {
     renderFog(delay)
   }
 
-  // Ask for next frame
-  requestAnimationFrame(gameLoop)
+  // Track FPS (using actual uncapped delay)
+  fpsDelays[fpsDelaysIndex++] = actualDelay
+  if(fpsDelaysIndex === fpsDelays.length) fpsDelaysIndex = 0
+
+  // Calculate real FPS from uncapped delays
+  const totalDelay = fpsDelays.reduce((a, b) => a + b, 0)
+  const realFPS = totalDelay > 0 ? (1000 * fpsDelays.length / totalDelay) : 60
 
   // Render UI
-  updateUI(1000 * delays.length / delays.reduce((a, b) => a + b, 0))
-  
+  updateUI(realFPS)
+
   // Update map in worker periodically
   if (now - lastMapUpdateTime > 2500) {
     updateMapInWorker()
     lastMapUpdateTime = now
   }
 
+  // Track capped delay for game logic stability
   delays[delaysIndex++] = delay
   if(delaysIndex === delays.length) delaysIndex = 0
+
+  // Schedule next frame intelligently based on FPS cap
+  const fpsCap = gameState.settings?.fpsCap || 0
+  if (fpsCap > 0) {
+    const targetInterval = 1000 / fpsCap
+
+    // Initialize nextFrameTime on first frame
+    if (nextFrameTime === 0) nextFrameTime = now
+
+    // Always schedule at fixed interval from last target
+    nextFrameTime += targetInterval
+
+    // If we're behind, reset to catch up
+    const timeNow = performance.now()
+    if (nextFrameTime < timeNow) {
+      nextFrameTime = timeNow + targetInterval
+    }
+
+    // Schedule next frame
+    const delay = Math.max(0, nextFrameTime - timeNow)
+    setTimeout(gameLoop, delay)
+  } else {
+    requestAnimationFrame(gameLoop)
+  }
 }
 

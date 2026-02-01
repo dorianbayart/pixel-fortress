@@ -34,7 +34,7 @@ class Mouse {
     this.zoomChanged = false
 
     // Keyboard movement speed
-    this.keyboardMoveSpeed = 20
+    this.keyboardMoveSpeed = 1500 // pixels per second
 
     // Key tracking
     this.keysPressed = {
@@ -447,7 +447,38 @@ class Mouse {
   applyKeyboardMovement(deltaTime) {
     // Skip if game is not in playing state
     if (gameState.gameStatus !== 'playing') return false
-    
+
+    // Fixed movement speed in pixels per second
+    const moveSpeed = this.maxVelocity * deltaTime / 1000
+    let moveX = 0
+    let moveY = 0
+
+    if (this.keysPressed.ArrowUp) moveY -= moveSpeed
+    if (this.keysPressed.ArrowDown) moveY += moveSpeed
+    if (this.keysPressed.ArrowLeft) moveX -= moveSpeed
+    if (this.keysPressed.ArrowRight) moveX += moveSpeed
+
+    // No movement needed
+    if (moveX === 0 && moveY === 0) return false
+
+    // Apply movement directly
+    this.viewTransform.x += moveX / this.viewTransform.scale
+    this.viewTransform.y += moveY / this.viewTransform.scale
+
+    // Apply boundary constraints
+    this.applyBoundaryConstraints()
+    updateZoom()
+    drawBack()
+
+    return true
+  }
+
+  // OLD COMPLEX VERSION - REPLACED WITH SIMPLE VERSION ABOVE
+  _applyKeyboardMovement_OLD(deltaTime) {
+
+    // Acceleration in pixels per second squared (convert frame-based to time-based)
+    const accelerationPerSecond = this.acceleration * 60  // 2.5 * 60 = 150 px/s²
+
     // Calculate acceleration based on pressed keys
     let accelX = 0
     let accelY = 0
@@ -504,7 +535,7 @@ class Mouse {
 
   applyDragMomentum(deltaTime) {
     if (!this.isDraggingMomentum) return false
-    
+
     // Skip if game is not in playing state
     if (gameState.gameStatus !== 'playing') {
         this.isDraggingMomentum = false

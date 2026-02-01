@@ -18,6 +18,7 @@ export {
   updateHealthBar,
   removeHealthBar,
   recreateRenderer,
+  getRenderStats,
 }
 
 'use strict'
@@ -84,7 +85,24 @@ let lastViewportCheck = {
   height: 0
 }
 
+// Rendering statistics (updated each frame)
+let renderStats = {
+  tilesRendered: 0,
+  backgroundSpritesVisible: 0,
+  worldObjectSpritesVisible: 0,
+  unitSpritesVisible: 0,
+  viewportTiles: { startX: 0, startY: 0, endX: 0, endY: 0 }
+}
 
+
+
+/**
+ * Get rendering statistics for debug display
+ * @returns {Object} Current render statistics
+ */
+function getRenderStats() {
+  return renderStats
+}
 
 /**
  * Initialize Pixi.js application and containers
@@ -520,6 +538,9 @@ function drawMain(player, AIs) {
     updateViewport(viewTransform)
   }
 
+  // Reset unit sprite counter
+  renderStats.unitSpritesVisible = 0
+
   // Combine all visible entities (units and buildings)
   const allEntities = [...player.getUnits(), ...player.getBuildings()]
 
@@ -597,6 +618,11 @@ function drawMain(player, AIs) {
       sprite.x = entity.x - UNIT_SPRITE_SIZE/4
       sprite.y = entity.y - UNIT_SPRITE_SIZE/4 - 2
       sprite.zIndex = entity.y + UNIT_SPRITE_SIZE/2 // Set zIndex for sorting based on the visual bottom of the unit sprite
+
+      // Track visible unit sprites
+      if (sprite.visible) {
+        renderStats.unitSpritesVisible++
+      }
     }
 
     // --- Progress Indicator Handling (for both units and buildings) ---
@@ -680,6 +706,12 @@ function drawBackground(map) {
   const endX = viewport.endX || width
   const endY = viewport.endY || height
 
+  // Reset render statistics
+  renderStats.tilesRendered = 0
+  renderStats.backgroundSpritesVisible = 0
+  renderStats.worldObjectSpritesVisible = 0
+  renderStats.viewportTiles = { startX, startY, endX, endY }
+
   // Pre-calculate values outside inner loop for performance
   const currentWaterFrame = getCurrentWaterFrame()
   const goldType = TERRAIN_TYPES.GOLD.type
@@ -692,6 +724,9 @@ function drawBackground(map) {
       if (gameState.settings.fogOfWar && !isPositionExplored(x, y)) {
         continue
       }
+
+      // Track tiles rendered
+      renderStats.tilesRendered++
 
       const tileKey = map[x][y].uid
       const tileType = map[x][y].type
@@ -806,6 +841,10 @@ function drawBackground(map) {
       }
     }
   }
+
+  // Update visible sprite counts
+  renderStats.backgroundSpritesVisible = visibleBackgroundSprites.size
+  renderStats.worldObjectSpritesVisible = visibleWorldObjectSprites.size
 
   // Only run expensive sprite cleanup when viewport changes significantly (dirty tracking optimization)
   const shouldCleanup = hasViewportChangedSignificantly()

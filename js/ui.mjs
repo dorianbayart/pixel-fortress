@@ -13,7 +13,7 @@ import { downloadMapJSON } from 'maps'
 import { ParticleEffect, createParticleEmitter } from 'particles'
 import * as PIXI from 'pixijs'
 import { sprites } from 'sprites'
-import { app, containers, indicatorMap, updateZoom, unitSpriteMap, backgroundSpriteMap, worldObjectSpriteMap } from 'renderer'
+import { app, containers, indicatorMap, updateZoom, unitSpriteMap, backgroundSpriteMap, worldObjectSpriteMap, getRenderStats } from 'renderer'
 import gameState from 'state'
 import { getPathfindingStats } from 'pathfinding'
 
@@ -146,6 +146,7 @@ let cursorUpdateRafId = null
 // UI elements
 let cursorSprite = null
 let statsText = null
+let statsBackground = null
 let topBarContainer = null
 let bottomBarContainer = null
 let resourceTexts = {}
@@ -168,6 +169,7 @@ async function initUI(mouseInstance) {
     // Subscribe to state changes
     gameState.events.on('debug-changed', (value) => {
       statsText.visible = value
+      if (statsBackground) statsBackground.visible = value
     })
     
     gameState.events.on('game-status-changed', async (status) => {
@@ -234,17 +236,23 @@ async function initUI(mouseInstance) {
     updateCursor()
   }
   
+  // Create debug stats background
+  statsBackground = new PIXI.Graphics()
+  statsBackground.position.set(5, 33)
+  statsBackground.visible = DEBUG()
+  containers.ui.addChild(statsBackground)
+
   // Create debug stats text
   statsText = new PIXI.Text({
     text: '',
     style: {
       fontFamily: UI_FONTS.MONOSPACE,
       fontSize: 14 * (window.devicePixelRatio || 1),
+      fill: 0xffffff,
+      stroke: 0x000000,
+      strokeThickness: 2
     },
-    resolution: window.devicePixelRatio || 1,
-    fill: 0xffffff,
-    stroke: 0x000000,
-    strokeThickness: 2
+    resolution: window.devicePixelRatio || 1
   })
   statsText.position.set(10, 38)
   statsText.scale.set(1 / (window.devicePixelRatio || 1))
@@ -257,17 +265,23 @@ async function initUI(mouseInstance) {
  * Call this after containers have been recreated
  */
 function recreateUIElements() {
+  // Recreate debug stats background
+  statsBackground = new PIXI.Graphics()
+  statsBackground.position.set(5, 33)
+  statsBackground.visible = DEBUG()
+  containers.ui.addChild(statsBackground)
+
   // Recreate debug stats text
   statsText = new PIXI.Text({
     text: '',
     style: {
       fontFamily: UI_FONTS.MONOSPACE,
       fontSize: 14 * (window.devicePixelRatio || 1),
+      fill: 0xffffff,
+      stroke: 0x000000,
+      strokeThickness: 2
     },
-    resolution: window.devicePixelRatio || 1,
-    fill: 0xffffff,
-    stroke: 0x000000,
-    strokeThickness: 2
+    resolution: window.devicePixelRatio || 1
   })
   statsText.position.set(10, 38)
   statsText.scale.set(1 / (window.devicePixelRatio || 1))
@@ -387,6 +401,8 @@ function openOptionsModal() {
   const healthBarsToggle = document.getElementById('healthBarsToggle')
   const antialiasingToggle = document.getElementById('antialiasingToggle')
   const antialiasingStatus = document.getElementById('antialiasingStatus')
+  const fpsCapSelect = document.getElementById('fpsCapSelect')
+  const fpsCapValue = document.getElementById('fpsCapValue')
   const sfxVolumeSlider = document.getElementById('sfxVolumeSlider')
   const musicVolumeSlider = document.getElementById('musicVolumeSlider')
 
@@ -394,6 +410,7 @@ function openOptionsModal() {
   debugToggle.checked = gameState.settings?.debugMode === true
   healthBarsToggle.checked = gameState.settings?.showHealthBars === true
   antialiasingToggle.checked = gameState.settings?.antialiasing ?? false
+  fpsCapSelect.value = gameState.settings?.fpsCap ?? 0
   sfxVolumeSlider.value = gameState.settings?.sfxVolume ?? 0.8
   musicVolumeSlider.value = gameState.settings?.musicVolume ?? 0.5
 
@@ -402,6 +419,14 @@ function openOptionsModal() {
     antialiasingStatus.textContent = '(2x resolution)'
   } else {
     antialiasingStatus.textContent = ''
+  }
+
+  // Update FPS cap value text
+  const selectedFpsCap = parseInt(fpsCapSelect.value)
+  if (selectedFpsCap === 0) {
+    fpsCapValue.textContent = '(Monitor Refresh Rate)'
+  } else {
+    fpsCapValue.textContent = `(${selectedFpsCap} FPS)`
   }
 
   // Show the modal
@@ -479,13 +504,14 @@ function updateCursor() {
 
 /**
  * Update UI elements
- * @param {Array} fps - FPS history array
+ * @param {number} fps - Current FPS value
  */
 function updateUI(fps) {
   const now = performance.now()
 
-  // Only update UI when necessary
-  if ((DEBUG() && now - elapsedUI > 500)) {
+  // Only update debug UI every 250ms (4 times per second) to reduce CPU usage
+  // Text rendering and string operations can be expensive
+  if ((DEBUG() && now - elapsedUI > 250)) {
     drawUI(fps)
     elapsedUI = now
   }
@@ -493,7 +519,7 @@ function updateUI(fps) {
 
 /**
  * Draw UI elements
- * @param {Array} fps - FPS history array
+ * @param {number} fps - Current FPS value
  */
 function drawUI(fps) {
   // Update debug stats text
@@ -505,30 +531,52 @@ function drawUI(fps) {
   const SPRITE_SIZE = getTileSize()
 
   const pathfindingStats = getPathfindingStats()
-  
+  const renderStats = getRenderStats()
+
+  // Calculate viewport dimensions
+  const viewportTiles = renderStats.viewportTiles
+  const viewportWidth = viewportTiles.endX - viewportTiles.startX
+  const viewportHeight = viewportTiles.endY - viewportTiles.startY
+  const totalViewportTiles = viewportWidth * viewportHeight
+
   statsText.text = [
-    `FPS: ${fps.toFixed(2)} | DPR: ${getCanvasDimensions().dpr}:${globalThis.devicePixelRatio || 1}`,
-    `Loop Time: ${(1000 / fps).toFixed(3)} ms`,
-    `Game Status: ${gameState.gameStatus}`,
-    `Units: ${unitsCount} human, ${aiUnitsCount} AI`,
-    `Mouse: ${mouse.x}x${mouse.y} (${mouse.worldX.toFixed(0)}, ${mouse.worldY.toFixed(0)})${mouse.isDragging ? ' | clic' : ''}`,
-    `Zoom: ${viewTransform.scale?.toFixed(2)}x`,
-    `World: ${MAP_WIDTH}x${MAP_HEIGHT} (${MAP_WIDTH*SPRITE_SIZE}x${MAP_HEIGHT*SPRITE_SIZE})`,
-
+    `== Performance ==`,
+    `FPS: ${fps.toFixed(1)} | Frame Time: ${(1000 / fps).toFixed(2)}ms`,
+    `DPR: ${getCanvasDimensions().dpr}:${globalThis.devicePixelRatio || 1}`,
+    ``,
+    `== Rendering ==`,
+    `Viewport: ${viewportWidth}x${viewportHeight} tiles (${totalViewportTiles} max)`,
+    `Tiles Rendered: ${renderStats.tilesRendered} / ${totalViewportTiles}`,
+    `Visible Sprites: ${renderStats.backgroundSpritesVisible + renderStats.worldObjectSpritesVisible + renderStats.unitSpritesVisible}`,
+    `  - Background: ${renderStats.backgroundSpritesVisible}`,
+    `  - World Objects: ${renderStats.worldObjectSpritesVisible}`,
+    `  - Units: ${renderStats.unitSpritesVisible}`,
     `Particles: ${containers.particles.children?.length}`,
+    ``,
+    `== Sprite Maps (Cached) ==`,
+    `Background: ${backgroundSpriteMap.size} | World: ${worldObjectSpriteMap.size}`,
+    `Units: ${unitSpriteMap.size} | Indicators: ${indicatorMap.size}`,
+    ``,
+    `== Game State ==`,
+    `Status: ${gameState.gameStatus}`,
+    `Units: ${unitsCount} human, ${aiUnitsCount} AI`,
+    `Zoom: ${viewTransform.scale?.toFixed(2)}x`,
+    `Mouse: (${mouse.x}, ${mouse.y}) World: (${mouse.worldX.toFixed(0)}, ${mouse.worldY.toFixed(0)})${mouse.isDragging ? ' [dragging]' : ''}`,
     `Pathfinding (/s): ${pathfindingStats.map((count, i) => `W${i}: ${count}`).join(', ')}`,
-    `Indicator Map Size: ${indicatorMap.size}`,
-    `Unit Sprite Map Size: ${unitSpriteMap.size}`,
-    `Background Sprite Map Size: ${backgroundSpriteMap.size}`,
-    `World Object Sprite Map Size: ${worldObjectSpriteMap.size}`,
-
-    
+    ``,
+    `== Map ==`,
+    `Size: ${MAP_WIDTH}x${MAP_HEIGHT} (${MAP_WIDTH*SPRITE_SIZE}x${MAP_HEIGHT*SPRITE_SIZE}px)`,
     `Renderer: ${app.renderer.width}x${app.renderer.height}`,
-    `Screen: ${screen.width}x${screen.height} | Avail.: ${screen.availWidth}x${screen.availHeight}`,
-    // `Window: ${window.innerWidth}x${window.innerHeight}`,
-    // `CSS: ${document.documentElement.clientWidth}x${document.documentElement.clientHeight}`,
-    // `Canvas: ${app.canvas.style.width} x ${app.canvas.style.height}`
   ].join('\n')
+
+  // Update background size to match text
+  if (statsBackground && statsText) {
+    const padding = 8
+    const textBounds = statsText.getBounds()
+    statsBackground.clear()
+      .roundRect(0, 0, textBounds.width + padding * 2, textBounds.height + padding * 2, 6)
+      .fill({ color: 0x000000, alpha: 0.7 })
+  }
 }
 
 function updateResourceDisplay(resources) {

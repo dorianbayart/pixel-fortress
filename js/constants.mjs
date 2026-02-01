@@ -33,7 +33,7 @@ export default {
             TILES: 16,
             FACTOR: 0.05,
             MAX: 6,
-            MIN: 1.33,
+            MIN: 1,
             initial: null
         }
     },
@@ -152,7 +152,7 @@ export default {
 
     // ===== PATHFINDING =====
     PATHFINDING: {
-        NUM_WORKERS: 4, // Number of pathfinding web workers
+        NUM_WORKERS: 3, // Number of pathfinding web workers
         MAX_CONCURRENT_PER_WORKER: 4 // Max concurrent pathfinding requests per worker
     },
 
