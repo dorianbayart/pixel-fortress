@@ -34,23 +34,32 @@ const ParticleEffect = {
 
 
 export function cleanupParticleSystem() {
-  // Destroy active particles
   activeEmitters?.forEach(emitter => {
     emitter.particles?.forEach(particle => {
       if (particle.sprite?.parent) {
         particle.sprite.parent.removeChild(particle.sprite)
       }
       if (particle.sprite?.destroy) {
-        // Only destroy the sprite, not the cached texture
-        particle.sprite.destroy()
+        particle.sprite.destroy()  // Sprite only, not cached texture
       }
     })
     emitter.particles = []
   })
   activeEmitters.clear()
-  
-  // Cleanup container
+
   containers.particles?.removeChildren()
+
+  // CRITICAL: Clear texture cache on renderer recreation
+  // Textures become invalid when renderer is destroyed
+  for (const cacheKey in particleTextureCache) {
+    const texture = particleTextureCache[cacheKey]
+    if (texture && texture.destroy) {
+      texture.destroy(true)
+    }
+  }
+  for (const key in particleTextureCache) {
+    delete particleTextureCache[key]
+  }
 }
 
 /**

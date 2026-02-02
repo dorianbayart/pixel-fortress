@@ -19,6 +19,7 @@ export {
   removeHealthBar,
   recreateRenderer,
   getRenderStats,
+  viewport,
 }
 
 'use strict'
@@ -34,6 +35,7 @@ import { ParticleEffect, createParticleEmitter, initParticleSystem } from 'parti
 import * as PIXI from 'pixijs'
 import { UNIT_SPRITE_SIZE, sprites, updateAllTexturesScaleMode } from 'sprites'
 import gameState from 'state'
+import { isTerrainBitmapEnabled, updateTerrainBitmapDisplay, clearTerrainBitmaps } from 'terrainBitmaps'
 import { recreateUIElements } from 'ui'
 
 const TERRAIN_TYPES = CONSTANTS.TERRAIN.TYPES
@@ -156,6 +158,9 @@ async function initCanvases() {
       if(gameState.gameStatus === 'playing') gameState.gameStatus = 'paused'
     })
   } else {
+    // Clear terrain bitmaps before clearing containers
+    clearTerrainBitmaps()
+
     // Clear all containers to remove game elements from canvas
     for (const container of Object.values(containers)) {
       if (container) {
@@ -183,20 +188,20 @@ async function initCanvases() {
   
   // Set up containers for organizing content
   containers.background = new PIXI.Container()
-  containers.world = new PIXI.Container() // All units, buildings, and trees will go here
+  containers.world = new PIXI.Container()
   containers.particles = new PIXI.Container()
+  containers.fog = new PIXI.Container()
+  containers.debug = new PIXI.Container()
   containers.indicators = new PIXI.Container()
   containers.ui = new PIXI.Container()
-  containers.debug = new PIXI.Container()
 
-  // Enable sorting on the world container
   containers.world.sortableChildren = true
-  
-  // Add containers to stage in the correct order
+
   app.stage.addChild(containers.background)
-  app.stage.addChild(containers.debug) // Debug paths should be above background but below world objects
   app.stage.addChild(containers.world)
   app.stage.addChild(containers.particles)
+  app.stage.addChild(containers.fog)
+  app.stage.addChild(containers.debug)
   app.stage.addChild(containers.indicators)
   app.stage.addChild(containers.ui)
 
@@ -284,29 +289,26 @@ async function recreateRenderer() {
   // Use supersampling when antialiasing is enabled
   const renderResolution = useAntialiasing ? dpr * 2 : dpr
 
-  // Store reference to canvas parent and position before destroying
+  // Store canvas parent for re-insertion
   const oldCanvas = document.getElementById('canvas')
   const canvasParent = oldCanvas ? oldCanvas.parentNode : document.body
 
   // CRITICAL: Store current camera position and zoom before destroying
   const savedViewTransform = gameState.UI?.mouse?.getViewTransform()
-  console.log('Saved view transform:', savedViewTransform)
 
-  // Destroy old renderer and containers
   if (app) {
-    // Remove all children from stage first
+    clearTerrainBitmaps()
+
     if (app.stage) {
       app.stage.removeChildren()
     }
 
-    // Clear sprite maps
     backgroundSpriteMap.clear()
     worldObjectSpriteMap.clear()
     unitSpriteMap.clear()
     healthBarMap.clear()
     indicatorMap.clear()
 
-    // Destroy containers individually
     for (const key in containers) {
       if (containers[key] && containers[key].destroy) {
         try {
@@ -318,7 +320,6 @@ async function recreateRenderer() {
       containers[key] = null
     }
 
-    // Destroy the application properly
     try {
       await app.destroy(true, { children: true, texture: false, baseTexture: false })
     } catch (e) {
@@ -327,7 +328,6 @@ async function recreateRenderer() {
     app = null
   }
 
-  // Remove old canvas from DOM if it still exists
   if (oldCanvas && oldCanvas.parentNode) {
     oldCanvas.parentNode.removeChild(oldCanvas)
   }
@@ -381,16 +381,18 @@ async function recreateRenderer() {
   containers.background = new PIXI.Container()
   containers.world = new PIXI.Container()
   containers.particles = new PIXI.Container()
+  containers.fog = new PIXI.Container()
+  containers.debug = new PIXI.Container()
   containers.indicators = new PIXI.Container()
   containers.ui = new PIXI.Container()
-  containers.debug = new PIXI.Container()
 
   containers.world.sortableChildren = true
 
   app.stage.addChild(containers.background)
-  app.stage.addChild(containers.debug)
   app.stage.addChild(containers.world)
   app.stage.addChild(containers.particles)
+  app.stage.addChild(containers.fog)
+  app.stage.addChild(containers.debug)
   app.stage.addChild(containers.indicators)
   app.stage.addChild(containers.ui)
 
@@ -425,17 +427,27 @@ async function recreateRenderer() {
     }
   }
 
-  // Initialize fog of war AFTER mouse and view transform are restored
-  // This ensures the fog container is positioned correctly from the start
-  // Only initialize if fog of war is enabled in settings
-  if (gameState.settings?.fogOfWar) {
-    initFogOfWar()
+  // Regenerate gold textures (RenderTextures invalid after renderer destruction)
+  if (gameState.map) {
+    const { regenerateGoldTextures } = await import('game')
+    await regenerateGoldTextures()
   }
 
-  // Emit event to notify that renderer was recreated (UI will be recreated via event listener)
+  if (CONSTANTS.BITMAP_RENDERING.ENABLED && gameState.map) {
+    console.log('Regenerating terrain bitmaps after renderer recreation...')
+    const { generateTerrainBitmaps } = await import('terrainBitmaps')
+    await generateTerrainBitmaps(gameState.map, app, containers)
+    console.log('✓ Terrain bitmaps regenerated')
+  }
+
+  // Initialize fog after view transform restored (preserveExplored=true)
+  if (gameState.settings?.fogOfWar) {
+    initFogOfWar(true)
+  }
+
   recreateUIElements()
 
-  // Restore game status LAST - this ensures game loop runs immediately
+  // Restore game status LAST - ensures game loop runs immediately
   if (previousStatus === 'playing') {
     gameState.gameStatus = 'playing'
   }
@@ -541,7 +553,6 @@ function drawMain(player, AIs) {
   // Reset unit sprite counter
   renderStats.unitSpritesVisible = 0
 
-  // Combine all visible entities (units and buildings)
   const allEntities = [...player.getUnits(), ...player.getBuildings()]
 
   // Add AI entities if they are visible
@@ -595,34 +606,39 @@ function drawMain(player, AIs) {
 
     currentEntityIds.add(entity.uid)
 
-    // --- Sprite Handling (for units only) ---
+    // --- Sprite Handling (for both units and buildings) ---
+    let sprite = unitSpriteMap.get(entity.uid)
+
+    if (sprite && !sprite.texture) {
+      containers.world.removeChild(sprite)
+      unitSpriteMap.delete(entity.uid)
+      sprite = null
+    }
+
+    if (!sprite || sprite.texture !== entity.sprite) {
+      if (sprite) {
+        containers.world.removeChild(sprite)
+      }
+      sprite = new PIXI.Sprite(entity.sprite)
+      unitSpriteMap.set(entity.uid, sprite)
+      containers.world.addChild(sprite)
+    }
+
+    sprite.visible = entity.visible !== false
+
     if (isUnit) {
-      let sprite = unitSpriteMap.get(entity.uid)
-
-      if (sprite && !sprite.texture) {
-        containers.world.removeChild(sprite) // Remove from world container
-        unitSpriteMap.delete(entity.uid)
-        sprite = null
-      }
-
-      if (!sprite || sprite.texture !== entity.sprite) {
-        if (sprite) {
-          containers.world.removeChild(sprite) // Remove from world container
-        }
-        sprite = new PIXI.Sprite(entity.sprite)
-        unitSpriteMap.set(entity.uid, sprite)
-        containers.world.addChild(sprite) // Add directly to world container
-      }
-
-      sprite.visible = entity.visible !== false
       sprite.x = entity.x - UNIT_SPRITE_SIZE/4
       sprite.y = entity.y - UNIT_SPRITE_SIZE/4 - 2
-      sprite.zIndex = entity.y + UNIT_SPRITE_SIZE/2 // Set zIndex for sorting based on the visual bottom of the unit sprite
+      sprite.zIndex = entity.y + UNIT_SPRITE_SIZE/2
+    } else {
+      sprite.x = entity.x * SPRITE_SIZE
+      sprite.y = entity.y * SPRITE_SIZE
+      sprite.zIndex = sprite.y + sprite.height
+    }
 
-      // Track visible unit sprites
-      if (sprite.visible) {
-        renderStats.unitSpritesVisible++
-      }
+    // Track visible unit sprites
+    if (sprite.visible) {
+      renderStats.unitSpritesVisible++
     }
 
     // --- Progress Indicator Handling (for both units and buildings) ---
@@ -687,6 +703,98 @@ function drawMain(player, AIs) {
 }
 
 /**
+ * Render world objects (living trees and buildings) into the world container
+ * These objects need depth sorting, unlike static terrain
+ * @param {Array} map - Game map
+ * @param {Object} viewport - Current viewport bounds
+ */
+function renderWorldObjects(map, viewport) {
+  const { width, height } = getMapDimensions()
+  const SPRITE_SIZE = getTileSize()
+
+  const visibleWorldObjectSprites = new Set()
+
+  const startX = viewport.startX || 0
+  const startY = viewport.startY || 0
+  const endX = viewport.endX || width
+  const endY = viewport.endY || height
+
+  // Render only living trees in viewport
+  for (let x = startX; x < endX; x++) {
+    for (let y = startY; y < endY; y++) {
+      const tile = map[x][y]
+      const tileType = tile.type
+
+      // Render living trees (trees with resources) - these need depth sorting
+      // Note: We don't check fog of war here - trees render and fog appears on top
+      if (tileType === TERRAIN_TYPES.TREE.type && tile.resource > 0) {
+        visibleWorldObjectSprites.add(tile.uid)
+
+        let worldSprite = worldObjectSpriteMap.get(tile.uid)
+
+        if (!worldSprite || worldSprite.texture !== tile.sprite) {
+          if (worldSprite) {
+            containers.world.removeChild(worldSprite)
+          }
+          worldSprite = new PIXI.Sprite(tile.sprite)
+          worldSprite.x = x * SPRITE_SIZE
+          worldSprite.y = y * SPRITE_SIZE
+          worldSprite._tileX = x
+          worldSprite._tileY = y
+          worldSprite.zIndex = worldSprite.y + worldSprite.height
+          worldObjectSpriteMap.set(tile.uid, worldSprite)
+          containers.world.addChild(worldSprite)
+        }
+        worldSprite.visible = true
+      }
+
+      // Note: Buildings are rendered by drawMain(), not here
+    }
+  }
+
+  // Update stats
+  renderStats.worldObjectSpritesVisible = visibleWorldObjectSprites.size
+
+  // Hide/remove world object sprites outside viewport
+  const shouldCleanup = hasViewportChangedSignificantly()
+
+  if (shouldCleanup) {
+    const extendedBuffer = viewport.buffer * 3
+    const farStartX = Math.max(0, viewport.x - extendedBuffer)
+    const farStartY = Math.max(0, viewport.y - extendedBuffer)
+    const farEndX = Math.min(width, viewport.x + viewport.width + extendedBuffer)
+    const farEndY = Math.min(height, viewport.y + viewport.height + extendedBuffer)
+
+    for (const [key, sprite] of worldObjectSpriteMap.entries()) {
+      if (!visibleWorldObjectSprites.has(key)) {
+        const x = sprite._tileX
+        const y = sprite._tileY
+
+        if (x === undefined || y === undefined) {
+          containers.world.removeChild(sprite)
+          worldObjectSpriteMap.delete(key)
+          continue
+        }
+
+        if (x < farStartX || x >= farEndX || y < farStartY || y >= farEndY) {
+          containers.world.removeChild(sprite)
+          worldObjectSpriteMap.delete(key)
+        } else {
+          sprite.visible = false
+        }
+      }
+    }
+  } else {
+    // Fast path: Just hide non-visible sprites
+    for (const [key, sprite] of worldObjectSpriteMap.entries()) {
+      if (!visibleWorldObjectSprites.has(key)) {
+        sprite.visible = false
+      }
+    }
+  }
+}
+
+/**
  * Draw the background terrain
  * @param {Array} map - Game map
  */
@@ -696,6 +804,49 @@ function drawBackground(map) {
   const { width, height } = getMapDimensions()
   const SPRITE_SIZE = getTileSize()
 
+  // Check if bitmap rendering is enabled
+  const useBitmapRendering = CONSTANTS.BITMAP_RENDERING.ENABLED && isTerrainBitmapEnabled()
+
+  if (useBitmapRendering) {
+    // Bitmap rendering path - much faster!
+    const currentWaterFrame = getCurrentWaterFrame()
+    updateTerrainBitmapDisplay(currentWaterFrame, containers)
+
+    // Render world objects (living trees and buildings)
+    renderWorldObjects(map, viewport)
+
+    // Update stats
+    renderStats.tilesRendered = width * height
+    renderStats.backgroundSpritesVisible = 1 // Just the bitmap sprite
+
+    // Gold sparkle effects still need to be rendered
+    const goldType = TERRAIN_TYPES.GOLD.type
+    const halfTileSize = SPRITE_SIZE / 2
+    const startX = viewport.startX || 0
+    const startY = viewport.startY || 0
+    const endX = viewport.endX || width
+    const endY = viewport.endY || height
+
+    for (let x = startX; x < endX; x++) {
+      for (let y = startY; y < endY; y++) {
+        if (gameState.settings.fogOfWar && !isPositionExplored(x, y)) continue
+
+        // Add special effect on Gold tiles
+        if (map[x][y].type === goldType && Math.random() > 0.945) {
+          createParticleEmitter(ParticleEffect.GOLD_SPARKLE, {
+            x: x * SPRITE_SIZE + halfTileSize,
+            y: y * SPRITE_SIZE + halfTileSize,
+            duration: 1000
+          })
+        }
+      }
+    }
+
+    backDrawn()
+    return
+  }
+
+  // Fallback to sprite-based rendering (original implementation)
   // Sets to track sprites that should be visible this frame
   const visibleBackgroundSprites = new Set()
   const visibleWorldObjectSprites = new Set()
@@ -961,12 +1112,13 @@ async function updateZoom() {
   // Get current view transform
   const viewTransform = gameState.UI?.mouse?.getViewTransform()
 
-  // Apply transformations to all containers that should be affected by zoom/pan
   const containersToTransform = [
     containers.background,
-    containers.world, // The new world container handles all sorted objects
-    containers.indicators,
-    containers.debug
+    containers.world,
+    containers.particles,
+    containers.fog,
+    containers.debug,
+    containers.indicators
   ];
 
   // Apply scale to each container

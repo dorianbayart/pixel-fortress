@@ -520,10 +520,12 @@ class Building {
     gameState.map[x][y].building = building
     updateMapInWorker()
 
-    // Put the corresponding sprite on the map
     const spriteX = building.type.sprite_coords[color].x
     const spriteY = building.type.sprite_coords[color].y
-    gameState.map[x][y].sprite = sprites[`tile_${spriteX}_${spriteY}`]
+    const buildingSprite = sprites[`tile_${spriteX}_${spriteY}`]
+    gameState.map[x][y].sprite = buildingSprite
+    building.sprite = buildingSprite
+    building.name = building.type.name
 
     // Add building placement particle effect
     createParticleEmitter(ParticleEffect.BUILDING_PLACE, {

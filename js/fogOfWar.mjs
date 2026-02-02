@@ -16,8 +16,9 @@ import CONSTANTS from 'constants'
 import { getMapDimensions, getTileSize } from 'dimensions'
 import { drawBack } from 'globals'
 import * as PIXI from 'pixijs'
-import { app, containers } from 'renderer'
+import { app, containers, viewport } from 'renderer'
 import gameState from 'state'
+import { updateAndDisplayFog, clearFogBitmap, getFogSprite } from 'fogBitmaps'
 
 // Fog of war constants (from centralized constants)
 const FOG_UPDATE_INTERVAL = CONSTANTS.FOG_OF_WAR.UPDATE_INTERVAL
@@ -85,36 +86,27 @@ function getTeamGrids(teamId) {
 
 /**
  * Initialize the fog of war system
+ * @param {boolean} preserveExplored - If true, preserve existing explored tiles (for renderer recreation)
  */
-function initFogOfWar() {
-  // Clear existing grids
+function initFogOfWar(preserveExplored = false) {
+  const savedExploredGrids = preserveExplored ? new Map(exploredGridsByTeam) : null
+
   fogGridsByTeam.clear()
   exploredGridsByTeam.clear()
 
-  // Initialize fog grids for all players
-  // Human player
   if (gameState.humanPlayer) {
     initTeamGrids('human')
   }
 
-  // AI players
   gameState.aiPlayers.forEach((aiPlayer, index) => {
     initTeamGrids(`ai-${index}`)
   })
 
-  // Cleanup fog container
-  if (fogContainer) {
-    containers.ui?.removeChild(fogContainer)
-    fogContainer.destroy({ children: true })
-  }
-  // Create fog container
-  fogContainer = new PIXI.Container()
-  fogContainer.sortableChildren = true
+  clearFogBitmap()
 
-  // Clear fog sprite map (we'll recreate sprites as needed)
+  fogContainer = containers.fog
   fogSpriteMap.clear()
 
-  // Create fog texture if not exists (reusable texture for all fog tiles)
   if (!fogTexture) {
     const tileSize = getTileSize()
     const graphics = new PIXI.Graphics()
@@ -124,13 +116,14 @@ function initFogOfWar() {
     graphics.destroy()
   }
 
-  // Add container to stage (between terrain and UI)
-  containers.ui.addChild(fogContainer)
-
-  // Initialize visibility around starting position
-  updateStartingVisibility()
-
-  // Make immediate first update
+  if (preserveExplored && savedExploredGrids) {
+    for (const [teamId, exploredGrid] of savedExploredGrids) {
+      exploredGridsByTeam.set(teamId, exploredGrid)
+    }
+  } else {
+    // Initialize starting visibility for new games
+    updateStartingVisibility()
+  }
   updateVisibility(0, true)
 
   return true
@@ -141,6 +134,9 @@ function initFogOfWar() {
  * Call this after renderer recreation
  */
 function resetFogTexture() {
+  // Clear fog bitmaps
+  clearFogBitmap()
+
   if (fogTexture) {
     fogTexture.destroy()
     fogTexture = null
@@ -298,7 +294,7 @@ function updateStartingVisibility() {
  * @param {number} delay - Time since last frame
  */
 function renderFog(delay) {
-  if (!fogContainer || !fogTexture) return
+  if (!fogContainer) return
 
   // Update fog animation
   fogTime += delay
@@ -306,18 +302,45 @@ function renderFog(delay) {
   const { width, height } = getMapDimensions()
   const tileSize = getTileSize()
 
-  // Reposition fog (in case of camera movement)
-  const viewTransform = gameState.UI?.mouse?.getViewTransform()
-  if (viewTransform) {
-    fogContainer.scale.set(viewTransform.scale, viewTransform.scale)
-    fogContainer.position.set(
-      -viewTransform.x * viewTransform.scale,
-      -viewTransform.y * viewTransform.scale
-    )
+  if (!gameState.settings.fogOfWar) {
+    const fogSprite = getFogSprite()
+    if (fogSprite) {
+      fogSprite.visible = false
+    }
+    return
   }
 
+  const viewTransform = gameState.UI?.mouse?.getViewTransform()
+
+  // Get human player's grids for rendering
+  if (!gameState.humanPlayer) return
+  const humanTeamId = getTeamId(gameState.humanPlayer)
+  const { fogGrid, exploredGrid } = getTeamGrids(humanTeamId)
+
+  // Use bitmap rendering if enabled
+  if (CONSTANTS.BITMAP_RENDERING.ENABLED) {
+    // Calculate viewport for fog bitmap
+    const fogViewport = {
+      x: Math.max(0, Math.floor(viewTransform?.x / tileSize) || 0),
+      y: Math.max(0, Math.floor(viewTransform?.y / tileSize) || 0),
+      width: Math.ceil(app.renderer.width / (tileSize * (viewTransform?.scale || 1))),
+      height: Math.ceil(app.renderer.height / (tileSize * (viewTransform?.scale || 1)))
+    }
+
+    // Update and display fog bitmap
+    // - Displays fog sprite every frame (cheap)
+    // - Updates bitmap contents periodically based on FOG_UPDATE_INTERVAL_MS (expensive)
+    updateAndDisplayFog(fogViewport, fogGrid, exploredGrid, fogContainer, app)
+
+    drawBack()
+    return
+  }
+
+  // Fallback to sprite-based rendering (original implementation)
+  if (!fogTexture) return
+
   // Get the visible viewport for culling
-  const viewport = {
+  const viewportLocal = {
     x: Math.max(0, Math.floor(viewTransform?.x / tileSize) || 0),
     y: Math.max(0, Math.floor(viewTransform?.y / tileSize) || 0),
     width: Math.ceil(app.renderer.width / (tileSize * (viewTransform?.scale || 1))),
@@ -326,34 +349,42 @@ function renderFog(delay) {
 
   // Add buffer to prevent edge artifacts while scrolling
   const buffer = 2
-  const startX = Math.max(0, viewport.x - buffer)
-  const startY = Math.max(0, viewport.y - buffer)
-  const endX = Math.min(width, viewport.x + viewport.width + buffer)
-  const endY = Math.min(height, viewport.y + viewport.height + buffer)
-
-  // Get human player's grids for rendering
-  if (!gameState.humanPlayer) return
-  const humanTeamId = getTeamId(gameState.humanPlayer)
-  const { fogGrid, exploredGrid } = getTeamGrids(humanTeamId)
+  const startX = Math.max(0, viewportLocal.x - buffer)
+  const startY = Math.max(0, viewportLocal.y - buffer)
+  const endX = Math.min(width, viewportLocal.x + viewportLocal.width + buffer)
+  const endY = Math.min(height, viewportLocal.y + viewportLocal.height + buffer)
 
   // Track which fog sprites should be visible this frame
   const visibleFogTiles = new Set()
 
-  // Update fog sprites for visible viewport only
+  // Update fog sprites for visible viewport - INCLUDING unexplored areas
   for (let x = startX; x < endX; x++) {
     for (let y = startY; y < endY; y++) {
       // Skip if coordinates are invalid
       if (x < 0 || x >= width || y < 0 || y >= height) continue
 
       const isExplored = exploredGrid[x][y]
-
-      // Skip completely unexplored areas
-      if (!isExplored) continue
-
       const fogValue = fogGrid[x][y]
 
-      // Skip completely visible tiles (no fog needed)
-      if (fogValue <= 0.1) continue
+      // Determine if this tile needs fog
+      let needsFog = false
+      let fogAlpha = 0
+
+      if (!isExplored) {
+        // Unexplored: very heavy fog
+        needsFog = true
+        fogAlpha = 0.95
+      } else if (fogValue > 0.1) {
+        // Explored but not fully visible
+        needsFog = true
+        if (fogValue > 0.9) {
+          fogAlpha = FOG_ALPHA_EXPLORED
+        } else {
+          fogAlpha = fogValue * FOG_ALPHA_EXPLORED
+        }
+      }
+
+      if (!needsFog) continue
 
       // This tile needs fog - get or create sprite
       const tileKey = `${x}_${y}`
@@ -370,25 +401,18 @@ function renderFog(delay) {
         fogContainer.addChild(fogSprite)
       }
 
-      // Update alpha based on fog value (no redraw, just property update)
-      if (fogValue > 0.9) {
-        // Explored but not visible
-        fogSprite.alpha = FOG_ALPHA_EXPLORED
-      } else {
-        // Partially fogged (gradient)
-        fogSprite.alpha = fogValue * FOG_ALPHA_EXPLORED
-      }
-
+      // Update alpha
+      fogSprite.alpha = fogAlpha
       fogSprite.visible = true
     }
   }
 
   // Hide fog sprites that are no longer in viewport (with extended buffer)
   const extendedBuffer = buffer * 4
-  const farStartX = Math.max(0, viewport.x - extendedBuffer)
-  const farStartY = Math.max(0, viewport.y - extendedBuffer)
-  const farEndX = Math.min(width, viewport.x + viewport.width + extendedBuffer)
-  const farEndY = Math.min(height, viewport.y + viewport.height + extendedBuffer)
+  const farStartX = Math.max(0, viewportLocal.x - extendedBuffer)
+  const farStartY = Math.max(0, viewportLocal.y - extendedBuffer)
+  const farEndX = Math.min(width, viewportLocal.x + viewportLocal.width + extendedBuffer)
+  const farEndY = Math.min(height, viewportLocal.y + viewportLocal.height + extendedBuffer)
 
   for (const [tileKey, fogSprite] of fogSpriteMap.entries()) {
     if (!visibleFogTiles.has(tileKey)) {

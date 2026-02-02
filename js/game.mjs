@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-export { gameLoop, initGame, updateSprite, getCurrentWaterFrame }
+export { gameLoop, initGame, updateSprite, getCurrentWaterFrame, regenerateGoldTextures }
 
 'use strict'
 
@@ -39,6 +39,7 @@ import { Player, PlayerType } from 'players'
 import { drawBackground, drawMain, drawMinimap, app } from 'renderer'
 import { sprites } from 'sprites'
 import gameState from 'state'
+import { generateTerrainBitmaps, clearTerrainBitmaps, regenerateTerrainRegion } from 'terrainBitmaps'
 import { handleMouseInteraction, updateUI, showModal } from 'ui'
 
 // Re-export constants for backward compatibility
@@ -49,7 +50,7 @@ let elapsed = -5000
 let elapsedBack = -5000
 let delays = new Uint8Array(60).fill(255) // For game logic (capped)
 let fpsDelays = new Float32Array(60).fill(16.67) // For FPS display (uncapped)
-let waterAnimationTimer = 0 // Global timer for water animation (cycles through 4 frames)
+let waterAnimationTimer = 0 // Global timer for water animation (cycles through 4 frames, uses real time)
 let delaysIndex = 0
 let fpsDelaysIndex = 0
 let nextFrameTime = 0 // For FPS limiting - when the next frame should be rendered
@@ -109,6 +110,13 @@ const initGame = async () => {
       updateMapInWorker()
       await assignSpritesOnMap()
 
+      // Generate terrain bitmaps
+      if (CONSTANTS.BITMAP_RENDERING.ENABLED) {
+        console.log('Generating terrain bitmaps...')
+        const { app: pixiApp, containers: pixiContainers } = await import('renderer')
+        await generateTerrainBitmaps(gameState.map, pixiApp, pixiContainers)
+      }
+
       console.log(`✓ Custom map loaded successfully: ${mapData.name}`)
       return true
     }
@@ -167,6 +175,13 @@ const initGame = async () => {
 
   updateMapInWorker() // Initial map update
   await assignSpritesOnMap()
+
+  // Generate terrain bitmaps
+  if (CONSTANTS.BITMAP_RENDERING.ENABLED) {
+    console.log('Generating terrain bitmaps...')
+    const { app: pixiApp, containers: pixiContainers } = await import('renderer')
+    await generateTerrainBitmaps(gameState.map, pixiApp, pixiContainers)
+  }
 
   elapsedBack = elapsed = nextFrameTime = performance.now()
 
@@ -263,6 +278,50 @@ const assignSpritesOnMap = async () => {
   }
 }
 
+/**
+ * Regenerate gold textures after renderer recreation
+ * Gold tiles use RenderTextures that become invalid when renderer is recreated
+ */
+const regenerateGoldTextures = async () => {
+  const { width: MAP_WIDTH, height: MAP_HEIGHT } = getMapDimensions()
+  const SPRITE_SIZE = getTileSize()
+  const { app } = await import('renderer')
+
+  console.log('Regenerating gold textures...')
+
+  for (let x = 0; x < MAP_WIDTH; x++) {
+    for (let y = 0; y < MAP_HEIGHT; y++) {
+      const tile = gameState.map[x][y]
+
+      if (tile.type === TERRAIN_TYPES.GOLD.type) {
+        const terrainType = TERRAIN_TYPES[tile.type]
+        const spriteX = terrainType.spriteRange.x[0]
+        const spriteY = terrainType.spriteRange.y[0]
+
+        if (tile.sprite && tile.sprite.destroy) {
+          tile.sprite.destroy(true)
+        }
+
+        // Recreate gold texture with current renderer
+        const baseGoldTexture = sprites[`tile_${spriteX}_${spriteY}`]
+        const goldSprite = new PIXI.Sprite(baseGoldTexture)
+        goldSprite.tint = 0xFFEA7D
+        const goldRenderTexture = PIXI.RenderTexture.create({
+          width: SPRITE_SIZE,
+          height: SPRITE_SIZE,
+          scaleMode: PIXI.SCALE_MODES.NEAREST
+        })
+        app.renderer.render(goldSprite, { renderTexture: goldRenderTexture })
+        tile.sprite = goldRenderTexture
+
+        goldSprite.destroy()
+      }
+    }
+  }
+
+  console.log('✓ Gold textures regenerated')
+}
+
 // Update the sprite on the map at specified coords
 const updateSprite = async (x, y) => {
   const terrainType = TERRAIN_TYPES[gameState.map[x][y].type]
@@ -272,6 +331,12 @@ const updateSprite = async (x, y) => {
       spriteX = terrainType.spriteRange.x[0]
       spriteY = terrainType.spriteRange.y[0]
       gameState.map[x][y].sprite = sprites[`tile_${spriteX}_${spriteY}`]
+
+      // Update terrain bitmap with depleted tree
+      if (CONSTANTS.BITMAP_RENDERING.ENABLED) {
+        const { app: pixiApp } = await import('renderer')
+        regenerateTerrainRegion(x, y, 1, 1, pixiApp)
+      }
       break
     case TERRAIN_TYPES.GRASS.type:
     case TERRAIN_TYPES.TREE.type:
@@ -308,7 +373,8 @@ const gameLoop = async () => {
   gameState.UI?.mouse?.applyDragMomentum(actualDelay)
 
   // Update water animation timer (300ms per frame, 4 frames total = 1200ms cycle)
-  waterAnimationTimer += gameState.gameSpeedMultiplier * delay
+  // Water animation uses real time (not game speed) for visual consistency
+  waterAnimationTimer += delay
   if (waterAnimationTimer >= 1200) {
     waterAnimationTimer -= 1200
   }
@@ -400,8 +466,8 @@ const gameLoop = async () => {
     }
 
     // Schedule next frame
-    const delay = Math.max(0, nextFrameTime - timeNow)
-    setTimeout(gameLoop, delay)
+    const schedulerDelay = Math.max(0, nextFrameTime - timeNow)
+    setTimeout(gameLoop, schedulerDelay)
   } else {
     requestAnimationFrame(gameLoop)
   }

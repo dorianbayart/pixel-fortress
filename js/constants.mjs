@@ -168,6 +168,15 @@ export default {
         VERY_FAST: 2
     },
 
+    // ===== BITMAP RENDERING =====
+    BITMAP_RENDERING: {
+        ENABLED: true,
+        FOG_REBUILD_THRESHOLD_TILES: 2,      // Not used in new fog system
+        FOG_UPDATE_INTERVAL_MS: 500,         // Update fog bitmap contents every 400ms
+        TILE_BITMAP_SIZE: 2048,              // For tiled fallback
+        GOLD_TINT: 0xFFEA7D
+    },
+
     // ===== MATH CONSTANTS =====
     MATH: {
         PI: Math.PI

@@ -421,14 +421,6 @@ function openOptionsModal() {
     antialiasingStatus.textContent = ''
   }
 
-  // Update FPS cap value text
-  const selectedFpsCap = parseInt(fpsCapSelect.value)
-  if (selectedFpsCap === 0) {
-    fpsCapValue.textContent = '(Monitor Refresh Rate)'
-  } else {
-    fpsCapValue.textContent = `(${selectedFpsCap} FPS)`
-  }
-
   // Show the modal
   optionsSection.style.display = 'block'
   setTimeout(() => {
@@ -539,22 +531,24 @@ function drawUI(fps) {
   const viewportHeight = viewportTiles.endY - viewportTiles.startY
   const totalViewportTiles = viewportWidth * viewportHeight
 
+  // Format background sprite info (bitmap vs individual sprites)
+  const backgroundInfo = renderStats.backgroundSpritesVisible === 1 ? '1 (bitmap)' : String(renderStats.backgroundSpritesVisible)
+
   statsText.text = [
     `== Performance ==`,
     `FPS: ${fps.toFixed(1)} | Frame Time: ${(1000 / fps).toFixed(2)}ms`,
     `DPR: ${getCanvasDimensions().dpr}:${globalThis.devicePixelRatio || 1}`,
     ``,
     `== Rendering ==`,
-    `Viewport: ${viewportWidth}x${viewportHeight} tiles (${totalViewportTiles} max)`,
-    `Tiles Rendered: ${renderStats.tilesRendered} / ${totalViewportTiles}`,
+    `Map: ${MAP_WIDTH}x${MAP_HEIGHT} tiles (${renderStats.tilesRendered} total)`,
     `Visible Sprites: ${renderStats.backgroundSpritesVisible + renderStats.worldObjectSpritesVisible + renderStats.unitSpritesVisible}`,
-    `  - Background: ${renderStats.backgroundSpritesVisible}`,
+    `  - Background: ${backgroundInfo}`,
     `  - World Objects: ${renderStats.worldObjectSpritesVisible}`,
     `  - Units: ${renderStats.unitSpritesVisible}`,
     `Particles: ${containers.particles.children?.length}`,
     ``,
     `== Sprite Maps (Cached) ==`,
-    `Background: ${backgroundSpriteMap.size} | World: ${worldObjectSpriteMap.size}`,
+    `World Objects: ${worldObjectSpriteMap.size}`,
     `Units: ${unitSpriteMap.size} | Indicators: ${indicatorMap.size}`,
     ``,
     `== Game State ==`,
