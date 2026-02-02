@@ -129,14 +129,18 @@ async function generateTerrainBitmaps(map, app, containers) {
       scaleMode: PIXI.SCALE_MODES.NEAREST
     })
 
-    // CRITICAL: Set resolution to 1 for correct high DPI display
     if (texture.baseTexture) {
-      texture.baseTexture.resolution = 1
+      texture.baseTexture.resolution = app.renderer.resolution
       texture.baseTexture.destroyable = false
     }
 
     tempContainer.destroy({ children: true, texture: false, baseTexture: false })
     terrainBitmaps.push(texture)
+
+    // Force NEAREST scale mode on the bitmap texture                                                                                                                                                                                       
+    if (texture.source) {
+      texture.source.scaleMode = PIXI.SCALE_MODES.NEAREST
+    }
   }
 
   if (terrainBitmaps.length > 0) {

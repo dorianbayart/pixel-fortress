@@ -117,7 +117,7 @@ async function initCanvases() {
   if(!app) {
     const useAntialiasing = gameState.settings?.antialiasing ?? false
     // Use supersampling when antialiasing is enabled: render at 2x resolution
-    const renderResolution = useAntialiasing ? dpr * 2 : dpr
+    const renderResolution = useAntialiasing ? (dpr > 1 ? dpr : 2) : 1
 
     app = new PIXI.Application()
     await app.init({
@@ -287,7 +287,7 @@ async function recreateRenderer() {
   const { width, height, dpr } = getCanvasDimensions()
 
   // Use supersampling when antialiasing is enabled
-  const renderResolution = useAntialiasing ? dpr * 2 : dpr
+  const renderResolution = useAntialiasing ? (dpr > 1 ? dpr : 2) : 1
 
   // Store canvas parent for re-insertion
   const oldCanvas = document.getElementById('canvas')
