@@ -2,6 +2,31 @@
 
 ## Version {{version}}
 
+### Major Improvements
+- **Renderer Rework**: Complete renderer overhaul achieving full 60 FPS even on huge maps
+- **PixiJS v8.15**: Upgraded to latest PixiJS version with improved text rendering
+- **FPS Limit Option**: Added configurable FPS limit in game options
+
+### Performance Optimizations
+- Reworked viewport tile visibility calculations for significant performance gains
+- Optimized water sprite updates in game loop
+- Improved sprite cleanup in background drawing logic
+- Reduced viewport buffer size for better memory usage
+- Enhanced zoom factors for smoother camera control
+
+### Bug Fixes
+- Fixed UI glitches when restarting the game
+- Fixed text rendering issues after PixiJS upgrade
+- Removed unnecessary viewport updates
+
+### UI/UX
+- Rewrote and improved landing page texts with CSS refinements
+- Simplified viewport movement controls
+
+---
+
+## Version 0.0.2
+
 ### New Features
 - **Game Modes**: Three new gameplay modes - Classic, One Shot (1 HP units), and Turbo Gatherer (5x resource speed)
 - **Animated Water**: Fully animated water sprites with expanded tileset

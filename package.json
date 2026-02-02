@@ -1,6 +1,6 @@
 {
   "name": "pixel-fortress",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Strategic base-building with automated warfare. Design your fortress, establish resource production, and deploy self-directed units that explore, gather, and battle autonomously.",
   "main": "main.js",
   "scripts": {
