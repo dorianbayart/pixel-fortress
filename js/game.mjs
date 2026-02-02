@@ -354,7 +354,7 @@ const updateSprite = async (x, y) => {
 const gameLoop = async () => {
   const now = performance.now()
   const actualDelay = now - elapsed // Real delay for FPS calculation
-  const delay = Math.min(actualDelay, 20) | 0 // Capped delay for game logic
+  const delay = Math.min(actualDelay, 50) | 0 // Capped delay for game logic
   elapsed = now
 
   if(gameState.gameStatus === 'paused') {
