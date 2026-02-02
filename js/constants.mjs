@@ -152,7 +152,7 @@ export default {
 
     // ===== PATHFINDING =====
     PATHFINDING: {
-        NUM_WORKERS: 3, // Number of pathfinding web workers
+        NUM_WORKERS: Math.max(1, Math.min(navigator.hardwareConcurrency - 1 || 2, 5)), // Dynamic: 1-5 workers based on CPU cores
         MAX_CONCURRENT_PER_WORKER: 4 // Max concurrent pathfinding requests per worker
     },
 
