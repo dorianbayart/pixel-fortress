@@ -69,6 +69,44 @@ async function initializeGame() {
       })
     }
   }, 250)
+
+  // Get fullscreen toggle button
+  const fullscreenToggleButton = document.getElementById('fullscreenToggleButton')
+
+  // Function to toggle fullscreen
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      // Enter fullscreen
+      document.documentElement.requestFullscreen().then(() => {
+        gameState.fullscreen = true
+        fullscreenToggleButton.textContent = '🖥️ Windowed'
+      }).catch(err => {
+        console.error(`Error attempting to enable fullscreen: ${err.message}`)
+      })
+    } else {
+      // Exit fullscreen
+      document.exitFullscreen().then(() => {
+        gameState.fullscreen = false
+        fullscreenToggleButton.textContent = '🖥️ Fullscreen'
+      }).catch(err => {
+        console.error(`Error attempting to exit fullscreen: ${err.message}`)
+      })
+    }
+  }
+
+  // Add event listener for the fullscreen toggle button
+  fullscreenToggleButton.addEventListener('click', toggleFullscreen)
+
+  // Listen for fullscreen changes (e.g., user pressing F11 or Escape)
+  document.addEventListener('fullscreenchange', () => {
+    if (document.fullscreenElement) {
+      gameState.fullscreen = true
+      fullscreenToggleButton.textContent = '🖥️ Windowed'
+    } else {
+      gameState.fullscreen = false
+      fullscreenToggleButton.textContent = '🖥️ Fullscreen'
+    }
+  })
   
   // Initialize mouse handling
   const mouseModule = await import('mouse')

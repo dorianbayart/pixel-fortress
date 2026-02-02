@@ -281,10 +281,21 @@
     #audioToggleButton {
       position: absolute;
       top: 20px;
+      right: 275px;
+      font-size: 1.25rem;
+      width: 240px;
+      padding: 0.85dvh 0;
+      margin: 0;
+    }
+
+    #fullscreenToggleButton {
+      position: absolute;
+      top: 20px;
       right: 20px;
       font-size: 1.25rem;
-      width: 225px;
-      padding: 0.75dvh 0;
+      width: 240px;
+      padding: 0.85dvh 0;
+      margin: 0;
     }
 
     #progressBar {
@@ -404,6 +415,7 @@
       <button id="backButton" class="menu-button cancelButton">Back</button>
     </div>
     <button id="audioToggleButton" class="menu-button cancelButton" style="display: none;">🎵 Unmute Audio</button>
+    <button id="fullscreenToggleButton" class="menu-button">🖥️ Fullscreen</button>
   </div>
 
   
@@ -618,6 +630,15 @@
           <label class="toggle-label">
             <input type="checkbox" id="healthBarsToggle">
             <span class="toggle-text">Show Health Bars (Shortcut: H)</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="option-group">
+        <div class="option-controls">
+          <label class="toggle-label">
+            <input type="checkbox" id="fullscreenToggle">
+            <span class="toggle-text">Fullscreen Mode</span>
           </label>
         </div>
       </div>

@@ -560,6 +560,7 @@ async function setupOptionsSection() {
   // Get option buttons
   const debugToggle = document.getElementById('debugToggle')
   const healthBarsToggle = document.getElementById('healthBarsToggle')
+  const fullscreenToggle = document.getElementById('fullscreenToggle')
   const antialiasingToggle = document.getElementById('antialiasingToggle')
   const antialiasingStatus = document.getElementById('antialiasingStatus')
   const fpsCapSelect = document.getElementById('fpsCapSelect')
@@ -582,6 +583,7 @@ async function setupOptionsSection() {
     // Set current values based on game settings or defaults
     debugToggle.checked = gameState.settings?.debugMode === true
     healthBarsToggle.checked = gameState.settings?.showHealthBars === true
+    fullscreenToggle.checked = gameState.settings?.fullscreen ?? false
     antialiasingToggle.checked = gameState.settings?.antialiasing ?? false
     fpsCapSelect.value = gameState.settings?.fpsCap ?? 0
     sfxVolumeSlider.value = gameState.settings?.sfxVolume ?? 0.8
@@ -611,6 +613,7 @@ async function setupOptionsSection() {
 
     const debugModeEnabled = debugToggle.checked
     const showHealthBarsEnabled = healthBarsToggle.checked
+    const fullscreenEnabled = fullscreenToggle.checked
     const antialiasingEnabled = antialiasingToggle.checked
     const fpsCap = parseInt(fpsCapSelect.value)
     const sfxVolume = parseFloat(sfxVolumeSlider.value)
@@ -619,11 +622,23 @@ async function setupOptionsSection() {
     gameState.updateSettings({
         debugMode: debugModeEnabled,
         showHealthBars: showHealthBarsEnabled,
+        fullscreen: fullscreenEnabled,
         antialiasing: antialiasingEnabled,
         fpsCap: fpsCap,
         sfxVolume: sfxVolume,
         musicVolume: musicVolume,
     })
+
+    // Apply fullscreen setting immediately
+    if (fullscreenEnabled && !document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(err => {
+        console.error(`Error attempting to enable fullscreen: ${err.message}`)
+      })
+    } else if (!fullscreenEnabled && document.fullscreenElement) {
+      document.exitFullscreen().catch(err => {
+        console.error(`Error attempting to exit fullscreen: ${err.message}`)
+      })
+    }
 
     closeOptionsModal()
   }
@@ -637,6 +652,7 @@ async function setupOptionsSection() {
   // Add click handlers for option buttons
   debugToggle.addEventListener('change', playClickSound)
   healthBarsToggle.addEventListener('change', playClickSound)
+  fullscreenToggle.addEventListener('change', playClickSound)
   antialiasingToggle.addEventListener('change', () => {
     playClickSound()
     updateAntialiasingStatus()

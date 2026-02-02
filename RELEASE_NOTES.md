@@ -20,6 +20,7 @@
 - Removed unnecessary viewport updates
 
 ### UI/UX
+- Add a Fullscreen toggle button
 - Rewrote and improved landing page texts with CSS refinements
 - Simplified viewport movement controls
 

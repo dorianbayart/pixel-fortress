@@ -88,7 +88,8 @@ class GameState {
       showHealthBars: false,
       gameMode: 'classic',
       antialiasing: false,
-      fpsCap: 0 // 0 = unlimited (monitor refresh rate), or specific cap: 30, 60, 120, 144, 240
+      fpsCap: 0, // 0 = unlimited (monitor refresh rate), or specific cap: 30, 60, 120, 144, 240
+      fullscreen: false
     }
 
     // UI references
@@ -383,6 +384,26 @@ class GameState {
     if (oldSelectedBuilding !== building) {
       this.events.emit('selected-building-changed', building)
       this.drawBack()
+    }
+  }
+
+  /**
+   * Get the fullscreen setting
+   * @returns {boolean} The fullscreen setting
+   */
+  get fullscreen() {
+    return this._settings.fullscreen
+  }
+
+  /**
+   * Set the fullscreen setting and emit event
+   * @param {boolean} value - The fullscreen setting
+   */
+  set fullscreen(value) {
+    const oldValue = this._settings.fullscreen
+    this._settings.fullscreen = value
+    if (oldValue !== value) {
+      this.events.emit('fullscreen-changed', value)
     }
   }
 }

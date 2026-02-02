@@ -399,6 +399,7 @@ function openOptionsModal() {
   const optionsSection = document.getElementById('optionsSection')
   const debugToggle = document.getElementById('debugToggle')
   const healthBarsToggle = document.getElementById('healthBarsToggle')
+  const fullscreenToggle = document.getElementById('fullscreenToggle')
   const antialiasingToggle = document.getElementById('antialiasingToggle')
   const antialiasingStatus = document.getElementById('antialiasingStatus')
   const fpsCapSelect = document.getElementById('fpsCapSelect')
@@ -409,6 +410,7 @@ function openOptionsModal() {
   // Set current values based on game settings
   debugToggle.checked = gameState.settings?.debugMode === true
   healthBarsToggle.checked = gameState.settings?.showHealthBars === true
+  fullscreenToggle.checked = gameState.settings?.fullscreen ?? false
   antialiasingToggle.checked = gameState.settings?.antialiasing ?? false
   fpsCapSelect.value = gameState.settings?.fpsCap ?? 0
   sfxVolumeSlider.value = gameState.settings?.sfxVolume ?? 0.8
