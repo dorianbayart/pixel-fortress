@@ -48,6 +48,15 @@ class Player {
 
     if(this.isHuman()) {
       gameState.humanPlayer = this
+
+      // Dev mode: Set starting resources to 200 for testing
+      if (CONSTANTS.DEV_MODE.isEnabled()) {
+        this.resources.wood = CONSTANTS.DEV_MODE.STARTING_RESOURCES
+        this.resources.stone = CONSTANTS.DEV_MODE.STARTING_RESOURCES
+        this.resources.water = CONSTANTS.DEV_MODE.STARTING_RESOURCES
+        this.resources.gold = CONSTANTS.DEV_MODE.STARTING_RESOURCES
+        this.resources.money = CONSTANTS.DEV_MODE.STARTING_RESOURCES
+      }
     } else {
       gameState.addAiPlayer(this)
       this.difficulty = difficulty

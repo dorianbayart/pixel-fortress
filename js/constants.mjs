@@ -180,5 +180,17 @@ export default {
     // ===== MATH CONSTANTS =====
     MATH: {
         PI: Math.PI
+    },
+
+    // ===== DEV MODE =====
+    DEV_MODE: {
+        // Check if running in dev mode (localhost:8000)
+        // TODO: Add Debug mode as condition
+        isEnabled() {
+            return typeof window !== 'undefined' &&
+                   window.location.hostname === 'localhost' &&
+                   window.location.port === '8000'
+        },
+        STARTING_RESOURCES: 200
     }
 }
