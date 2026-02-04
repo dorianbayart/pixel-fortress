@@ -1,4 +1,4 @@
-export { Building, CombatBuilding, GoldMine, Quarry, Tent, Well, WorkerBuilding, Barracks, Armory, Citadel, Market }
+export { Building, CombatBuilding, GoldMine, Quarry, Tent, Well, WorkerBuilding, Barracks, Armory, Citadel, Market, Tower }
 
 'use strict'
 
@@ -265,6 +265,21 @@ class Building {
           },
           sprite: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAMAAADXqc3KAAAAFVBMVEXH2+uuw9LM3u2Wrr1vnKxWZXEQV61ZyqlCAAAAAnRSTlMB9aJf+uoAAACFSURBVHjarZJBCsNADANtjaz/P7k0TUjabKGHzsXgERiB6xekWtF6soqT0LrHSTbzptQNgYDQJc4IkgAa1EecmQacgGaOS8I2EBNo297FC5wEvairaX/sSzfOEiNpZrYhdR2mxz0bYi4VpUG76LsAWArb/oeQ2raRTtELnnuWVJWWfH+ZBzq/A+PL/IUwAAAAAElFTkSuQmCC'
         },
+        TOWER: {
+          name: "Tower",
+          icon: "🗼",
+          costs: { wood: 30, stone: 40, gold: 15 },
+          UPGRADES: {
+            benefits: { life: 50, attackDamage: 5, range: 1, cooldown: 10 } // +50 life, +5 attack damage, +1 range, 10% attack speed
+          },
+          description: "Defensive tower that attacks enemies",
+          details: "Automatically attacks enemies within range.",
+          sprite_coords: {
+            cyan: { x: 15, y: 26 },
+            red: { x: 15, y: 26 },
+          },
+          sprite: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAMAAABg3Am1AAAAGFBMVEUAAAAAAAAAAAAAAAD86ivwtBymihcDAwDRFYm6AAAABHRSTlMAO3vaMWD3HAAAAO1JREFUeNrdlkEOgzAQAwv1Mv//cUWsaEUTtZtDD9Tiso4HKyQHHvcRrOWfLBIolgBCsUKAToD6BiTFAoEMRBEgAeoFinIFJADlAgPx78D6VwJgPAfb83gcQJ50HNieISDrIAEAWTDLW4CBA5S6EDv5YaQOQPeGDhwBOJfBU3rvFS0PnCghOdq9HWIK9LYQNCDA3ghgoBMOO98BPKQTbImjxuRyFmQIWxNBwDaYGOCiXJtrBL5LFxWApQZqZgrgeb7WTxtg+wAE9JMGefrcoMvl81DYsYHavlvCwO6hIAPO/gpAQRnI67ZG3Ocn5AVHZA5jm1uDNwAAAABJRU5ErkJggg=='
+        },
         TENT: {
           name: "Tent",
           icon: "⛺",
@@ -366,7 +381,7 @@ class Building {
           this.life = 1
         } else {
           this.maxLife += benefits.life
-          this.life += benefits.life // Also heal the building
+          this.life += benefits.life
         }
       }
       if (benefits.productionSpeed) {
@@ -377,6 +392,19 @@ class Building {
       }
       if (benefits.sellingPrice) {
         this.sellingPrice += benefits.sellingPrice
+      }
+      if(benefits.range) {
+        if(this.attackRange) {
+          this.attackRange += benefits.range
+        }
+        if(this.visibilityRange) {
+          this.visibilityRange += benefits.range
+        }
+      }
+      if(benefits.cooldown) {
+        if(this.attackCooldown) {
+          this.attackCooldown *= (1 - benefits.cooldown / 100)
+        }
       }
 
       this.level = nextLevel
@@ -484,7 +512,7 @@ class Building {
     tile.originalType = tile.type
     tile.originalWeight = tile.weight
     tile.originalBack = tile.back
-    
+
     let building
     switch (buildingType) {
         case Building.TYPES.LUMBERJACK:
@@ -513,6 +541,9 @@ class Building {
           break
         case Building.TYPES.CITADEL:
           building = new Citadel(x, y, color, owner)
+          break
+        case Building.TYPES.TOWER:
+          building = new Tower(x, y, color, owner)
           break
     }
 
@@ -1543,5 +1574,34 @@ class Market extends Building {
         this.owner.addResource('money', this.sellingPrice * resourceAmount | 0)
       }
     }
+  }
+}
+
+/**
+ * Tower building for defense
+ * Automatically attacks enemies within range (to be implemented)
+ */
+class Tower extends Building {
+  constructor(x, y, color, owner) {
+    super(x, y, color, owner)
+    this.type = Building.TYPES.TOWER
+    this.life = 200
+    this.maxLife = 200
+    applyGameModeModifiers(this)
+    this.attackRange = getTileSize() * 5 // Attack range in pixels
+    this.attackDamage = 5 // Base attack damage
+    this.attackCooldown = 2000 // 2 seconds between attacks
+    this.attackTimer = 0
+  }
+
+  /**
+   * Update tower state
+   * @param {number} delay - Time elapsed since last update (ms)
+   */
+  update(delay) {
+    super.update(delay)
+
+    // TODO: Implement attack logic in future
+    // For now, the tower just exists and does nothing
   }
 }

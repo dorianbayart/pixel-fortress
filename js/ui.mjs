@@ -1111,7 +1111,8 @@ async function createBuildingSlots() {
     Building.TYPES.MARKET,
     Building.TYPES.BARRACKS,
     Building.TYPES.ARMORY,
-    Building.TYPES.CITADEL
+    Building.TYPES.CITADEL,
+    Building.TYPES.TOWER
   ]
   
   const numSlots = Math.min(buildings.length, maxSlots)
