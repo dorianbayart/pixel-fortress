@@ -9,6 +9,7 @@ import { isPositionVisible } from 'fogOfWar'
 import { ParticleEffect, createParticleEmitter } from 'particles'
 import { searchPath, updateMapInWorker } from 'pathfinding'
 import { Player } from 'players'
+import { Projectile } from 'projectile'
 import { indicatorMap, removeProgressIndicator, updateProgressIndicator } from 'renderer'
 import { sprites } from 'sprites'
 import gameState from 'state'
@@ -403,6 +404,11 @@ class Building {
       if(benefits.cooldown) {
         if(this.attackCooldown) {
           this.attackCooldown *= (1 - benefits.cooldown / 100)
+        }
+      }
+      if(benefits.attackDamage) {
+        if(this.attackDamage !== undefined) {
+          this.attackDamage += benefits.attackDamage
         }
       }
 
@@ -1594,13 +1600,67 @@ class Tower extends Building {
   }
 
   /**
-   * Update tower state
+   * Update tower state: tick attack timer and fire when ready
    * @param {number} delay - Time elapsed since last update (ms)
    */
   update(delay) {
     super.update(delay)
 
-    // TODO: Implement attack logic in future
-    // For now, the tower just exists and does nothing
+    this.attackTimer += delay
+
+    if (this.attackTimer >= this.attackCooldown) {
+      this.attackTimer -= this.attackCooldown
+      const enemy = this.findNearestEnemy()
+      if (enemy) {
+        this.fireProjectile(enemy)
+      }
+    }
+  }
+
+  /**
+   * Find the nearest visible enemy within attack range.
+   * @returns {Object|null} The closest enemy unit or building, or null if none in range
+   */
+  findNearestEnemy() {
+    const SPRITE_SIZE = getTileSize()
+    const towerCX = this.x * SPRITE_SIZE + SPRITE_SIZE / 2
+    const towerCY = this.y * SPRITE_SIZE + SPRITE_SIZE / 2
+
+    const enemies = this.owner.getVisibleEnemies()
+    let nearest = null
+    let nearestDist = Infinity
+
+    for (const enemy of enemies) {
+      if (enemy.life <= 0) continue
+
+      const enemyX = enemy.currentNode
+        ? enemy.x + SPRITE_SIZE / 2
+        : enemy.x * SPRITE_SIZE + SPRITE_SIZE / 2
+      const enemyY = enemy.currentNode
+        ? enemy.y + SPRITE_SIZE / 2
+        : enemy.y * SPRITE_SIZE + SPRITE_SIZE / 2
+
+      const dx = enemyX - towerCX
+      const dy = enemyY - towerCY
+      const dist = Math.sqrt(dx * dx + dy * dy)
+
+      if (dist <= this.attackRange && dist < nearestDist) {
+        nearestDist = dist
+        nearest = enemy
+      }
+    }
+
+    return nearest
+  }
+
+  /**
+   * Create and launch an arrow projectile toward the given target.
+   * @param {Object} target - Enemy unit or building to attack
+   */
+  fireProjectile(target) {
+    const SPRITE_SIZE = getTileSize()
+    const towerCX = this.x * SPRITE_SIZE + SPRITE_SIZE / 2
+    const towerCY = this.y * SPRITE_SIZE + SPRITE_SIZE / 2
+    new Projectile(towerCX, towerCY, target, this.attackDamage)
   }
 }

@@ -886,7 +886,7 @@ async function displayBuildingInfo(building) {
   // Production Info (if applicable)
   let productionText = null
   fontSize = 14
-  if (building.productionCooldown > 1000 && building.productionTimer !== undefined) {
+  if (building.attackDamage === undefined && building.productionCooldown > 1000 && building.productionTimer !== undefined) {
     const productionLabel = `Producing: ${(building.productionTimer / 1000).toFixed(1)}s / ${(building.productionCooldown / 1000).toFixed(1)}s`
     productionText = createText(productionLabel, TEXT_STYLES.buildingInfoBlue)
     productionText.position.set(currentX + lifeText.width + 40, padding)
@@ -900,6 +900,18 @@ async function displayBuildingInfo(building) {
     workersText = createText(workersLabel, TEXT_STYLES.buildingInfoBlue)
     workersText.position.set(currentX + lifeText.width + 40, padding)
     bottomBarContainer.addChild(workersText)
+  }
+
+  // Attack stats (for combat buildings like Tower)
+  if (building.attackDamage !== undefined) {
+    const SPRITE_SIZE = getTileSize()
+    const attackPower = `Atk: ${building.attackDamage}`
+    const attackSpeed = `Spd: ${(1000 / building.attackCooldown).toFixed(2)}/s`
+    const attackRange = `Range: ${(building.attackRange / SPRITE_SIZE).toFixed(1)} tiles`
+    const attackLabel = `${attackPower}  ${attackSpeed}  ${attackRange}`
+    const attackText = createText(attackLabel, TEXT_STYLES.buildingInfoBlue)
+    attackText.position.set(currentX, padding + lifeText.height + 5)
+    bottomBarContainer.addChild(attackText)
   }
 
   // Market specific UI for selling resources

@@ -34,6 +34,7 @@ import {
 } from 'mapGeneration'
 import { loadCustomMap, applyCustomMap } from 'maps'
 import { updateAllParticles } from 'particles'
+import { updateProjectiles, resetProjectiles } from 'projectile'
 import { updateMapDimensionsInWorker, updateMapInWorker } from 'pathfinding'
 import { Player, PlayerType } from 'players'
 import { drawBackground, drawMain, drawMinimap, app } from 'renderer'
@@ -57,6 +58,8 @@ let nextFrameTime = 0 // For FPS limiting - when the next frame should be render
 
 // Initialize the game
 const initGame = async () => {
+  resetProjectiles()
+
   // Create players
   new Player(PlayerType.HUMAN)
   new Player(PlayerType.AI, gameState.settings.difficulty)
@@ -407,6 +410,9 @@ const gameLoop = async () => {
     showModal('You Win !', 'You destroyed your opponent\'s main building ! Congrats !', 'win', 'menu', () => {})
     return // Stop the game loop
   }
+
+  // Update projectiles (arrows in flight)
+  updateProjectiles(gameState.gameSpeedMultiplier * delay)
 
   // Update particles
   updateAllParticles(delay)

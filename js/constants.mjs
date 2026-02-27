@@ -187,6 +187,7 @@ export default {
         // Check if running in dev mode (localhost:8000)
         // TODO: Add Debug mode as condition
         isEnabled() {
+            return true
             return typeof window !== 'undefined' &&
                    window.location.hostname === 'localhost' &&
                    window.location.port === '8000'
