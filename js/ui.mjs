@@ -607,41 +607,37 @@ async function createTopBar() {
   
   // Resources to display
   const resources = [
-    { name: 'wood', icon: '🪵', initial: playerResources?.wood || 0 },
-    { name: 'water', icon: '💧', initial: playerResources?.water || 0 },
-    { name: 'gold', icon: '🪙', initial: playerResources?.gold || 0 },
-    { name: 'stone', icon: '🪨', initial: playerResources?.stone || 0 },
-    { name: 'money', icon: '💰', initial: playerResources?.money || 0 },
-    { name: 'population', icon: '👥', initial: playerResources?.population || 0 }
+    { name: 'wood',       sprite: './assets/buildings/wood.png',                  initial: playerResources?.wood       || 0 },
+    { name: 'stone',      sprite: './assets/buildings/rock.png',                  initial: playerResources?.stone      || 0 },
+    { name: 'gold',       sprite: './assets/buildings/gold-ore.png',              initial: playerResources?.gold       || 0 },
+    { name: 'water',      sprite: './assets/buildings/droplet.png',               initial: playerResources?.water      || 0 },
+    { name: 'money',      sprite: './assets/buildings/coin.png',                  initial: playerResources?.money      || 0 },
+    { name: 'population', sprite: './assets/buildings/busts-in-silhouette.png',   initial: playerResources?.population || 0 }
   ]
-  
+
   const spacing = width / resources.length
-  
+
   // Create each resource display
-  resources.forEach((resource, index) => {
+  for (const [index, resource] of resources.entries()) {
     const resourceContainer = new PIXI.Container()
     resourceContainer.position.set(Math.floor(index * spacing + 10), 6)
-    
-    // Icon text (emoji)
-    const icon = new PIXI.Text({
-      text: resource.icon,
-      style: {
-        fontSize: 16,
-        fill: 0xFFD700 // Gold color
-      }
-    })
+
+    // Icon sprite
+    const icon = new PIXI.Sprite(await PIXI.Assets.load({ src: resource.sprite }))
+    icon.width = 20
+    icon.height = 20
     resourceContainer.addChild(icon)
-    
+
     // Resource value
     const text = createText(resource.initial.toString(), TEXT_STYLES.resource)
     text.position.set(24, 2) // Position after the icon
     resourceContainer.addChild(text)
-    
+
     // Store reference for updates
     resourceTexts[resource.name] = text
-    
+
     topBarContainer.addChild(resourceContainer)
-  })
+  }
 
   // Add menu button to the right side of the top bar
   const menuButton = new PIXI.Container()
@@ -720,13 +716,13 @@ async function createBottomBar() {
     bottomBarContainer.removeChildren()
     bottomBarContainer.destroy()
   }
-  
+
   const { width } = getCanvasDimensions()
   const barHeight = CONSTANTS.UI.BOTTOM_BAR_HEIGHT
-  
+
   // Create the container
   bottomBarContainer = new PIXI.Container()
-  
+
   // Create background
   const background = new PIXI.Graphics()
     .rect(0, 0, width, barHeight)
@@ -752,13 +748,13 @@ async function createBottomBar() {
   bottomBarContainer.on('pointerup', (e) => {
     e.stopPropagation()
   })
-  
+
   // Add to UI container
   containers.ui.addChild(bottomBarContainer)
-  
+
   // Subscribe to resource changes from human player
   if (gameState.humanPlayer) {
-    if(gameState.humanPlayer.events?.listeners['resources-changed'].includes(updateBottomBarPosition)) {
+    if(gameState.humanPlayer.events?.listeners['resources-changed']?.includes(updateBottomBarPosition)) {
       updateBottomBarPosition()
     } else {
       gameState.humanPlayer.events.on('resources-changed', updateBottomBarPosition)
@@ -1108,11 +1104,11 @@ async function createBuildingSlots() {
     Building.TYPES.QUARRY,
     Building.TYPES.WELL,
     Building.TYPES.GOLD_MINE,
-    Building.TYPES.MARKET,
     Building.TYPES.BARRACKS,
     Building.TYPES.ARMORY,
     Building.TYPES.CITADEL,
-    Building.TYPES.TOWER
+    Building.TYPES.TOWER,
+    Building.TYPES.MARKET,
   ]
   
   const numSlots = Math.min(buildings.length, maxSlots)
@@ -1125,18 +1121,15 @@ async function createBuildingSlots() {
     const slot = new PIXI.Container()
     slot.position.set(startX + i * (slotSize + padding), 12)
     slot.alpha = canAfford ? 1 : 0.2
-    
-    // Store position for tooltip
+
     buildings[i].slotPosition = { x: slot.position.x, y: slot.position.y }
 
-    // Slot background
     const slotBg = new PIXI.Graphics()
       .rect(0, 0, slotSize, slotSize)
       .fill({ color: 0x333333, alpha: 0.7 })
-      .stroke({ width: 1, color: 0xFFD700, alpha: 0.8})
+      .stroke({ width: 1, color: 0xFFD700, alpha: 0.8 })
     slot.addChild(slotBg)
-    
-    // Building icon
+
     let icon
     if(buildings[i].sprite) {
       icon = new PIXI.Sprite(await PIXI.Assets.load({ src: buildings[i].sprite }))
@@ -1154,21 +1147,16 @@ async function createBuildingSlots() {
       icon.position.set(slotSize / 2 - 15, 5)
     }
     slot.addChild(icon)
-    
-    // Building name
+
     const name = createText(buildings[i].name, TEXT_STYLES.slotName)
     name.anchor.set(0.5, 0)  // Center horizontally
     name.position.set(slotSize / 2, slotSize - 18)  // Removed +7 offset for proper centering
     slot.addChild(name)
 
-    // Make slot interactive
     slot.eventMode = 'static'
     slot.cursor = canAfford ? 'pointer' : 'not-allowed'
-
-    // Store the building data with the slot
     slot.buildingData = buildings[i]
-    
-    // Add click event
+
     slot.on('pointerup', (e) => {
       e.stopPropagation()
       handleBuildingSelect(i)
@@ -1176,15 +1164,13 @@ async function createBuildingSlots() {
     })
 
     slot.on('pointerdown', (e) => {
-      e.stopPropagation()  // Prevent event bubbling
-    })
-    
-    slot.on('touchend', (e) => {
-      e.stopPropagation()  // Prevent event bubbling
-      //handleBuildingSelect(i)
+      e.stopPropagation()
     })
 
-    // Add hover events for tooltip
+    slot.on('touchend', (e) => {
+      e.stopPropagation()
+    })
+
     slot.on('pointerover', (e) => {
       e.stopPropagation()
       updateTooltip(buildings[i])

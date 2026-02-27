@@ -158,7 +158,7 @@ class Building {
             cyan: { x: 5, y: 33 },
             red: { x: 15, y: 33 },
           },
-          sprite: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAABXklEQVR4nO2ZwW2EMBBFLRcDBQUpW8AafEiwvQ3MLdvD7oHUFNzOhogcCLACZHEI9vwv/QL4898wAiEgCIIg6H9FJDPVdIs+Nw+RtAgBSPYNyNVnt+RMpYYATSfeP+Tp7pd984ntBEIAkn0D8jHnZZM4AhQ4cQTg0YBTagjkIcxH3wDayfxTAG1n36uJ22sx+Ov68mAVgEMAFccG6MGu1swCuG/thPJbcA7AvJW8G2COHkDWv/dvfsPt1AE7wdT6YAgEfvLKVTNjWid2KBECkGiAWkegv+4GGx24E46OwExEJFdP248ibCcgAI8GZLEh4EbMX0z1W/uxJwjUevWGeD16AyiQ+afLLvZfZ4QACA1wAcxHjwDtnXjsIgRAaIDbw3xsIkycUHnLfes7MF/wmrjlXnnLPQAH5gteE7fcK28RQPXXgDrx236rAXMn98BzIQBCAyRrBCAIgiCRpn4AbtcHa+oFkwUAAAAASUVORK5CYII='
+          sprite: './assets/buildings/axe.png'
         },
         GOLD_MINE: {
           name: "Gold Mine",
@@ -173,7 +173,7 @@ class Building {
             cyan: { x: 6, y: 33 },
             red: { x: 16, y: 33 },
           },
-          sprite: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAACLUlEQVR4nO2ZsUscQRSHt9DmOksbq32XmYju71hJPA5yAYsUFoIgXmFhSOAOjjuIIJjUSRHSJYVJk6Q4FLQStFBI/h/Bq2wMCYzsycmxybqr3uRmdt4Hrxv2lo+Z39t553kMwzAaAUmlowKSfwJfrnmuCoAtEqBRgBUSoFmA8RIQe9nXRyf3rufvPqjSg2k7JECDAKskQJMAayRAowArJCAmoPFxW20dHg9Vwvrb939L8MXv2aJcNbILzM+V1dKLump8+pz/nYCUFlZ+XFHLjZZqfevkU0JAYjvw5VmWfl5deKZqm2/Uxu5+vo5DGIbjAYlFkOjAF+dpIkrFhyor1kjoE06GhRKJWkDiAL74lSThPgJukuCZxMzUzASK4iVI/owL6Lae3FhpAvoS4s/1TAUaBETFAoh3gOIjQJwBypgQRMYhR25DECxADm0UFn0xvtrZy+cOQMaK7g5WC+jGzvZtBUQXKKcFgKRqf++YJwB3DLssLwxf/Bhcs9LecExAsXeBul5TqTy1VwBSKvEWSfJicF3zy1d3BET05gkD65brTbMFdO8YdknPj4Yqg+vKj8r/nDbnVkA4GRbi47Vo5P7fBUBj2KX/tugM60hZKeBq0GqJAGh4sWq1OgYSp84K6P/vYJSA7pDDznjgigCMMOyMACxAjjTsRg5YgHQj7JLgtCdOe8XtjjjtFYcdcdorbneUg76eBFxpd0nAlW/7JMACJO8AuHwEGIbxXOIScpe5PQPthBcAAAAASUVORK5CYII='
+          sprite: './assets/buildings/gold-mine.png'
         },
         QUARRY: {
           name: "Quarry",
@@ -188,7 +188,7 @@ class Building {
             cyan: { x: 6, y: 33 },
             red: { x: 16, y: 33 },
           },
-          sprite: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAABq0lEQVR4nO1ayW3DMBBcHy0wHfAVN+B8XIVqoB+xsUoDLECqJF/Lqc7gBkIgQCFsMYwO65gB5iMIC+5gZkkdRAAAAAAwOPhkbnwyriIRrWhJ4J/GpaK1dk1LAkMAM28HsJfxOxSPTfdOb0bw/Sb/zck5hCGAmbcDOD7jbTmuGcH9NDkdhzAEMPN2AA+f8XHNCB5nk8M5hCGAWZYDCv16u+idq1FmxnpvTvyZcNE7V+idLIWW6LcjIICGA9yzbYkIaMwAwRDUT9oFhGhVXqyYqb3L1V7mQku0rfcXPApn8xMg7lkggwB7OCAfgXURAYUZIBiCCruAYBtUOAcIDkJqwJOgRD4bpO9G0tNjZpELblvvk5JN1Nk/hKAAgbey+ctbnAAt63XSdB0QQMEBrimj16Jo5Mf52Jjhruv1HoHUy2S5qK/r9SFDGe66HgQgOGDdaQTEOxf4X49jLWsPh22f9ahvcNsFe19ru64HAfoGL90BVM4Ea9cV0/Ox8YeKJEk29ftD9UpB0nKvf8A/1BsWHPijJHaRXdfrHQwBzLIdQF6GfY6gHgAAAEAevgEc3qOLmwTvWAAAAABJRU5ErkJggg=='
+          sprite: './assets/buildings/pick.png'
         },
         WELL: {
           name: "Well",
@@ -203,7 +203,7 @@ class Building {
             cyan: { x: 4, y: 37 },
             red: { x: 14, y: 37 },
           },
-          sprite: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAABxklEQVR4nO1aQU7DMBDcBqm8oPlLuZMf8AXKJVZ7orc0Fzi0L+EGivOs+gXJIguCEguUrOIEV52R5tSuHI9mdu20RAAAAAAwGOc8rc4HVTc8rdYs4eblvW5TWn8+pD9rW9LcMLniNk+xUIDXjw6P8Z2o3l2fmRYQYE4YOEAFFYFjvK6Pq7/J5DkiJjAB+tbPiCII4BMGDlBBReDtgW6szRva3F9VBNg5B0CAFRxQzxoBFh5F3QgQs6g+uAgwBCA4gAS4+ggsk311m+y5IWVZNGUP8H43MCN7wPL+uVome244tQDe7wYGAig4wAgi0Gd5aST6HGgz3r4buBxl/0sQYHIYCKDgACOw4OPX+39usfO7gPMZ+3agdxjhA7gnvz72XY4gQA4HMCKQowcwmmCOKcCzjMFS66rUmodym27qNiW1Puoz4fV6CgE61EXBc9ZDgAwOiMgnSkRAoweUaIL6eqfANt3UO/XEQ+luQFI7tt5+3+vmLdwHCp3k+09R2wA2BQHSf3SALorOFHBzKm1SY+vdDc9+FN45G5BeVsbW900JCJDBAREi4BMleoBGEywFY2jsGAtuCvyChV2kIV1ePQAAAEDf+AQS3+go4fDeQAAAAABJRU5ErkJggg=='
+          sprite: './assets/buildings/well-1.png'
         },
         BARRACKS: {
           name: "Barracks",
@@ -218,7 +218,7 @@ class Building {
             cyan: { x: 5, y: 34 },
             red: { x: 15, y: 34 },
           },
-          sprite: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAABZ0lEQVR4nO2ZUW6DMBBEN/QeSW8AN/R9+LZzIe8x2k7lj0ipVbBIjDH2PGn/UFBmZ9YLiBBCCCG7ApFBryNylb+O33ImQAGEDtCWI4DMHT6dQKAAQgdoTxEAOy59dTyGDpD3HeBv02JpqJocgNyb3G3C3bnlsrZty3sKMLXvAL+Scf+ZFmBtJlQvgE91eGtZi6J/uDYBnLU/ciSgAJJ0wKaMv+AAY8zwKACXqhzgc2e+tkiAAggdoJVFoOhMQGUOKD4TQAGEDlBGYOQMUA7BkaeAHnQMhqNuqe7OfYVd4FHNHYMucc6HZWjXvQAUQOgAXXsfECJg7d8quPvvHoHaI0EBDB0wdB0BAJfomrLfCn30oSK2ZOm9YHdAAYQO0MwR+Ge/f3kvOByzUYDUuV79TIihAKZDB5inTM7z/LH1ef75t0Km166PZ8ThM8EkOpa7Q6Xvl4QCmM4dgERm44yf7X6EEEKkUX4BxuhHPhXplNUAAAAASUVORK5CYII='
+          sprite: './assets/buildings/crossed-swords.png'
         },
         ARMORY: {
           name: "Armory",
@@ -233,7 +233,7 @@ class Building {
             cyan: { x: 7, y: 33 },
             red: { x: 17, y: 33 },
           },
-          sprite: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAB3ElEQVR4nO2aUXKCMBiEYzuT3uTvSUpP4OABSq9QfOIeZQb63OvIdRDHYqn+Ar+BQIPZndk3g+RjN6BEKQiCIAiyLv3yUeogrmxZKbVSS5IO4r1VAEnyoJYkDQDxfSeA3vKSorzqcpjuqs3nn/Xr1mjCfPxz9NX5XUcrVc27RlCU7UUAadF4EICz8SKAuRNCAJD5lQASOi8B+HHPmsA7z8dKACZfE0i44jcB6EmE9HljALYTQQCQ+ZUAzZ7lKcqMTsB0TRg7Ye7RvyU0e5KbBIDFKy4CME2EBoAYCdBXDyjbxlIl6vt60ZjeB1TGYDw/P+sV0Mw3ATjr9CAABuOt/5rUABALCcj9TkDIOnrltttbT6evjieM535q6f30ANJisFsBjDgeAARIQDXFf4qrX/NKuF6B04Sb8x8y+QstFIA9aQCI/U7ASU2nwnRXugRgvf5+tNp5Sa4BSJJq3vcCIQDskIANKlBgDdhgESz8vAuMvSuMBfDvE+YCgBQJKL2uAEX5xcvTzv/1BgLgr8pm3xNk+vpcmpApAP5593aNRQCw9yoBZLhnaGo7t0+Q5gbg2j5BAoD8vhNQ69i7dttOSD3B7u9TrokmAbAgEQBkfiegVl9nTQ1BEAQp2zoAV9s22rKd+csAAAAASUVORK5CYII='
+          sprite: './assets/buildings/shield.png'
         },
         CITADEL: {
           name: "Citadel",
@@ -248,7 +248,7 @@ class Building {
             cyan: { x: 8, y: 35 },
             red: { x: 18, y: 35 },
           },
-          sprite: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAB70lEQVR4nO1aUW6CQBAdaKM9id4ET9CIB7BXqH7NPaCJfnsJozewcJmmxmkwRUWFZbIsi+685H0tzK5v3xtXAUAgEAgE7YMI/At64BKIwN9vPcr5u/EO4BJIBIDndwAi+WVcr/H1WoCq64HosXoEIvlhnFIZJ1/fVBBg65dee2SUPJZDUASg53cAVmT2fbV6aVqATvUIVOywimwBVGzbISgCkHsOQEbGbQhgtCeg5o4bF8C0I1AEIHFAeGWzcZycGEa3NqwarxMBnfrGIzCOExpMF2d+LIgzrhJAt74IEIkDDma/96P0aLucwxsLpjScLk8cTJe8HqBZX/tcgA13/dbPAbrnAhQBSBwQ8m1WTW4EGPXsRyBKqBfMStkP5swmyKsnAsTiAOp0BHqjeSG/k3h3G4GL8fGzRaB3xbfRZ1GAjce6XwQIxAFkNAJA5GU3FaiIQLYrObPMV1p4NDvaPufPxq9l+xOznlLjQ5+Z7nkCtNwTrGdeBREAHXcAGO4Jncu8bUfY33EFRAB00AGo82ywBQG6/WwwMiyAaUegCEDuOQAbfB/gX4BDXfaDefU5w3RPwKb/FWbuiO35wfYCbM8Pthdge364e/ZXsW0BWOuz/dsgaliArr05iiIAue0AUPYMZgabricQCAQCAdzDH7txa8JBeNntAAAAAElFTkSuQmCC'
+          sprite: './assets/buildings/fleur-de-lis.png'
         },
         MARKET: {
           name: "Market",
@@ -263,7 +263,7 @@ class Building {
             cyan: { x: 5, y: 35 },
             red: { x: 15, y: 35 },
           },
-          sprite: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAMAAADXqc3KAAAAFVBMVEXH2+uuw9LM3u2Wrr1vnKxWZXEQV61ZyqlCAAAAAnRSTlMB9aJf+uoAAACFSURBVHjarZJBCsNADANtjaz/P7k0TUjabKGHzsXgERiB6xekWtF6soqT0LrHSTbzptQNgYDQJc4IkgAa1EecmQacgGaOS8I2EBNo297FC5wEvairaX/sSzfOEiNpZrYhdR2mxz0bYi4VpUG76LsAWArb/oeQ2raRTtELnnuWVJWWfH+ZBzq/A+PL/IUwAAAAAElFTkSuQmCC'
+          sprite: './assets/buildings/balance.png'
         },
         TOWER: {
           name: "Tower",
@@ -278,7 +278,7 @@ class Building {
             cyan: { x: 15, y: 26 },
             red: { x: 15, y: 26 },
           },
-          sprite: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAMAAABg3Am1AAAAGFBMVEUAAAAAAAAAAAAAAAD86ivwtBymihcDAwDRFYm6AAAABHRSTlMAO3vaMWD3HAAAAO1JREFUeNrdlkEOgzAQAwv1Mv//cUWsaEUTtZtDD9Tiso4HKyQHHvcRrOWfLBIolgBCsUKAToD6BiTFAoEMRBEgAeoFinIFJADlAgPx78D6VwJgPAfb83gcQJ50HNieISDrIAEAWTDLW4CBA5S6EDv5YaQOQPeGDhwBOJfBU3rvFS0PnCghOdq9HWIK9LYQNCDA3ghgoBMOO98BPKQTbImjxuRyFmQIWxNBwDaYGOCiXJtrBL5LFxWApQZqZgrgeb7WTxtg+wAE9JMGefrcoMvl81DYsYHavlvCwO6hIAPO/gpAQRnI67ZG3Ocn5AVHZA5jm1uDNwAAAABJRU5ErkJggg=='
+          sprite: './assets/buildings/tower.png'
         },
         TENT: {
           name: "Tent",
@@ -293,8 +293,7 @@ class Building {
             cyan: { x: 4, y: 33 },
             red: { x: 14, y: 33 },
           },
-          sprite: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAMAAADXqc3KAAAALVBMVEUAAAC9aS5MLinxnT/xnj+bLBrtXjHxnj+cKxrxnkDsYDLsXzLCRCWbLRs1Ly5aaGaRAAAACXRSTlMAH1FbrLjK6eoLXuamAAAAaklEQVR42t3QQQ6AIAxEUUAUZBjuf1wBwRRTL2CXfflpUvOvscFbFc5n8AHAUgYB0IMVvAAiKUECCqAGucKhXWDJgBoUziTKC6wwE8qgwUwoL7Dcwt5sbc0KHMAOw9j3dM5G7kY8zL3+fQFVsQkOwk/8+wAAAABJRU5ErkJggg=='
-          //sprite: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAMAAADXqc3KAAAAYFBMVEUAAAD/KgDiMACyLQD/PAC9LADtOACGMQL/PADCLgD/PQCzKgD/PADBLgD/1I7/x4P/q2jvrW3/nVz/ejq9e0n/UxX/UhP+PQDqOACcSyPCLwCuMQGLJwN/HwBqGwBWFwBLdjRBAAAADnRSTlMABho3TGp1oay31NXZ8z/XQMYAAACJSURBVBgZxcFbDoJAEATAluUhAoMIONDuyv1vKZHAbMK/VuEPMuLE5Q1XDrGEhwqxmgYxnXhwMPmsNDC6jDQJdul9aZWHBjuVRZTGYZP3w7vrJxpsVPx7EKUpUaBA/ZQQZtGJpgBcqq2EEOSh3DUOq/Q6dt57EVV+lYhklfSq5IsZTi75zSf4pQ+FhxNQ6zbK1gAAAABJRU5ErkJggg=='
+          sprite: './assets/buildings/tent.png'
         },
       }
 
