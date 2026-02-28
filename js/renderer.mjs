@@ -33,7 +33,8 @@ import { handleWindowResize } from 'init'
 import { initMinimap, updateMinimap, resizeMinimap } from 'minimap'
 import { ParticleEffect, createParticleEmitter, initParticleSystem } from 'particles'
 import * as PIXI from 'pixijs'
-import { UNIT_SPRITE_SIZE, sprites, updateAllTexturesScaleMode } from 'sprites'
+import { PlayerColorFilter } from 'playerColorFilter'
+import { UNIT_SPRITE_SIZE, sprites, unitsMaskTextures, buildingMaskSprites, updateAllTexturesScaleMode } from 'sprites'
 import gameState from 'state'
 import { isTerrainBitmapEnabled, updateTerrainBitmapDisplay, clearTerrainBitmaps } from 'terrainBitmaps'
 import { recreateUIElements } from 'ui'
@@ -57,6 +58,7 @@ const containers = {
 const indicatorMap = new Map()
 const healthBarMap = new Map()
 const unitSpriteMap = new Map()
+const unitFilterMap = new Map()  // entity.uid → PlayerColorFilter (one per entity, reused across sprite recreations)
 const backgroundSpriteMap = new Map()
 const worldObjectSpriteMap = new Map()
 
@@ -243,6 +245,7 @@ async function initCanvases() {
     }
   }
   unitSpriteMap.clear()
+  unitFilterMap.clear()
   // Clean up health bars
   healthBarMap.clear()
   // Clean up indicators
@@ -306,6 +309,7 @@ async function recreateRenderer() {
     backgroundSpriteMap.clear()
     worldObjectSpriteMap.clear()
     unitSpriteMap.clear()
+    unitFilterMap.clear()
     healthBarMap.clear()
     indicatorMap.clear()
 
@@ -411,6 +415,7 @@ async function recreateRenderer() {
   backgroundSpriteMap.clear()
   worldObjectSpriteMap.clear()
   unitSpriteMap.clear()
+  unitFilterMap.clear()
 
   console.log('Renderer recreated successfully with antialiasing:', useAntialiasing)
   console.log('Resolution:', renderResolution, 'DPR:', dpr)
@@ -621,6 +626,28 @@ function drawMain(player, AIs) {
       }
       sprite = new PIXI.Sprite(entity.sprite)
       unitSpriteMap.set(entity.uid, sprite)
+
+      // Attach player colour filter (units and buildings)
+      const maskTex = entity.spriteName
+        ? unitsMaskTextures[entity.spriteName]
+        : buildingMaskSprites[`tile_${entity.tileX}_${entity.tileY}`]
+      if (maskTex && entity.owner) {
+        let filter = unitFilterMap.get(entity.uid)
+        if (!filter) {
+          filter = new PlayerColorFilter(maskTex, entity.owner.color)
+          unitFilterMap.set(entity.uid, filter)
+        }
+        // Map vTextureCoord [0,1] (filter-space) to the sprite's sub-region in the
+        // full mask PNG. vTextureCoord spans the render texture (the rendered sprite
+        // frame), while uMaskSampler is the full PNG source — so the UV must be offset
+        // and scaled to the current frame's position within that source.
+        const frame = entity.sprite.frame
+        const srcW  = maskTex.source.width
+        const srcH  = maskTex.source.height
+        filter.setMaskUV(frame.x / srcW, frame.y / srcH, frame.width / srcW, frame.height / srcH)
+        sprite.filters = [filter]
+      }
+
       containers.world.addChild(sprite)
     }
 
@@ -676,6 +703,7 @@ function drawMain(player, AIs) {
     if (!currentEntityIds.has(unitId)) {
         containers.world.removeChild(sprite)
         unitSpriteMap.delete(unitId)
+        unitFilterMap.delete(unitId)
     }
   }
   

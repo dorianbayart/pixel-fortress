@@ -370,7 +370,7 @@ class Building {
    * Create a new building
    * @param {number} x - X position in grid coordinates
    * @param {number} y - Y position in grid coordinates
-   * @param {string} color - Building color ('cyan' or 'red')
+   * @param {number} color - Player colour as 0xRRGGBB hex integer
    * @param {Player} owner - Player who owns this building
    */
   constructor(x, y, color, owner) {
@@ -624,11 +624,13 @@ class Building {
     gameState.map[x][y].building = building
     updateMapInWorker()
 
-    const spriteX = building.type.sprite_coords[color].x
-    const spriteY = building.type.sprite_coords[color].y
+    const spriteX = building.type.sprite_coords['cyan'].x
+    const spriteY = building.type.sprite_coords['cyan'].y
     const buildingSprite = sprites[`tile_${spriteX}_${spriteY}`]
     gameState.map[x][y].sprite = buildingSprite
     building.sprite = buildingSprite
+    building.tileX = spriteX
+    building.tileY = spriteY
     building.name = building.type.name
 
     // Add building placement particle effect

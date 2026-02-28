@@ -13,6 +13,16 @@ import { distance } from 'utils'
 
 const TERRAIN_TYPES = CONSTANTS.TERRAIN.TYPES
 
+/** One hex colour per player slot. Index 0 = human, 1+ = AI slots. */
+const PLAYER_COLORS = [
+  0x00BFBF,  // Cyan   (human default)
+  0xCC2222,  // Red    (AI slot 1)
+  0xCCCC00,  // Yellow (AI slot 2)
+  0x8822CC,  // Violet (AI slot 3)
+  0x22AA22,  // Green  (AI slot 4)
+  0xFF8800,  // Orange (AI slot 5)
+]
+
 const PlayerType = {
   HUMAN: 'human',
   AI: 'ai'
@@ -22,6 +32,12 @@ class Player {
   constructor(type = PlayerType.HUMAN, difficulty = 'medium') {
 
     this.type = type
+
+    // Assign a unique player colour from the palette.
+    // Human is always slot 0; each AI gets the next available slot.
+    const colorIndex = this.isHuman() ? 0 : 1 + gameState.aiPlayers.length
+    this.color = PLAYER_COLORS[Math.min(colorIndex, PLAYER_COLORS.length - 1)]
+
     this.units = []
     this.buildings = []
     this._cachedEnemies = null
@@ -126,8 +142,9 @@ class Player {
     return this.buildings.filter(building => building.type === Building.TYPES.TENT)
   }
 
+  /** @deprecated Use `player.color` (hex integer) directly. */
   getColor() {
-    return this.isHuman() ? 'cyan' : 'red'
+    return this.color
   }
 
   isHuman() {
@@ -605,7 +622,7 @@ class Player {
     this.buildingsBuiltCount[buildingType.name] = (this.buildingsBuiltCount[buildingType.name] || 0) + 1
 
     // Create building
-    return Building.create(buildingType, x, y, this.getColor(), this)
+    return Building.create(buildingType, x, y, this.color, this)
   }
 
   addWorker(x, y) {

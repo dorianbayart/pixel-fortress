@@ -28,6 +28,7 @@ import './utils.test.mjs'
 import './seed.test.mjs'
 
 // Disabled tests
-// import './map-generation.test.mjs'  // Requires Node.js loader for import maps
+// import './map-generation.test.mjs'      // Requires Node.js loader for import maps
+// import './playerColorFilter.test.mjs'   // Requires Node.js loader for import maps (imports pixijs)
 
 console.log('\n✓ All tests completed successfully')

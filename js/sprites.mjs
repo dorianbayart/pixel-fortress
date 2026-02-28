@@ -1,4 +1,4 @@
-export { UNIT_SPRITE_SIZE, loadAndSplitImage, loadSprites, sprites, unitsSprites, unitsSpritesDescription, updateAllTexturesScaleMode }
+export { UNIT_SPRITE_SIZE, loadAndSplitImage, loadSprites, sprites, unitsSprites, unitsSpritesDescription, unitsMaskTextures, buildingMaskSprites, updateAllTexturesScaleMode }
 
 'use strict'
 
@@ -9,6 +9,12 @@ const SPRITE_SIZE = getTileSize(), UNIT_SPRITE_SIZE = getTileSize() * 2
 
 /** Exposed variables that stores the sprites and their descriptor */
 let sprites, unitsSprites, unitsSpritesDescription
+
+/** Mask textures keyed by sprite name — only present for player-coloured units */
+let unitsMaskTextures = {}
+
+/** Mask sub-textures for building tiles, keyed as 'tile_X_Y' — same key space as `sprites` */
+let buildingMaskSprites = {}
 
 /** Store base textures for dynamic scale mode updates */
 const baseTextures = []
@@ -87,6 +93,8 @@ function updateAllTexturesScaleMode() {
  */
 const loadSprites = async () => {
   sprites = unitsSprites = unitsSpritesDescription = null
+  unitsMaskTextures = {}
+  buildingMaskSprites = {}
   baseTextures.length = 0  // Clear previous base textures
 
   const baseTexture = await PIXI.Assets.load('./assets/punyworld-overworld-tileset.png')
@@ -117,6 +125,32 @@ const loadSprites = async () => {
 
   await spritesheet.parse()
   sprites = spritesheet.textures
+
+  // Load building tileset mask — same dimensions as the main tileset
+  const maskBaseTexture = await PIXI.Assets.load('./assets/punyworld-overworld-tileset-Mask.png')
+  maskBaseTexture.source.scaleMode = getScaleMode()
+  baseTextures.push(maskBaseTexture)
+
+  const maskFrames = {}
+  const maskCols = maskBaseTexture.width / SPRITE_SIZE
+  const maskRows = maskBaseTexture.height / SPRITE_SIZE
+  for (let y = 0; y < maskRows; y++) {
+    for (let x = 0; x < maskCols; x++) {
+      const frameName = `tile_${x}_${y}`
+      maskFrames[frameName] = {
+        frame: { x: x * SPRITE_SIZE, y: y * SPRITE_SIZE, w: SPRITE_SIZE, h: SPRITE_SIZE },
+        sourceSize: { w: SPRITE_SIZE, h: SPRITE_SIZE },
+        spriteSourceSize: { x: 0, y: 0, w: SPRITE_SIZE, h: SPRITE_SIZE }
+      }
+    }
+  }
+
+  const maskSpritesheet = new PIXI.Spritesheet(maskBaseTexture, {
+    frames: maskFrames,
+    meta: { scale: "1" }
+  })
+  await maskSpritesheet.parse()
+  buildingMaskSprites = maskSpritesheet.textures
   unitsSpritesDescription = await (
     await fetch('./assets/unitsSpritesDescription.json')
   ).json()
@@ -128,6 +162,13 @@ const loadSprites = async () => {
       const baseTexture = await PIXI.Assets.load(unitDesc.relativeToRoot)
       baseTexture.source.scaleMode = getScaleMode()
       baseTextures.push(baseTexture)  // Store for later updates
+
+      if (unitDesc.mask) {
+        const maskTexture = await PIXI.Assets.load(unitDesc.mask)
+        maskTexture.source.scaleMode = getScaleMode()
+        baseTextures.push(maskTexture)
+        unitsMaskTextures[spriteName] = maskTexture
+      }
 
       const unitFrames = {}
       for (const animationType in unitDesc) {

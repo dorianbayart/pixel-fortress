@@ -522,7 +522,7 @@ class WorkerUnit extends Unit {
 class Peon extends WorkerUnit {
   constructor(x, y, owner) {
     super(x, y, owner)
-    this.spriteName = 'human-worker-' + this.owner.getColor()
+    this.spriteName = 'human-worker'
     this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']  
   }
 }
@@ -537,7 +537,7 @@ class Peon extends WorkerUnit {
 class LumberjackWorker extends WorkerUnit {
   constructor(x, y, owner) {
     super(x, y, owner)
-    this.spriteName = 'human-worker-' + this.owner.getColor()
+    this.spriteName = 'human-worker'
     this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']
 
     // Specialized properties
@@ -747,7 +747,7 @@ class LumberjackWorker extends WorkerUnit {
 class QuarryMiner extends WorkerUnit {
   constructor(x, y, owner) {
     super(x, y, owner)
-    this.spriteName = 'human-worker-' + this.owner.getColor()
+    this.spriteName = 'human-worker'
     this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']
 
     // Specialized properties
@@ -927,7 +927,7 @@ class QuarryMiner extends WorkerUnit {
 class WaterCarrier extends WorkerUnit {
   constructor(x, y, owner) {
     super(x, y, owner)
-    this.spriteName = 'human-worker-' + this.owner.getColor()
+    this.spriteName = 'human-worker'
     this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']
 
     // Specialized properties
@@ -1120,7 +1120,7 @@ class WaterCarrier extends WorkerUnit {
 class GoldMiner extends WorkerUnit {
   constructor(x, y, owner) {
     super(x, y, owner)
-    this.spriteName = 'human-worker-' + this.owner.getColor()
+    this.spriteName = 'human-worker'
     this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']
 
     // Specialized properties
@@ -1637,7 +1637,7 @@ class RangedUnit extends CombatUnit {
 class PeonSoldier extends MeleeUnit {
   constructor(x, y, owner) {
     super(x, y, owner)
-    this.spriteName = 'human-worker-' + this.owner.getColor()
+    this.spriteName = 'human-worker'
     this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']
     this.life = 5
     this.maxLife = this.life // Set maxLife to match life
@@ -1655,7 +1655,7 @@ class PeonSoldier extends MeleeUnit {
 class Mage extends RangedUnit {
   constructor(x, y, owner) {
     super(x, y, owner)
-    this.spriteName = 'mage-' + this.owner.getColor()
+    this.spriteName = 'mage'
     this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']
     this.life = 8
     this.maxLife = this.life // Set maxLife to match life
@@ -1671,7 +1671,7 @@ class Mage extends RangedUnit {
 class Soldier extends MeleeUnit {
   constructor(x, y, owner) {
     super(x, y, owner)
-    this.spriteName = 'human-soldier-' + this.owner.getColor()
+    this.spriteName = 'human-soldier'
     this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']
     this.life = 12
     this.maxLife = this.life // Set maxLife to match life
@@ -1689,7 +1689,7 @@ class Soldier extends MeleeUnit {
 class HeavyInfantry extends MeleeUnit {
   constructor(x, y, owner) {
     super(x, y, owner)
-    this.spriteName = 'soldier-' + this.owner.getColor() // Placeholder sprite for now
+    this.spriteName = 'soldier'
     this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']
     this.life = 40
     this.maxLife = this.life // Set maxLife to match life
@@ -1706,7 +1706,7 @@ class HeavyInfantry extends MeleeUnit {
 class EliteWarrior extends MeleeUnit {
   constructor(x, y, owner) {
     super(x, y, owner)
-    this.spriteName = 'warrior-' + this.owner.getColor() // Placeholder sprite for now
+    this.spriteName = 'warrior'
     this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']
     this.life = 25
     this.maxLife = this.life // Set maxLife to match life
