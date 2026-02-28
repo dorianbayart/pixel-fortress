@@ -966,10 +966,65 @@ async function displayBuildingInfo(building) {
 
   currentX = width / 2
 
+  // Branch specialization UI (Tower level 1 only)
+  const branchChoices = building.getBranchChoices?.()
+  if (branchChoices) {
+    const rightHalf = width - currentX
+    const btnWidth = Math.floor((rightHalf - (branchChoices.length + 1) * padding) / branchChoices.length)
+    const btnHeight = CONSTANTS.UI.BOTTOM_BAR_HEIGHT - 2 * padding
+    const SPRITE_SIZE = getTileSize()
+
+    for (let i = 0; i < branchChoices.length; i++) {
+      const branch = branchChoices[i]
+      const bx = currentX + padding + i * (btnWidth + padding)
+      const by = padding
+
+      const canAfford = Object.entries(branch.costs).every(
+        ([resource, amount]) => (gameState.humanPlayer.resources[resource] || 0) >= amount
+      )
+
+      const btnBg = new PIXI.Graphics()
+        .roundRect(0, 0, btnWidth, btnHeight, 4)
+        .fill({ color: canAfford ? 0x1a4a1a : 0x2a2a2a, alpha: 0.9 })
+        .stroke({ width: 1, color: canAfford ? 0xFFD700 : 0x666666, alpha: 0.9 })
+      btnBg.position.set(bx, by)
+      btnBg.eventMode = canAfford ? 'static' : 'none'
+      btnBg.cursor = canAfford ? 'pointer' : 'not-allowed'
+      btnBg.on('pointerup', (e) => {
+        e.stopPropagation()
+        if (building.handleBranchUpgrade(branch)) {
+          displayBuildingInfo(building)
+        }
+      })
+      bottomBarContainer.addChild(btnBg)
+
+      // Branch name
+      const nameT = createText(branch.name, TEXT_STYLES.buildingName, 6)
+      nameT.position.set(bx + 4, by + 2)
+      bottomBarContainer.addChild(nameT)
+
+      // Stats line
+      const s = branch.initialStats
+      const statsLabel = `Atk:${s.attackDamage}  Spd:${(1000/s.attackCooldown).toFixed(1)}/s  Rng:${s.attackRangeTiles}t`
+      const statsT = createText(statsLabel, TEXT_STYLES.buildingInfoBlue, 6)
+      statsT.position.set(bx + 4, by + 4 + nameT.height)
+      bottomBarContainer.addChild(statsT)
+
+      // Cost line
+      const costLabel = Object.entries(branch.costs).map(([r, a]) => {
+        const icons = { wood: '🪵', stone: '🪨', gold: '🪙', water: '💧', money: '💰' }
+        return `${icons[r] || r}${a}`
+      }).join(' ')
+      const costT = createText(costLabel, TEXT_STYLES.upgradeBenefits, 6)
+      costT.position.set(bx + 4, by + btnHeight - costT.height - 2)
+      bottomBarContainer.addChild(costT)
+    }
+  }
+
   // Upgrade Information and Button
   const upgradeCosts = building.getUpgradeCosts()
   const upgradeBenefits = building.getUpgradeBenefits()
-  
+
   if (upgradeCosts && upgradeBenefits) {
     const canAffordUpgrade = gameState.humanPlayer.canAffordUpgrade(building)
 
@@ -1023,6 +1078,9 @@ async function displayBuildingInfo(building) {
     if (upgradeBenefits.life) benefitsText.push(`Life +${upgradeBenefits.life}`)
     if (upgradeBenefits.productionSpeed) benefitsText.push(`Prod. Speed -${upgradeBenefits.productionSpeed}%`)
     if (upgradeBenefits.maxWorkers) benefitsText.push(`Max Workers +${upgradeBenefits.maxWorkers}`)
+    if (upgradeBenefits.attackDamage) benefitsText.push(`Atk +${upgradeBenefits.attackDamage}`)
+    if (upgradeBenefits.cooldown) benefitsText.push(`Speed +${upgradeBenefits.cooldown}%`)
+    if (upgradeBenefits.range) benefitsText.push(`Range +${(upgradeBenefits.range / getTileSize()).toFixed(1)}t`)
 
     const benefitsLabel = `Next Level: ${benefitsText.join(', ')}`
     const upgradeBenefitsDisplay = createText(benefitsLabel, TEXT_STYLES.upgradeBenefits)

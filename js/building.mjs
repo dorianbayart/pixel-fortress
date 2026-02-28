@@ -270,11 +270,79 @@ class Building {
           name: "Tower",
           icon: "🗼",
           costs: { wood: 30, stone: 40, gold: 15 },
-          UPGRADES: {
-            benefits: { life: 50, attackDamage: 5, range: 1, cooldown: 10 } // +50 life, +5 attack damage, +1 range, 10% attack speed
-          },
+          BRANCHES: [
+            {
+              typeName: 'BULLET_TOWER',
+              name: 'Bullet Tower',
+              icon: '🗼',
+              description: 'Balanced - medium attack, speed and range',
+              costs: { wood: 50, stone: 60, gold: 20 },
+              initialStats: { life: 230, attackDamage: 8, attackRangeTiles: 6, attackCooldown: 1200 }
+            },
+            {
+              typeName: 'RAPID_TOWER',
+              name: 'Rapid Tower',
+              icon: '🗼',
+              description: 'Fast attacks, short range, lower damage',
+              costs: { wood: 40, stone: 30, gold: 20 },
+              initialStats: { life: 170, attackDamage: 3, attackRangeTiles: 3, attackCooldown: 500 }
+            },
+            {
+              typeName: 'SNIPER_TOWER',
+              name: 'Sniper Tower',
+              icon: '🎯',
+              description: 'Slow but hits hard at very long range',
+              costs: { wood: 30, stone: 80, gold: 40 },
+              initialStats: { life: 250, attackDamage: 25, attackRangeTiles: 10, attackCooldown: 4000 }
+            }
+          ],
           description: "Defensive tower that attacks enemies",
-          details: "Automatically attacks enemies within range.",
+          details: "Specialize into Bullet, Rapid or Sniper tower.",
+          sprite_coords: {
+            cyan: { x: 15, y: 26 },
+            red: { x: 15, y: 26 },
+          },
+          sprite: './assets/buildings/tower.png'
+        },
+        BULLET_TOWER: {
+          name: "Bullet Tower",
+          icon: "🗼",
+          costs: { wood: 30, stone: 40, gold: 20 },
+          UPGRADES: {
+            benefits: { life: 50, attackDamage: 4, range: 16, cooldown: 10 } // +50 life, +4 atk, +1 tile range, -10% cooldown
+          },
+          description: "Balanced tower with all-around stats",
+          details: "Medium attack power, speed and range.",
+          sprite_coords: {
+            cyan: { x: 15, y: 26 },
+            red: { x: 15, y: 26 },
+          },
+          sprite: './assets/buildings/tower.png'
+        },
+        RAPID_TOWER: {
+          name: "Rapid Tower",
+          icon: "🗼",
+          costs: { wood: 20, stone: 20, gold: 15 },
+          UPGRADES: {
+            benefits: { life: 30, attackDamage: 2, range: 8, cooldown: 15 } // +30 life, +2 atk, +0.5 tile range, -15% cooldown
+          },
+          description: "Fast-firing tower with short range",
+          details: "High attack speed, lower damage and range.",
+          sprite_coords: {
+            cyan: { x: 15, y: 26 },
+            red: { x: 15, y: 26 },
+          },
+          sprite: './assets/buildings/tower.png'
+        },
+        SNIPER_TOWER: {
+          name: "Sniper Tower",
+          icon: "🎯",
+          costs: { wood: 20, stone: 60, gold: 30 },
+          UPGRADES: {
+            benefits: { life: 75, attackDamage: 10, range: 32, cooldown: 5 } // +75 life, +10 atk, +2 tile range, -5% cooldown
+          },
+          description: "Long-range tower with heavy damage",
+          details: "Very slow but hits hard from extreme range.",
           sprite_coords: {
             cyan: { x: 15, y: 26 },
             red: { x: 15, y: 26 },
@@ -1593,10 +1661,77 @@ class Tower extends Building {
     this.life = 200
     this.maxLife = 200
     applyGameModeModifiers(this)
-    this.attackRange = getTileSize() * 5 // Attack range in pixels
+    this.attackRange = 5 * getTileSize() // Attack range in pixels
+    this.visibilityRange = this.attackRange + 2 * getTileSize()
     this.attackDamage = 5 // Base attack damage
     this.attackCooldown = 2000 // 2 seconds between attacks
     this.attackTimer = 0
+  }
+
+  /** Base Tower can only be specialized; specialized towers use the normal upgrade path */
+  getUpgradeCosts() {
+    if (this.type.BRANCHES) return null // unspecialized: branch selection only
+    return super.getUpgradeCosts()
+  }
+
+  /** Returns branch specialization options, or null if already specialized */
+  getBranchChoices() {
+    return this.type.BRANCHES || null
+  }
+
+  /**
+   * Check affordability, deduct resources and specialize this tower.
+   * @param {Object} branchInfo - One entry from TOWER.BRANCHES
+   * @returns {boolean} True if the specialization succeeded
+   */
+  handleBranchUpgrade(branchInfo) {
+    const costs = branchInfo.costs
+    const canAfford = Object.entries(costs).every(
+      ([resource, amount]) => (this.owner.resources[resource] || 0) >= amount
+    )
+
+    if (!canAfford) {
+      const costText = Object.entries(costs).map(([r, a]) => `${r}: ${a}`).join(', ')
+      showDebugMessage(`Cannot afford specialization (Needs ${costText})`)
+      return false
+    }
+
+    for (const [resource, amount] of Object.entries(costs)) {
+      this.owner.addResource(resource, -amount)
+    }
+
+    this.specialize(branchInfo)
+    return true
+  }
+
+  /**
+   * Morph this Tower instance into a specialized branch in-place.
+   * @param {Object} branchInfo - One entry from TOWER.BRANCHES
+   */
+  specialize(branchInfo) {
+    const branchType = Building.TYPES[branchInfo.typeName]
+    if (!branchType) return
+
+    const stats = branchInfo.initialStats
+    const SPRITE_SIZE = getTileSize()
+
+    this.type = branchType
+    this.maxLife = stats.life
+    this.life = stats.life
+    this.attackDamage = stats.attackDamage
+    this.attackRange = SPRITE_SIZE * stats.attackRangeTiles
+    this.visibilityRange = Math.max(this.attackRange + 2 * getTileSize(), this.visibilityRange)
+    this.attackCooldown = stats.attackCooldown
+    this.level = 1
+    applyGameModeModifiers(this)
+
+    createParticleEmitter(ParticleEffect.BUILDING_PLACE, {
+      x: this.x * SPRITE_SIZE + SPRITE_SIZE / 2,
+      y: this.y * SPRITE_SIZE + SPRITE_SIZE / 2,
+      duration: 1500
+    })
+
+    showDebugMessage(`Tower specialized to ${branchType.name}!`)
   }
 
   /**
