@@ -37,7 +37,7 @@ class Projectile {
    * @param {number} damage - Damage dealt on hit
    * @param {number} speed - Travel speed in pixels per second
    */
-  constructor(x, y, target, damage, speed = getTileSize() * 3) {
+  constructor(x, y, target, damage, speed = getTileSize() * 6) {
     this.x = x
     this.y = y
     this.target = target
@@ -47,7 +47,7 @@ class Projectile {
 
     // Draw the arrow shape once; only position/rotation change each frame
     this.graphics = new PIXI.Graphics()
-    this.graphics.rect(-4, -1, 8, 2).fill({ color: 0xD4A04A })
+    this.graphics.rect(-4, -1, 8, 2).fill({ color: 0x6D5226 })
     containers.particles?.addChild(this.graphics)
 
     activeProjectiles.add(this)
