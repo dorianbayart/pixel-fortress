@@ -28,7 +28,7 @@ const loadMapsManifest = async () => {
   }
 
   try {
-    const response = await fetch('../maps/seeds.json')
+    const response = await fetch('./maps/seeds.json')
     if (!response.ok) {
       throw new Error(`Failed to load maps manifest: ${response.status}`)
     }
@@ -84,7 +84,7 @@ const loadPredefinedMap = async (mapId) => {
 const loadCustomMap = async (mapId) => {
   try {
     // Construct file path based on map ID
-    const filePath = `../maps/${mapId}.json`
+    const filePath = `./maps/${mapId}.json`
 
     // Fetch the map JSON file
     const response = await fetch(filePath)
