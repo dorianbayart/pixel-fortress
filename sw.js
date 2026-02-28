@@ -22,6 +22,7 @@ const CACHED_URLS = [
   'js/mouse.mjs',
   'js/pathfinding.mjs',
   'js/players.mjs',
+  'js/projectile.mjs',
   'js/renderer.mjs',
   'js/sprites.mjs',
   'js/state.mjs',
