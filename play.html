@@ -241,11 +241,15 @@
       text-decoration: underline;
     }
 
-    #mainMenuButtons {
-      opacity: 0;
+    #mainMenuButtons,
+    #playOptionsButtons {
       display: flex;
       flex-flow: column;
-      width: min(95%, 300px);
+      width: min(95%, 400px);
+    }
+
+    #mainMenuButtons {
+      opacity: 0;
     }
 
     .menu-button {
@@ -629,7 +633,7 @@
       <div class="option-group">
         <div class="option-controls">
           <label class="toggle-label">
-            <input type="checkbox" id="healthBarsToggle">
+            <input type="checkbox" id="healthBarsToggle" checked>
             <span class="toggle-text">Show Health Bars (Shortcut: H)</span>
           </label>
         </div>
@@ -668,14 +672,14 @@
       </div>
 
       <div class="option-group">
-        <h3>Sound Effects Volume</h3>
+        <h3><img src="assets/icons/sound-on-solid.svg" alt="Sound Effects" style="width: 1.1em; height: 1.1em; vertical-align: middle; margin-right: 0.4em; filter: invert(1);"> Sound Effects Volume</h3>
         <div class="option-controls">
           <input type="range" id="sfxVolumeSlider" min="0" max="1" step="0.1" value="0.8">
         </div>
       </div>
 
       <div class="option-group">
-        <h3>Music Volume</h3>
+        <h3><img src="assets/icons/music-solid.svg" alt="Music" style="width: 1.1em; height: 1.1em; vertical-align: middle; margin-right: 0.4em; filter: invert(1);"> Music Volume</h3>
         <div class="option-controls">
           <input type="range" id="musicVolumeSlider" min="0" max="1" step="0.1" value="0.5">
         </div>
