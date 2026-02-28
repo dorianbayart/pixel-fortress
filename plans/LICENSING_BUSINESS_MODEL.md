@@ -118,7 +118,7 @@ export const LIMITS = {
 
 // Version info
 export const BUILD_INFO = {
-  version: '0.0.3',
+  version: '0.0.4',
   buildType: IS_STEAM_BUILD ? 'Steam' : 'Free',
   platform: isElectron ? 'Desktop' : 'Web',
 }

@@ -21,9 +21,11 @@ Details: Combat units automatically engage and attack enemy units and buildings.
 - [x] **AI Opponent:** Implement AI opponent with automated unit management.  
 Details: The AI builds structures and manages units similarly to the player.
 - [x] **Market:** Market sells ressources against Money.
-- [ ] **Tower Placement:** Allow players to strategically place towers. *(Not Planned)*
-- [ ] **Tower Attacks:** Towers automatically attack enemies within their range. *(Not Planned)*
+- [x] **Tower Placement:** Allow players to strategically place towers.
+- [x] **Tower Attacks:** Towers automatically attack enemies within their range.
 - [x] **Explorer:** Add an explorer that will be able to move around the map.
+- [ ] **Archery:** Add Archery building to produce archer units.
+- [ ] **Mage:** Add Mage building to produce mage units.
 
 
 ## User Interface
@@ -54,14 +56,18 @@ Details: Default game mode with normal unit and building health, standard resour
 Details: Extreme difficulty mode where any damage is fatal. Requires careful positioning and strategic planning.
 - [x] **Turbo Gathering Mode:** All resource gatherers work at significantly increased speed.
 Details: Accelerated resource gathering (5x faster) allows for rapid base expansion and army building. Focus on economic strategy.
+- [ ] **Tower Defense:** Implement a tower defense mechanic. *(Not Planned)*
 
 
 ## Upgrades and Power-ups
 
-- [ ] **Tower Upgrades:** Allow players to upgrade towers to increase their effectiveness. *(Not Planned)*
+- [x] **Tower Upgrades:** Allow players to upgrade towers to increase their effectiveness.
 - [x] **Building Upgrades:** Allow players to upgrade buildings to increase their capacity.  
 Details: Can affect more workers, can produce quicklyer units, etc.
-- [ ] **Global Upgrades:** Implement upgrades that affect the entire game (e.g., increased resource gain). *(Not Planned)*
+- [x] **Building Specialization:** Upgrades open branching paths — buildings evolve into specialized variants (e.g. Tower → Bullet, Rapid or Sniper Tower).
+- [ ] **Global Upgrades:** Implement upgrades that affect the entire game (e.g., increased resource gain). *(Not Planned)*  
+Details: this will come with a new building: the University.
+
 
 
 ## Sound and Music
@@ -84,7 +90,7 @@ Details: This should include: pseudo, host a map, join a map
 
 ## Future Features and Ideas
 
-- [ ] **New Tower Types:** Introduce new towers with unique abilities. *(Not Planned)*
+- [x] **New Tower Types:** Towers specialize into Bullet, Rapid, or Sniper variants via the branching upgrade system.
 - [ ] **Special Enemies:** Add enemies with special abilities or resistances. *(Not Planned)*
 - [ ] **Level Editor:** Allow players to create their own custom levels. *(Not Planned)* 
 - [ ] **Endless Mode:** Implement an endless mode with increasing difficulty. *(Not Planned)*

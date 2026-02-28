@@ -2,6 +2,17 @@
 
 ## Version {{version}}
 
+### New Features
+- **Towers are here!** Build defensive towers that automatically detect and shoot down approaching enemies — fortify your base and hold the line
+- **Building Specialization**: Upgrades now open branching paths — choose how each building evolves and tailor your fortress to your playstyle - a simple tower can specialized to Bullet, Rapid or Sniper Tower !
+
+### Visuals
+- **Fresh look**: Buildings got stunning new artwork — your fortress has never looked this good
+
+---
+
+## Version 0.0.3
+
 ### Major Improvements
 - **Renderer Rework**: Complete renderer overhaul achieving full 60 FPS even on huge maps
 - **PixiJS v8.15**: Upgraded to latest PixiJS version with improved text rendering

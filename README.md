@@ -29,7 +29,8 @@
 * **Procedural Maps:** Unlimited randomly generated maps in 3 different sizes, plus many predefined scenarios
 * **Dynamic Exploration:** Huge maps with fog of war - your units automatically explore uncharted territory
 * **Intelligent Pathfinding:** Units navigate complex terrain autonomously using A* pathfinding
-* **Future Towers:** Defensive tower buildings (planned feature)
+* **Defensive Towers:** Place towers that automatically detect and shoot down approaching enemies
+* **Building Specialization:** Upgrade buildings along branching paths to unlock specialized variants tailored to your strategy
 * **Game Modes:** Classic, speedier gameplay, fast gathering units, and more variants (planned)
 * **Campaign Mode:** Story-driven missions (planned)
 

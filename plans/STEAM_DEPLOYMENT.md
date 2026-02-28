@@ -1,7 +1,7 @@
 # Steam Deployment Plan for Pixel Fortress
 
 ## Current Status
-- **Version**: 0.0.3
+- **Version**: 0.0.4
 - **Current Platforms**: GitHub (web), GitHub Releases (Windows .exe, macOS .dmg, Linux .AppImage), itch.io (planned)
 - **Build System**: Electron + electron-builder with GitHub Actions CI/CD
 - **License**: GNU General Public License v3.0 or later (GPL-3.0-or-later) ✓
