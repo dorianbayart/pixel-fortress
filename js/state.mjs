@@ -85,7 +85,7 @@ class GameState {
       sfxVolume: 0.8,
       musicVolume: 0.5,
       gameSpeedMultiplier: 1,
-      showHealthBars: false,
+      showHealthBars: true,
       gameMode: 'classic',
       antialiasing: false,
       fpsCap: 0, // 0 = unlimited (monitor refresh rate), or specific cap: 30, 60, 120, 144, 240
