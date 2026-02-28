@@ -327,18 +327,14 @@ const openSkirmishSetupModal = async () => {
   // Set map ID input (empty or show current custom map ID)
   mapIdInput.value = gameState.customMapId || ''
 
-  // Set seed input (empty for random, or show current seed if exists)
-  mapSeedInput.value = gameState.mapSeed || ''
+  // Always clear seed input when opening the modal so a new random map is generated
+  mapSeedInput.value = ''
 
   // Load and render predefined maps list
   await renderPredefinedMapsList()
 
-  // Switch to appropriate tab based on current state
-  if (gameState.mapSeed) {
-    switchTab('randomMap')
-  } else {
-    switchTab('predefinedMap')
-  }
+  // Always default to predefined map tab when opening the modal
+  switchTab('predefinedMap')
 
   skirmishSetupSection.style.display = 'block'
   setTimeout(() => {
