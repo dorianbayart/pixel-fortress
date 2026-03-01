@@ -297,6 +297,7 @@ const gameModeDescriptions = {
   'classic': 'Standard gameplay with balanced combat and gathering.',
   'one-shot': 'Every unit and building has exactly one life point. Any damage is fatal.',
   'turbo-gathering': 'All resource gatherers work at significantly increased speed.',
+  'tower-defense': 'Defend your fortress against waves of enemies on special maps. Coming soon!',
 }
 
 // Dynamically create map size buttons from constants
@@ -333,61 +334,34 @@ const renderPredefinedMapsList = async () => {
     const maps = await getPredefinedMaps()
 
     if (!maps || maps.length === 0) {
-      predefinedMapsList.innerHTML = '<p style="opacity: 0.7; text-align: center;">No predefined maps available</p>'
+      predefinedMapsList.innerHTML = '<p class="maps-list-empty">No predefined maps available</p>'
       return
     }
 
     // Build the list HTML
-    let html = '<div style="display: grid; gap: 10px;">'
+    let html = '<div class="maps-list-grid">'
 
     maps.forEach((map, index) => {
-      // Create a difficulty badge
-      const difficultyColors = {
-        easy: '#228b22',
-        medium: '#ffa500',
-        hard: '#dc143c'
-      }
-      const difficultyColor = difficultyColors[map.difficulty] || '#808080'
-
-      // Create a size badge
-      const sizeBadge = map.size ? `<span style="background: rgba(255, 215, 0, 0.3); padding: 2px 6px; border-radius: 3px; font-size: 0.85em;">${map.size}</span>` : ''
+      const sizeBadge = map.size ? `<span class="map-badge map-badge--size">${map.size}</span>` : ''
 
       html += `
-        <div class="predefined-map-item" data-map-id="${map.id}" data-map-index="${index}" style="
-          display: flex;
-          gap: 12px;
-          padding: 12px;
-          background: rgba(34, 139, 34, 0.2);
-          border: 2px solid rgba(255, 215, 0, 0.3);
-          border-radius: 6px;
-          cursor: pointer;
-          transition: all 0.2s ease-in-out;
-        ">
-          <div style="flex-shrink: 0;">
+        <div class="predefined-map-item" data-map-id="${map.id}" data-map-index="${index}">
+          <div class="map-item-preview">
             <canvas
               class="map-preview-canvas"
               data-map-id="${map.id}"
-              style="
-                width: 80px;
-                height: 80px;
-                background: rgba(0, 0, 0, 0.3);
-                border: 1px solid rgba(255, 215, 0, 0.3);
-                border-radius: 4px;
-                image-rendering: pixelated;
-                image-rendering: crisp-edges;
-              "
             ></canvas>
           </div>
-          <div style="flex-grow: 1; min-width: 0;">
-            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 6px;">
-              <h4 style="margin: 0; font-size: 1.1em;">${map.name}</h4>
-              <span style="background: ${difficultyColor}; padding: 2px 8px; border-radius: 3px; font-size: 0.85em; font-weight: bold;">${map.difficulty}</span>
+          <div class="map-item-info">
+            <div class="map-item-header">
+              <h4 class="map-item-name">${map.name}</h4>
+              <span class="map-badge map-badge--difficulty map-badge--${map.difficulty}">${map.difficulty}</span>
             </div>
-            <p style="margin: 4px 0; font-size: 0.9em; opacity: 0.85;">${map.description || ''}</p>
-            <div style="display: flex; gap: 8px; margin-top: 6px; font-size: 0.85em;">
-              <span style="background: rgba(0, 0, 0, 0.3); padding: 2px 6px; border-radius: 3px;">${map.type}</span>
+            <p class="map-item-description">${map.description || ''}</p>
+            <div class="map-item-tags">
+              <span class="map-badge map-badge--type">${map.type}</span>
               ${sizeBadge}
-              <span style="opacity: 0.7; font-family: monospace; font-size: 0.8em;">${map.id}</span>
+              <span class="map-item-id">${map.id}</span>
             </div>
           </div>
         </div>
@@ -438,36 +412,20 @@ const renderPredefinedMapsList = async () => {
     // Add click handlers to map items
     const mapItems = predefinedMapsList.querySelectorAll('.predefined-map-item')
     mapItems.forEach(item => {
-      item.addEventListener('mouseenter', () => {
-        item.style.background = 'rgba(34, 139, 34, 0.4)'
-        item.style.borderColor = 'rgba(255, 215, 0, 0.6)'
-        item.style.transform = 'translateY(-2px)'
-      })
-
-      item.addEventListener('mouseleave', () => {
-        item.style.background = 'rgba(34, 139, 34, 0.2)'
-        item.style.borderColor = 'rgba(255, 215, 0, 0.3)'
-        item.style.transform = 'translateY(0)'
-      })
-
       item.addEventListener('click', () => {
         playClickSound()
         const mapId = item.dataset.mapId
         mapIdInput.value = mapId
 
         // Highlight selected map
-        mapItems.forEach(mi => {
-          mi.style.borderColor = 'rgba(255, 215, 0, 0.3)'
-          mi.style.boxShadow = 'none'
-        })
-        item.style.borderColor = '#ffd700'
-        item.style.boxShadow = '0 0 10px rgba(255, 215, 0, 0.5)'
+        mapItems.forEach(mi => mi.classList.remove('selected'))
+        item.classList.add('selected')
       })
     })
 
   } catch (error) {
     console.error('Error rendering predefined maps:', error)
-    predefinedMapsList.innerHTML = '<p style="color: #dc143c; text-align: center;">Error loading maps</p>'
+    predefinedMapsList.innerHTML = '<p class="maps-list-error">Error loading maps</p>'
   }
 }
 

@@ -550,111 +550,111 @@
       <span class="close">&times;</span>
     </div>
     <div class="modal-body">
-      <!-- Tab Navigation -->
-      <div class="tab-navigation">
-        <button class="tab-button active" data-tab="predefinedMap">Predefined Maps</button>
-        <button class="tab-button" data-tab="randomMap">Random Map</button>
-      </div>
+      <div class="skirmish-columns">
 
-      <!-- Random Map Tab Content -->
-      <div id="randomMapTab" class="tab-content">
-        <div class="option-group">
-          <h3>Map Size</h3>
-          <div class="option-controls" id="mapSizeButtons">
-            <!-- Map size buttons dynamically generated from CONSTANTS -->
+        <!-- LEFT COLUMN: Map parameters -->
+        <div class="skirmish-col skirmish-col-left">
+          <!-- Tab Navigation -->
+          <div class="tab-navigation">
+            <button class="tab-button active" data-tab="predefinedMap">Predefined Maps</button>
+            <button class="tab-button" data-tab="randomMap">Random Map</button>
+          </div>
+
+          <!-- Random Map Tab Content -->
+          <div id="randomMapTab" class="tab-content">
+            <div class="option-group">
+              <h3>Map Size</h3>
+              <div class="option-controls" id="mapSizeButtons">
+                <!-- Map size buttons dynamically generated from CONSTANTS -->
+              </div>
+            </div>
+
+            <div class="option-group">
+              <h3>Map Seed (Optional)</h3>
+              <div class="option-controls seed-controls">
+                <div class="seed-input-row">
+                  <input type="number" id="mapSeedInput" placeholder="Enter a seed number">
+                  <button class="option-btn" id="randomSeedButton">Random Seed</button>
+                </div>
+                <p class="input-hint">Leave empty for random generation</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Predefined Maps Tab Content -->
+          <div id="predefinedMapTab" class="tab-content active">
+            <div class="option-group maps-list-group">
+              <h3>Available Maps</h3>
+              <div id="predefinedMapsList">
+                <!-- Maps will be dynamically loaded here -->
+              </div>
+            </div>
+            <!-- Hidden inputs kept for JS compatibility -->
+            <input type="hidden" id="mapIdInput">
+            <button id="clearMapIdButton" hidden></button>
           </div>
         </div>
 
-        <div class="option-group">
-          <h3>Map Seed (Optional)</h3>
-          <div class="option-controls" style="gap: 10px; flex-direction: column;">
-            <div style="display: flex; gap: 10px; width: 100%;">
-              <input type="number" id="mapSeedInput" placeholder="Enter a seed number">
-              <button class="option-btn" id="randomSeedButton" style="flex: 0 0 auto; min-width: 120px;">Random Seed</button>
+        <!-- RIGHT COLUMN: Battle parameters -->
+        <div class="skirmish-col skirmish-col-right">
+          <div class="option-group">
+            <h3>Game Mode</h3>
+            <div class="option-controls">
+              <button class="option-btn selected" data-game-mode="classic">Classic</button>
+              <button class="option-btn" data-game-mode="one-shot">One Shot</button>
+              <button class="option-btn" data-game-mode="turbo-gathering">Turbo Gathering</button>
+              <button class="option-btn" data-game-mode="tower-defense" disabled title="Coming soon!">Tower Defense</button>
             </div>
-            <p style="font-size: 0.85em; opacity: 0.8; margin: 5px 0 0 0; text-align: center;">
-              Leave empty for random generation
+            <p id="gameModeDescription" class="mode-description">
+              Standard gameplay with balanced combat and gathering.
             </p>
           </div>
-        </div>
-      </div>
 
-      <!-- Predefined Maps Tab Content -->
-      <div id="predefinedMapTab" class="tab-content active">
-        <div class="option-group">
-          <h3>Available Maps</h3>
-          <div id="predefinedMapsList" style="max-height: 200px; overflow-y: auto; margin-bottom: 15px; padding-top: 5px;">
-            <!-- Maps will be dynamically loaded here -->
-          </div>
-        </div>
-        <div class="option-group">
-          <h3>Map ID</h3>
-          <div class="option-controls" style="gap: 10px; flex-direction: column;">
-            <div style="display: flex; gap: 10px; width: 100%;">
-              <input type="text" id="mapIdInput" placeholder="Map ID (e.g., custom_4698963)">
-              <button class="option-btn" id="clearMapIdButton" style="flex: 0 0 auto; min-width: 100px;">Clear</button>
+          <div class="option-group">
+            <h3>AI Opponents</h3>
+            <div class="option-controls">
+              <button class="option-btn selected" data-ai-count="1">1</button>
+              <button class="option-btn" data-ai-count="2" disabled>2</button>
+              <button class="option-btn" data-ai-count="3" disabled>3</button>
             </div>
-            <p style="font-size: 0.85em; opacity: 0.8; margin: 5px 0 0 0; text-align: center;">
-              Enter a predefined map ID to load a custom map
-            </p>
+          </div>
+
+          <div class="option-group">
+            <h3>Player Color</h3>
+            <div class="option-controls color-picker-controls">
+              <canvas id="hueWheelCanvas" width="80" height="80"></canvas>
+              <div id="colorSwatches"></div>
+            </div>
+          </div>
+
+          <div class="option-group">
+            <h3>Difficulty</h3>
+            <div class="option-controls">
+              <button class="option-btn selected" data-difficulty="easy">Easy</button>
+              <button class="option-btn" data-difficulty="medium">Medium</button>
+              <button class="option-btn" data-difficulty="hard">Hard</button>
+            </div>
+          </div>
+
+          <div class="option-group">
+            <h3>Game Speed</h3>
+            <div class="option-controls">
+              <button class="option-btn" data-game-speed="normal">Normal</button>
+              <button class="option-btn" data-game-speed="accelerated">Accelerated</button>
+              <button class="option-btn" data-game-speed="very_fast">Very Fast</button>
+            </div>
+          </div>
+
+          <div class="option-group">
+            <div class="option-controls">
+              <label class="toggle-label">
+                <input type="checkbox" id="skirmishFogToggle" checked>
+                <span class="toggle-text">Enable Fog of War</span>
+              </label>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="option-group">
-        <h3>AI Opponents</h3>
-        <div class="option-controls">
-          <button class="option-btn selected" data-ai-count="1">1</button>
-          <button class="option-btn" data-ai-count="2" disabled>2</button>
-          <button class="option-btn" data-ai-count="3" disabled>3</button>
-        </div>
-      </div>
-      
-      <div class="option-group">
-        <h3>Player Color</h3>
-        <div class="option-controls color-picker-controls">
-          <canvas id="hueWheelCanvas" width="80" height="80"></canvas>
-          <div id="colorSwatches"></div>
-        </div>
-      </div>
-
-      <div class="option-group">
-        <h3>Difficulty</h3>
-        <div class="option-controls">
-          <button class="option-btn selected" data-difficulty="easy">Easy</button>
-          <button class="option-btn" data-difficulty="medium">Medium</button>
-          <button class="option-btn" data-difficulty="hard">Hard</button>
-        </div>
-      </div>
-
-      <div class="option-group">
-        <h3>Game Speed</h3>
-        <div class="option-controls">
-          <button class="option-btn" data-game-speed="normal">Normal</button>
-          <button class="option-btn" data-game-speed="accelerated">Accelerated</button>
-          <button class="option-btn" data-game-speed="very_fast">Very Fast</button>
-        </div>
-      </div>
-
-      <div class="option-group">
-        <h3>Game Mode</h3>
-        <div class="option-controls">
-          <button class="option-btn selected" data-game-mode="classic">Classic</button>
-          <button class="option-btn" data-game-mode="one-shot">One Shot</button>
-          <button class="option-btn" data-game-mode="turbo-gathering">Turbo Gathering</button>
-        </div>
-        <p id="gameModeDescription" style="font-size: 0.9em; opacity: 0.85; margin: 10px 0 0 0; text-align: center; min-height: 2.5em;">
-          Standard gameplay with balanced combat and gathering.
-        </p>
-      </div>
-
-      <div class="option-group">
-        <div class="option-controls">
-          <label class="toggle-label">
-            <input type="checkbox" id="skirmishFogToggle" checked>
-            <span class="toggle-text">Enable Fog of War</span>
-          </label>
-        </div>
       </div>
     </div>
     <div class="modal-footer">
