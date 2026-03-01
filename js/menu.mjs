@@ -120,41 +120,91 @@ function hueToCss(hue) {
   return `hsl(${hue}, 70%, 50%)`
 }
 
-/** Redraw the hue wheel canvas with the current selectedHue. */
+/** Convert hue (0–360) to [r, g, b] bytes at s=70%, l=50%. */
+function hueToRgb(hue) {
+  const s = 0.7, l = 0.5
+  const c = (1 - Math.abs(2 * l - 1)) * s
+  const x = c * (1 - Math.abs((hue / 60) % 2 - 1))
+  const m = l - c / 2
+  let r, g, b
+  if      (hue < 60)  { r = c; g = x; b = 0 }
+  else if (hue < 120) { r = x; g = c; b = 0 }
+  else if (hue < 180) { r = 0; g = c; b = x }
+  else if (hue < 240) { r = 0; g = x; b = c }
+  else if (hue < 300) { r = x; g = 0; b = c }
+  else                { r = c; g = 0; b = x }
+  return [Math.round((r + m) * 255), Math.round((g + m) * 255), Math.round((b + m) * 255)]
+}
+
+const HUE_STEPS = 24
+const HUE_STEP  = 360 / HUE_STEPS
+
+/** Snap a raw hue to the nearest quantised step. */
+function quantiseHue(hue) {
+  return Math.round(hue / HUE_STEP) % HUE_STEPS * HUE_STEP
+}
+
+/** Redraw the hue wheel canvas with the current selectedHue.
+ *  Drawn at ¼ resolution then scaled up without smoothing.
+ *  Colours are quantised to HUE_STEPS discrete bands. */
 function drawHueWheel() {
   const canvas = hueWheelCanvas
   const ctx    = canvas.getContext('2d')
-  const cx     = canvas.width  / 2
-  const cy     = canvas.height / 2
-  const outer  = cx - 4
-  const inner  = cx * 0.55
-  const mid    = (outer + inner) / 2
-  const thick  = outer - inner
+  const W  = canvas.width
+  const H  = canvas.height
+  const cx = W / 2
+  const cy = H / 2
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height)
+  ctx.clearRect(0, 0, W, H)
 
-  // Draw hue ring using 360 arc segments
-  for (let i = 0; i < 360; i++) {
-    const a0 = ((i - 90) * Math.PI) / 180
-    const a1 = ((i - 90 + 1.5) * Math.PI) / 180
-    ctx.beginPath()
-    ctx.arc(cx, cy, mid, a0, a1)
-    ctx.lineWidth   = thick
-    ctx.strokeStyle = `hsl(${i}, 70%, 50%)`
-    ctx.stroke()
+  const SCALE  = 4
+  const sw     = Math.floor(W / SCALE)
+  const sh     = Math.floor(H / SCALE)
+  const scx    = sw / 2
+  const scy    = sh / 2
+  const souter = (cx - 4) / SCALE
+  const sinner = (cx * 0.55) / SCALE
+
+  const offscreen = document.createElement('canvas')
+  offscreen.width  = sw
+  offscreen.height = sh
+  const octx = offscreen.getContext('2d')
+  const imageData = octx.createImageData(sw, sh)
+  const data = imageData.data
+
+  for (let py = 0; py < sh; py++) {
+    for (let px = 0; px < sw; px++) {
+      const dx = px - scx
+      const dy = py - scy
+      const r  = Math.sqrt(dx * dx + dy * dy)
+      if (r < sinner || r > souter) continue
+
+      const rawHue = (Math.atan2(dy, dx) * 180 / Math.PI + 90 + 360) % 360
+      const hue    = quantiseHue(rawHue)
+      const [ri, gi, bi] = hueToRgb(hue)
+      const idx = (py * sw + px) * 4
+      data[idx]     = ri
+      data[idx + 1] = gi
+      data[idx + 2] = bi
+      data[idx + 3] = 255
+    }
   }
 
-  // Draw indicator handle
-  const ha  = ((selectedHue - 90) * Math.PI) / 180
-  const hx  = cx + Math.cos(ha) * mid
-  const hy  = cy + Math.sin(ha) * mid
-  ctx.beginPath()
-  ctx.arc(hx, hy, 7, 0, Math.PI * 2)
-  ctx.fillStyle   = hueToCss(selectedHue)
-  ctx.fill()
+  octx.putImageData(imageData, 0, 0)
+  ctx.imageSmoothingEnabled = false
+  ctx.drawImage(offscreen, 0, 0, W, H)
+
+  // Pixel-snapped square handle
+  const ha   = ((selectedHue - 90) * Math.PI) / 180
+  const smid = (souter + sinner) / 2
+  const hx   = Math.round(Math.round(scx + Math.cos(ha) * smid) * SCALE)
+  const hy   = Math.round(Math.round(scy + Math.sin(ha) * smid) * SCALE)
+  const [hr, hg, hb] = hueToRgb(selectedHue)
+  ctx.fillStyle = `rgb(${hr},${hg},${hb})`
+  ctx.fillRect(hx - SCALE, hy - SCALE, SCALE * 2, SCALE * 2)
   ctx.strokeStyle = 'white'
-  ctx.lineWidth   = 2
-  ctx.stroke()
+  ctx.lineWidth = 1
+  ctx.strokeRect(hx - SCALE, hy - SCALE, SCALE * 2, SCALE * 2)
 }
 
 /** Update the color swatch row from the current selectedHue and aiCount. */
@@ -216,7 +266,7 @@ function isOnRing(event) {
 function onHuePointerDown(event) {
   if (isOnRing(event)) {
     hueWheelDragging = true
-    selectedHue      = hueFromPointer(event)
+    selectedHue      = quantiseHue(hueFromPointer(event))
     drawHueWheel()
     updateColorSwatches()
     event.preventDefault()
@@ -225,7 +275,7 @@ function onHuePointerDown(event) {
 
 function onHuePointerMove(event) {
   if (!hueWheelDragging) return
-  selectedHue = hueFromPointer(event)
+  selectedHue = quantiseHue(hueFromPointer(event))
   drawHueWheel()
   updateColorSwatches()
   event.preventDefault()
