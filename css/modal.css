@@ -308,11 +308,27 @@ input {
 
 /* Color swatches */
 .color-picker-controls {
+  display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 16px;
+  margin-left: 12%;
+}
+
+#colorSwatches {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 #hueWheelCanvas {
+  width: 92px;
+  height: 92px;
+  cursor: pointer;
+  flex-shrink: 0;
+  touch-action: none;
   image-rendering: pixelated;
 }
 
@@ -802,8 +818,78 @@ input {
   max-width: 250px;
   padding: 8px;
   font-size: 14px;
-  background: #1a1a1a;
-  color: white;
-  border: 1px solid #444;
-  border-radius: 4px;
+  background: rgba(34, 139, 34, 0.2);
+  color: var(--font-color);
+  border: 2px solid #ffd700;
+  border-radius: 0;
+  cursor: pointer;
+  font-family: var(--font-base);
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.inline-control select:focus {
+  outline: 2px solid #ffd700;
+  outline-offset: 1px;
+}
+
+.inline-control select option {
+  background: #114611;
+  color: var(--font-color);
+}
+
+/* Volume sliders */
+input[type='range'] {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  height: 8px;
+  background: rgba(34, 139, 34, 0.3);
+  border: 2px solid #ffd700;
+  border-radius: 0;
+  outline: none;
+  cursor: pointer;
+}
+
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 20px;
+  background: #ffd700;
+  border: 2px solid #114611;
+  border-radius: 0;
+  cursor: pointer;
+  image-rendering: pixelated;
+}
+
+input[type='range']::-moz-range-thumb {
+  width: 16px;
+  height: 20px;
+  background: #ffd700;
+  border: 2px solid #114611;
+  border-radius: 0;
+  cursor: pointer;
+}
+
+/* Initial hidden states */
+#playOptionsButtons {
+  display: none;
+}
+
+#audioToggleButton {
+  display: none;
+}
+
+/* Options modal specifics */
+#antialiasingStatus {
+  opacity: 0.7;
+  font-size: 0.9em;
+}
+
+.option-heading-icon {
+  width: 1.1em;
+  height: 1.1em;
+  vertical-align: middle;
+  margin-right: 0.4em;
+  filter: invert(1);
 }
