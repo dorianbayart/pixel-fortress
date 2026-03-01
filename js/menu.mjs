@@ -107,6 +107,141 @@ const gameSpeedButtons = skirmishSetupSection.querySelectorAll('.option-btn[data
 const gameModeButtons = skirmishSetupSection.querySelectorAll('.option-btn[data-game-mode]')
 const gameModeDescription = document.getElementById('gameModeDescription')
 
+// ---------------------------------------------------------------------------
+// Hue wheel — player color picker
+// ---------------------------------------------------------------------------
+const hueWheelCanvas = document.getElementById('hueWheelCanvas')
+const colorSwatches  = document.getElementById('colorSwatches')
+let selectedHue      = gameState.settings?.playerHue ?? 180
+let hueWheelDragging = false
+
+/** Convert a hue (0–360) to a CSS hsl string, s=70%, l=50%. */
+function hueToCss(hue) {
+  return `hsl(${hue}, 70%, 50%)`
+}
+
+/** Redraw the hue wheel canvas with the current selectedHue. */
+function drawHueWheel() {
+  const canvas = hueWheelCanvas
+  const ctx    = canvas.getContext('2d')
+  const cx     = canvas.width  / 2
+  const cy     = canvas.height / 2
+  const outer  = cx - 4
+  const inner  = cx * 0.55
+  const mid    = (outer + inner) / 2
+  const thick  = outer - inner
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+  // Draw hue ring using 360 arc segments
+  for (let i = 0; i < 360; i++) {
+    const a0 = ((i - 90) * Math.PI) / 180
+    const a1 = ((i - 90 + 1.5) * Math.PI) / 180
+    ctx.beginPath()
+    ctx.arc(cx, cy, mid, a0, a1)
+    ctx.lineWidth   = thick
+    ctx.strokeStyle = `hsl(${i}, 70%, 50%)`
+    ctx.stroke()
+  }
+
+  // Draw indicator handle
+  const ha  = ((selectedHue - 90) * Math.PI) / 180
+  const hx  = cx + Math.cos(ha) * mid
+  const hy  = cy + Math.sin(ha) * mid
+  ctx.beginPath()
+  ctx.arc(hx, hy, 7, 0, Math.PI * 2)
+  ctx.fillStyle   = hueToCss(selectedHue)
+  ctx.fill()
+  ctx.strokeStyle = 'white'
+  ctx.lineWidth   = 2
+  ctx.stroke()
+}
+
+/** Update the color swatch row from the current selectedHue and aiCount. */
+function updateColorSwatches() {
+  const aiCount = parseInt(skirmishSetupSection.querySelector('.option-btn[data-ai-count].selected')?.dataset.aiCount ?? '1', 10)
+  const total   = aiCount + 1
+  const step    = 360 / total
+  colorSwatches.innerHTML = ''
+
+  const labels = ['You', ...Array.from({ length: aiCount }, (_, i) => `AI ${aiCount > 1 ? i + 1 : ''}`)]
+  for (let i = 0; i < total; i++) {
+    const hue     = (selectedHue + i * step) % 360
+    const wrapper = document.createElement('div')
+    wrapper.className = 'color-swatch-wrapper'
+
+    const swatch  = document.createElement('div')
+    swatch.className = 'color-swatch'
+    swatch.style.background = hueToCss(hue)
+
+    const label   = document.createElement('span')
+    label.className   = 'color-swatch-label'
+    label.textContent = labels[i]
+
+    wrapper.appendChild(swatch)
+    wrapper.appendChild(label)
+    colorSwatches.appendChild(wrapper)
+  }
+}
+
+/** Compute the hue from a pointer event on the wheel canvas. */
+function hueFromPointer(event) {
+  const rect = hueWheelCanvas.getBoundingClientRect()
+  const scaleX = hueWheelCanvas.width  / rect.width
+  const scaleY = hueWheelCanvas.height / rect.height
+  const clientX = event.touches ? event.touches[0].clientX : event.clientX
+  const clientY = event.touches ? event.touches[0].clientY : event.clientY
+  const px    = (clientX - rect.left) * scaleX - hueWheelCanvas.width  / 2
+  const py    = (clientY - rect.top)  * scaleY - hueWheelCanvas.height / 2
+  const angle = (Math.atan2(py, px) * 180 / Math.PI + 90 + 360) % 360
+  return angle
+}
+
+/** Check whether a pointer is inside the ring area of the wheel. */
+function isOnRing(event) {
+  const rect   = hueWheelCanvas.getBoundingClientRect()
+  const scaleX = hueWheelCanvas.width  / rect.width
+  const scaleY = hueWheelCanvas.height / rect.height
+  const clientX = event.touches ? event.touches[0].clientX : event.clientX
+  const clientY = event.touches ? event.touches[0].clientY : event.clientY
+  const px     = (clientX - rect.left) * scaleX - hueWheelCanvas.width  / 2
+  const py     = (clientY - rect.top)  * scaleY - hueWheelCanvas.height / 2
+  const r      = Math.sqrt(px * px + py * py)
+  const cx     = hueWheelCanvas.width / 2
+  const outer  = cx - 4
+  const inner  = cx * 0.55
+  return r >= inner - 8 && r <= outer + 8  // small tolerance
+}
+
+function onHuePointerDown(event) {
+  if (isOnRing(event)) {
+    hueWheelDragging = true
+    selectedHue      = hueFromPointer(event)
+    drawHueWheel()
+    updateColorSwatches()
+    event.preventDefault()
+  }
+}
+
+function onHuePointerMove(event) {
+  if (!hueWheelDragging) return
+  selectedHue = hueFromPointer(event)
+  drawHueWheel()
+  updateColorSwatches()
+  event.preventDefault()
+}
+
+function onHuePointerUp() {
+  hueWheelDragging = false
+}
+
+hueWheelCanvas.addEventListener('mousedown',  onHuePointerDown)
+hueWheelCanvas.addEventListener('touchstart', onHuePointerDown, { passive: false })
+window.addEventListener('mousemove',  onHuePointerMove)
+window.addEventListener('touchmove',  onHuePointerMove, { passive: false })
+window.addEventListener('mouseup',   onHuePointerUp)
+window.addEventListener('touchend',  onHuePointerUp)
+
 // Game mode descriptions
 const gameModeDescriptions = {
   'classic': 'Standard gameplay with balanced combat and gathering.',
@@ -311,6 +446,11 @@ const switchTab = (tabName) => {
 const openSkirmishSetupModal = async () => {
   playClickSound()
 
+  // Restore saved hue and redraw wheel
+  selectedHue = gameState.settings?.playerHue ?? 180
+  drawHueWheel()
+  updateColorSwatches()
+
   // Set current values based on game settings or defaults
   updateSelection(mapSizeButtons, gameState.settings?.mapSize || 'medium', 'mapSize')
   updateSelection(aiCountButtons, gameState.settings?.aiCount || 1, 'aiCount')
@@ -385,6 +525,7 @@ const startSkirmishGame = () => {
       gameSpeedMultiplier: CONSTANTS.GAME_SPEED_MULTIPLIERS[selectedGameSpeed.toUpperCase()],
       gameMode: selectedGameMode,
       fogOfWar: fogOfWarEnabled,
+      playerHue: Math.round(selectedHue),
   })
 
   // Set custom map ID or seed based on active tab
@@ -446,6 +587,7 @@ async function setupSkirmishSection() {
   aiCountButtons.forEach(button => {
       button.addEventListener('click', () => {
           updateSelection(aiCountButtons, button.dataset.aiCount, 'aiCount')
+          updateColorSwatches()
       })
   })
   difficultyButtons.forEach(button => {

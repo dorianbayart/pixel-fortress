@@ -13,15 +13,26 @@ import { distance } from 'utils'
 
 const TERRAIN_TYPES = CONSTANTS.TERRAIN.TYPES
 
-/** One hex colour per player slot. Index 0 = human, 1+ = AI slots. */
-const PLAYER_COLORS = [
-  0x00BFBF,  // Cyan   (human default)
-  0xCC2222,  // Red    (AI slot 1)
-  0xCCCC00,  // Yellow (AI slot 2)
-  0x8822CC,  // Violet (AI slot 3)
-  0x22AA22,  // Green  (AI slot 4)
-  0xFF8800,  // Orange (AI slot 5)
-]
+/**
+ * Convert an HSL hue (0–360) to a 0xRRGGBB hex integer.
+ * Saturation is fixed at 70 %, lightness at 50 % for vivid player colours.
+ */
+function hueToHex(hue) {
+  const s = 0.7, l = 0.5
+  const c = (1 - Math.abs(2 * l - 1)) * s
+  const x = c * (1 - Math.abs((hue / 60) % 2 - 1))
+  const m = l - c / 2
+  let r, g, b
+  if      (hue < 60)  { r = c; g = x; b = 0 }
+  else if (hue < 120) { r = x; g = c; b = 0 }
+  else if (hue < 180) { r = 0; g = c; b = x }
+  else if (hue < 240) { r = 0; g = x; b = c }
+  else if (hue < 300) { r = x; g = 0; b = c }
+  else                { r = c; g = 0; b = x }
+  return (Math.round((r + m) * 255) << 16)
+       | (Math.round((g + m) * 255) << 8)
+       |  Math.round((b + m) * 255)
+}
 
 const PlayerType = {
   HUMAN: 'human',
@@ -33,10 +44,13 @@ class Player {
 
     this.type = type
 
-    // Assign a unique player colour from the palette.
-    // Human is always slot 0; each AI gets the next available slot.
+    // Assign a unique player colour by evenly distributing hues around the wheel.
+    // Human gets the chosen base hue; each AI is offset by 360/(aiCount+1) steps.
     const colorIndex = this.isHuman() ? 0 : 1 + gameState.aiPlayers.length
-    this.color = PLAYER_COLORS[Math.min(colorIndex, PLAYER_COLORS.length - 1)]
+    const aiCount = gameState.settings?.aiCount ?? 1
+    const baseHue = gameState.settings?.playerHue ?? 180
+    const hueStep = 360 / (aiCount + 1)
+    this.color = hueToHex((baseHue + colorIndex * hueStep) % 360)
 
     this.units = []
     this.buildings = []

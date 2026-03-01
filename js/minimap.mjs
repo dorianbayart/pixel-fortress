@@ -163,26 +163,25 @@ function updateMinimap(timestamp = performance.now()) {
 
   // Draw buildings (only within visible minimap bounds)
   if (gameState.humanPlayer) {
+    const color = gameState.humanPlayer.color
     gameState.humanPlayer.getBuildings().forEach(building => {
-      // Check if building is within minimap view bounds
       if (building.x >= startX && building.x < endX && building.y >= startY && building.y < endY) {
         minimapGraphics
           .rect((building.x - startX) * pixelSize, (building.y - startY) * pixelSize, pixelSize, pixelSize)
-          .fill({ color: COLORS.HUMAN_BUILDING, alpha: MINIMAP_CONTENT_ALPHA })
+          .fill({ color, alpha: MINIMAP_CONTENT_ALPHA })
       }
     })
   }
 
   if (gameState.aiPlayers) {
     gameState.aiPlayers.forEach(ai => {
+      const color = ai.color
       ai.getBuildings().forEach(building => {
-        // Check if building is within minimap view bounds
         if (building.x >= startX && building.x < endX && building.y >= startY && building.y < endY) {
-          // Only show AI buildings if they are visible (not in fog of war)
           if (!gameState.settings.fogOfWar || isPositionVisible(building.x, building.y)) {
             minimapGraphics
               .rect((building.x - startX) * pixelSize, (building.y - startY) * pixelSize, pixelSize, pixelSize)
-              .fill({ color: COLORS.AI_BUILDING, alpha: MINIMAP_CONTENT_ALPHA })
+              .fill({ color, alpha: MINIMAP_CONTENT_ALPHA })
           }
         }
       })
@@ -191,30 +190,29 @@ function updateMinimap(timestamp = performance.now()) {
 
   // Draw units (only within visible minimap bounds)
   if (gameState.humanPlayer) {
+    const color = gameState.humanPlayer.color
     gameState.humanPlayer.getUnits().forEach(unit => {
       const tileX = Math.floor(unit.x / tileSize)
       const tileY = Math.floor(unit.y / tileSize)
-      // Check if unit is within minimap view bounds
       if (tileX >= startX && tileX < endX && tileY >= startY && tileY < endY) {
         minimapGraphics
           .rect((tileX - startX) * pixelSize, (tileY - startY) * pixelSize, pixelSize, pixelSize)
-          .fill({ color: COLORS.HUMAN_UNIT, alpha: MINIMAP_CONTENT_ALPHA })
+          .fill({ color, alpha: MINIMAP_CONTENT_ALPHA })
       }
     })
   }
 
   if (gameState.aiPlayers) {
     gameState.aiPlayers.forEach(ai => {
+      const color = ai.color
       ai.getUnits().forEach(unit => {
         const tileX = Math.floor(unit.x / tileSize)
         const tileY = Math.floor(unit.y / tileSize)
-        // Check if unit is within minimap view bounds
         if (tileX >= startX && tileX < endX && tileY >= startY && tileY < endY) {
-          // Only show AI units if they are visible (not in fog of war)
           if (!gameState.settings.fogOfWar || isPositionVisible(tileX, tileY)) {
             minimapGraphics
               .rect((tileX - startX) * pixelSize, (tileY - startY) * pixelSize, pixelSize, pixelSize)
-              .fill({ color: COLORS.AI_UNIT, alpha: MINIMAP_CONTENT_ALPHA })
+              .fill({ color, alpha: MINIMAP_CONTENT_ALPHA })
           }
         }
       })
