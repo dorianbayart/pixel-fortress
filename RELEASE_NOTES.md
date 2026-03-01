@@ -8,6 +8,7 @@
 
 ### Visuals
 - **Fresh look**: Buildings got stunning new artwork — your fortress has never looked this good
+- **Pixel-art UI**: All menus reworked with consistent pixel-art styling — sharp edges, gold borders, and pixelated controls throughout
 
 ---
 
