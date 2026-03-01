@@ -160,8 +160,8 @@ function drawHueWheel() {
   const SCALE  = 4
   const sw     = Math.floor(W / SCALE)
   const sh     = Math.floor(H / SCALE)
-  const scx    = sw / 2
-  const scy    = sh / 2
+  const scx    = (sw - 1) / 2
+  const scy    = (sh - 1) / 2
   const souter = (cx - 4) / SCALE
   const sinner = (cx * 0.55) / SCALE
 
@@ -197,8 +197,8 @@ function drawHueWheel() {
   // Pixel-snapped square handle
   const ha   = ((selectedHue - 90) * Math.PI) / 180
   const smid = (souter + sinner) / 2
-  const hx   = Math.round(Math.round(scx + Math.cos(ha) * smid) * SCALE)
-  const hy   = Math.round(Math.round(scy + Math.sin(ha) * smid) * SCALE)
+  const hx   = Math.round(cx + Math.cos(ha) * smid * SCALE)
+  const hy   = Math.round(cy + Math.sin(ha) * smid * SCALE)
   const [hr, hg, hb] = hueToRgb(selectedHue)
   ctx.fillStyle = `rgb(${hr},${hg},${hb})`
   ctx.fillRect(hx - SCALE, hy - SCALE, SCALE * 2, SCALE * 2)
