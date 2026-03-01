@@ -6,6 +6,7 @@ import { isMuted, musicManager, toggleMute } from 'audio'
 import { getTileSize, initMapDimensions } from 'dimensions'
 import { initFogOfWar } from 'fogOfWar'
 import { gameLoop, initGame } from 'game'
+import { init as initI18n } from 'i18n'
 import { initHomeMenu } from 'menu'
 import { app, containers, initCanvases, resizeCanvases } from 'renderer'
 import { loadSprites } from 'sprites'
@@ -22,6 +23,9 @@ import { viewportChange } from 'viewport'
 async function initializeGame() {
   // Set initial game state
   gameState.gameStatus = 'menu'
+
+  // Initialize i18n before the menu
+  await initI18n()
 
   // Initialize home menu
   initHomeMenu()

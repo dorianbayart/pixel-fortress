@@ -1,0 +1,195 @@
+{
+  "menu": {
+    "play": "Spielen",
+    "options": "Optionen",
+    "about": "Über das Spiel",
+    "back": "Zurück",
+    "campaign": "Kampagne",
+    "skirmish": "Gefecht",
+    "unmuteAudio": "🎵 Audio einschalten",
+    "muteAudio": "🎵 Audio ausschalten",
+    "fullscreen": "🖥️ Vollbild",
+    "windowed": "🖥️ Fenstermodus",
+    "loadingAssets": "Lade Spielressourcen...",
+    "welcome": "Willkommen",
+    "to": "bei"
+  },
+  "skirmish": {
+    "title": "Gefecht-Einstellungen",
+    "predefinedMaps": "Vordefinierte Karten",
+    "randomMap": "Zufallskarte",
+    "availableMaps": "Verfügbare Karten",
+    "mapSize": "Kartengröße",
+    "mapSeed": "Karten-Seed (Optional)",
+    "seedPlaceholder": "Seed-Nummer eingeben",
+    "randomSeed": "Zufälligen Seed",
+    "seedHint": "Leer lassen für zufällige Generierung",
+    "gameMode": "Spielmodus",
+    "aiOpponents": "KI-Gegner",
+    "playerColor": "Spielerfarbe",
+    "difficultyLabel": "Schwierigkeit",
+    "gameSpeed": "Spielgeschwindigkeit",
+    "fogOfWar": "Kriegsnebel aktivieren",
+    "startGame": "Spiel starten",
+    "cancel": "Abbrechen",
+    "you": "Sie",
+    "ai": "KI",
+    "noMapsAvailable": "Keine vordefinierten Karten verfügbar",
+    "loadingMaps": "Laden...",
+    "errorLoadingMaps": "Fehler beim Laden der Karten",
+    "modes": {
+      "classic": "Klassisch",
+      "classicDesc": "Standard-Gameplay mit ausgewogenem Kampf und Sammeln.",
+      "oneShot": "One Shot",
+      "oneShotDesc": "Jede Einheit und jedes Gebäude hat genau einen Lebenspunkt. Jeder Schaden ist tödlich.",
+      "turboGathering": "Turbo Gathering",
+      "turboGatheringDesc": "Alle Ressourcensammler arbeiten mit deutlich erhöhter Geschwindigkeit.",
+      "towerDefense": "Tower Defense",
+      "towerDefenseDesc": "Verteidige deine Festung gegen Gegnerwellen. Bald verfügbar!"
+    },
+    "difficulty": {
+      "easy": "Leicht",
+      "medium": "Mittel",
+      "hard": "Schwer"
+    },
+    "speed": {
+      "normal": "Normal",
+      "accelerated": "Beschleunigt",
+      "veryFast": "Sehr schnell"
+    }
+  },
+  "options": {
+    "title": "Spieloptionen",
+    "showFps": "FPS und Debug-Info anzeigen (Tastenkürzel: D)",
+    "showHealthBars": "Lebensbalken anzeigen (Tastenkürzel: H)",
+    "fullscreenMode": "Vollbildmodus",
+    "highQualityRendering": "Hochqualitätsrendering",
+    "fpsCap": "FPS-Begrenzung",
+    "fpsMonitorRefreshRate": "Monitor-Bildwiederholrate",
+    "sfxVolume": "Soundeffekt-Lautstärke",
+    "musicVolume": "Musik-Lautstärke",
+    "language": "Sprache",
+    "save": "Speichern",
+    "cancel": "Abbrechen"
+  },
+  "about": {
+    "title": "Über das Spiel",
+    "description": "Pixel Fortress kombiniert strategischen Festungsbau mit automatischer Kriegsführung. Entwerfe deine Festung, etabliere Ressourcenproduktion und setze selbstgesteuerte Einheiten ein.",
+    "genre": "Genre",
+    "genreText": "Basisbau • Automatisierte Strategie • Auto-Battler • Pixel Art",
+    "gameRepository": "Spiel-Repository",
+    "developerProfile": "Entwickler-Profil",
+    "credits": "Credits",
+    "creditsDeveloper": "Entwickelt von Dorian Bayart",
+    "creditsAssets": "Pixel-Art-Assets aus verschiedenen Open-Source-Sammlungen",
+    "creditsBuiltWith": "Erstellt mit PixiJS, HTML5 und JavaScript",
+    "license": "Lizenz",
+    "licenseText": "Dieses Projekt steht unter der GNU General Public License v3.0 oder neuer (GPL-3.0-or-later).",
+    "licenseText2": "100% Open Source. Frei zu verwenden, zu studieren, zu teilen und zu verbessern.",
+    "close": "Schließen"
+  },
+  "gameMenu": {
+    "title": "Spielmenü",
+    "mapInformation": "Karteninformationen",
+    "seed": "Seed:",
+    "size": "Größe:",
+    "exportMap": "Karte exportieren",
+    "resumeGame": "Weiterspielen",
+    "options": "Optionen",
+    "resetMap": "Karte zurücksetzen",
+    "quitToHome": "Zum Hauptmenü"
+  },
+  "game": {
+    "gameOver": "Spiel vorbei",
+    "gameOverMsg": "Ihr Hauptgebäude wurde zerstört!",
+    "win": "Sie haben gewonnen!",
+    "winMsg": "Sie haben das Hauptgebäude Ihres Gegners zerstört! Glückwunsch!"
+  },
+  "ui": {
+    "life": "Leben",
+    "producing": "Produktion",
+    "workers": "Arbeiter",
+    "costs": "Kosten",
+    "sell": "Verkauf",
+    "atk": "Ang",
+    "spd": "Gsch",
+    "range": "Reichweite",
+    "tiles": "Felder",
+    "selling": "Verkaufe {resource} für {price} Geld.",
+    "random": "Zufällig",
+    "level": "Level",
+    "lifeUpgrade": "Leben +{amount}",
+    "maxWorkersUpgrade": "Max Arbeiter +{amount}",
+    "atkUpgrade": "Ang +{amount}",
+    "rangeUpgrade": "Reichweite +{amount}F",
+    "productionSpeedUpgrade": "Prod.-Geschw. +{amount}%",
+    "cooldownUpgrade": "Abklingzeit -{amount}%",
+    "close": "Schließen",
+    "placed": "{name} platziert!",
+    "cannotAfford": "{name} nicht leistbar (Benötigt {costs})"
+  },
+  "buildings": {
+    "tent": {
+      "name": "Zelt",
+      "description": "Ihr Hauptgebäude",
+      "details": "Um jeden Preis schützen!"
+    },
+    "lumberjack": {
+      "name": "Holzhütte",
+      "description": "Erntet Holz von nahen Bäumen",
+      "details": "Sollte neben Bäumen platziert werden."
+    },
+    "goldMine": {
+      "name": "Goldmine",
+      "description": "Baut Gold ab",
+      "details": "Muss auf Golderz platziert werden."
+    },
+    "quarry": {
+      "name": "Steinbruch",
+      "description": "Gewinnt Stein",
+      "details": "Muss auf Fels platziert werden."
+    },
+    "well": {
+      "name": "Brunnen",
+      "description": "Produziert Wasser",
+      "details": "Muss neben Wasser platziert werden."
+    },
+    "barracks": {
+      "name": "Kaserne",
+      "description": "Trainiert Soldaten",
+      "details": "Trainiert Infanterieeinheiten."
+    },
+    "armory": {
+      "name": "Rüstkammer",
+      "description": "Trainiert schwere Infanterie",
+      "details": "Trainiert stärkere Einheiten."
+    },
+    "citadel": {
+      "name": "Zitadelle",
+      "description": "Trainiert Elite-Krieger",
+      "details": "Trainiert Elite-Kampfeinheiten."
+    },
+    "market": {
+      "name": "Markt",
+      "description": "Verkauft Ressourcen gegen Geld",
+      "details": "Wandelt Ressourcen in Geld um."
+    },
+    "tower": {
+      "name": "Turm",
+      "description": "Verteidigungsturm",
+      "details": "Greift nahe Feinde an."
+    },
+    "bulletTower": {
+      "name": "Kugel-Turm",
+      "description": "Ausgewogen - mittlerer Angriff, Geschwindigkeit und Reichweite"
+    },
+    "rapidTower": {
+      "name": "Schnell-Turm",
+      "description": "Schnelle Angriffe, kurze Reichweite, geringerer Schaden"
+    },
+    "sniperTower": {
+      "name": "Sniper-Turm",
+      "description": "Langsam aber trifft hart auf sehr lange Reichweite"
+    }
+  }
+}

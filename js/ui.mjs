@@ -7,6 +7,7 @@ export {
 import { playClickSound, playCloseSound, playConfirmSound } from 'audio'
 import { Building, WorkerBuilding } from 'building'
 import CONSTANTS from 'constants'
+import { t, getLanguage } from 'i18n'
 import { getCanvasDimensions, getMapDimensions, getTileSize } from 'dimensions'
 import { DEBUG, drawBack, toggleDebug } from 'globals'
 import { downloadMapJSON } from 'maps'
@@ -415,6 +416,8 @@ function openOptionsModal() {
   fpsCapSelect.value = gameState.settings?.fpsCap ?? 0
   sfxVolumeSlider.value = gameState.settings?.sfxVolume ?? 0.8
   musicVolumeSlider.value = gameState.settings?.musicVolume ?? 0.5
+  const languageSelect = document.getElementById('languageSelect')
+  if (languageSelect) languageSelect.value = getLanguage()
 
   // Update antialiasing status text
   if (antialiasingToggle.checked) {
@@ -448,7 +451,8 @@ function handleMouseInteraction(map, player) {
         player.addBuilding(mouse.x, mouse.y, selectedBuildingType)
         
         // Show message
-        showDebugMessage(`${selectedBuildingType.name} placed!`)
+        const placedName = selectedBuildingType.key ? t(`buildings.${selectedBuildingType.key}.name`) : selectedBuildingType.name
+        showDebugMessage(t('ui.placed', { name: placedName }))
         
         // Clear selection
         if (selectedBuildingIndex >= 0) {
@@ -850,13 +854,15 @@ async function displayBuildingInfo(building) {
 
   // Building Name and Level
   fontSize = 20
-  const nameText = createText(`${building.type.name} (Level ${building.level})`, TEXT_STYLES.buildingName)
+  const buildingName = building.type.key ? t(`buildings.${building.type.key}.name`) : building.type.name
+  const nameText = createText(`${buildingName} (${t('ui.level')} ${building.level})`, TEXT_STYLES.buildingName)
   nameText.position.set(currentX, padding)
   bottomBarContainer.addChild(nameText)
 
   // Building Description
   fontSize = 14
-  const descText = createText(building.type.description, TEXT_STYLES.buildingDescription)
+  const buildingDesc = building.type.key ? t(`buildings.${building.type.key}.description`) : building.type.description
+  const descText = createText(buildingDesc, TEXT_STYLES.buildingDescription)
   descText.position.set(currentX, padding + nameText.height + 5)
   bottomBarContainer.addChild(descText)
 
@@ -864,7 +870,8 @@ async function displayBuildingInfo(building) {
   let detailsText = null
   if (building.type.details) {
     fontSize = 12
-    detailsText = createText(building.type.details, TEXT_STYLES.buildingDetails)
+    const buildingDetails = building.type.key ? t(`buildings.${building.type.key}.details`) : building.type.details
+    detailsText = createText(buildingDetails, TEXT_STYLES.buildingDetails)
     detailsText.position.set(currentX, padding + nameText.height + descText.height + 8)
     bottomBarContainer.addChild(detailsText)
   }
@@ -878,7 +885,7 @@ async function displayBuildingInfo(building) {
 
   // Life/MaxLife
   fontSize = 14
-  const lifeLabel = `Life: ${building.life.toFixed(0)}/${building.maxLife}`
+  const lifeLabel = `${t('ui.life')}: ${building.life.toFixed(0)}/${building.maxLife}`
   const lifeText = createText(lifeLabel, TEXT_STYLES.buildingInfo)
   lifeText.position.set(currentX, padding)
   bottomBarContainer.addChild(lifeText)
@@ -887,7 +894,7 @@ async function displayBuildingInfo(building) {
   let productionText = null
   fontSize = 14
   if (building.attackDamage === undefined && building.productionCooldown > 1000 && building.productionTimer !== undefined) {
-    const productionLabel = `Producing: ${(building.productionTimer / 1000).toFixed(1)}s / ${(building.productionCooldown / 1000).toFixed(1)}s`
+    const productionLabel = `${t('ui.producing')}: ${(building.productionTimer / 1000).toFixed(1)}s / ${(building.productionCooldown / 1000).toFixed(1)}s`
     productionText = createText(productionLabel, TEXT_STYLES.buildingInfoBlue)
     productionText.position.set(currentX + lifeText.width + 40, padding)
     bottomBarContainer.addChild(productionText)
@@ -896,7 +903,7 @@ async function displayBuildingInfo(building) {
   let workersText = null
   fontSize = 14
   if (building.maxWorkers > 0 && building instanceof WorkerBuilding) {
-    const workersLabel = `Workers: ${building.assignedWorkers?.length ?? 0} / ${building.maxWorkers}`
+    const workersLabel = `${t('ui.workers')}: ${building.assignedWorkers?.length ?? 0} / ${building.maxWorkers}`
     workersText = createText(workersLabel, TEXT_STYLES.buildingInfoBlue)
     workersText.position.set(currentX + lifeText.width + 40, padding)
     bottomBarContainer.addChild(workersText)
@@ -905,9 +912,9 @@ async function displayBuildingInfo(building) {
   // Attack stats (for combat buildings like Tower)
   if (building.attackDamage !== undefined) {
     const SPRITE_SIZE = getTileSize()
-    const attackPower = `Atk: ${building.attackDamage}`
-    const attackSpeed = `Spd: ${(1000 / building.attackCooldown).toFixed(2)}/s`
-    const attackRange = `Range: ${(building.attackRange / SPRITE_SIZE).toFixed(1)} tiles`
+    const attackPower = `${t('ui.atk')}: ${building.attackDamage}`
+    const attackSpeed = `${t('ui.spd')}: ${(1000 / building.attackCooldown).toFixed(2)}/s`
+    const attackRange = `${t('ui.range')}: ${(building.attackRange / SPRITE_SIZE).toFixed(1)} ${t('ui.tiles')}`
     const attackLabel = `${attackPower}  ${attackSpeed}  ${attackRange}`
     const attackText = createText(attackLabel, TEXT_STYLES.buildingInfoBlue)
     attackText.position.set(currentX, padding + lifeText.height + 5)
@@ -923,7 +930,7 @@ async function displayBuildingInfo(building) {
       { name: 'gold', icon: '🪙' }
     ]
     
-    const sellLabel = createText('Sell:', TEXT_STYLES.marketLabel)
+    const sellLabel = createText(`${t('ui.sell')}:`, TEXT_STYLES.marketLabel)
     sellLabel.position.set(currentX, padding + lifeText.height + 10)
     bottomBarContainer.addChild(sellLabel)
 
@@ -959,7 +966,7 @@ async function displayBuildingInfo(building) {
       sellButtonX += 50 // Spacing between buttons
     })
     
-    const currentSellingInfo = createText(`Selling ${building.sellingResource} for ${building.sellingPrice} money.`, TEXT_STYLES.marketInfo)
+    const currentSellingInfo = createText(t('ui.selling', { resource: building.sellingResource, price: building.sellingPrice }), TEXT_STYLES.marketInfo)
     currentSellingInfo.position.set(currentX, sellLabel.y + sellLabel.height + 10)
     bottomBarContainer.addChild(currentSellingInfo)
   }
@@ -999,13 +1006,14 @@ async function displayBuildingInfo(building) {
       bottomBarContainer.addChild(btnBg)
 
       // Branch name
-      const nameT = createText(branch.name, TEXT_STYLES.buildingName, 6)
+      const branchName = branch.key ? t(`buildings.${branch.key}.name`) : branch.name
+      const nameT = createText(branchName, TEXT_STYLES.buildingName, 6)
       nameT.position.set(bx + 4, by + 2)
       bottomBarContainer.addChild(nameT)
 
       // Stats line
       const s = branch.initialStats
-      const statsLabel = `Atk:${s.attackDamage}  Spd:${(1000/s.attackCooldown).toFixed(1)}/s  Rng:${s.attackRangeTiles}t`
+      const statsLabel = `${t('ui.atk')}:${s.attackDamage}  ${t('ui.spd')}:${(1000/s.attackCooldown).toFixed(1)}/s  Rng:${s.attackRangeTiles}t`
       const statsT = createText(statsLabel, TEXT_STYLES.buildingInfoBlue, 6)
       statsT.position.set(bx + 4, by + 4 + nameT.height)
       bottomBarContainer.addChild(statsT)
@@ -1075,12 +1083,12 @@ async function displayBuildingInfo(building) {
 
     // Upgrade Benefits Display
     let benefitsText = []
-    if (upgradeBenefits.life) benefitsText.push(`Life +${upgradeBenefits.life}`)
-    if (upgradeBenefits.productionSpeed) benefitsText.push(`Prod. Speed -${upgradeBenefits.productionSpeed}%`)
-    if (upgradeBenefits.maxWorkers) benefitsText.push(`Max Workers +${upgradeBenefits.maxWorkers}`)
-    if (upgradeBenefits.attackDamage) benefitsText.push(`Atk +${upgradeBenefits.attackDamage}`)
-    if (upgradeBenefits.cooldown) benefitsText.push(`Speed +${upgradeBenefits.cooldown}%`)
-    if (upgradeBenefits.range) benefitsText.push(`Range +${(upgradeBenefits.range / getTileSize()).toFixed(1)}t`)
+    if (upgradeBenefits.life) benefitsText.push(t('ui.lifeUpgrade', { amount: upgradeBenefits.life }))
+    if (upgradeBenefits.productionSpeed) benefitsText.push(t('ui.productionSpeedUpgrade', { amount: upgradeBenefits.productionSpeed }))
+    if (upgradeBenefits.maxWorkers) benefitsText.push(t('ui.maxWorkersUpgrade', { amount: upgradeBenefits.maxWorkers }))
+    if (upgradeBenefits.attackDamage) benefitsText.push(t('ui.atkUpgrade', { amount: upgradeBenefits.attackDamage }))
+    if (upgradeBenefits.cooldown) benefitsText.push(t('ui.cooldownUpgrade', { amount: upgradeBenefits.cooldown }))
+    if (upgradeBenefits.range) benefitsText.push(t('ui.rangeUpgrade', { amount: (upgradeBenefits.range / getTileSize()).toFixed(1) }))
 
     const benefitsLabel = `Next Level: ${benefitsText.join(', ')}`
     const upgradeBenefitsDisplay = createText(benefitsLabel, TEXT_STYLES.upgradeBenefits)
@@ -1218,7 +1226,8 @@ async function createBuildingSlots() {
     }
     slot.addChild(icon)
 
-    const name = createText(buildings[i].name, TEXT_STYLES.slotName)
+    const slotBuildingName = buildings[i].key ? t(`buildings.${buildings[i].key}.name`) : buildings[i].name
+    const name = createText(slotBuildingName, TEXT_STYLES.slotName)
     name.anchor.set(0.5, 0)  // Center horizontally
     name.position.set(slotSize / 2, slotSize - 18)  // Removed +7 offset for proper centering
     slot.addChild(name)
@@ -1308,9 +1317,10 @@ function handleBuildingSelect(index) {
   }
   
 
-  const statusMessage = canAfford ? 
-    `Selected ${slot.buildingData.name} for placement` : 
-    `Cannot afford ${slot.buildingData.name} (Needs ${costText})`
+  const slotName = slot.buildingData.key ? t(`buildings.${slot.buildingData.key}.name`) : slot.buildingData.name
+  const statusMessage = canAfford ?
+    `Selected ${slotName} for placement` :
+    t('ui.cannotAfford', { name: slotName, costs: costText })
   showDebugMessage(statusMessage)
 }
 
@@ -1443,7 +1453,7 @@ function createBuildingTooltip() {
   detailsText.position.set(64, 66)
   tooltipContainer.addChild(detailsText)
 
-  const costTitle = createText("Costs:", new PIXI.TextStyle({
+  const costTitle = createText(`${t('ui.costs')}:`, new PIXI.TextStyle({
     fontFamily: UI_FONTS.PRIMARY,
     fontSize: 12,
     fill: 0xFFD700
@@ -1471,15 +1481,18 @@ async function updateTooltip(building) {
   tooltipContainer.removeChild(oldDesc)
   tooltipContainer.removeChild(oldDetails)
 
-  const titleText = createText(building.name, TEXT_STYLES.tooltipTitle)
+  const tooltipName = building.key ? t(`buildings.${building.key}.name`) : building.name
+  const titleText = createText(tooltipName, TEXT_STYLES.tooltipTitle)
   titleText.position.set(10, 10)
   tooltipContainer.addChildAt(titleText, 1)
 
-  const descText = createText(building.description, TEXT_STYLES.tooltipDescription)
+  const tooltipDesc = building.key ? t(`buildings.${building.key}.description`) : building.description
+  const descText = createText(tooltipDesc, TEXT_STYLES.tooltipDescription)
   descText.position.set(64, 48)
   tooltipContainer.addChildAt(descText, 3)
 
-  const detailsText = createText(building.details || "", TEXT_STYLES.tooltipDetails)
+  const tooltipDetails = building.key ? t(`buildings.${building.key}.details`) : (building.details || "")
+  const detailsText = createText(tooltipDetails, TEXT_STYLES.tooltipDetails)
   detailsText.position.set(64, 66)
   tooltipContainer.addChildAt(detailsText, 4)
 
@@ -1536,9 +1549,9 @@ async function updateTooltip(building) {
   
   // Calculate dynamic tooltip width based on content
   // Use text length for more accurate width estimation
-  const titleLength = building.name.length
-  const descLength = building.description.length
-  const detailsLength = (building.details || "").length
+  const titleLength = tooltipName.length
+  const descLength = tooltipDesc.length
+  const detailsLength = tooltipDetails.length
 
   const maxLength = Math.max(titleLength * 16, descLength * 12, detailsLength * 11)
   const tooltipWidth = Math.max(Math.min(maxLength * 0.6 + 100, 700), 300)
@@ -1636,7 +1649,7 @@ function updateMapInfo() {
     if (gameState.mapSeed !== null && gameState.mapSeed !== undefined) {
       seedElement.textContent = gameState.mapSeed
     } else {
-      seedElement.textContent = 'Random'
+      seedElement.textContent = t('ui.random')
     }
   }
 

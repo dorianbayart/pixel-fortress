@@ -90,7 +90,8 @@ class GameState {
       antialiasing: false,
       fpsCap: 0, // 0 = unlimited (monitor refresh rate), or specific cap: 30, 60, 120, 144, 240
       fullscreen: false,
-      playerHue: 180  // HSL hue (0–360) for the human player's color; default 180 = cyan
+      playerHue: 180,  // HSL hue (0–360) for the human player's color; default 180 = cyan
+      language: 'en'
     }
 
     // UI references

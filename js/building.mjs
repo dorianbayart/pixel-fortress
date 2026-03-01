@@ -147,6 +147,7 @@ class Building {
 
     static TYPES = {
         LUMBERJACK: {
+          key: 'lumberjack',
           name: "Wood Hut",
           icon: "🪓",
           costs: { wood: 8 },
@@ -162,6 +163,7 @@ class Building {
           sprite: './assets/buildings/axe.png'
         },
         GOLD_MINE: {
+          key: 'goldMine',
           name: "Gold Mine",
           icon: "⛏️",
           costs: { wood: 25, stone: 15 },
@@ -177,6 +179,7 @@ class Building {
           sprite: './assets/buildings/gold-mine.png'
         },
         QUARRY: {
+          key: 'quarry',
           name: "Quarry",
           icon: "🪨",
           costs: { wood: 20 },
@@ -192,6 +195,7 @@ class Building {
           sprite: './assets/buildings/pick.png'
         },
         WELL: {
+          key: 'well',
           name: "Well",
           icon: "🧱",
           costs: { wood: 8, stone: 20 },
@@ -207,6 +211,7 @@ class Building {
           sprite: './assets/buildings/well-1.png'
         },
         BARRACKS: {
+          key: 'barracks',
           name: "Barracks",
           icon: "⚔️",
           costs: { wood: 15, water: 10, gold: 5 },
@@ -222,6 +227,7 @@ class Building {
           sprite: './assets/buildings/crossed-swords.png'
         },
         ARMORY: {
+          key: 'armory',
           name: "Armory",
           icon: "🛡️",
           costs: { wood: 25, water: 20, money: 10, gold: 20 },
@@ -237,6 +243,7 @@ class Building {
           sprite: './assets/buildings/shield.png'
         },
         CITADEL: {
+          key: 'citadel',
           name: "Citadel",
           icon: "🏰",
           costs: { wood: 40, water: 40, money: 20, gold: 50 },
@@ -252,6 +259,7 @@ class Building {
           sprite: './assets/buildings/fleur-de-lis.png'
         },
         MARKET: {
+          key: 'market',
           name: "Market",
           icon: "🏦",
           costs: { wood: 25, water: 10, stone: 50, gold: 20 },
@@ -267,11 +275,13 @@ class Building {
           sprite: './assets/buildings/balance.png'
         },
         TOWER: {
+          key: 'tower',
           name: "Tower",
           icon: "🗼",
           costs: { wood: 30, stone: 40, gold: 15 },
           BRANCHES: [
             {
+              key: 'bulletTower',
               typeName: 'BULLET_TOWER',
               name: 'Bullet Tower',
               icon: '🗼',
@@ -280,6 +290,7 @@ class Building {
               initialStats: { life: 230, attackDamage: 8, attackRangeTiles: 6, attackCooldown: 1200 }
             },
             {
+              key: 'rapidTower',
               typeName: 'RAPID_TOWER',
               name: 'Rapid Tower',
               icon: '🗼',
@@ -288,6 +299,7 @@ class Building {
               initialStats: { life: 170, attackDamage: 3, attackRangeTiles: 3, attackCooldown: 500 }
             },
             {
+              key: 'sniperTower',
               typeName: 'SNIPER_TOWER',
               name: 'Sniper Tower',
               icon: '🎯',
@@ -305,6 +317,7 @@ class Building {
           sprite: './assets/buildings/tower.png'
         },
         BULLET_TOWER: {
+          key: 'bulletTower',
           name: "Bullet Tower",
           icon: "🗼",
           costs: { wood: 30, stone: 40, gold: 20 },
@@ -320,6 +333,7 @@ class Building {
           sprite: './assets/buildings/tower.png'
         },
         RAPID_TOWER: {
+          key: 'rapidTower',
           name: "Rapid Tower",
           icon: "🗼",
           costs: { wood: 20, stone: 20, gold: 15 },
@@ -335,6 +349,7 @@ class Building {
           sprite: './assets/buildings/tower.png'
         },
         SNIPER_TOWER: {
+          key: 'sniperTower',
           name: "Sniper Tower",
           icon: "🎯",
           costs: { wood: 20, stone: 60, gold: 30 },
@@ -350,6 +365,7 @@ class Building {
           sprite: './assets/buildings/tower.png'
         },
         TENT: {
+          key: 'tent',
           name: "Tent",
           icon: "⛺",
           costs: { wood: 75, water: 50, money: 50 },

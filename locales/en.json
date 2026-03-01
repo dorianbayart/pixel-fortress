@@ -1,0 +1,195 @@
+{
+  "menu": {
+    "play": "Play",
+    "options": "Options",
+    "about": "About",
+    "back": "Back",
+    "campaign": "Campaign",
+    "skirmish": "Skirmish",
+    "unmuteAudio": "🎵 Unmute Audio",
+    "muteAudio": "🎵 Mute Audio",
+    "fullscreen": "🖥️ Fullscreen",
+    "windowed": "🖥️ Windowed",
+    "loadingAssets": "Loading game assets...",
+    "welcome": "Welcome",
+    "to": "to"
+  },
+  "skirmish": {
+    "title": "Skirmish Setup",
+    "predefinedMaps": "Predefined Maps",
+    "randomMap": "Random Map",
+    "availableMaps": "Available Maps",
+    "mapSize": "Map Size",
+    "mapSeed": "Map Seed (Optional)",
+    "seedPlaceholder": "Enter a seed number",
+    "randomSeed": "Random Seed",
+    "seedHint": "Leave empty for random generation",
+    "gameMode": "Game Mode",
+    "aiOpponents": "AI Opponents",
+    "playerColor": "Player Color",
+    "difficultyLabel": "Difficulty",
+    "gameSpeed": "Game Speed",
+    "fogOfWar": "Enable Fog of War",
+    "startGame": "Start Game",
+    "cancel": "Cancel",
+    "you": "You",
+    "ai": "AI",
+    "noMapsAvailable": "No predefined maps available",
+    "loadingMaps": "Loading...",
+    "errorLoadingMaps": "Error loading maps",
+    "modes": {
+      "classic": "Classic",
+      "classicDesc": "Standard gameplay with balanced combat and gathering.",
+      "oneShot": "One Shot",
+      "oneShotDesc": "Every unit and building has exactly one life point. Any damage is fatal.",
+      "turboGathering": "Turbo Gathering",
+      "turboGatheringDesc": "All resource gatherers work at significantly increased speed.",
+      "towerDefense": "Tower Defense",
+      "towerDefenseDesc": "Defend your fortress against waves of enemies on special maps. Coming soon!"
+    },
+    "difficulty": {
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard"
+    },
+    "speed": {
+      "normal": "Normal",
+      "accelerated": "Accelerated",
+      "veryFast": "Very Fast"
+    }
+  },
+  "options": {
+    "title": "Game Options",
+    "showFps": "Show FPS and Debug Info (Shortcut: D)",
+    "showHealthBars": "Show Health Bars (Shortcut: H)",
+    "fullscreenMode": "Fullscreen Mode",
+    "highQualityRendering": "High Quality Rendering",
+    "fpsCap": "FPS Cap",
+    "fpsMonitorRefreshRate": "Monitor Refresh Rate",
+    "sfxVolume": "Sound Effects Volume",
+    "musicVolume": "Music Volume",
+    "language": "Language",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "about": {
+    "title": "About",
+    "description": "Pixel Fortress combines strategic base-building with automated warfare. Design your fortress, establish resource production, and deploy self-directed units that explore, gather, and battle autonomously. Strategic depth without the micro-management.",
+    "genre": "Genre",
+    "genreText": "Base Building • Automated Strategy • Auto-battler • Pixel Art",
+    "gameRepository": "Game Repository",
+    "developerProfile": "Developer Profile",
+    "credits": "Credits",
+    "creditsDeveloper": "Developed by Dorian Bayart",
+    "creditsAssets": "Pixel art assets from various open source collections",
+    "creditsBuiltWith": "Built with PixiJS, HTML5 and JavaScript",
+    "license": "License",
+    "licenseText": "This project is licensed under the GNU General Public License v3.0 or later (GPL-3.0-or-later).",
+    "licenseText2": "100% open source. Free to use, study, share, and improve.",
+    "close": "Close"
+  },
+  "gameMenu": {
+    "title": "Game Menu",
+    "mapInformation": "Map Information",
+    "seed": "Seed:",
+    "size": "Size:",
+    "exportMap": "Export Map",
+    "resumeGame": "Resume Game",
+    "options": "Options",
+    "resetMap": "Reset Map",
+    "quitToHome": "Quit to Home"
+  },
+  "game": {
+    "gameOver": "Game Over",
+    "gameOverMsg": "Your main building has been destroyed !",
+    "win": "You Win !",
+    "winMsg": "You destroyed your opponent's main building ! Congrats !"
+  },
+  "ui": {
+    "life": "Life",
+    "producing": "Producing",
+    "workers": "Workers",
+    "costs": "Costs",
+    "sell": "Sell",
+    "atk": "Atk",
+    "spd": "Spd",
+    "range": "Range",
+    "tiles": "tiles",
+    "selling": "Selling {resource} for {price} money.",
+    "random": "Random",
+    "level": "Level",
+    "lifeUpgrade": "Life +{amount}",
+    "maxWorkersUpgrade": "Max Workers +{amount}",
+    "atkUpgrade": "Atk +{amount}",
+    "rangeUpgrade": "Range +{amount}t",
+    "productionSpeedUpgrade": "Prod. Speed +{amount}%",
+    "cooldownUpgrade": "Cooldown -{amount}%",
+    "close": "Close",
+    "placed": "{name} placed!",
+    "cannotAfford": "Cannot afford {name} (Needs {costs})"
+  },
+  "buildings": {
+    "tent": {
+      "name": "Tent",
+      "description": "Produces peons",
+      "details": "Work work!"
+    },
+    "lumberjack": {
+      "name": "Wood Hut",
+      "description": "Harvests wood from nearby trees",
+      "details": "Should be placed next to trees."
+    },
+    "goldMine": {
+      "name": "Gold Mine",
+      "description": "Mines gold",
+      "details": "Must be placed on gold ore."
+    },
+    "quarry": {
+      "name": "Quarry",
+      "description": "Extracts stone",
+      "details": "Must be placed on rock."
+    },
+    "well": {
+      "name": "Well",
+      "description": "Produces water",
+      "details": "Must be placed next to water."
+    },
+    "barracks": {
+      "name": "Barracks",
+      "description": "Trains soldiers",
+      "details": "Trains infantry units."
+    },
+    "armory": {
+      "name": "Armory",
+      "description": "Trains heavy infantry",
+      "details": "Trains stronger units."
+    },
+    "citadel": {
+      "name": "Citadel",
+      "description": "Trains elite warriors",
+      "details": "Trains elite combat units."
+    },
+    "market": {
+      "name": "Market",
+      "description": "Sell resources against money",
+      "details": "Convert resources to money."
+    },
+    "tower": {
+      "name": "Tower",
+      "description": "Defensive tower",
+      "details": "Attacks nearby enemies."
+    },
+    "bulletTower": {
+      "name": "Bullet Tower",
+      "description": "Balanced - medium attack, speed and range"
+    },
+    "rapidTower": {
+      "name": "Rapid Tower",
+      "description": "Fast attacks, short range, lower damage"
+    },
+    "sniperTower": {
+      "name": "Sniper Tower",
+      "description": "Slow but hits hard at very long range"
+    }
+  }
+}

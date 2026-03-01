@@ -16,8 +16,33 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
+const fs = require('fs');
+
+const SETTINGS_PATH = path.join(app.getPath('userData'), 'settings.json')
+
+ipcMain.handle('load-settings', async () => {
+  try {
+    if (fs.existsSync(SETTINGS_PATH)) {
+      const raw = fs.readFileSync(SETTINGS_PATH, 'utf8')
+      return JSON.parse(raw)
+    }
+  } catch (e) {
+    console.error('Failed to load settings:', e)
+  }
+  return {}
+})
+
+ipcMain.handle('save-settings', async (_event, data) => {
+  try {
+    fs.writeFileSync(SETTINGS_PATH, JSON.stringify(data, null, 2), 'utf8')
+    return true
+  } catch (e) {
+    console.error('Failed to save settings:', e)
+    return false
+  }
+})
 
 function createWindow () {
   const win = new BrowserWindow({
@@ -25,8 +50,7 @@ function createWindow () {
     height: 800,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
-      nodeIntegration: true, // Enable Node.js integration in the renderer process
-      contextIsolation: false, // Disable context isolation for simplicity in this example
+      contextIsolation: true,
     }
   });
 

@@ -42,6 +42,7 @@ import { sprites } from 'sprites'
 import gameState from 'state'
 import { generateTerrainBitmaps, clearTerrainBitmaps, regenerateTerrainRegion } from 'terrainBitmaps'
 import { handleMouseInteraction, updateUI, showModal } from 'ui'
+import { t } from 'i18n'
 
 // Re-export constants for backward compatibility
 const TERRAIN_TYPES = CONSTANTS.TERRAIN.TYPES
@@ -396,7 +397,7 @@ const gameLoop = async () => {
 
   // Check for game over condition
   if (gameState.humanPlayer.getTents().length === 0) {
-    showModal('Game Over', 'Your main building has been destroyed !', 'gameOver', 'menu', () => {})
+    showModal(t('game.gameOver'), t('game.gameOverMsg'), 'gameOver', 'menu', () => {})
     return // Stop the game loop
   }
   
@@ -407,7 +408,7 @@ const gameLoop = async () => {
 
   // Check for win condition
   if (!gameState.aiPlayers.some(ai => ai.getTents().length)) {
-    showModal('You Win !', 'You destroyed your opponent\'s main building ! Congrats !', 'win', 'menu', () => {})
+    showModal(t('game.win'), t('game.winMsg'), 'win', 'menu', () => {})
     return // Stop the game loop
   }
 

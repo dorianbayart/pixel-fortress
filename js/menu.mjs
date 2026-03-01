@@ -5,9 +5,22 @@ export { initHomeMenu }
 import gameState from 'state'
 import CONSTANTS from 'constants'
 import { playClickSound, playCloseSound, playConfirmSound } from 'audio'
+import { t, setLanguage, getLanguage, getSupportedLanguages } from 'i18n'
 import { setupEventListeners } from 'ui'
 import { getPredefinedMaps } from 'maps'
 import { renderCustomMapPreview, generateMapPreviewFromSeed } from 'map-preview'
+
+/**
+ * Apply translations to all elements with data-i18n attributes
+ */
+function applyI18n() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = t(el.dataset.i18n)
+  })
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    el.placeholder = t(el.dataset.i18nPlaceholder)
+  })
+}
 
 
 // Function to simulate a typewriter effect
@@ -38,6 +51,14 @@ async function initHomeMenu() {
 
   showMainMenu()
 
+  // Apply translations to all static elements
+  applyI18n()
+
+  // Re-apply translations when language changes
+  gameState.events.on('language-changed', () => {
+    applyI18n()
+  })
+
   // Typewriter effect for the game title
   const gameNameElement = document.getElementById('gameName')
   const originalTitle = gameNameElement.textContent
@@ -46,12 +67,14 @@ async function initHomeMenu() {
   // Add a class for the blinking caret
   gameNameElement.classList.add('typewriter-caret')
 
+  const welcomeWord = t('menu.welcome')
+  const toWord = t('menu.to')
   let delay = 500
   const typingSpeed = 200
-  setTimeout(() => typewriterEffect(gameNameElement, 'Welcome', typingSpeed), delay)
-  delay += typingSpeed * 'Welcome'.length + 1000
-  setTimeout(() => typewriterEffect(gameNameElement, 'to', typingSpeed), delay)
-  delay += typingSpeed * 'to'.length + 1000
+  setTimeout(() => typewriterEffect(gameNameElement, welcomeWord, typingSpeed), delay)
+  delay += typingSpeed * welcomeWord.length + 1000
+  setTimeout(() => typewriterEffect(gameNameElement, toWord, typingSpeed), delay)
+  delay += typingSpeed * toWord.length + 1000
   setTimeout(() => typewriterEffect(gameNameElement, originalTitle, typingSpeed), delay)
   delay += typingSpeed * originalTitle.length + 3000
   setTimeout(() => gameNameElement.classList.remove('typewriter-caret'), delay)
@@ -214,7 +237,8 @@ function updateColorSwatches() {
   const step    = 360 / total
   colorSwatches.innerHTML = ''
 
-  const labels = ['You', ...Array.from({ length: aiCount }, (_, i) => `AI ${aiCount > 1 ? i + 1 : ''}`)]
+  const aiLabel = t('skirmish.ai')
+  const labels = [t('skirmish.you'), ...Array.from({ length: aiCount }, (_, i) => `${aiLabel}${aiCount > 1 ? ' ' + (i + 1) : ''}`)]
   for (let i = 0; i < total; i++) {
     const hue     = (selectedHue + i * step) % 360
     const wrapper = document.createElement('div')
@@ -292,12 +316,18 @@ window.addEventListener('touchmove',  onHuePointerMove, { passive: false })
 window.addEventListener('mouseup',   onHuePointerUp)
 window.addEventListener('touchend',  onHuePointerUp)
 
-// Game mode descriptions
-const gameModeDescriptions = {
-  'classic': 'Standard gameplay with balanced combat and gathering.',
-  'one-shot': 'Every unit and building has exactly one life point. Any damage is fatal.',
-  'turbo-gathering': 'All resource gatherers work at significantly increased speed.',
-  'tower-defense': 'Defend your fortress against waves of enemies on special maps. Coming soon!',
+// Game mode description keys (for i18n)
+const gameModeDescriptionKeys = {
+  'classic': 'skirmish.modes.classicDesc',
+  'one-shot': 'skirmish.modes.oneShotDesc',
+  'turbo-gathering': 'skirmish.modes.turboGatheringDesc',
+  'tower-defense': 'skirmish.modes.towerDefenseDesc',
+}
+
+// Get localized game mode description
+function getGameModeDescription(mode) {
+  const key = gameModeDescriptionKeys[mode]
+  return key ? t(key) : ''
 }
 
 // Dynamically create map size buttons from constants
@@ -467,8 +497,8 @@ const openSkirmishSetupModal = async () => {
   const currentGameMode = gameState.settings?.gameMode || 'classic'
   updateSelection(gameModeButtons, currentGameMode, 'gameMode')
   // Update game mode description
-  if (gameModeDescription && gameModeDescriptions[currentGameMode]) {
-    gameModeDescription.textContent = gameModeDescriptions[currentGameMode]
+  if (gameModeDescription && getGameModeDescription(currentGameMode)) {
+    gameModeDescription.textContent = getGameModeDescription(currentGameMode)
   }
   skirmishFogToggle.checked = gameState.settings?.fogOfWar !== false
 
@@ -613,8 +643,8 @@ async function setupSkirmishSection() {
           updateSelection(gameModeButtons, button.dataset.gameMode, 'gameMode')
           // Update description
           const mode = button.dataset.gameMode
-          if (gameModeDescription && gameModeDescriptions[mode]) {
-            gameModeDescription.textContent = gameModeDescriptions[mode]
+          if (gameModeDescription && getGameModeDescription(mode)) {
+            gameModeDescription.textContent = getGameModeDescription(mode)
           }
       })
   })
@@ -625,6 +655,14 @@ async function setupSkirmishSection() {
       if (event.target === skirmishSetupSection) {
           closeSkirmishSetupModal()
       }
+  })
+
+  // Re-apply game mode description on language change
+  gameState.events.on('language-changed', () => {
+    const activeMode = skirmishSetupSection.querySelector('.option-btn[data-game-mode].selected')?.dataset.gameMode
+    if (gameModeDescription && activeMode) {
+      gameModeDescription.textContent = getGameModeDescription(activeMode)
+    }
   })
 
   // Escape key also closes the modal
@@ -712,6 +750,7 @@ async function setupOptionsSection() {
   const fpsCapSelect = document.getElementById('fpsCapSelect')
   const sfxVolumeSlider = document.getElementById('sfxVolumeSlider')
   const musicVolumeSlider = document.getElementById('musicVolumeSlider')
+  const languageSelect = document.getElementById('languageSelect')
 
   // Function to update antialiasing status text
   const updateAntialiasingStatus = () => {
@@ -734,6 +773,7 @@ async function setupOptionsSection() {
     fpsCapSelect.value = gameState.settings?.fpsCap ?? 0
     sfxVolumeSlider.value = gameState.settings?.sfxVolume ?? 0.8
     musicVolumeSlider.value = gameState.settings?.musicVolume ?? 0.5
+    languageSelect.value = getLanguage()
 
     // Update status texts
     updateAntialiasingStatus()
@@ -754,7 +794,7 @@ async function setupOptionsSection() {
   }
 
   // Function to save options
-  const saveOptions = () => {
+  const saveOptions = async () => {
     playConfirmSound()
 
     const debugModeEnabled = debugToggle.checked
@@ -764,6 +804,12 @@ async function setupOptionsSection() {
     const fpsCap = parseInt(fpsCapSelect.value)
     const sfxVolume = parseFloat(sfxVolumeSlider.value)
     const musicVolume = parseFloat(musicVolumeSlider.value)
+    const selectedLanguage = languageSelect.value
+
+    // Apply language change if needed
+    if (selectedLanguage !== getLanguage()) {
+      await setLanguage(selectedLanguage)
+    }
 
     gameState.updateSettings({
         debugMode: debugModeEnabled,

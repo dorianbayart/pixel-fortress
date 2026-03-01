@@ -1,0 +1,195 @@
+{
+  "menu": {
+    "play": "Jugar",
+    "options": "Opciones",
+    "about": "Acerca de",
+    "back": "Atrás",
+    "campaign": "Campaña",
+    "skirmish": "Escaramuza",
+    "unmuteAudio": "🎵 Activar Audio",
+    "muteAudio": "🎵 Silenciar Audio",
+    "fullscreen": "🖥️ Pantalla completa",
+    "windowed": "🖥️ Ventana",
+    "loadingAssets": "Cargando recursos del juego...",
+    "welcome": "Bienvenido",
+    "to": "a"
+  },
+  "skirmish": {
+    "title": "Configuración de escaramuza",
+    "predefinedMaps": "Mapas predefinidos",
+    "randomMap": "Mapa aleatorio",
+    "availableMaps": "Mapas disponibles",
+    "mapSize": "Tamaño del mapa",
+    "mapSeed": "Semilla del mapa (Opcional)",
+    "seedPlaceholder": "Ingresa un número semilla",
+    "randomSeed": "Semilla aleatoria",
+    "seedHint": "Dejar vacío para generación aleatoria",
+    "gameMode": "Modo de juego",
+    "aiOpponents": "Oponentes IA",
+    "playerColor": "Color del jugador",
+    "difficultyLabel": "Dificultad",
+    "gameSpeed": "Velocidad de juego",
+    "fogOfWar": "Activar niebla de guerra",
+    "startGame": "Iniciar partida",
+    "cancel": "Cancelar",
+    "you": "Tú",
+    "ai": "IA",
+    "noMapsAvailable": "No hay mapas predefinidos disponibles",
+    "loadingMaps": "Cargando...",
+    "errorLoadingMaps": "Error al cargar los mapas",
+    "modes": {
+      "classic": "Classic",
+      "classicDesc": "Jugabilidad estándar con combate y recolección equilibrados.",
+      "oneShot": "One Shot",
+      "oneShotDesc": "Cada unidad y edificio tiene exactamente un punto de vida. Cualquier daño es fatal.",
+      "turboGathering": "Turbo Gathering",
+      "turboGatheringDesc": "Todos los recolectores de recursos trabajan a velocidad significativamente aumentada.",
+      "towerDefense": "Tower Defense",
+      "towerDefenseDesc": "Defiende tu fortaleza contra oleadas de enemigos. ¡Próximamente!"
+    },
+    "difficulty": {
+      "easy": "Fácil",
+      "medium": "Medio",
+      "hard": "Difícil"
+    },
+    "speed": {
+      "normal": "Normal",
+      "accelerated": "Acelerado",
+      "veryFast": "Muy rápido"
+    }
+  },
+  "options": {
+    "title": "Opciones del juego",
+    "showFps": "Mostrar FPS e info de depuración (Atajo: D)",
+    "showHealthBars": "Mostrar barras de salud (Atajo: H)",
+    "fullscreenMode": "Modo pantalla completa",
+    "highQualityRendering": "Renderizado de alta calidad",
+    "fpsCap": "Límite de FPS",
+    "fpsMonitorRefreshRate": "Frecuencia del monitor",
+    "sfxVolume": "Volumen de efectos de sonido",
+    "musicVolume": "Volumen de música",
+    "language": "Idioma",
+    "save": "Guardar",
+    "cancel": "Cancelar"
+  },
+  "about": {
+    "title": "Acerca de",
+    "description": "Pixel Fortress combina la construcción estratégica de bases con la guerra automatizada. Diseña tu fortaleza, establece la producción de recursos y despliega unidades autónomas.",
+    "genre": "Género",
+    "genreText": "Construcción de bases • Estrategia automatizada • Auto-battler • Pixel Art",
+    "gameRepository": "Repositorio del juego",
+    "developerProfile": "Perfil del desarrollador",
+    "credits": "Créditos",
+    "creditsDeveloper": "Desarrollado por Dorian Bayart",
+    "creditsAssets": "Assets de pixel art de varias colecciones de código abierto",
+    "creditsBuiltWith": "Construido con PixiJS, HTML5 y JavaScript",
+    "license": "Licencia",
+    "licenseText": "Este proyecto está licenciado bajo la Licencia Pública General GNU v3.0 o posterior (GPL-3.0-or-later).",
+    "licenseText2": "100% código abierto. Libre de usar, estudiar, compartir y mejorar.",
+    "close": "Cerrar"
+  },
+  "gameMenu": {
+    "title": "Menú del juego",
+    "mapInformation": "Información del mapa",
+    "seed": "Semilla:",
+    "size": "Tamaño:",
+    "exportMap": "Exportar mapa",
+    "resumeGame": "Continuar",
+    "options": "Opciones",
+    "resetMap": "Reiniciar mapa",
+    "quitToHome": "Volver al inicio"
+  },
+  "game": {
+    "gameOver": "Fin del juego",
+    "gameOverMsg": "¡Tu edificio principal ha sido destruido!",
+    "win": "¡Has ganado!",
+    "winMsg": "¡Has destruido el edificio principal de tu oponente! ¡Felicitaciones!"
+  },
+  "ui": {
+    "life": "Vida",
+    "producing": "Produciendo",
+    "workers": "Trabajadores",
+    "costs": "Costos",
+    "sell": "Vender",
+    "atk": "Atq",
+    "spd": "Vel",
+    "range": "Alcance",
+    "tiles": "casillas",
+    "selling": "Vendiendo {resource} por {price} monedas.",
+    "random": "Aleatorio",
+    "level": "Nivel",
+    "lifeUpgrade": "Vida +{amount}",
+    "maxWorkersUpgrade": "Trab. máx +{amount}",
+    "atkUpgrade": "Atq +{amount}",
+    "rangeUpgrade": "Alcance +{amount}c",
+    "productionSpeedUpgrade": "Vel. prod. +{amount}%",
+    "cooldownUpgrade": "Recarga -{amount}%",
+    "close": "Cerrar",
+    "placed": "¡{name} colocado!",
+    "cannotAfford": "No puedes permitirte {name} (Necesitas {costs})"
+  },
+  "buildings": {
+    "tent": {
+      "name": "Tienda",
+      "description": "Tu edificio principal",
+      "details": "¡Protégelo a toda costa!"
+    },
+    "lumberjack": {
+      "name": "Leñador",
+      "description": "Cosecha madera de árboles cercanos",
+      "details": "Debe colocarse junto a árboles."
+    },
+    "goldMine": {
+      "name": "Mina de oro",
+      "description": "Extrae oro",
+      "details": "Debe colocarse sobre mineral de oro."
+    },
+    "quarry": {
+      "name": "Cantera",
+      "description": "Extrae piedra",
+      "details": "Debe colocarse sobre roca."
+    },
+    "well": {
+      "name": "Pozo",
+      "description": "Produce agua",
+      "details": "Debe colocarse junto al agua."
+    },
+    "barracks": {
+      "name": "Cuartel",
+      "description": "Entrena soldados",
+      "details": "Entrena unidades de infantería."
+    },
+    "armory": {
+      "name": "Armería",
+      "description": "Entrena infantería pesada",
+      "details": "Entrena unidades más resistentes."
+    },
+    "citadel": {
+      "name": "Ciudadela",
+      "description": "Entrena guerreros de élite",
+      "details": "Entrena unidades de combate de élite."
+    },
+    "market": {
+      "name": "Mercado",
+      "description": "Vende recursos por dinero",
+      "details": "Convierte recursos en dinero."
+    },
+    "tower": {
+      "name": "Torre",
+      "description": "Torre defensiva",
+      "details": "Ataca a los enemigos cercanos."
+    },
+    "bulletTower": {
+      "name": "Torre Bala",
+      "description": "Equilibrada - ataque, velocidad y alcance medios"
+    },
+    "rapidTower": {
+      "name": "Torre rápida",
+      "description": "Ataques rápidos, corto alcance, menor daño"
+    },
+    "sniperTower": {
+      "name": "Torre Sniper",
+      "description": "Lenta pero muy poderosa a muy largo alcance"
+    }
+  }
+}
