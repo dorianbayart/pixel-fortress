@@ -6,6 +6,10 @@
 - **Towers are here!** Build defensive towers that automatically detect and shoot down approaching enemies — fortify your base and hold the line
 - **Building Specialization**: Upgrades now open branching paths — choose how each building evolves and tailor your fortress to your playstyle - a simple tower can specialized to Bullet, Rapid or Sniper Tower !
 
+### Localization
+- **Multi-language support**: The game is now available in 4 languages — English, French, German, and Spanish
+- **Language selector**: Choose your preferred language directly from the Options menu — preference is saved across sessions
+
 ### Visuals
 - **Fresh look**: Buildings got stunning new artwork — your fortress has never looked this good
 - **Pixel-art UI**: All menus reworked with consistent pixel-art styling — sharp edges, gold borders, and pixelated controls throughout
