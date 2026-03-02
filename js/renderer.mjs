@@ -641,10 +641,19 @@ function drawMain(player, AIs) {
         // full mask PNG. vTextureCoord spans the render texture (the rendered sprite
         // frame), while uMaskSampler is the full PNG source — so the UV must be offset
         // and scaled to the current frame's position within that source.
-        const frame = entity.sprite.frame
-        const srcW  = maskTex.source.width
-        const srcH  = maskTex.source.height
-        filter.setMaskUV(frame.x / srcW, frame.y / srcH, frame.width / srcW, frame.height / srcH)
+        const frame  = entity.sprite.frame
+        const srcW   = maskTex.source.width
+        const srcH   = maskTex.source.height
+        // Half-pixel inset prevents sampling at exact tile boundaries in the mask
+        // PNG (floating-point imprecision with NEAREST filtering can bleed into the
+        // adjacent tile, producing a 1-pixel coloured line at sprite edges).
+        const hpX    = 0.5 / srcW
+        const hpY    = 0.5 / srcH
+        const uvOffX = frame.x / srcW + hpX
+        const uvOffY = frame.y / srcH + hpY
+        const uvScX  = frame.width  / srcW - 2 * hpX
+        const uvScY  = frame.height / srcH - 2 * hpY
+        filter.setMaskUV(uvOffX, uvOffY, uvScX, uvScY)
         sprite.filters = [filter]
       }
 
@@ -969,8 +978,12 @@ function drawBackground(map) {
         visibleBackgroundSprites.add(tileKey)
         let backSprite = backgroundSpriteMap.get(tileKey)
 
-        // Get the appropriate sprite texture (animated water or static terrain)
-        let spriteTexture = map[x][y].sprite
+        // Get the appropriate sprite texture (animated water or static terrain).
+        // For building tiles, use the original terrain sprite saved before the building
+        // was placed — the entity renderer handles the building sprite (with player colour
+        // filter) in containers.world. Using originalSprite here prevents an unfiltered
+        // cyan building sprite from showing through the world-layer filtered sprite.
+        let spriteTexture = map[x][y].originalSprite ?? map[x][y].sprite
         if (map[x][y].waterFrames && map[x][y].waterFrames.length === 4) {
           // Use animated water frame (pre-calculated outside loop)
           spriteTexture = map[x][y].waterFrames[currentWaterFrame]

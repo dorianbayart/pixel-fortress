@@ -125,23 +125,38 @@ const fragmentSrc = `
   void main(void) {
     vec4 base = texture(uTexture, vTextureCoord);
 
-    // vNormCoord = aPosition = [0,1] across the sprite quad regardless of renderer
-    // resolution. Use it to map the sprite frame to the correct sub-region of the
-    // full mask PNG (which may have a different size than the render texture).
-    vec2 maskUV = uMaskUVTransform.xy + vNormCoord * uMaskUVTransform.zw;
-    vec4 mask = texture(uMaskSampler, maskUV);
-
-    // Pass-through: transparent pixels or un-masked areas
-    if (base.a < 0.01 || mask.r < 0.5) {
+    // Pass-through: fully transparent pixels
+    if (base.a < 0.01) {
       finalColor = base;
       return;
     }
 
     // Un-premultiply alpha before HSL conversion
     vec3 straight = base.rgb / base.a;
+    vec3 hsl      = rgb2hsl(straight);
+
+    // PRIMARY: mask-based detection.
+    // vNormCoord = aPosition = [0,1] across the sprite quad regardless of renderer
+    // resolution. Use it to map the sprite frame to the correct sub-region of the
+    // full mask PNG (which may have a different size than the render texture).
+    vec2 maskUV    = uMaskUVTransform.xy + vNormCoord * uMaskUVTransform.zw;
+    vec4 mask      = texture(uMaskSampler, maskUV);
+    bool maskApply = mask.r >= 0.5;
+
+    // FALLBACK: hue-based detection for cyan/teal pixels (H ≈ 140°–210°, S > 0.15).
+    // All player-colour markers in the sprite sheets use cyan/teal, so any pixel in
+    // this hue range with enough saturation is a player-colour pixel.  This catches
+    // any cases where the mask UV is off by a sub-texel due to precision differences
+    // across GPUs or renderer resolutions.
+    bool hueApply = (hsl.x >= 140.0 && hsl.x <= 210.0 && hsl.y > 0.15);
+
+    // Pass-through: neither mask nor hue says this pixel should be recoloured
+    if (!maskApply && !hueApply) {
+      finalColor = base;
+      return;
+    }
 
     // Replace hue, keep saturation and luminance
-    vec3 hsl    = rgb2hsl(straight);
     hsl.x       = uHue;
     vec3 newRgb = hsl2rgb(hsl);
 
@@ -221,6 +236,12 @@ class PlayerColorFilter extends PIXI.Filter {
     })
 
     this._colorHex = playerHex
+
+    // This filter only recolours existing pixels — it never extends rendering
+    // beyond the sprite's own bounds. Setting padding = 0 ensures aPosition
+    // (vNormCoord) spans exactly [0,1] across the sprite quad, so the mask UV
+    // transform aligns pixel-perfectly with the sprite frame.
+    this.padding = 0
   }
 
   /**

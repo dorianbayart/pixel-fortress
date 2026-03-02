@@ -41,20 +41,48 @@ UNITS_DIR="./assets/units"
 #   $1 = path to variant A (e.g. Cyan)
 #   $2 = path to variant B (e.g. Red)
 #   $3 = output mask path
+#   $4 = "true" to also detect inherently cyan-hued pixels in img_a and OR
+#        them into the mask (catches pixels that are the same cyan in both
+#        variants and thus missed by the pure diff).
 # -----------------------------------------------------------------------------
 generate_diff_mask() {
   local img_a="$1"
   local img_b="$2"
   local out="$3"
+  local detect_cyan="${4:-false}"
 
   magick "$img_a" "$img_b" \
     \( -clone 0,1 -compose Difference -composite -alpha off -threshold 1% \) \
     \( -clone 0 -alpha extract \) \
     -delete 0,1 \
     -compose CopyOpacity -composite \
-    "$out"
+    /tmp/pf_diff_mask.png
 
-  echo "[diff]        $out"
+  if [ "$detect_cyan" = "true" ]; then
+    # Detect pixels with cyan hue (H ≈ 180° → u.r ≈ 0.5 in HSL [0,1] space)
+    # and non-trivial saturation (u.g > 0.30) to avoid flagging grey pixels.
+    # These are player-color pixels that happen to share the same cyan color in
+    # both variants, so the diff above misses them.
+    magick "$img_a" \
+      \( -clone 0 -colorspace HSL \
+         -fx "u.r > 0.38 && u.r < 0.62 && u.g > 0.30 ? 1.0 : 0.0" \
+         -colorspace sRGB \
+      \) \
+      \( -clone 0 -alpha extract \) \
+      -delete 0 \
+      -compose CopyOpacity -composite \
+      /tmp/pf_cyan_detect.png
+
+    # Merge: Lighten = pixel-wise max = logical OR for B&W images
+    magick /tmp/pf_diff_mask.png /tmp/pf_cyan_detect.png \
+      -compose Lighten -composite \
+      "$out"
+
+    echo "[diff+cyan]   $out"
+  else
+    cp /tmp/pf_diff_mask.png "$out"
+    echo "[diff]        $out"
+  fi
 }
 
 # -----------------------------------------------------------------------------
@@ -87,17 +115,20 @@ generate_saturation_mask() {
 generate_diff_mask \
   "$UNITS_DIR/Human-Soldier-Cyan.png" \
   "$UNITS_DIR/Human-Soldier-Red.png" \
-  "$UNITS_DIR/Human-Soldier-Mask.png"
+  "$UNITS_DIR/Human-Soldier-Mask.png" \
+  true
 
 generate_diff_mask \
   "$UNITS_DIR/Human-Worker-Cyan.png" \
   "$UNITS_DIR/Human-Worker-Red.png" \
-  "$UNITS_DIR/Human-Worker-Mask.png"
+  "$UNITS_DIR/Human-Worker-Mask.png" \
+  true
 
 generate_diff_mask \
   "$UNITS_DIR/Mage-Cyan.png" \
   "$UNITS_DIR/Mage-Red.png" \
-  "$UNITS_DIR/Mage-Mask.png"
+  "$UNITS_DIR/Mage-Mask.png" \
+  true
 
 generate_diff_mask \
   "$UNITS_DIR/Soldier-Red.png" \
@@ -119,12 +150,14 @@ generate_diff_mask \
 generate_diff_mask \
   "$UNITS_DIR/Orc-Peon-Cyan.png" \
   "$UNITS_DIR/Orc-Peon-Red.png" \
-  "$UNITS_DIR/Orc-Peon-Mask.png"
+  "$UNITS_DIR/Orc-Peon-Mask.png" \
+  true
 
 generate_diff_mask \
   "$UNITS_DIR/Orc-Soldier-Cyan.png" \
   "$UNITS_DIR/Orc-Soldier-Red.png" \
-  "$UNITS_DIR/Orc-Soldier-Mask.png"
+  "$UNITS_DIR/Orc-Soldier-Mask.png" \
+  true
 
 # =============================================================================
 # SATURATION-BASED MASKS
@@ -168,6 +201,8 @@ generate_saturation_mask \
 # Tile size: 16×16 px
 #
 # Strategy: diff the cyan and red regions → white pixels = player color zone.
+# Also detect inherently cyan-hued pixels (H ≈ 180°, S > 30%) that are the
+# same in both variants and thus missed by the diff.
 # Output: a full-tileset-sized (432×1040) mask, all black except in the
 # cyan building zone where player-color pixels are white.
 # =============================================================================
@@ -179,7 +214,7 @@ TILESET_MASK="./assets/punyworld-overworld-tileset-Mask.png"
 magick "$TILESET" -crop 160x80+64+528 +repage /tmp/pf_cyan_buildings.png
 magick "$TILESET" -crop 160x80+224+528 +repage /tmp/pf_red_buildings.png
 
-# Diff them → 160×80 building mask (white = player-color zone)
+# Step 1: diff-based mask (white = pixels that differ between variants)
 magick /tmp/pf_cyan_buildings.png /tmp/pf_red_buildings.png \
   \( -clone 0,1 -compose Difference -composite -alpha off -threshold 1% \) \
   \( -clone 0 -alpha extract \) \
@@ -187,12 +222,30 @@ magick /tmp/pf_cyan_buildings.png /tmp/pf_red_buildings.png \
   -compose CopyOpacity -composite \
   /tmp/pf_buildings_mask_region.png
 
+# Step 2: cyan-hue detection (catches player-color pixels that are the same
+# cyan color in both variants — e.g. window ornaments — so the diff misses them).
+# H ≈ 0.5 in HSL [0,1] = 180° = cyan; keep hue range [0.38, 0.62] and S > 30%.
+magick /tmp/pf_cyan_buildings.png \
+  \( -clone 0 -colorspace HSL \
+     -fx "u.r > 0.38 && u.r < 0.62 && u.g > 0.30 ? 1.0 : 0.0" \
+     -colorspace sRGB \
+  \) \
+  \( -clone 0 -alpha extract \) \
+  -delete 0 \
+  -compose CopyOpacity -composite \
+  /tmp/pf_buildings_cyan_detect.png
+
+# Step 3: merge — Lighten = pixel-wise max = logical OR for B&W images
+magick /tmp/pf_buildings_mask_region.png /tmp/pf_buildings_cyan_detect.png \
+  -compose Lighten -composite \
+  /tmp/pf_buildings_mask_merged.png
+
 # Composite into a full-tileset-sized black canvas at the cyan building position
 magick -size 432x1040 xc:black \
-  /tmp/pf_buildings_mask_region.png -geometry +64+528 -compose Over -composite \
+  /tmp/pf_buildings_mask_merged.png -geometry +64+528 -compose Over -composite \
   "$TILESET_MASK"
 
-echo "[diff tileset] $TILESET_MASK"
+echo "[diff+cyan tileset] $TILESET_MASK"
 
 echo ""
 echo "Done. Generated masks:"
