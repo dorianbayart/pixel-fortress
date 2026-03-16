@@ -262,7 +262,7 @@ class Building {
           key: 'market',
           name: "Market",
           icon: "🏦",
-          costs: { wood: 25, water: 10, stone: 50, gold: 20 },
+          costs: { wood: 25, water: 10, stone: 50, gold: 15 },
           UPGRADES: {
             benefits: { life: 50, sellingPrice: 1 } // +50 life, +1 selling price
           },
@@ -368,7 +368,7 @@ class Building {
           key: 'tent',
           name: "Tent",
           icon: "⛺",
-          costs: { wood: 75, water: 50, money: 50 },
+          costs: { wood: 50, water: 25, money: 15 },
           UPGRADES: {
             benefits: { life: 50, productionSpeed: 10 } // +50 life, 10% faster production
           },
