@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="{{lang}}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>{{meta.title}}</title>
+  <meta name="description" content="{{meta.description}}">
+  <meta name="keywords" content="pixel fortress, auto-battler, base building, automated strategy, resource management, pixel art, open source game, browser game, idle strategy, autonomous units, GPL license">
+  <link rel="canonical" href="{{canonical}}">
+
+  <!-- hreflang - all language versions -->
+  <link rel="alternate" hreflang="en" href="https://dorianbayart.github.io/pixel-fortress/">
+  <link rel="alternate" hreflang="fr" href="https://dorianbayart.github.io/pixel-fortress/fr/">
+  <link rel="alternate" hreflang="de" href="https://dorianbayart.github.io/pixel-fortress/de/">
+  <link rel="alternate" hreflang="es" href="https://dorianbayart.github.io/pixel-fortress/es/">
+  <link rel="alternate" hreflang="x-default" href="https://dorianbayart.github.io/pixel-fortress/">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="{{canonical}}">
+  <meta property="og:title" content="{{meta.ogTitle}}">
+  <meta property="og:description" content="{{meta.ogDescription}}">
+  <meta property="og:image" content="https://dorianbayart.github.io/pixel-fortress/assets/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale" content="{{ogLocale}}">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="{{canonical}}">
+  <meta name="twitter:title" content="{{meta.twitterTitle}}">
+  <meta name="twitter:description" content="{{meta.twitterDescription}}">
+  <meta name="twitter:image" content="https://dorianbayart.github.io/pixel-fortress/assets/og-image.png">
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "VideoGame",
+    "name": "Pixel Fortress",
+    "description": "{{meta.description}}",
+    "genre": "Auto-battler, Strategy",
+    "url": "https://dorianbayart.github.io/pixel-fortress/",
+    "image": [
+      "https://dorianbayart.github.io/pixel-fortress/assets/screenshots/InGame_Screenshot_01_building-placement-paths.png",
+      "https://dorianbayart.github.io/pixel-fortress/assets/screenshots/InGame_Screenshot_02_big-maps.png",
+      "https://dorianbayart.github.io/pixel-fortress/assets/screenshots/InGame_Screenshot_03_lots-of-units-going-battle.png"
+    ],
+    "screenshot": [
+      "https://dorianbayart.github.io/pixel-fortress/assets/screenshots/InGame_Screenshot_01_building-placement-paths.png",
+      "https://dorianbayart.github.io/pixel-fortress/assets/screenshots/InGame_Screenshot_02_big-maps.png",
+      "https://dorianbayart.github.io/pixel-fortress/assets/screenshots/InGame_Screenshot_03_lots-of-units-going-battle.png"
+    ],
+    "author": {
+      "@type": "Person",
+      "name": "Dorian Bayart"
+    },
+    "offers": [
+      {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/InStock",
+        "url": "https://dorianbayart.github.io/pixel-fortress/play.html"
+      }
+    ],
+    "applicationCategory": "Game",
+    "operatingSystem": "Web Browser, Windows, Linux"
+  }
+  </script>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="{{root}}css/landing.css">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="{{root}}favicon.png">
+</head>
+<body>
+  <!-- Navigation Bar (Sticky) -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-logo">
+        <img src="{{root}}assets/base_512_pixelated.png" alt="Pixel Fortress Logo" width="32" height="32">
+        <span>Pixel Fortress</span>
+      </div>
+      <div class="nav-links">
+        <a href="#features">{{nav.features}}</a>
+        <a href="#pricing">{{nav.pricing}}</a>
+        <a href="#opensource">{{nav.opensource}}</a>
+        <a href="https://github.com/dorianbayart/pixel-fortress" target="_blank">{{nav.github}}</a>
+        <a href="{{root}}play.html" class="btn-play" target="_blank">{{nav.playNow}}</a>
+      </div>
+      <div class="nav-lang">
+        <a href="https://dorianbayart.github.io/pixel-fortress/" hreflang="en" aria-label="English">EN</a>
+        <a href="https://dorianbayart.github.io/pixel-fortress/fr/" hreflang="fr" aria-label="Français">FR</a>
+        <a href="https://dorianbayart.github.io/pixel-fortress/de/" hreflang="de" aria-label="Deutsch">DE</a>
+        <a href="https://dorianbayart.github.io/pixel-fortress/es/" hreflang="es" aria-label="Español">ES</a>
+      </div>
+      <button class="nav-toggle" aria-label="Toggle navigation">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-background"></div>
+    <div class="hero-content">
+      <img src="{{root}}assets/base_512_pixelated.png" alt="Pixel Fortress" class="hero-logo">
+      <h1 class="hero-title">Pixel Fortress</h1>
+      <p class="hero-tagline">{{hero.tagline}}</p>
+      <p class="hero-subtitle">{{hero.subtitle}}</p>
+      <p class="hero-genre">{{hero.genre}}</p>
+      <div class="hero-cta">
+        <a href="{{root}}play.html" class="btn btn-primary btn-large" target="_blank">{{hero.ctaPrimary}}</a>
+        <a href="#pricing" class="btn btn-secondary btn-large">{{hero.ctaSecondary}}</a>
+      </div>
+      <p class="hero-note">{{hero.note}}</p>
+      <div class="hero-github-star">
+        <a href="https://github.com/dorianbayart/pixel-fortress" class="github-star-link" target="_blank" rel="noopener noreferrer">
+          {{hero.githubStar}}
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Game Preview Section -->
+  <section class="preview">
+    <div class="container">
+      <h2>{{preview.heading}}</h2>
+      <p class="preview-intro">{{preview.intro}}</p>
+      <div class="preview-gallery">
+        <div class="preview-item">
+          <picture class="preview-screenshot">
+            <img src="{{root}}assets/screenshots/InGame_Screenshot_01_building-placement-paths.png"
+                 alt="{{preview.alt1}}"
+                 width="1920"
+                 height="1080"
+                 loading="lazy">
+          </picture>
+          <p class="preview-caption">{{preview.caption1}}</p>
+        </div>
+        <div class="preview-item">
+          <picture class="preview-screenshot">
+            <img src="{{root}}assets/screenshots/InGame_Screenshot_02_big-maps.png"
+                 alt="{{preview.alt2}}"
+                 width="1920"
+                 height="1080"
+                 loading="lazy">
+          </picture>
+          <p class="preview-caption">{{preview.caption2}}</p>
+        </div>
+        <div class="preview-item">
+          <picture class="preview-screenshot">
+            <img src="{{root}}assets/screenshots/InGame_Screenshot_03_lots-of-units-going-battle.png"
+                 alt="{{preview.alt3}}"
+                 width="1920"
+                 height="1080"
+                 loading="lazy">
+          </picture>
+          <p class="preview-caption">{{preview.caption3}}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="features">
+    <div class="container">
+      <h2>{{features.heading}}</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🏰</div>
+          <h3>{{features.f1title}}</h3>
+          <p>{{features.f1desc}}</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⚔️</div>
+          <h3>{{features.f2title}}</h3>
+          <p>{{features.f2desc}}</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🎯</div>
+          <h3>{{features.f3title}}</h3>
+          <p>{{features.f3desc}}</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🤖</div>
+          <h3>{{features.f4title}}</h3>
+          <p>{{features.f4desc}}</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🗺️</div>
+          <h3>{{features.f5title}}</h3>
+          <p>{{features.f5desc}}</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">👁️</div>
+          <h3>{{features.f6title}}</h3>
+          <p>{{features.f6desc}}</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🎮</div>
+          <h3>{{features.f7title}}</h3>
+          <p>{{features.f7desc}}</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🗼</div>
+          <h3>{{features.f8title}}</h3>
+          <p>{{features.f8desc}}</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔱</div>
+          <h3>{{features.f9title}}</h3>
+          <p>{{features.f9desc}}</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🌊</div>
+          <h3>{{features.f10title}}</h3>
+          <p>{{features.f10desc}}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing Comparison Section -->
+  <section id="pricing" class="pricing">
+    <div class="container">
+      <h2>{{pricing.heading}}</h2>
+      <div class="pricing-grid">
+        <div class="pricing-card pricing-free">
+          <div class="pricing-header">
+            <h3>{{pricing.free.name}}</h3>
+            <div class="pricing-price">{{pricing.free.price}}</div>
+            <p class="pricing-subtitle">{{pricing.free.subtitle}}</p>
+          </div>
+          <ul class="pricing-features">
+            <li>{{pricing.free.feature1}}</li>
+            <li>{{pricing.free.feature2}}</li>
+            <li>{{pricing.free.feature3}}</li>
+            <li>{{pricing.free.feature4}}</li>
+            <li>{{pricing.free.feature5}}</li>
+            <li>{{pricing.free.feature6}}</li>
+            <li>{{pricing.free.feature7}}</li>
+            <li>{{pricing.free.feature8}}</li>
+            <li>{{pricing.free.feature9}}</li>
+            <li class="limited">{{pricing.free.feature10}}</li>
+          </ul>
+          <a href="{{root}}play.html" class="btn btn-primary" target="_blank">{{pricing.free.cta}}</a>
+        </div>
+
+        <div class="pricing-card pricing-premium">
+          <div class="pricing-badge">{{pricing.premium.badge}}</div>
+          <div class="pricing-header">
+            <h3>{{pricing.premium.name}}</h3>
+            <div class="pricing-price">{{pricing.premium.price}}</div>
+            <p class="pricing-subtitle">{{pricing.premium.subtitle}}</p>
+          </div>
+          <ul class="pricing-features">
+            <li>{{pricing.premium.feature1}}</li>
+            <li>{{pricing.premium.feature2}}</li>
+            <li>{{pricing.premium.feature3}}</li>
+            <li>{{pricing.premium.feature4}}</li>
+            <li>{{pricing.premium.feature5}}</li>
+            <li>{{pricing.premium.feature6}}</li>
+            <li>{{pricing.premium.feature7}}</li>
+            <li>{{pricing.premium.feature8}}</li>
+          </ul>
+          <a href="#opensource" class="btn btn-steam">{{pricing.premium.cta}}</a>
+        </div>
+      </div>
+      <p class="pricing-note">
+        {{pricing.note}}
+      </p>
+    </div>
+  </section>
+
+  <!-- Open Source Section -->
+  <section id="opensource" class="opensource">
+    <div class="container">
+      <h2>{{opensource.heading}}</h2>
+      <p class="opensource-intro">
+        {{opensource.intro}}
+      </p>
+
+      <div class="opensource-grid">
+        <div class="opensource-card">
+          <h3>{{opensource.card1title}}</h3>
+          <p>{{opensource.card1desc}}</p>
+        </div>
+        <div class="opensource-card">
+          <h3>{{opensource.card2title}}</h3>
+          <p>{{opensource.card2desc}}</p>
+        </div>
+        <div class="opensource-card">
+          <h3>{{opensource.card3title}}</h3>
+          <p>{{opensource.card3desc}}</p>
+        </div>
+        <div class="opensource-card">
+          <h3>{{opensource.card4title}}</h3>
+          <p>{{opensource.card4desc}}</p>
+        </div>
+      </div>
+
+      <div class="opensource-cta">
+        <a href="https://github.com/dorianbayart/pixel-fortress" class="btn btn-github" target="_blank">
+          {{opensource.githubStar}}
+        </a>
+        <a href="https://github.com/dorianbayart/pixel-fortress/blob/main/LICENSE" class="btn btn-outline" target="_blank">
+          {{opensource.readLicense}}
+        </a>
+      </div>
+
+      <div class="opensource-faq">
+        <h3>{{opensource.steamHeading}}</h3>
+        <p>
+          {{opensource.steamP1}}
+        </p>
+        <p><strong>{{opensource.steamFeaturesTitle}}</strong></p>
+        <ul>
+          <li><strong>{{opensource.steamF1title}}</strong> - {{opensource.steamF1desc}}</li>
+          <li><strong>{{opensource.steamF2title}}</strong> - {{opensource.steamF2desc}}</li>
+          <li><strong>{{opensource.steamF3title}}</strong> - {{opensource.steamF3desc}}</li>
+          <li><strong>{{opensource.steamF4title}}</strong> - {{opensource.steamF4desc}}</li>
+        </ul>
+        <p>
+          {{opensource.steamP2}}
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Platform Links Section -->
+  <section class="platforms">
+    <div class="container">
+      <h2>{{platforms.heading}}</h2>
+      <div class="platforms-grid">
+        <a href="{{root}}play.html" class="platform-card" target="_blank">
+          <div class="platform-icon">🌐</div>
+          <h3>{{platforms.web.title}}</h3>
+          <p>{{platforms.web.desc}}</p>
+          <span class="platform-tag">{{platforms.web.tag}}</span>
+        </a>
+
+        <a href="#pricing" class="platform-card">
+          <div class="platform-icon">🎮</div>
+          <h3>{{platforms.steam.title}}</h3>
+          <p>{{platforms.steam.desc}}</p>
+          <span class="platform-tag premium">{{platforms.steam.tag}}</span>
+        </a>
+
+        <a href="https://github.com/dorianbayart/pixel-fortress" class="platform-card" target="_blank">
+          <div class="platform-icon">💻</div>
+          <h3>{{platforms.github.title}}</h3>
+          <p>{{platforms.github.desc}}</p>
+          <span class="platform-tag">{{platforms.github.tag}}</span>
+        </a>
+
+        <a href="https://github.com/dorianbayart/pixel-fortress/releases" class="platform-card" target="_blank">
+          <div class="platform-icon">📦</div>
+          <h3>{{platforms.desktop.title}}</h3>
+          <p>{{platforms.desktop.desc}}</p>
+          <span class="platform-tag">{{platforms.desktop.tag}}</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section class="faq">
+    <div class="container">
+      <h2>{{faq.heading}}</h2>
+      <div class="faq-list">
+        <div class="faq-item">
+          <button class="faq-question">{{faq.q1}}</button>
+          <div class="faq-answer">
+            <p>{{faq.a1}}</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">{{faq.q2}}</button>
+          <div class="faq-answer">
+            <p>{{faq.a2}}</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">{{faq.q3}}</button>
+          <div class="faq-answer">
+            <p>{{faq.a3}}</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">{{faq.q4}}</button>
+          <div class="faq-answer">
+            <p>{{faq.a4}}</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">{{faq.q5}}</button>
+          <div class="faq-answer">
+            <p>{{faq.a5}}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-section">
+          <h4>Pixel Fortress</h4>
+          <p>{{footer.tagline}}</p>
+          <p>{{footer.license}}</p>
+        </div>
+
+        <div class="footer-section">
+          <h4>{{footer.quickLinks}}</h4>
+          <ul>
+            <li><a href="{{root}}play.html" target="_blank">{{footer.playNow}}</a></li>
+            <li><a href="https://github.com/dorianbayart/pixel-fortress" target="_blank">{{footer.github}}</a></li>
+            <li><a href="https://github.com/dorianbayart/pixel-fortress/releases" target="_blank">{{footer.downloads}}</a></li>
+            <li><a href="https://github.com/dorianbayart/pixel-fortress/blob/main/LICENSE" target="_blank">{{footer.licenseLink}}</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-section">
+          <h4>{{footer.resources}}</h4>
+          <ul>
+            <li><a href="https://github.com/dorianbayart/pixel-fortress/blob/main/README.md" target="_blank">{{footer.documentation}}</a></li>
+            <li><a href="https://github.com/dorianbayart/pixel-fortress/blob/main/CONTRIBUTING.md" target="_blank">{{footer.contribute}}</a></li>
+            <li><a href="https://github.com/dorianbayart/pixel-fortress/blob/main/CREDITS.md" target="_blank">{{footer.credits}}</a></li>
+            <li><a href="https://github.com/dorianbayart/pixel-fortress/issues" target="_blank">{{footer.reportBug}}</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-section">
+          <h4>{{footer.community}}</h4>
+          <ul>
+            <li><a href="https://github.com/dorianbayart/pixel-fortress/discussions" target="_blank">{{footer.discussions}}</a></li>
+            <li><a href="https://github.com/dorianbayart" target="_blank">{{footer.developer}}</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>{{footer.copyright}}</p>
+        <p>v0.0.4</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- JavaScript -->
+  <script src="{{root}}js/landing.js"></script>
+</body>
+</html>

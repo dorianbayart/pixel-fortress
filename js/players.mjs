@@ -79,7 +79,7 @@ class Player {
     if(this.isHuman()) {
       gameState.humanPlayer = this
 
-      // Dev mode: Set starting resources to 200 for testing
+      // Dev mode: Set starting resources for testing
       if (CONSTANTS.DEV_MODE.isEnabled()) {
         this.resources.wood = CONSTANTS.DEV_MODE.STARTING_RESOURCES
         this.resources.stone = CONSTANTS.DEV_MODE.STARTING_RESOURCES

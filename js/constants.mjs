@@ -184,14 +184,13 @@ export default {
 
     // ===== DEV MODE =====
     DEV_MODE: {
-        // Check if running in dev mode (localhost:8000)
-        // TODO: Add Debug mode as condition
+        // Dev mode is active only when served locally via HTTP/HTTPS.
+        // Excluded: Electron/Steam (file: protocol), Itch.io, GitHub Pages (non-localhost hostname).
         isEnabled() {
-            return true
             return typeof window !== 'undefined' &&
-                   window.location.hostname === 'localhost' &&
-                   window.location.port === '8000'
+                   window.location.protocol !== 'file:' &&
+                   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
         },
-        STARTING_RESOURCES: 200
+        STARTING_RESOURCES: 800
     }
 }

@@ -7,6 +7,7 @@
     "start": "electron .",
     "build": "electron-builder",
     "update-manifest-version": "node scripts/update-manifest-version.js",
+    "build-landing": "node scripts/build-landing.js",
     "test": "node tests/run-all.mjs"
   },
   "repository": {

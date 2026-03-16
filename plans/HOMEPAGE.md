@@ -81,7 +81,7 @@ pixel-fortress/
 
 ### Pricing Section
 **Free Version**:
-- ✅ Core auto-battler gameplay
+- ✅ Core gameplay
 - ✅ Play in browser or desktop
 - ✅ Single-player vs AI
 - ✅ Multiple difficulty levels

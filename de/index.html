@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Pixel Fortress - Open Source Auto-Battler | Kostenlos spielen</title>
+  <meta name="description" content="Strategischer Festungsbau mit automatisierten Kämpfen. Entwerfe deine Festung, produziere Ressourcen und entsende selbstständige Einheiten. 100% Open Source, kostenlos im Browser spielbar.">
+  <meta name="keywords" content="pixel fortress, auto-battler, base building, automated strategy, resource management, pixel art, open source game, browser game, idle strategy, autonomous units, GPL license">
+  <link rel="canonical" href="https://dorianbayart.github.io/pixel-fortress/de/">
+
+  <!-- hreflang - all language versions -->
+  <link rel="alternate" hreflang="en" href="https://dorianbayart.github.io/pixel-fortress/">
+  <link rel="alternate" hreflang="fr" href="https://dorianbayart.github.io/pixel-fortress/fr/">
+  <link rel="alternate" hreflang="de" href="https://dorianbayart.github.io/pixel-fortress/de/">
+  <link rel="alternate" hreflang="es" href="https://dorianbayart.github.io/pixel-fortress/es/">
+  <link rel="alternate" hreflang="x-default" href="https://dorianbayart.github.io/pixel-fortress/">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://dorianbayart.github.io/pixel-fortress/de/">
+  <meta property="og:title" content="Pixel Fortress - Open Source Auto-Battler">
+  <meta property="og:description" content="Klug bauen. Kämpfen lassen. Strategischer Festungsbau mit automatisierten Kämpfen.">
+  <meta property="og:image" content="https://dorianbayart.github.io/pixel-fortress/assets/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale" content="de_DE">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://dorianbayart.github.io/pixel-fortress/de/">
+  <meta name="twitter:title" content="Pixel Fortress - Open Source Auto-Battler">
+  <meta name="twitter:description" content="Klug bauen. Kämpfen lassen. Strategischer Festungsbau mit automatisierten Kämpfen.">
+  <meta name="twitter:image" content="https://dorianbayart.github.io/pixel-fortress/assets/og-image.png">
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "VideoGame",
+    "name": "Pixel Fortress",
+    "description": "Strategischer Festungsbau mit automatisierten Kämpfen. Entwerfe deine Festung, produziere Ressourcen und entsende selbstständige Einheiten. 100% Open Source, kostenlos im Browser spielbar.",
+    "genre": "Auto-battler, Strategy",
+    "url": "https://dorianbayart.github.io/pixel-fortress/",
+    "image": [
+      "https://dorianbayart.github.io/pixel-fortress/assets/screenshots/InGame_Screenshot_01_building-placement-paths.png",
+      "https://dorianbayart.github.io/pixel-fortress/assets/screenshots/InGame_Screenshot_02_big-maps.png",
+      "https://dorianbayart.github.io/pixel-fortress/assets/screenshots/InGame_Screenshot_03_lots-of-units-going-battle.png"
+    ],
+    "screenshot": [
+      "https://dorianbayart.github.io/pixel-fortress/assets/screenshots/InGame_Screenshot_01_building-placement-paths.png",
+      "https://dorianbayart.github.io/pixel-fortress/assets/screenshots/InGame_Screenshot_02_big-maps.png",
+      "https://dorianbayart.github.io/pixel-fortress/assets/screenshots/InGame_Screenshot_03_lots-of-units-going-battle.png"
+    ],
+    "author": {
+      "@type": "Person",
+      "name": "Dorian Bayart"
+    },
+    "offers": [
+      {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/InStock",
+        "url": "https://dorianbayart.github.io/pixel-fortress/play.html"
+      }
+    ],
+    "applicationCategory": "Game",
+    "operatingSystem": "Web Browser, Windows, Linux"
+  }
+  </script>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="../css/landing.css">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="../favicon.png">
+</head>
+<body>
+  <!-- Navigation Bar (Sticky) -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-logo">
+        <img src="../assets/base_512_pixelated.png" alt="Pixel Fortress Logo" width="32" height="32">
+        <span>Pixel Fortress</span>
+      </div>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#pricing">Preise</a>
+        <a href="#opensource">Open Source</a>
+        <a href="https://github.com/dorianbayart/pixel-fortress" target="_blank">GitHub</a>
+        <a href="../play.html" class="btn-play" target="_blank">Spielen</a>
+      </div>
+      <div class="nav-lang">
+        <a href="https://dorianbayart.github.io/pixel-fortress/" hreflang="en" aria-label="English">EN</a>
+        <a href="https://dorianbayart.github.io/pixel-fortress/fr/" hreflang="fr" aria-label="Français">FR</a>
+        <a href="https://dorianbayart.github.io/pixel-fortress/de/" hreflang="de" aria-label="Deutsch">DE</a>
+        <a href="https://dorianbayart.github.io/pixel-fortress/es/" hreflang="es" aria-label="Español">ES</a>
+      </div>
+      <button class="nav-toggle" aria-label="Toggle navigation">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-background"></div>
+    <div class="hero-content">
+      <img src="../assets/base_512_pixelated.png" alt="Pixel Fortress" class="hero-logo">
+      <h1 class="hero-title">Pixel Fortress</h1>
+      <p class="hero-tagline">Klug bauen. Kämpfen lassen.</p>
+      <p class="hero-subtitle">100% Open Source Auto-Battler</p>
+      <p class="hero-genre">Festungsbau • Automatisierte Strategie • Pixel Art</p>
+      <div class="hero-cta">
+        <a href="../play.html" class="btn btn-primary btn-large" target="_blank">Jetzt kostenlos spielen</a>
+        <a href="#pricing" class="btn btn-secondary btn-large">Steam-Wunschliste (bald)</a>
+      </div>
+      <p class="hero-note">Kein Download nötig • Im Browser spielen • Vollständiger GPL v3 Quellcode</p>
+      <div class="hero-github-star">
+        <a href="https://github.com/dorianbayart/pixel-fortress" class="github-star-link" target="_blank" rel="noopener noreferrer">
+          ⭐ Auf GitHub vormerken
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Game Preview Section -->
+  <section class="preview">
+    <div class="container">
+      <h2>Strategie ohne Routine</h2>
+      <p class="preview-intro">Entwerfe deine Festung. Lass deine Einheiten den Rest machen.</p>
+      <div class="preview-gallery">
+        <div class="preview-item">
+          <picture class="preview-screenshot">
+            <img src="../assets/screenshots/InGame_Screenshot_01_building-placement-paths.png"
+                 alt="Strategischer Festungsbau und Wegfindung für Einheiten"
+                 width="1920"
+                 height="1080"
+                 loading="lazy">
+          </picture>
+          <p class="preview-caption">Strategischer Festungsbau und Wegfindung für Einheiten</p>
+        </div>
+        <div class="preview-item">
+          <picture class="preview-screenshot">
+            <img src="../assets/screenshots/InGame_Screenshot_02_big-maps.png"
+                 alt="Erkundung riesiger prozedural generierter Karten mit großen Stützpunkten und Ressourcenverwaltung"
+                 width="1920"
+                 height="1080"
+                 loading="lazy">
+          </picture>
+          <p class="preview-caption">Erkundung riesiger prozedural generierter Karten mit großen Stützpunkten und Ressourcenverwaltung</p>
+        </div>
+        <div class="preview-item">
+          <picture class="preview-screenshot">
+            <img src="../assets/screenshots/InGame_Screenshot_03_lots-of-units-going-battle.png"
+                 alt="Epische Schlachten mit zahlreichen Einheiten im automatisierten Kampf"
+                 width="1920"
+                 height="1080"
+                 loading="lazy">
+          </picture>
+          <p class="preview-caption">Epische Schlachten mit zahlreichen Einheiten im automatisierten Kampf</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="features">
+    <div class="container">
+      <h2>Spielfeatures</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🏰</div>
+          <h3>Strategischer Festungsbau</h3>
+          <p>Baue Sägewerke, Minen und Kasernen. Verwalte Ressourcen und erweitere deine Festung.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⚔️</div>
+          <h3>Vollständig automatisierter Kampf</h3>
+          <p>Setz deine Einheiten ein und lass sie kämpfen. Null Mikromanagement.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🎯</div>
+          <h3>Mehrere Spielmodi</h3>
+          <p>Klassik, One Shot und Turbo Gathering für unterschiedliche Spielweisen.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🤖</div>
+          <h3>KI-Gegner</h3>
+          <p>Kämpfe gegen bis zu 3 KI-Gegner mit einstellbarem Schwierigkeitsgrad (Einfach, Normal, Schwer).</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🗺️</div>
+          <h3>Milliarden einzigartiger Karten</h3>
+          <p>Unendlich viele prozedural generierte Karten in 4 Größen.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">👁️</div>
+          <h3>Dynamische Erkundung</h3>
+          <p>Einheiten erkunden automatisch. Gebäudeplatzierung bestimmt die Entdeckung.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🎮</div>
+          <h3>Spezialisierte Einheitentypen</h3>
+          <p>Holzfäller, Bergarbeiter, Soldaten, Bogenschützen, Magier — jeder mit einzigartigen Fähigkeiten.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🗼</div>
+          <h3>Verteidigungstürme</h3>
+          <p>Auto-zielende Türme, die Feinde abschießen. Halte Engpässe.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔱</div>
+          <h3>Gebäudespezialisierung</h3>
+          <p>Upgrade Gebäude zu spezialisierten Varianten. Forme deine Strategie.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🌊</div>
+          <h3>Animierte Welt</h3>
+          <p>Vollständig animierte Umgebungen mit dynamischen visuellen Effekten.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing Comparison Section -->
+  <section id="pricing" class="pricing">
+    <div class="container">
+      <h2>Wähle deine Version</h2>
+      <div class="pricing-grid">
+        <div class="pricing-card pricing-free">
+          <div class="pricing-header">
+            <h3>Kostenlose Version</h3>
+            <div class="pricing-price">0 €</div>
+            <p class="pricing-subtitle">Für immer</p>
+          </div>
+          <ul class="pricing-features">
+            <li>✅ Vollständiges Auto-Battler-Gameplay</li>
+            <li>✅ Im Browser oder Desktop spielen</li>
+            <li>✅ Einzelspieler gegen KI</li>
+            <li>✅ Verschiedene Spielmodi für unterschiedliche Herausforderungen</li>
+            <li>✅ 3 Schwierigkeitsstufen</li>
+            <li>✅ Prozedurale Kartengenerierung (von klein bis riesig)</li>
+            <li>✅ Ausgewählte vordefinierte Karten</li>
+            <li>✅ Alle Einheiten, Gebäude und Upgrades</li>
+            <li>✅ Vollständiger Quellcode (GPL v3)</li>
+            <li class="limited">⚠️ Nur lokale Spielstände (Desktop-Apps)</li>
+          </ul>
+          <a href="../play.html" class="btn btn-primary" target="_blank">Jetzt kostenlos spielen</a>
+        </div>
+
+        <div class="pricing-card pricing-premium">
+          <div class="pricing-badge">Geplant</div>
+          <div class="pricing-header">
+            <h3>Steam Premium</h3>
+            <div class="pricing-price">Demnächst</div>
+            <p class="pricing-subtitle">Einmaliger Kauf (geplant ~4,99 €)</p>
+          </div>
+          <ul class="pricing-features">
+            <li>✅ Alles aus der kostenlosen Version</li>
+            <li>🌟 Vollständiger Kampagnenmodus</li>
+            <li>🌟 Umfangreiche zusätzliche Karten</li>
+            <li>🌟 Exklusive Spielmodi</li>
+            <li>🌟 Karteneditor (geplant)</li>
+            <li>🌟 Steam-Errungenschaften</li>
+            <li>🌟 Cloud-Spielstände</li>
+            <li>🌟 Den Entwickler unterstützen</li>
+          </ul>
+          <a href="#opensource" class="btn btn-steam">Mehr über die Steam-Veröffentlichung erfahren</a>
+        </div>
+      </div>
+      <p class="pricing-note">
+        💡 Der gesamte Quellcode ist Open Source. Die Steam-Version befindet sich in der Entwicklung und wird exklusive Inhalte und Steam-Integration bieten und die weitere Entwicklung finanzieren. Noch kein Erscheinungsdatum — bleibt dran!
+      </p>
+    </div>
+  </section>
+
+  <!-- Open Source Section -->
+  <section id="opensource" class="opensource">
+    <div class="container">
+      <h2>100% Open Source</h2>
+      <p class="opensource-intro">
+        Jede Codezeile ist unter der GPL v3 Lizenz öffentlich. Lerne davon, trage bei oder baue deine eigene Version.
+      </p>
+
+      <div class="opensource-grid">
+        <div class="opensource-card">
+          <h3>📖 Transparenter Code</h3>
+          <p>Gesamte Spiellogik, Premium-Features und Systeme sind auf GitHub einsehbar. Nichts ist versteckt.</p>
+        </div>
+        <div class="opensource-card">
+          <h3>🤝 Community-getrieben</h3>
+          <p>Beiträge willkommen! Füge Features hinzu, behebe Bugs, erstelle Karten oder verbessere die Dokumentation.</p>
+        </div>
+        <div class="opensource-card">
+          <h3>🎓 Lehrreich</h3>
+          <p>Lerne Spielentwicklung durch das Studium einer vollständigen Auto-Battler-Implementierung in Vanilla JavaScript mit PixiJS.</p>
+        </div>
+        <div class="opensource-card">
+          <h3>🔓 Freiheit</h3>
+          <p>GPL v3 stellt sicher, dass abgeleitete Werke offen bleiben. Forke, ändere und teile frei.</p>
+        </div>
+      </div>
+
+      <div class="opensource-cta">
+        <a href="https://github.com/dorianbayart/pixel-fortress" class="btn btn-github" target="_blank">
+          ⭐ Auf GitHub vormerken
+        </a>
+        <a href="https://github.com/dorianbayart/pixel-fortress/blob/main/LICENSE" class="btn btn-outline" target="_blank">
+          Lizenz lesen
+        </a>
+      </div>
+
+      <div class="opensource-faq">
+        <h3>Steam-Version kommt bald!</h3>
+        <p>
+          Das Spiel wird für eine Steam-Veröffentlichung vorbereitet (kein Datum angekündigt). Es wird für Windows und Linux verfügbar sein.
+        </p>
+        <p><strong>Geplante Steam-Features:</strong></p>
+        <ul>
+          <li><strong>Exklusive Inhalte</strong> - Zahlreiche exklusive Karten, vollständige Kampagnen, einzigartige Spielmodi und mehr!</li>
+          <li><strong>Cloud-Spielstände</strong> - Steam-API-Integration für persistenten Fortschritt auf allen Geräten</li>
+          <li><strong>Errungenschaften</strong> - Verfolge deine Leistungen</li>
+          <li><strong>Komfort</strong> - Ein-Klick-Installation, automatische Updates, mögliche Steam Workshop-Unterstützung</li>
+        </ul>
+        <p>
+          Und last but not least: Die Steam-Version unterstützt den Entwickler! Dein Kauf finanziert direkt neue Features und Inhalte.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Platform Links Section -->
+  <section class="platforms">
+    <div class="container">
+      <h2>Überall spielen</h2>
+      <div class="platforms-grid">
+        <a href="../play.html" class="platform-card" target="_blank">
+          <div class="platform-icon">🌐</div>
+          <h3>Webbrowser</h3>
+          <p>Sofort spielen, kein Download erforderlich. Funktioniert in jedem modernen Browser.</p>
+          <span class="platform-tag">Kostenlos</span>
+        </a>
+
+        <a href="#pricing" class="platform-card">
+          <div class="platform-icon">🎮</div>
+          <h3>Steam</h3>
+          <p>Vollständige Kampagne, exklusive Karten, Cloud-Spielstände und Errungenschaften.</p>
+          <span class="platform-tag premium">Demnächst</span>
+        </a>
+
+        <a href="https://github.com/dorianbayart/pixel-fortress" class="platform-card" target="_blank">
+          <div class="platform-icon">💻</div>
+          <h3>GitHub</h3>
+          <p>Quellcode ansehen, beitragen oder eigene Desktop-Version erstellen.</p>
+          <span class="platform-tag">Open Source</span>
+        </a>
+
+        <a href="https://github.com/dorianbayart/pixel-fortress/releases" class="platform-card" target="_blank">
+          <div class="platform-icon">📦</div>
+          <h3>Desktop-Builds</h3>
+          <p>Kostenlose eigenständige Builds für Windows und Linux.</p>
+          <span class="platform-tag">Kostenlos</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section class="faq">
+    <div class="container">
+      <h2>Häufig gestellte Fragen</h2>
+      <div class="faq-list">
+        <div class="faq-item">
+          <button class="faq-question">Ist das Spiel wirklich kostenlos?</button>
+          <div class="faq-answer">
+            <p>Die kostenlose Version ist zu 100% kostenlos, für immer. Keine Anzeigen. Kein Pay-to-Win. Vollständiges Gameplay, unbegrenzte Zufallskarten, verschiedene Spielmodi. Spiele im Browser oder auf dem Desktop. Die Premium Steam-Version bietet zusätzliche Karten, exklusive Spielmodi, Cloud-Speicherung und Erfolge.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">Was ist der Unterschied zwischen der kostenlosen und der Steam-Version?</button>
+          <div class="faq-answer">
+            <p>Die kostenlose Version enthält das komplette Spiel mit einer Auswahl vordefinierter Karten und lokalen Spielständen in Desktop-Apps. Die geplante Steam-Version fügt Cloud-Spielstände, Steam-Errungenschaften, umfangreiche Premium-Inhalte (Karten, Spielmodi, Kampagne) hinzu und hilft, die laufende Entwicklung zu finanzieren.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">Kann ich die "Premium"-Version selbst kompilieren?</button>
+          <div class="faq-answer">
+            <p>Technisch ja! Der Code ist 100% öffentlich. Du erhältst jedoch keine Steam-Features wie Cloud-Spielstände und Errungenschaften ohne die Steam-API. Die meisten Spieler bevorzugen den Komfort von Steam.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">Wie kann ich zum Projekt beitragen?</button>
+          <div class="faq-answer">
+            <p>Forke das Repository auf GitHub, nimm deine Änderungen vor und reiche einen Pull Request ein. Siehe CONTRIBUTING.md für Richtlinien. Beiträge zu allen Features (einschließlich Premium) sind willkommen!</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">Werden neue Inhalte hinzugefügt?</button>
+          <div class="faq-answer">
+            <p>Ja! Das Spiel wird aktiv entwickelt. Die kostenlose Version erhält Core-Updates, Bugfixes und neue Features. Bei Veröffentlichung wird die Steam-Version umfangreiche Premium-Inhalte enthalten: Kampagnen, exklusive Karten, Spielmodi und kontinuierliche Updates.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-section">
+          <h4>Pixel Fortress</h4>
+          <p>100% Open Source Auto-Battler</p>
+          <p>Lizenziert unter GPL v3</p>
+        </div>
+
+        <div class="footer-section">
+          <h4>Schnelllinks</h4>
+          <ul>
+            <li><a href="../play.html" target="_blank">Spielen</a></li>
+            <li><a href="https://github.com/dorianbayart/pixel-fortress" target="_blank">GitHub</a></li>
+            <li><a href="https://github.com/dorianbayart/pixel-fortress/releases" target="_blank">Downloads</a></li>
+            <li><a href="https://github.com/dorianbayart/pixel-fortress/blob/main/LICENSE" target="_blank">Lizenz</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-section">
+          <h4>Ressourcen</h4>
+          <ul>
+            <li><a href="https://github.com/dorianbayart/pixel-fortress/blob/main/README.md" target="_blank">Dokumentation</a></li>
+            <li><a href="https://github.com/dorianbayart/pixel-fortress/blob/main/CONTRIBUTING.md" target="_blank">Beitragen</a></li>
+            <li><a href="https://github.com/dorianbayart/pixel-fortress/blob/main/CREDITS.md" target="_blank">Mitwirkende</a></li>
+            <li><a href="https://github.com/dorianbayart/pixel-fortress/issues" target="_blank">Bug melden</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-section">
+          <h4>Community</h4>
+          <ul>
+            <li><a href="https://github.com/dorianbayart/pixel-fortress/discussions" target="_blank">Diskussionen</a></li>
+            <li><a href="https://github.com/dorianbayart" target="_blank">Entwickler</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>© 2026 Dorian Bayart. Lizenziert unter GNU GPL v3.</p>
+        <p>v0.0.4</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- JavaScript -->
+  <script src="../js/landing.js"></script>
+</body>
+</html>

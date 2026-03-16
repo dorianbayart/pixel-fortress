@@ -1,0 +1,175 @@
+{
+  "lang": "de",
+  "meta": {
+    "title": "Pixel Fortress - Open Source Auto-Battler | Kostenlos spielen",
+    "description": "Strategischer Festungsbau mit automatisierten Kämpfen. Entwerfe deine Festung, produziere Ressourcen und entsende selbstständige Einheiten. 100% Open Source, kostenlos im Browser spielbar.",
+    "ogTitle": "Pixel Fortress - Open Source Auto-Battler",
+    "ogDescription": "Klug bauen. Kämpfen lassen. Strategischer Festungsbau mit automatisierten Kämpfen.",
+    "twitterTitle": "Pixel Fortress - Open Source Auto-Battler",
+    "twitterDescription": "Klug bauen. Kämpfen lassen. Strategischer Festungsbau mit automatisierten Kämpfen."
+  },
+  "nav": {
+    "features": "Features",
+    "pricing": "Preise",
+    "opensource": "Open Source",
+    "github": "GitHub",
+    "playNow": "Spielen"
+  },
+  "hero": {
+    "tagline": "Klug bauen. Kämpfen lassen.",
+    "subtitle": "100% Open Source Auto-Battler",
+    "genre": "Festungsbau • Automatisierte Strategie • Pixel Art",
+    "ctaPrimary": "Jetzt kostenlos spielen",
+    "ctaSecondary": "Steam-Wunschliste (bald)",
+    "note": "Kein Download nötig • Im Browser spielen • Vollständiger GPL v3 Quellcode",
+    "githubStar": "⭐ Auf GitHub vormerken"
+  },
+  "preview": {
+    "heading": "Strategie ohne Routine",
+    "intro": "Entwerfe deine Festung. Lass deine Einheiten den Rest machen.",
+    "caption1": "Strategischer Festungsbau und Wegfindung für Einheiten",
+    "caption2": "Erkundung riesiger prozedural generierter Karten mit großen Stützpunkten und Ressourcenverwaltung",
+    "caption3": "Epische Schlachten mit zahlreichen Einheiten im automatisierten Kampf",
+    "alt1": "Strategischer Festungsbau und Wegfindung für Einheiten",
+    "alt2": "Erkundung riesiger prozedural generierter Karten mit großen Stützpunkten und Ressourcenverwaltung",
+    "alt3": "Epische Schlachten mit zahlreichen Einheiten im automatisierten Kampf"
+  },
+  "features": {
+    "heading": "Spielfeatures",
+    "f1title": "Strategischer Festungsbau",
+    "f1desc": "Baue Sägewerke, Minen und Kasernen. Verwalte Ressourcen und erweitere deine Festung.",
+    "f2title": "Vollständig automatisierter Kampf",
+    "f2desc": "Setz deine Einheiten ein und lass sie kämpfen. Null Mikromanagement.",
+    "f3title": "Mehrere Spielmodi",
+    "f3desc": "Klassik, One Shot und Turbo Gathering für unterschiedliche Spielweisen.",
+    "f4title": "KI-Gegner",
+    "f4desc": "Kämpfe gegen bis zu 3 KI-Gegner mit einstellbarem Schwierigkeitsgrad (Einfach, Normal, Schwer).",
+    "f5title": "Milliarden einzigartiger Karten",
+    "f5desc": "Unendlich viele prozedural generierte Karten in 4 Größen.",
+    "f6title": "Dynamische Erkundung",
+    "f6desc": "Einheiten erkunden automatisch. Gebäudeplatzierung bestimmt die Entdeckung.",
+    "f7title": "Spezialisierte Einheitentypen",
+    "f7desc": "Holzfäller, Bergarbeiter, Soldaten, Bogenschützen, Magier — jeder mit einzigartigen Fähigkeiten.",
+    "f8title": "Verteidigungstürme",
+    "f8desc": "Auto-zielende Türme, die Feinde abschießen. Halte Engpässe.",
+    "f9title": "Gebäudespezialisierung",
+    "f9desc": "Upgrade Gebäude zu spezialisierten Varianten. Forme deine Strategie.",
+    "f10title": "Animierte Welt",
+    "f10desc": "Vollständig animierte Umgebungen mit dynamischen visuellen Effekten."
+  },
+  "pricing": {
+    "heading": "Wähle deine Version",
+    "free": {
+      "name": "Kostenlose Version",
+      "price": "0 €",
+      "subtitle": "Für immer",
+      "feature1": "✅ Vollständiges Auto-Battler-Gameplay",
+      "feature2": "✅ Im Browser oder Desktop spielen",
+      "feature3": "✅ Einzelspieler gegen KI",
+      "feature4": "✅ Verschiedene Spielmodi für unterschiedliche Herausforderungen",
+      "feature5": "✅ 3 Schwierigkeitsstufen",
+      "feature6": "✅ Prozedurale Kartengenerierung (von klein bis riesig)",
+      "feature7": "✅ Ausgewählte vordefinierte Karten",
+      "feature8": "✅ Alle Einheiten, Gebäude und Upgrades",
+      "feature9": "✅ Vollständiger Quellcode (GPL v3)",
+      "feature10": "⚠️ Nur lokale Spielstände (Desktop-Apps)",
+      "cta": "Jetzt kostenlos spielen"
+    },
+    "premium": {
+      "badge": "Geplant",
+      "name": "Steam Premium",
+      "price": "Demnächst",
+      "subtitle": "Einmaliger Kauf (geplant ~4,99 €)",
+      "feature1": "✅ Alles aus der kostenlosen Version",
+      "feature2": "🌟 Vollständiger Kampagnenmodus",
+      "feature3": "🌟 Umfangreiche zusätzliche Karten",
+      "feature4": "🌟 Exklusive Spielmodi",
+      "feature5": "🌟 Karteneditor (geplant)",
+      "feature6": "🌟 Steam-Errungenschaften",
+      "feature7": "🌟 Cloud-Spielstände",
+      "feature8": "🌟 Den Entwickler unterstützen",
+      "cta": "Mehr über die Steam-Veröffentlichung erfahren"
+    },
+    "note": "💡 Der gesamte Quellcode ist Open Source. Die Steam-Version befindet sich in der Entwicklung und wird exklusive Inhalte und Steam-Integration bieten und die weitere Entwicklung finanzieren. Noch kein Erscheinungsdatum — bleibt dran!"
+  },
+  "opensource": {
+    "heading": "100% Open Source",
+    "intro": "Jede Codezeile ist unter der GPL v3 Lizenz öffentlich. Lerne davon, trage bei oder baue deine eigene Version.",
+    "card1title": "📖 Transparenter Code",
+    "card1desc": "Gesamte Spiellogik, Premium-Features und Systeme sind auf GitHub einsehbar. Nichts ist versteckt.",
+    "card2title": "🤝 Community-getrieben",
+    "card2desc": "Beiträge willkommen! Füge Features hinzu, behebe Bugs, erstelle Karten oder verbessere die Dokumentation.",
+    "card3title": "🎓 Lehrreich",
+    "card3desc": "Lerne Spielentwicklung durch das Studium einer vollständigen Auto-Battler-Implementierung in Vanilla JavaScript mit PixiJS.",
+    "card4title": "🔓 Freiheit",
+    "card4desc": "GPL v3 stellt sicher, dass abgeleitete Werke offen bleiben. Forke, ändere und teile frei.",
+    "githubStar": "⭐ Auf GitHub vormerken",
+    "readLicense": "Lizenz lesen",
+    "steamHeading": "Steam-Version kommt bald!",
+    "steamP1": "Das Spiel wird für eine Steam-Veröffentlichung vorbereitet (kein Datum angekündigt). Es wird für Windows und Linux verfügbar sein.",
+    "steamFeaturesTitle": "Geplante Steam-Features:",
+    "steamF1title": "Exklusive Inhalte",
+    "steamF1desc": "Zahlreiche exklusive Karten, vollständige Kampagnen, einzigartige Spielmodi und mehr!",
+    "steamF2title": "Cloud-Spielstände",
+    "steamF2desc": "Steam-API-Integration für persistenten Fortschritt auf allen Geräten",
+    "steamF3title": "Errungenschaften",
+    "steamF3desc": "Verfolge deine Leistungen",
+    "steamF4title": "Komfort",
+    "steamF4desc": "Ein-Klick-Installation, automatische Updates, mögliche Steam Workshop-Unterstützung",
+    "steamP2": "Und last but not least: Die Steam-Version unterstützt den Entwickler! Dein Kauf finanziert direkt neue Features und Inhalte."
+  },
+  "platforms": {
+    "heading": "Überall spielen",
+    "web": {
+      "title": "Webbrowser",
+      "desc": "Sofort spielen, kein Download erforderlich. Funktioniert in jedem modernen Browser.",
+      "tag": "Kostenlos"
+    },
+    "steam": {
+      "title": "Steam",
+      "desc": "Vollständige Kampagne, exklusive Karten, Cloud-Spielstände und Errungenschaften.",
+      "tag": "Demnächst"
+    },
+    "github": {
+      "title": "GitHub",
+      "desc": "Quellcode ansehen, beitragen oder eigene Desktop-Version erstellen.",
+      "tag": "Open Source"
+    },
+    "desktop": {
+      "title": "Desktop-Builds",
+      "desc": "Kostenlose eigenständige Builds für Windows und Linux.",
+      "tag": "Kostenlos"
+    }
+  },
+  "faq": {
+    "heading": "Häufig gestellte Fragen",
+    "q1": "Ist das Spiel wirklich kostenlos?",
+    "a1": "Die kostenlose Version ist zu 100% kostenlos, für immer. Keine Anzeigen. Kein Pay-to-Win. Vollständiges Gameplay, unbegrenzte Zufallskarten, verschiedene Spielmodi. Spiele im Browser oder auf dem Desktop. Die Premium Steam-Version bietet zusätzliche Karten, exklusive Spielmodi, Cloud-Speicherung und Erfolge.",
+    "q2": "Was ist der Unterschied zwischen der kostenlosen und der Steam-Version?",
+    "a2": "Die kostenlose Version enthält das komplette Spiel mit einer Auswahl vordefinierter Karten und lokalen Spielständen in Desktop-Apps. Die geplante Steam-Version fügt Cloud-Spielstände, Steam-Errungenschaften, umfangreiche Premium-Inhalte (Karten, Spielmodi, Kampagne) hinzu und hilft, die laufende Entwicklung zu finanzieren.",
+    "q3": "Kann ich die \"Premium\"-Version selbst kompilieren?",
+    "a3": "Technisch ja! Der Code ist 100% öffentlich. Du erhältst jedoch keine Steam-Features wie Cloud-Spielstände und Errungenschaften ohne die Steam-API. Die meisten Spieler bevorzugen den Komfort von Steam.",
+    "q4": "Wie kann ich zum Projekt beitragen?",
+    "a4": "Forke das Repository auf GitHub, nimm deine Änderungen vor und reiche einen Pull Request ein. Siehe CONTRIBUTING.md für Richtlinien. Beiträge zu allen Features (einschließlich Premium) sind willkommen!",
+    "q5": "Werden neue Inhalte hinzugefügt?",
+    "a5": "Ja! Das Spiel wird aktiv entwickelt. Die kostenlose Version erhält Core-Updates, Bugfixes und neue Features. Bei Veröffentlichung wird die Steam-Version umfangreiche Premium-Inhalte enthalten: Kampagnen, exklusive Karten, Spielmodi und kontinuierliche Updates."
+  },
+  "footer": {
+    "tagline": "100% Open Source Auto-Battler",
+    "license": "Lizenziert unter GPL v3",
+    "quickLinks": "Schnelllinks",
+    "playNow": "Spielen",
+    "github": "GitHub",
+    "downloads": "Downloads",
+    "licenseLink": "Lizenz",
+    "resources": "Ressourcen",
+    "documentation": "Dokumentation",
+    "contribute": "Beitragen",
+    "credits": "Mitwirkende",
+    "reportBug": "Bug melden",
+    "community": "Community",
+    "discussions": "Diskussionen",
+    "developer": "Entwickler",
+    "copyright": "© 2026 Dorian Bayart. Lizenziert unter GNU GPL v3."
+  }
+}
