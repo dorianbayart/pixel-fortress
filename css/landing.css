@@ -347,8 +347,13 @@ a:hover {
   font-style: italic;
 }
 
-.hero-github-star {
+.hero-github-star,
+.hero-support-links {
   margin-top: var(--spacing-md);
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 .github-star-link {
@@ -370,6 +375,29 @@ a:hover {
 .github-star-link:hover {
   background: rgba(255, 215, 0, 0.2);
   border: 2px solid var(--color-accent);
+  color: var(--color-text-light);
+  transform: translateY(-2px);
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+}
+
+.kofi-star-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 215, 0, 0.1);
+  border: 2px solid var(--color-accent);
+  border-radius: var(--radius-md);
+  color: var(--color-accent);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.kofi-star-link:hover {
+  background: rgba(255, 215, 0, 0.2);
   color: var(--color-text-light);
   transform: translateY(-2px);
   box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
@@ -455,6 +483,18 @@ a:hover {
 .btn-outline:hover {
   background: rgba(255, 215, 0, 0.1);
   transform: translateY(-3px);
+}
+
+.btn-kofi {
+  background: transparent;
+  color: var(--color-accent);
+  border: 2px solid var(--color-accent);
+}
+
+.btn-kofi:hover {
+  background: rgba(255, 215, 0, 0.1);
+  transform: translateY(-3px);
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
 }
 
 /* ============================================

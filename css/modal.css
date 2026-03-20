@@ -210,6 +210,13 @@
   filter: invert(83%) sepia(53%) saturate(765%) hue-rotate(359deg) brightness(103%) contrast(105%);
 }
 
+.kofi-logo {
+  height: 20px;
+  margin: 2px 10px 2px 0;
+  image-rendering: pixelated;
+  filter: sepia(100%) saturate(800%);
+}
+
 /* Game description styling */
 .game-description {
   margin: 10px 0;
