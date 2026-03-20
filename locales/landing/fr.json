@@ -22,7 +22,8 @@
     "ctaPrimary": "Jouer gratuitement",
     "ctaSecondary": "Liste de souhaits Steam (bientôt)",
     "note": "Sans téléchargement • Jouez dans le navigateur • Code source GPL v3 complet",
-    "githubStar": "⭐ Star sur GitHub"
+    "githubStar": "⭐ Star sur GitHub",
+    "kofiSupport": "☕ Soutenir sur Ko-fi"
   },
   "preview": {
     "heading": "La stratégie sans la routine",
@@ -116,7 +117,8 @@
     "steamF3desc": "Suivez vos accomplissements",
     "steamF4title": "Praticité",
     "steamF4desc": "Installation en un clic, mises à jour automatiques, support potentiel du Workshop Steam",
-    "steamP2": "Et surtout: la version Steam soutient le créateur ! Votre achat finance directement de nouvelles fonctionnalités et du contenu."
+    "steamP2": "Et surtout: la version Steam soutient le créateur ! Votre achat finance directement de nouvelles fonctionnalités et du contenu.",
+    "kofiSupport": "☕ Soutenir sur Ko-fi"
   },
   "platforms": {
     "heading": "Jouez partout",
@@ -170,6 +172,7 @@
     "community": "Communauté",
     "discussions": "Discussions",
     "developer": "Développeur",
-    "copyright": "© 2026 Dorian Bayart. Sous licence GNU GPL v3."
+    "copyright": "© 2026 Dorian Bayart. Sous licence GNU GPL v3.",
+    "kofiSupport": "☕ Soutenir sur Ko-fi"
   }
 }

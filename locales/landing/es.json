@@ -22,7 +22,8 @@
     "ctaPrimary": "Jugar gratis ahora",
     "ctaSecondary": "Lista de deseos en Steam (pronto)",
     "note": "Sin descarga • Juega en el navegador • Código fuente completo GPL v3",
-    "githubStar": "⭐ Star en GitHub"
+    "githubStar": "⭐ Star en GitHub",
+    "kofiSupport": "☕ Apoyar en Ko-fi"
   },
   "preview": {
     "heading": "Estrategia sin lo tedioso",
@@ -116,7 +117,8 @@
     "steamF3desc": "Sigue tus logros",
     "steamF4title": "Comodidad",
     "steamF4desc": "Instalación con un clic, actualizaciones automáticas, posible soporte para Steam Workshop",
-    "steamP2": "Y por último, pero no menos importante: ¡la versión Steam apoya al creador! Tu compra financia directamente nuevas funciones y contenido."
+    "steamP2": "Y por último, pero no menos importante: ¡la versión Steam apoya al creador! Tu compra financia directamente nuevas funciones y contenido.",
+    "kofiSupport": "☕ Apoyar en Ko-fi"
   },
   "platforms": {
     "heading": "Juega en cualquier lugar",
@@ -170,6 +172,7 @@
     "community": "Comunidad",
     "discussions": "Discusiones",
     "developer": "Desarrollador",
-    "copyright": "© 2026 Dorian Bayart. Licenciado bajo GNU GPL v3."
+    "copyright": "© 2026 Dorian Bayart. Licenciado bajo GNU GPL v3.",
+    "kofiSupport": "☕ Apoyar en Ko-fi"
   }
 }

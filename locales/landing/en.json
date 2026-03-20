@@ -22,7 +22,8 @@
     "ctaPrimary": "Play for Free Now",
     "ctaSecondary": "Wishlist on Steam (Soon)",
     "note": "No download required • Play in browser • Full GPL v3 source code",
-    "githubStar": "⭐ Star on GitHub"
+    "githubStar": "⭐ Star on GitHub",
+    "kofiSupport": "☕ Support on Ko-fi"
   },
   "preview": {
     "heading": "Strategy Without the Grind",
@@ -116,7 +117,8 @@
     "steamF3desc": "Track your accomplishments",
     "steamF4title": "Convenience",
     "steamF4desc": "One-click install, auto-updates, potential Steam Workshop support",
-    "steamP2": "And last but not least: the Steam version supports the creator! Your purchase directly funds new features and content."
+    "steamP2": "And last but not least: the Steam version supports the creator! Your purchase directly funds new features and content.",
+    "kofiSupport": "☕ Support on Ko-fi"
   },
   "platforms": {
     "heading": "Play Anywhere",
@@ -170,6 +172,7 @@
     "community": "Community",
     "discussions": "Discussions",
     "developer": "Developer",
-    "copyright": "© 2026 Dorian Bayart. Licensed under GNU GPL v3."
+    "copyright": "© 2026 Dorian Bayart. Licensed under GNU GPL v3.",
+    "kofiSupport": "☕ Support on Ko-fi"
   }
 }
