@@ -510,7 +510,7 @@ function closeMapEditor() {
     playCloseSound()
     isEditorOpen = false
     document.getElementById('mapEditorSection').style.display = 'none'
-    document.getElementById('homeMenu').style.display = 'block'
+    document.getElementById('homeMenu').style.display = ''
   }
   if (mapDirty) {
     editorConfirm(t('mapEditor.backConfirm'), doClose)
