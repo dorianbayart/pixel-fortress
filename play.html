@@ -44,6 +44,7 @@
   <link rel="manifest" href="manifest.json">
 
   <link rel="stylesheet" href="css/menu.css">
+  <link rel="stylesheet" href="css/mapEditor.css">
 
   <script>
     // Font loading first
@@ -78,6 +79,7 @@
         "mapGeneration": "./js/mapGeneration.mjs",
         "maps": "./js/maps.mjs",
         "map-preview": "./js/map-preview.mjs",
+        "map-editor": "./js/mapEditor.mjs",
         "menu": "./js/menu.mjs",
         "minimap": "./js/minimap.mjs",
         "mouse": "./js/mouse.mjs",
@@ -115,6 +117,7 @@
 
     <div id="mainMenuButtons" class="menu-options">
       <button id="playButton" class="menu-button" data-i18n="menu.play">Play</button>
+      <button id="mapEditorButton" class="menu-button" data-i18n="menu.mapEditor">Map Editor</button>
       <button id="options" class="menu-button" data-i18n="menu.options">Options</button>
       <button id="about" class="menu-button" data-i18n="menu.about">About</button>
     </div>
@@ -129,6 +132,37 @@
   </div>
 
   
+  <!-- Map Editor -->
+  <div id="mapEditorSection">
+    <div id="mapEditorToolbar">
+      <button id="mapEditorBack" class="editor-btn editor-btn-back" data-i18n="mapEditor.back">← Back</button>
+      <span class="editor-toolbar-title" data-i18n="mapEditor.title">Map Editor</span>
+      <div class="editor-toolbar-sep"></div>
+      <div id="mapEditorSizeButtons">
+        <!-- Size buttons added dynamically by mapEditor.mjs -->
+      </div>
+      <div id="mapEditorCustomSize">
+        <input type="number" id="mapEditorWidthInput" class="editor-size-input" min="20" max="400" value="120" title="Width in tiles">
+        <span class="editor-size-sep">×</span>
+        <input type="number" id="mapEditorHeightInput" class="editor-size-input" min="20" max="400" value="60" title="Height in tiles">
+        <button id="mapEditorApplySize" class="editor-size-btn" data-i18n="mapEditor.apply">Apply</button>
+      </div>
+      <div class="editor-toolbar-sep"></div>
+      <button id="mapEditorNew" class="editor-btn" data-i18n="mapEditor.new">New Map</button>
+      <button id="mapEditorGenerate" class="editor-btn" data-i18n="mapEditor.generate">Generate</button>
+      <button id="mapEditorLoad" class="editor-btn" data-i18n="mapEditor.load">Load</button>
+      <button id="mapEditorExport" class="editor-btn editor-btn-primary" data-i18n="mapEditor.export">Export</button>
+      <input type="file" id="mapEditorFileInput" accept=".json" style="display:none">
+    </div>
+    <div id="mapEditorMain">
+      <div id="mapEditorPalette">
+        <h3 data-i18n="mapEditor.palette">Palette</h3>
+        <!-- Palette items added dynamically by mapEditor.mjs -->
+      </div>
+      <canvas id="mapEditorCanvas"></canvas>
+    </div>
+  </div>
+
   <canvas id="canvas" width="100" height="100"></canvas>
 
   <div id="progressBar">

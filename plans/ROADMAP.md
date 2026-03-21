@@ -92,7 +92,7 @@ Details: This should include: pseudo, host a map, join a map
 
 - [x] **New Tower Types:** Towers specialize into Bullet, Rapid, or Sniper variants via the branching upgrade system.
 - [ ] **Special Enemies:** Add enemies with special abilities or resistances. *(Not Planned)*
-- [ ] **Level Editor:** Allow players to create their own custom levels. *(Not Planned)* 
+- [x] **Level Editor:** Map editor allowing players to create their own custom maps.
 - [ ] **Endless Mode:** Implement an endless mode with increasing difficulty. *(Not Planned)*
 - [x] **High Speed:** High speed mode: the time is 1x, 1.33x or 2x accelerated.
 - [ ] **PNJs:** Add PNJs enemies on the map. *(Not Planned)*

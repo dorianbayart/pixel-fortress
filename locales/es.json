@@ -1,6 +1,7 @@
 {
   "menu": {
     "play": "Jugar",
+    "mapEditor": "Editor de mapas",
     "options": "Opciones",
     "about": "Acerca de",
     "back": "Atrás",
@@ -191,6 +192,50 @@
     "sniperTower": {
       "name": "Torre Sniper",
       "description": "Lenta pero muy poderosa a muy largo alcance"
+    }
+  },
+  "mapEditor": {
+    "title": "Editor de mapas",
+    "back": "← Atrás",
+    "new": "Nuevo mapa",
+    "generate": "Generar",
+    "load": "Cargar",
+    "export": "Exportar",
+    "palette": "Paleta",
+    "terrain": "Terreno",
+    "newMapConfirm": "¿Crear un nuevo mapa? Los cambios no guardados se perderán.",
+    "generateConfirm": "¿Generar un terreno de forma procedural? Se borrarán todos los cambios actuales.",
+    "backConfirm": "¿Volver al menú? Los cambios no guardados se perderán.",
+    "confirmOk": "OK",
+    "confirmCancel": "Cancelar",
+    "apply": "Aplicar",
+    "startPositions": "Posiciones iniciales",
+    "p1Start": "Inicio J1",
+    "ai1": "IA 1",
+    "ai2": "IA 2",
+    "ai3": "IA 3",
+    "buildings": "Edificios",
+    "erase": "Borrar",
+    "exportNamePrompt": "Nombre del mapa:",
+    "owner": {
+      "p1": "J1",
+      "ai1": "IA1",
+      "ai2": "IA2",
+      "ai3": "IA3"
+    },
+    "size": {
+      "small": "Pequeño",
+      "medium": "Mediano",
+      "large": "Grande",
+      "huge": "Enorme"
+    },
+    "tiles": {
+      "grass": "Hierba",
+      "sand": "Arena",
+      "water": "Agua",
+      "tree": "Árbol",
+      "rock": "Roca",
+      "gold": "Oro"
     }
   }
 }

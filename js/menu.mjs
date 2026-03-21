@@ -9,6 +9,7 @@ import { t, setLanguage, getLanguage, getSupportedLanguages } from 'i18n'
 import { setupEventListeners } from 'ui'
 import { getPredefinedMaps } from 'maps'
 import { renderCustomMapPreview, generateMapPreviewFromSeed } from 'map-preview'
+import { openMapEditor } from 'map-editor'
 
 /**
  * Apply translations to all elements with data-i18n attributes
@@ -873,6 +874,7 @@ function showMainMenu() {
   document.getElementById('mainMenuButtons').style.display = 'block'
   document.getElementById('playOptionsButtons').style.display = 'none'
   document.getElementById('playButton').addEventListener('click', showPlayOptions)
+  document.getElementById('mapEditorButton').addEventListener('click', openMapEditor)
 }
 
 // Function to show the play options (Campaign, Skirmish, Back)

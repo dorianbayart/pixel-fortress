@@ -1,0 +1,337 @@
+/* Map Editor UI */
+
+/* Variable-weight system font stack for the editor: supports weights 100–900
+   (San Francisco on macOS, Segoe UI Variable on Windows 11, Roboto on Android) */
+:root {
+  --font-editor: system-ui, -apple-system, 'Segoe UI Variable', 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+}
+
+#mapEditorSection {
+  display: none;
+  flex-direction: column;
+  position: fixed;
+  inset: 0;
+  background: #0f0f0f;
+  z-index: 50;
+  font-family: var(--font-editor);
+}
+
+/* ── Toolbar ────────────────────────────────────────────── */
+
+#mapEditorToolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #1a1a1a;
+  border-bottom: 2px solid #333;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.editor-toolbar-title {
+  font-family: var(--font-base);
+  font-size: 18px;
+  color: gold;
+  margin: 0 8px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.editor-toolbar-sep {
+  width: 1px;
+  height: 24px;
+  background: #444;
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+/* Size buttons */
+#mapEditorSizeButtons {
+  display: flex;
+  gap: 4px;
+}
+
+.editor-size-btn {
+  background: #2a2a2a;
+  color: #ccc;
+  border: 1px solid #444;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.editor-size-btn:hover {
+  background: #3a3a3a;
+  color: #fff;
+}
+
+.editor-size-btn.selected {
+  background: #3a3a6a;
+  color: #fff;
+  border-color: #6a6acc;
+}
+
+/* Custom size row */
+#mapEditorCustomSize {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.editor-size-input {
+  width: 60px;
+  background: #2a2a2a;
+  color: #ccc;
+  border: 1px solid #444;
+  padding: 4px 4px;
+  font-size: 12px;
+  text-align: center;
+}
+
+.editor-size-input:focus {
+  outline: none;
+  border-color: #6a6acc;
+  color: #fff;
+}
+
+.editor-size-sep {
+  color: #888;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+/* Action buttons */
+.editor-btn {
+  background: #2a2a2a;
+  color: #ddd;
+  border: 1px solid #444;
+  padding: 6px 14px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.editor-btn:hover {
+  background: #3a3a3a;
+  color: #fff;
+}
+
+.editor-btn-primary {
+  background: #1a4a1a;
+  border-color: #3a7a3a;
+  color: #9f9;
+}
+
+.editor-btn-primary:hover {
+  background: #2a5a2a;
+  color: #bfb;
+}
+
+.editor-btn-back {
+  background: #2a2020;
+  border-color: #5a3a3a;
+  color: #daa;
+}
+
+.editor-btn-back:hover {
+  background: #3a2a2a;
+  color: #fcc;
+}
+
+/* ── Main area: palette + canvas ────────────────────────── */
+
+#mapEditorMain {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ── Palette sidebar ────────────────────────────────────── */
+
+#mapEditorPalette {
+  width: 192px;
+  background: #141414;
+  border-right: 2px solid #333;
+  padding: 8px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+/* 2-column grid for palette items */
+.palette-items-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px;
+}
+
+#mapEditorPalette h3 {
+  color: #777;
+  font-size: 10px;
+  text-transform: uppercase;
+  margin: 0 0 6px 0;
+  text-align: center;
+  letter-spacing: 1px;
+}
+
+.editor-palette-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 5px 3px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  border-radius: 2px;
+  transition: background 0.1s, border-color 0.1s;
+  background: #1e1e1e;
+}
+
+.editor-palette-item:hover {
+  background: #2a2a2a;
+  border-color: #555;
+}
+
+.editor-palette-item.selected {
+  border-color: #6a6acc;
+  background: #252540;
+}
+
+.editor-tile-swatch {
+  width: 28px;
+  height: 28px;
+  image-rendering: pixelated;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.editor-palette-item span {
+  font-size: 11px;
+  color: #aaa;
+  text-align: center;
+  line-height: 1.2;
+  word-break: break-word;
+}
+
+.editor-palette-item.selected span {
+  color: #ddd;
+}
+
+/* ── Canvas ─────────────────────────────────────────────── */
+
+#mapEditorCanvas {
+  flex: 1;
+  display: block;
+  cursor: crosshair;
+  background: #111;
+  min-width: 0;
+}
+
+/* ── Palette sections ─────────────────────────────────────── */
+
+.palette-section-header {
+  color: #777;
+  font-size: 14px;
+  text-transform: capitalize;
+  letter-spacing: 0.5px;
+  margin: 8px 0 4px 0;
+  text-align: center;
+  border-top: 1px solid #2a2a2a;
+  padding-top: 6px;
+}
+
+.palette-section-header:first-child {
+  border-top: none;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+/* Circle swatch for start positions */
+.editor-swatch-circle {
+  border-radius: 50% !important;
+}
+
+/* Building swatch (shows abbreviation) */
+.editor-swatch-building {
+  font-size: 9px;
+  font-weight: bold;
+  color: #fff;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+}
+
+/* Owner selector */
+.palette-owner-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  margin: 4px 0;
+}
+
+.palette-owner-btn {
+  background: #2a2a2a;
+  border: 1px solid #444;
+  color: #999;
+  font-size: 11px;
+  padding: 4px 2px;
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+}
+
+.palette-owner-btn:hover {
+  background: #3a3a3a;
+  color: #fff;
+}
+
+.palette-owner-btn.selected {
+  background: var(--owner-color);
+  border-color: var(--owner-color);
+  color: #fff;
+  font-weight: bold;
+  opacity: 0.9;
+}
+
+/* ── Custom confirm dialog ───────────────────────────────── */
+
+.editor-confirm-overlay {
+  display: none;
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+}
+
+.editor-confirm-box {
+  background: #1e1e1e;
+  border: 2px solid #555;
+  padding: 24px 28px;
+  max-width: 380px;
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.editor-confirm-msg {
+  color: #ddd;
+  font-size: 14px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.editor-confirm-btns {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}

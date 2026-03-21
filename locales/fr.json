@@ -1,6 +1,7 @@
 {
   "menu": {
     "play": "Jouer",
+    "mapEditor": "Éditeur de carte",
     "options": "Options",
     "about": "À propos",
     "back": "Retour",
@@ -191,6 +192,50 @@
     "sniperTower": {
       "name": "Tour sniper",
       "description": "Lente mais très puissante à très longue portée"
+    }
+  },
+  "mapEditor": {
+    "title": "Éditeur de carte",
+    "back": "← Retour",
+    "new": "Nouvelle carte",
+    "generate": "Générer",
+    "load": "Charger",
+    "export": "Exporter",
+    "palette": "Palette",
+    "terrain": "Terrain",
+    "newMapConfirm": "Créer une nouvelle carte ? Les modifications non sauvegardées seront perdues.",
+    "generateConfirm": "Générer un terrain procédural ? Toutes les modifications actuelles seront effacées.",
+    "backConfirm": "Retourner au menu ? Les modifications non sauvegardées seront perdues.",
+    "confirmOk": "OK",
+    "confirmCancel": "Annuler",
+    "apply": "Appliquer",
+    "startPositions": "Positions de départ",
+    "p1Start": "Départ J1",
+    "ai1": "IA 1",
+    "ai2": "IA 2",
+    "ai3": "IA 3",
+    "buildings": "Bâtiments",
+    "erase": "Effacer",
+    "exportNamePrompt": "Nom de la carte :",
+    "owner": {
+      "p1": "J1",
+      "ai1": "IA1",
+      "ai2": "IA2",
+      "ai3": "IA3"
+    },
+    "size": {
+      "small": "Petit",
+      "medium": "Moyen",
+      "large": "Grand",
+      "huge": "Géant"
+    },
+    "tiles": {
+      "grass": "Herbe",
+      "sand": "Sable",
+      "water": "Eau",
+      "tree": "Arbre",
+      "rock": "Rocher",
+      "gold": "Or"
     }
   }
 }

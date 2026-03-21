@@ -1,6 +1,7 @@
 {
   "menu": {
     "play": "Spielen",
+    "mapEditor": "Karteneditor",
     "options": "Optionen",
     "about": "Über das Spiel",
     "back": "Zurück",
@@ -191,6 +192,50 @@
     "sniperTower": {
       "name": "Sniper-Turm",
       "description": "Langsam aber trifft hart auf sehr lange Reichweite"
+    }
+  },
+  "mapEditor": {
+    "title": "Karteneditor",
+    "back": "← Zurück",
+    "new": "Neue Karte",
+    "generate": "Generieren",
+    "load": "Laden",
+    "export": "Exportieren",
+    "palette": "Palette",
+    "terrain": "Gelände",
+    "newMapConfirm": "Neue Karte erstellen? Nicht gespeicherte Änderungen gehen verloren.",
+    "generateConfirm": "Prozedurales Terrain generieren? Alle aktuellen Änderungen werden gelöscht.",
+    "backConfirm": "Zurück zum Menü? Nicht gespeicherte Änderungen gehen verloren.",
+    "confirmOk": "OK",
+    "confirmCancel": "Abbrechen",
+    "apply": "Anwenden",
+    "startPositions": "Startpositionen",
+    "p1Start": "Spieler 1 Start",
+    "ai1": "KI 1",
+    "ai2": "KI 2",
+    "ai3": "KI 3",
+    "buildings": "Gebäude",
+    "erase": "Löschen",
+    "exportNamePrompt": "Kartenname eingeben:",
+    "owner": {
+      "p1": "S1",
+      "ai1": "KI1",
+      "ai2": "KI2",
+      "ai3": "KI3"
+    },
+    "size": {
+      "small": "Klein",
+      "medium": "Mittel",
+      "large": "Groß",
+      "huge": "Riesig"
+    },
+    "tiles": {
+      "grass": "Gras",
+      "sand": "Sand",
+      "water": "Wasser",
+      "tree": "Baum",
+      "rock": "Fels",
+      "gold": "Gold"
     }
   }
 }

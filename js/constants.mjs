@@ -49,26 +49,26 @@ export default {
         SMALL: {
             id: 'small',
             label: 'Small',
-            width: 40,
-            height: 80
+            width: 60,
+            height: 60
         },
         MEDIUM: {
             id: 'medium',
             label: 'Medium',
-            width: 60,
-            height: 120
+            width: 90,
+            height: 90
         },
         LARGE: {
             id: 'large',
             label: 'Large',
-            width: 80,
-            height: 160
+            width: 120,
+            height: 120
         },
         HUGE: {
             id: 'huge',
             label: 'Huge',
-            width: 100,
-            height: 200
+            width: 150,
+            height: 150
         },
         // Helper to get sizes as an array
         getAll() {

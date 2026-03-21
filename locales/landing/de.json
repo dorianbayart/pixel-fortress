@@ -72,8 +72,9 @@
       "feature6": "✅ Prozedurale Kartengenerierung (von klein bis riesig)",
       "feature7": "✅ Ausgewählte vordefinierte Karten",
       "feature8": "✅ Alle Einheiten, Gebäude und Upgrades",
-      "feature9": "✅ Vollständiger Quellcode (GPL v3)",
-      "feature10": "⚠️ Nur lokale Spielstände (Desktop-Apps)",
+      "feature9": "✅ Karteneditor — erstelle und exportiere eigene Karten",
+      "feature10": "✅ Vollständiger Quellcode (GPL v3)",
+      "feature11": "⚠️ Nur lokale Spielstände (Desktop-Apps)",
       "cta": "Jetzt kostenlos spielen"
     },
     "premium": {
@@ -85,7 +86,7 @@
       "feature2": "🌟 Vollständiger Kampagnenmodus",
       "feature3": "🌟 Umfangreiche zusätzliche Karten",
       "feature4": "🌟 Exklusive Spielmodi",
-      "feature5": "🌟 Karteneditor (geplant)",
+      "feature5": "🌟 Steam Workshop — teile und entdecke Community-Karten",
       "feature6": "🌟 Steam-Errungenschaften",
       "feature7": "🌟 Cloud-Spielstände",
       "feature8": "🌟 Den Entwickler unterstützen",

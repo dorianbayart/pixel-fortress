@@ -1,6 +1,7 @@
 {
   "menu": {
     "play": "Play",
+    "mapEditor": "Map Editor",
     "options": "Options",
     "about": "About",
     "back": "Back",
@@ -191,6 +192,50 @@
     "sniperTower": {
       "name": "Sniper Tower",
       "description": "Slow but hits hard at very long range"
+    }
+  },
+  "mapEditor": {
+    "title": "Map Editor",
+    "back": "← Back",
+    "new": "New Map",
+    "generate": "Generate",
+    "load": "Load",
+    "export": "Export",
+    "palette": "Palette",
+    "terrain": "Terrain",
+    "newMapConfirm": "Create a new map? Unsaved changes will be lost.",
+    "generateConfirm": "Procedurally generate a new terrain? This will erase all current changes.",
+    "backConfirm": "Go back? Unsaved changes will be lost.",
+    "confirmOk": "OK",
+    "confirmCancel": "Cancel",
+    "apply": "Apply",
+    "startPositions": "Start Positions",
+    "p1Start": "P1 Start",
+    "ai1": "AI 1",
+    "ai2": "AI 2",
+    "ai3": "AI 3",
+    "buildings": "Buildings",
+    "erase": "Erase",
+    "exportNamePrompt": "Enter map name:",
+    "owner": {
+      "p1": "P1",
+      "ai1": "AI1",
+      "ai2": "AI2",
+      "ai3": "AI3"
+    },
+    "size": {
+      "small": "Small",
+      "medium": "Medium",
+      "large": "Large",
+      "huge": "Huge"
+    },
+    "tiles": {
+      "grass": "Grass",
+      "sand": "Sand",
+      "water": "Water",
+      "tree": "Tree",
+      "rock": "Rock",
+      "gold": "Gold"
     }
   }
 }

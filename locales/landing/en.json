@@ -72,8 +72,9 @@
       "feature6": "✅ Procedural map generation (from small to huge)",
       "feature7": "✅ Selected predefined maps",
       "feature8": "✅ All units, buildings, upgrades",
-      "feature9": "✅ Full source code (GPL v3)",
-      "feature10": "⚠️ Local save progression only (desktop apps)",
+      "feature9": "✅ Map editor — create and export your own maps",
+      "feature10": "✅ Full source code (GPL v3)",
+      "feature11": "⚠️ Local save progression only (desktop apps)",
       "cta": "Play for Free Now"
     },
     "premium": {
@@ -85,7 +86,7 @@
       "feature2": "🌟 Full campaign mode",
       "feature3": "🌟 Extensive additional maps",
       "feature4": "🌟 Exclusive game modes",
-      "feature5": "🌟 Map editor (planned)",
+      "feature5": "🌟 Steam Workshop — share and discover community maps",
       "feature6": "🌟 Steam achievements",
       "feature7": "🌟 Cloud save progression",
       "feature8": "🌟 Support the developer",

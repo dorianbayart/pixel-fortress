@@ -7,6 +7,7 @@ import { getTileSize, initMapDimensions } from 'dimensions'
 import { initFogOfWar } from 'fogOfWar'
 import { gameLoop, initGame } from 'game'
 import { init as initI18n } from 'i18n'
+import { initMapEditor } from 'map-editor'
 import { initHomeMenu } from 'menu'
 import { app, containers, initCanvases, resizeCanvases } from 'renderer'
 import { loadSprites } from 'sprites'
@@ -29,6 +30,9 @@ async function initializeGame() {
 
   // Initialize home menu
   initHomeMenu()
+
+  // Initialize map editor
+  initMapEditor()
 
   // Get audio toggle button
   const audioToggleButton = document.getElementById('audioToggleButton')
