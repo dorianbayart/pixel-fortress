@@ -156,6 +156,11 @@
       "description": "Produit de l'eau",
       "details": "Doit être placé près de l'eau."
     },
+    "archery": {
+      "name": "Archerie",
+      "description": "Entraîne des archers",
+      "details": "Unité à distance, bonne portée et dégâts modérés."
+    },
     "barracks": {
       "name": "Caserne",
       "description": "Entraîne des soldats",

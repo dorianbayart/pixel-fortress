@@ -156,6 +156,11 @@
       "description": "Produziert Wasser",
       "details": "Muss neben Wasser platziert werden."
     },
+    "archery": {
+      "name": "Bogenschießstand",
+      "description": "Trainiert Bogenschützen",
+      "details": "Fernkampfeinheit mit guter Reichweite und moderatem Schaden."
+    },
     "barracks": {
       "name": "Kaserne",
       "description": "Trainiert Soldaten",

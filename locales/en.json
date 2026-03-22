@@ -156,6 +156,11 @@
       "description": "Produces water",
       "details": "Must be placed next to water."
     },
+    "archery": {
+      "name": "Archery",
+      "description": "Trains archers",
+      "details": "Ranged unit, good range and moderate damage."
+    },
     "barracks": {
       "name": "Barracks",
       "description": "Trains soldiers",

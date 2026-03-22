@@ -1,5 +1,5 @@
 export {
-  CombatUnit, EliteWarrior, GoldMiner, HeavyInfantry, LumberjackWorker, Mage, MeleeUnit, Peon, PeonSoldier, QuarryMiner, RangedUnit, Soldier, Unit, WaterCarrier, WorkerUnit
+  Archer, CombatUnit, EliteWarrior, GoldMiner, HeavyInfantry, LumberjackWorker, Mage, MeleeUnit, Peon, PeonSoldier, QuarryMiner, RangedUnit, Soldier, Unit, WaterCarrier, WorkerUnit
 }
 
 'use strict'
@@ -10,6 +10,7 @@ import { getMapDimensions, getTileSize } from 'dimensions'
 import { updateSprite } from 'game'
 import { ParticleEffect, createParticleEmitter } from 'particles'
 import { searchPath, updateMapInWorker } from 'pathfinding'
+import { Projectile } from 'projectile'
 import { indicatorMap, removeProgressIndicator } from 'renderer'
 import { UNIT_SPRITE_SIZE, unitsSprites, unitsSpritesDescription } from 'sprites'
 import gameState from 'state'
@@ -1662,6 +1663,45 @@ class Mage extends RangedUnit {
     applyGameModeModifiers(this)
     this.attack = 10
     this.speed = 0.9
+  }
+}
+
+/**
+ * Archer unit implementation (ranged bow user)
+ */
+class Archer extends RangedUnit {
+  constructor(x, y, owner) {
+    super(x, y, owner)
+    this.spriteName = 'archer'
+    this.sprite = unitsSprites[this.spriteName]['static']['_0']['s']
+    this.life = 10
+    this.maxLife = this.life
+    applyGameModeModifiers(this)
+    this.attack = 8
+    this.speed = 1.0
+    this.range = 5 * getTileSize()
+    this.attackCooldown = 1500 // ms between arrow shots
+    this.attackTimer = 0
+  }
+
+  /**
+   * Fire a projectile at the goal instead of applying continuous damage.
+   * Inherits kill/XP tracking from CombatUnit via the post-hit life check.
+   */
+  attackEnemy(delay) {
+    this.attackTimer += delay
+    if (this.attackTimer >= this.attackCooldown) {
+      this.attackTimer -= this.attackCooldown
+      if (this.goal?.life > 0) {
+        const SPRITE_SIZE = getTileSize()
+        new Projectile(this.x + SPRITE_SIZE / 2, this.y + SPRITE_SIZE / 2, this.goal, this.attack)
+      }
+    }
+    // Credit kill/XP when the target dies (from a previous arrow hit)
+    if (this.goal?.life <= 0) {
+      this.kills++
+      this.gainExperience(5)
+    }
   }
 }
 

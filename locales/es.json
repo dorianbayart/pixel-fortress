@@ -156,6 +156,11 @@
       "description": "Produce agua",
       "details": "Debe colocarse junto al agua."
     },
+    "archery": {
+      "name": "Arquería",
+      "description": "Entrena arqueros",
+      "details": "Unidad a distancia, buen alcance y daño moderado."
+    },
     "barracks": {
       "name": "Cuartel",
       "description": "Entrena soldados",

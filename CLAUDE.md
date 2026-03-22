@@ -160,6 +160,7 @@ The `plans/` directory contains strategic planning documents for major features 
 - **`plans/ROADMAP.md`**: Development roadmap with planned features and their status
 - **`plans/LICENSING_BUSINESS_MODEL.md`**: Open source licensing strategy and business model (freemium with feature flags)
 - **`plans/STEAM_DEPLOYMENT.md`**: Comprehensive guide for Steam platform deployment
+- **`plans/NEW_BUILDING_NEW_UNIT.md`**: Step-by-step guide for adding a new combat building + unit pair. **Read this before implementing any new building or unit.**
 
 Key areas in progress:
 - Sound effects and background music
