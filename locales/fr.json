@@ -156,6 +156,11 @@
       "description": "Produit de l'eau",
       "details": "Doit être placé près de l'eau."
     },
+    "arcana": {
+      "name": "Arcanes",
+      "description": "Entraîne des mages",
+      "details": "Unité à distance, lance des boules de feu à longue portée."
+    },
     "archery": {
       "name": "Archerie",
       "description": "Entraîne des archers",

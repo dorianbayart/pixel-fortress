@@ -7,7 +7,7 @@ import CONSTANTS from 'constants'
 import gameState, { EventSystem } from 'state'
 import { getMapDimensions } from 'dimensions'
 import { isPositionVisible, isPositionExplored } from 'fogOfWar'
-import { Archer, EliteWarrior, GoldMiner, HeavyInfantry, LumberjackWorker, Peon, PeonSoldier, QuarryMiner, Soldier, WaterCarrier, WorkerUnit } from 'unit'
+import { Archer, EliteWarrior, GoldMiner, HeavyInfantry, LumberjackWorker, Mage, Peon, PeonSoldier, QuarryMiner, Soldier, WaterCarrier, WorkerUnit } from 'unit'
 import { searchPath } from 'pathfinding'
 import { distance } from 'utils'
 
@@ -476,6 +476,7 @@ class Player {
     const wells = buildings.filter(b => b.type === Building.TYPES.WELL).length
     const goldMines = buildings.filter(b => b.type === Building.TYPES.GOLD_MINE).length
     const markets = buildings.filter(b => b.type === Building.TYPES.MARKET).length
+    const arcanas = buildings.filter(b => b.type === Building.TYPES.ARCANA).length
     const archeries = buildings.filter(b => b.type === Building.TYPES.ARCHERY).length
     const barracks = buildings.filter(b => b.type === Building.TYPES.BARRACKS).length
     const armories = buildings.filter(b => b.type === Building.TYPES.ARMORY).length
@@ -534,6 +535,7 @@ class Player {
         if (canBuild(Building.TYPES.GOLD_MINE, goldMines, this.goldTiles.length/2) && this.findBuildingPlacement(Building.TYPES.GOLD_MINE)) return Building.TYPES.GOLD_MINE
         if (canBuild(Building.TYPES.BARRACKS, barracks, 8) && this.findBuildingPlacement(Building.TYPES.BARRACKS)) return Building.TYPES.BARRACKS
         if (canBuild(Building.TYPES.ARCHERY, archeries, 2) && this.findBuildingPlacement(Building.TYPES.ARCHERY)) return Building.TYPES.ARCHERY
+        if (canBuild(Building.TYPES.ARCANA, arcanas, 2) && this.findBuildingPlacement(Building.TYPES.ARCANA)) return Building.TYPES.ARCANA
         if (canBuild(Building.TYPES.ARMORY, armories, 8) && this.findBuildingPlacement(Building.TYPES.ARMORY)) return Building.TYPES.ARMORY
         if (canBuild(Building.TYPES.CITADEL, citadels, 8) && this.findBuildingPlacement(Building.TYPES.CITADEL)) return Building.TYPES.CITADEL
         if (canBuild(Building.TYPES.TENT, tents, 10) && this.findBuildingPlacement(Building.TYPES.TENT)) return Building.TYPES.TENT
@@ -553,6 +555,7 @@ class Player {
         if (canBuild(Building.TYPES.GOLD_MINE, goldMines, this.goldTiles.length) && this.findBuildingPlacement(Building.TYPES.GOLD_MINE)) return Building.TYPES.GOLD_MINE
         if (canBuild(Building.TYPES.BARRACKS, barracks, 5) && this.findBuildingPlacement(Building.TYPES.BARRACKS)) return Building.TYPES.BARRACKS
         if (canBuild(Building.TYPES.ARCHERY, archeries, 2) && this.findBuildingPlacement(Building.TYPES.ARCHERY)) return Building.TYPES.ARCHERY
+        if (canBuild(Building.TYPES.ARCANA, arcanas, 2) && this.findBuildingPlacement(Building.TYPES.ARCANA)) return Building.TYPES.ARCANA
         if (canBuild(Building.TYPES.MARKET, markets, 5) && this.findBuildingPlacement(Building.TYPES.MARKET)) return Building.TYPES.MARKET
         if (canBuild(Building.TYPES.ARMORY, armories, 8) && this.findBuildingPlacement(Building.TYPES.ARMORY)) return Building.TYPES.ARMORY
         if (canBuild(Building.TYPES.CITADEL, citadels, 15) && this.findBuildingPlacement(Building.TYPES.CITADEL)) return Building.TYPES.CITADEL
@@ -703,6 +706,12 @@ class Player {
   addPeonSoldier(x, y) {
     this.units.push(
       new PeonSoldier(x, y, this)
+    )
+  }
+
+  addMage(x, y) {
+    this.units.push(
+      new Mage(x, y, this)
     )
   }
 

@@ -156,6 +156,11 @@
       "description": "Produces water",
       "details": "Must be placed next to water."
     },
+    "arcana": {
+      "name": "Arcana",
+      "description": "Trains mages",
+      "details": "Ranged unit, fires fireballs at long range."
+    },
     "archery": {
       "name": "Archery",
       "description": "Trains archers",

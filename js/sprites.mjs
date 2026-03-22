@@ -1,4 +1,4 @@
-export { UNIT_SPRITE_SIZE, loadAndSplitImage, loadSprites, sprites, unitsSprites, unitsSpritesDescription, unitsMaskTextures, buildingMaskSprites, updateAllTexturesScaleMode }
+export { UNIT_SPRITE_SIZE, loadAndSplitImage, loadSprites, sprites, unitsSprites, unitsSpritesDescription, unitsMaskTextures, buildingMaskSprites, updateAllTexturesScaleMode, fireballTextures }
 
 'use strict'
 
@@ -18,6 +18,9 @@ let buildingMaskSprites = {}
 
 /** Store base textures for dynamic scale mode updates */
 const baseTextures = []
+
+/** Fireball attack animation frames [frame0, frame1, frame2] */
+let fireballTextures = []
 
 /**
  * Get the appropriate scale mode based on antialiasing setting
@@ -95,6 +98,7 @@ const loadSprites = async () => {
   sprites = unitsSprites = unitsSpritesDescription = null
   unitsMaskTextures = {}
   buildingMaskSprites = {}
+  fireballTextures = []
   baseTextures.length = 0  // Clear previous base textures
 
   const baseTexture = await PIXI.Assets.load('./assets/punyworld-overworld-tileset.png')
@@ -222,6 +226,15 @@ const loadSprites = async () => {
         }
       }
     }
+  }
+
+  // Load fireball attack sprite sheet (96x32, 3 frames of 32x32)
+  const fireballBase = await PIXI.Assets.load('./assets/attacks/fireball.png')
+  fireballBase.source.scaleMode = getScaleMode()
+  baseTextures.push(fireballBase)
+  for (let i = 0; i < 3; i++) {
+    const frame = new PIXI.Rectangle(i * 32, 0, 32, 32)
+    fireballTextures.push(new PIXI.Texture({ source: fireballBase.source, frame }))
   }
 
 }

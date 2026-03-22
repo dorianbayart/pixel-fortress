@@ -156,6 +156,11 @@
       "description": "Produziert Wasser",
       "details": "Muss neben Wasser platziert werden."
     },
+    "arcana": {
+      "name": "Arkanum",
+      "description": "Trainiert Magier",
+      "details": "Fernkampfeinheit, schießt Feuerbälle auf große Distanz."
+    },
     "archery": {
       "name": "Bogenschießstand",
       "description": "Trainiert Bogenschützen",

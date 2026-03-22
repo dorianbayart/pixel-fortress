@@ -156,6 +156,11 @@
       "description": "Produce agua",
       "details": "Debe colocarse junto al agua."
     },
+    "arcana": {
+      "name": "Arcanos",
+      "description": "Entrena magos",
+      "details": "Unidad a distancia, lanza bolas de fuego a largo alcance."
+    },
     "archery": {
       "name": "Arquería",
       "description": "Entrena arqueros",

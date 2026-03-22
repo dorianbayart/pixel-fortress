@@ -10,7 +10,7 @@ import { getMapDimensions, getTileSize } from 'dimensions'
 import { updateSprite } from 'game'
 import { ParticleEffect, createParticleEmitter } from 'particles'
 import { searchPath, updateMapInWorker } from 'pathfinding'
-import { Projectile } from 'projectile'
+import { FireballProjectile, Projectile } from 'projectile'
 import { indicatorMap, removeProgressIndicator } from 'renderer'
 import { UNIT_SPRITE_SIZE, unitsSprites, unitsSpritesDescription } from 'sprites'
 import gameState from 'state'
@@ -1651,7 +1651,7 @@ class PeonSoldier extends MeleeUnit {
 
 
 /**
- * Mage unit implementation (ranged magic user)
+ * Mage unit implementation (ranged magic user, fires animated fireballs)
  */
 class Mage extends RangedUnit {
   constructor(x, y, owner) {
@@ -1661,8 +1661,30 @@ class Mage extends RangedUnit {
     this.life = 8
     this.maxLife = this.life // Set maxLife to match life
     applyGameModeModifiers(this)
-    this.attack = 10
-    this.speed = 0.9
+    this.attack = 12
+    this.speed = 0.8
+    this.range = 5 * getTileSize()
+    this.attackCooldown = 2000 // ms between fireball shots
+    this.attackTimer = 0
+  }
+
+  /**
+   * Fire a fireball at the goal instead of applying continuous damage.
+   */
+  attackEnemy(delay) {
+    this.attackTimer += delay
+    if (this.attackTimer >= this.attackCooldown) {
+      this.attackTimer -= this.attackCooldown
+      if (this.goal?.life > 0) {
+        const SPRITE_SIZE = getTileSize()
+        new FireballProjectile(this.x + SPRITE_SIZE / 2, this.y + SPRITE_SIZE / 2, this.goal, this.attack)
+      }
+    }
+    // Credit kill/XP when the target dies (from a previous fireball hit)
+    if (this.goal?.life <= 0) {
+      this.kills++
+      this.gainExperience(5)
+    }
   }
 }
 

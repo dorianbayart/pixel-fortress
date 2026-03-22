@@ -16,13 +16,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-export { Projectile, updateProjectiles, resetProjectiles }
+export { Projectile, FireballProjectile, updateProjectiles, resetProjectiles }
 
 'use strict'
 
 import { getTileSize } from 'dimensions'
 import * as PIXI from 'pixijs'
 import { containers } from 'renderer'
+import { fireballTextures } from 'sprites'
 
 const activeProjectiles = new Set()
 
@@ -111,6 +112,89 @@ class Projectile {
     }
     this.graphics?.destroy()
     this.graphics = null
+  }
+}
+
+/**
+ * An animated fireball projectile fired by a Mage unit.
+ * Uses a 3-frame sprite animation from assets/attacks/fireball.png.
+ */
+class FireballProjectile extends Projectile {
+  /**
+   * @param {number} x - Start pixel X position
+   * @param {number} y - Start pixel Y position
+   * @param {Object} target - Enemy unit or building to fly toward
+   * @param {number} damage - Damage dealt on hit
+   */
+  constructor(x, y, target, damage) {
+    super(x, y, target, damage, getTileSize() * 5)
+
+    // Replace the arrow graphics with an animated sprite
+    if (this.graphics?.parent) {
+      this.graphics.parent.removeChild(this.graphics)
+    }
+    this.graphics?.destroy()
+    this.graphics = null
+
+    this.animFrame = 0
+    this.animTimer = 0
+    this.animSpeed = 120 // ms per frame
+
+    this.sprite = null
+    if (fireballTextures.length > 0) {
+      this.sprite = new PIXI.Sprite(fireballTextures[0])
+      this.sprite.anchor.set(0.5)
+      containers.particles?.addChild(this.sprite)
+      this.sprite.position.set(this.x, this.y)
+    }
+  }
+
+  update(delay) {
+    if (!this.alive) return
+
+    if (this.target.life <= 0) {
+      this.destroy()
+      return
+    }
+
+    // Advance animation
+    this.animTimer += delay
+    while (this.animTimer >= this.animSpeed) {
+      this.animTimer -= this.animSpeed
+      this.animFrame = (this.animFrame + 1) % 3
+    }
+
+    const targetPos = this.getTargetPixelPos()
+    const dx = targetPos.x - this.x
+    const dy = targetPos.y - this.y
+    const dist = Math.sqrt(dx * dx + dy * dy)
+    const hitRadius = getTileSize() * 0.6
+
+    if (dist <= hitRadius) {
+      this.target.life -= this.damage
+      this.destroy()
+      return
+    }
+
+    const moveDistance = this.speed * delay / 1000
+    const ratio = Math.min(moveDistance / dist, 1)
+    this.x += dx * ratio
+    this.y += dy * ratio
+
+    if (this.sprite) {
+      this.sprite.texture = fireballTextures[this.animFrame]
+      this.sprite.position.set(this.x, this.y)
+      this.sprite.rotation = Math.atan2(dy, dx)
+    }
+  }
+
+  destroy() {
+    this.alive = false
+    if (this.sprite?.parent) {
+      this.sprite.parent.removeChild(this.sprite)
+    }
+    this.sprite?.destroy()
+    this.sprite = null
   }
 }
 

@@ -1,4 +1,4 @@
-export { Archery, Building, CombatBuilding, GoldMine, Quarry, Tent, Well, WorkerBuilding, Barracks, Armory, Citadel, Market, Tower }
+export { Arcana, Archery, Building, CombatBuilding, GoldMine, Quarry, Tent, Well, WorkerBuilding, Barracks, Armory, Citadel, Market, Tower }
 
 'use strict'
 
@@ -209,6 +209,22 @@ class Building {
             red: { x: 14, y: 37 },
           },
           sprite: './assets/buildings/well-1.png'
+        },
+        ARCANA: {
+          key: 'arcana',
+          name: 'Arcana',
+          icon: '🔮',
+          costs: { wood: 20, stone: 15, water: 10, gold: 25 },
+          UPGRADES: {
+            benefits: { life: 50, productionSpeed: 10 }
+          },
+          description: 'Trains mages',
+          details: 'Ranged unit, fires fireballs at long range.',
+          sprite_coords: {
+            cyan: { x: 9, y: 34 },
+            red: { x: 9, y: 34 },
+          },
+          sprite: './assets/buildings/cristal-ball.png'
         },
         ARCHERY: {
           key: 'archery',
@@ -637,6 +653,9 @@ class Building {
           break
         case Building.TYPES.MARKET:
           building = new Market(x, y, color, owner)
+          break
+        case Building.TYPES.ARCANA:
+          building = new Arcana(x, y, color, owner)
           break
         case Building.TYPES.ARCHERY:
           building = new Archery(x, y, color, owner)
@@ -1526,6 +1545,40 @@ class Barracks extends CombatBuilding {
         this.owner.addSoldier(spawnLocation.x, spawnLocation.y)
       } else {
         console.warn(`No valid spawn location found for soldier from ${this.type.name} at (${this.x}, ${this.y})`)
+      }
+    }
+  }
+}
+
+/**
+ * Arcana building (magic school) for training mages
+ */
+class Arcana extends CombatBuilding {
+  constructor(x, y, color, owner) {
+    super(x, y, color, owner)
+    this.type = Building.TYPES.ARCANA
+    this.life = 120
+    this.maxLife = 120
+    applyGameModeModifiers(this)
+    this.productionCooldown = 20000 // 20 seconds to train a mage
+  }
+
+  /**
+   * Produce a mage unit
+   */
+  async produceWarrior() {
+    if (this.owner) {
+      const enemy = this.owner.getEnemies()[0]
+      if (!enemy) {
+        console.warn('No enemy tent found to target for combat unit spawn.')
+        return
+      }
+      const target = enemy.currentNode ? enemy.currentNode : enemy
+      const spawnLocation = await findBestSpawnLocation(this.x, this.y, target.x, target.y)
+      if (spawnLocation) {
+        this.owner.addMage(spawnLocation.x, spawnLocation.y)
+      } else {
+        console.warn(`No valid spawn location found for mage from ${this.type.name} at (${this.x}, ${this.y})`)
       }
     }
   }
