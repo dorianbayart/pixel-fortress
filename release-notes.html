@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Release Notes — Pixel Fortress</title>
+  <meta name="description" content="Pixel Fortress release notes — full changelog of every version.">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://dorianbayart.github.io/pixel-fortress/release-notes.html">
+  <meta property="og:title" content="Release Notes — Pixel Fortress">
+  <meta property="og:description" content="Pixel Fortress release notes — full changelog of every version.">
+  <meta property="og:image" content="https://dorianbayart.github.io/pixel-fortress/assets/og-image.png">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/landing.css">
+  <link rel="stylesheet" href="css/release-notes.css">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-logo">
+        <img src="assets/base_512_pixelated.png" alt="Pixel Fortress Logo" width="32" height="32">
+        <span>Pixel Fortress</span>
+      </div>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="play.html" class="btn-play" target="_blank">Play Now</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="rn-hero">
+    <div class="rn-hero-bg"></div>
+    <div class="container rn-hero-content">
+      <img src="assets/base_512_pixelated.png" alt="Pixel Fortress" class="rn-hero-logo">
+      <h1 class="rn-title">Release Notes</h1>
+      <p class="rn-subtitle">Full changelog of every Pixel Fortress version.</p>
+    </div>
+  </section>
+
+  <!-- Release Notes Content -->
+  <main class="rn-main">
+    <div class="container rn-container">
+      <nav class="rn-toc" aria-label="Version index">
+  <h2>Versions</h2>
+  <ul>
+        <li><a href="#v0.0.4" class="rn-toc-latest">⭐ Latest</a></li>
+        <li><a href="#v0.0.4">Version 0.0.4</a></li>
+        <li><a href="#v0.0.3">Version 0.0.3</a></li>
+        <li><a href="#v0.0.2">Version 0.0.2</a></li>
+        <li><a href="#v0.0.1">Version 0.0.1</a></li>
+  </ul>
+</nav>
+
+<div class="rn-version" id="v0.0.4">
+  <div class="rn-version-header">
+    <span class="rn-version-badge latest">Latest</span>
+    <h2 class="rn-version-title">Version 0.0.4</h2>
+    <a class="rn-anchor-link" href="#v0.0.4" aria-label="Link to this version">#</a>
+  </div>
+  <div class="rn-section">
+    <h3 class="rn-section-title">New Features</h3>
+    <ul class="rn-list">
+      <li><span><strong>Towers are here!</strong> Build defensive towers that automatically detect and shoot down approaching enemies — fortify your base and hold the line</span></li>
+      <li><span><strong>Building Specialization</strong>: A simple tower can specialized to Bullet, Rapidfire or Farstrike !</span></li>
+      <li><span><strong>Archers</strong>: Build an Archery to start training Archer units — ranged fighters that keep their distance while dealing sustained damage</span></li>
+      <li><span><strong>Mages</strong>: Build an Arcana to summon Mage units — powerful spellcasters with high damage output</span></li>
+      <li><span><strong>Map Editor</strong>: Create and export your own custom maps — paint terrain tiles, place start positions, and pre-build structures for any player</span></li>
+    </ul>
+  </div>
+  <div class="rn-section">
+    <h3 class="rn-section-title">Localization</h3>
+    <ul class="rn-list">
+      <li><span><strong>Multi-language support</strong>: The game is now available in 4 languages — English, French, German, and Spanish</span></li>
+      <li><span><strong>Language selector</strong>: Choose your preferred language directly from the Options menu — preference is saved across sessions</span></li>
+    </ul>
+  </div>
+  <div class="rn-section">
+    <h3 class="rn-section-title">Visuals</h3>
+    <ul class="rn-list">
+      <li><span><strong>Fresh look</strong>: UI got stunning new artwork</span></li>
+      <li><span><strong>Pixel-art UI</strong>: All menus reworked with consistent pixel-art styling — sharp edges, gold borders, and pixelated controls throughout</span></li>
+    </ul>
+  </div>
+</div>
+
+<div class="rn-version" id="v0.0.3">
+  <div class="rn-version-header">
+    <h2 class="rn-version-title">Version 0.0.3</h2>
+    <a class="rn-anchor-link" href="#v0.0.3" aria-label="Link to this version">#</a>
+  </div>
+  <div class="rn-section">
+    <h3 class="rn-section-title">Major Improvements</h3>
+    <ul class="rn-list">
+      <li><span><strong>Renderer Rework</strong>: Complete renderer overhaul achieving full 60 FPS even on huge maps</span></li>
+      <li><span><strong>PixiJS v8.15</strong>: Upgraded to latest PixiJS version with improved text rendering</span></li>
+      <li><span><strong>FPS Limit Option</strong>: Added configurable FPS limit in game options</span></li>
+    </ul>
+  </div>
+  <div class="rn-section">
+    <h3 class="rn-section-title">Performance Optimizations</h3>
+    <ul class="rn-list">
+      <li><span>Reworked viewport tile visibility calculations for significant performance gains</span></li>
+      <li><span>Optimized water sprite updates in game loop</span></li>
+      <li><span>Improved sprite cleanup in background drawing logic</span></li>
+      <li><span>Reduced viewport buffer size for better memory usage</span></li>
+      <li><span>Enhanced zoom factors for smoother camera control</span></li>
+    </ul>
+  </div>
+  <div class="rn-section">
+    <h3 class="rn-section-title">Bug Fixes</h3>
+    <ul class="rn-list">
+      <li><span>Fixed UI glitches when restarting the game</span></li>
+      <li><span>Fixed text rendering issues after PixiJS upgrade</span></li>
+      <li><span>Removed unnecessary viewport updates</span></li>
+    </ul>
+  </div>
+  <div class="rn-section">
+    <h3 class="rn-section-title">UI/UX</h3>
+    <ul class="rn-list">
+      <li><span>Add a Fullscreen toggle button</span></li>
+      <li><span>Rewrote and improved landing page texts with CSS refinements</span></li>
+      <li><span>Simplified viewport movement controls</span></li>
+    </ul>
+  </div>
+</div>
+
+<div class="rn-version" id="v0.0.2">
+  <div class="rn-version-header">
+    <h2 class="rn-version-title">Version 0.0.2</h2>
+    <a class="rn-anchor-link" href="#v0.0.2" aria-label="Link to this version">#</a>
+  </div>
+  <div class="rn-section">
+    <h3 class="rn-section-title">New Features</h3>
+    <ul class="rn-list">
+      <li><span><strong>Game Modes</strong>: Three new gameplay modes - Classic, One Shot (1 HP units), and Turbo Gatherer (5x resource speed)</span></li>
+      <li><span><strong>Animated Water</strong>: Fully animated water sprites with expanded tileset</span></li>
+      <li><span><strong>Huge Maps</strong>: New &quot;Huge&quot; map size + billion possible seeds (1,000,000,000 unique maps!)</span></li>
+      <li><span><strong>Skirmish menu</strong>: Rework the menu to implement a &quot;Skirmish&quot; mode</span></li>
+      <li><span><strong>Predefined Maps</strong>: Preview and play curated maps</span></li>
+      <li><span><strong>High Quality Parameter</strong>: Add a High Quality parameter for very fine resolution</span></li>
+    </ul>
+  </div>
+  <div class="rn-section">
+    <h3 class="rn-section-title">Optimizations</h3>
+    <ul class="rn-list">
+      <li><span><strong>Exploration</strong>: Unexplored tiles are now carefully choosen, let's reveal the map !</span></li>
+      <li><span><strong>Wood harvest</strong>: Trees selection is more efficient</span></li>
+    </ul>
+  </div>
+  <div class="rn-section">
+    <h3 class="rn-section-title">Performance</h3>
+    <ul class="rn-list">
+      <li><span>Optimized pathfinding logic to prevent spikes and unit freezes</span></li>
+      <li><span>Improved fog of war and progress indicator rendering</span></li>
+    </ul>
+  </div>
+  <div class="rn-section">
+    <h3 class="rn-section-title">Bug Fixes</h3>
+    <ul class="rn-list">
+      <li><span>Fixed health bar display</span></li>
+      <li><span>Fixed so many bugs...</span></li>
+    </ul>
+  </div>
+</div>
+
+<div class="rn-version" id="v0.0.1">
+  <div class="rn-version-header">
+    <h2 class="rn-version-title">Version 0.0.1</h2>
+    <a class="rn-anchor-link" href="#v0.0.1" aria-label="Link to this version">#</a>
+  </div>
+  <p>This is the first release of Pixel Fortress ! ✨ Already fully playable and ready for testing.</p>
+  <p>Thank you for playing!</p>
+  <div class="rn-section">
+    <h3 class="rn-section-title">Features</h3>
+    <ul class="rn-list">
+      <li><span><strong>Landing Page</strong>: Dedicated landing page at index.html, game at play.html</span></li>
+      <li><span><strong>CI/CD</strong>: Automated builds for Windows and Linux (MacOS build is broken at this time)</span></li>
+      <li><span><strong>Minimap</strong>: Overview of the entire game world</span></li>
+      <li><span><strong>Health Bars</strong>: Optional health bar display on damaged units</span></li>
+      <li><span><strong>Fog of War</strong>: Visibility system with explorer units</span></li>
+      <li><span><strong>Smart Map Generation</strong>: Intelligent tent placement ensuring all seeds are valid</span></li>
+    </ul>
+  </div>
+</div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-section">
+          <h4>Pixel Fortress</h4>
+          <p>2D auto-battler strategy game for your browser.</p>
+          <p>Licensed under GPL-3.0-or-later.</p>
+        </div>
+        <div class="footer-section">
+          <h4>Quick Links</h4>
+          <ul>
+            <li><a href="play.html" target="_blank">Play Now</a></li>
+            <li><a href="https://github.com/dorianbayart/pixel-fortress" target="_blank">GitHub</a></li>
+            <li><a href="https://github.com/dorianbayart/pixel-fortress/releases" target="_blank">Downloads</a></li>
+            <li><a href="https://github.com/dorianbayart/pixel-fortress/blob/main/LICENSE" target="_blank">License</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h4>Resources</h4>
+          <ul>
+            <li><a href="https://github.com/dorianbayart/pixel-fortress/blob/main/README.md" target="_blank">Documentation</a></li>
+            <li><a href="https://github.com/dorianbayart/pixel-fortress/blob/main/CONTRIBUTING.md" target="_blank">Contribute</a></li>
+            <li><a href="https://github.com/dorianbayart/pixel-fortress/issues" target="_blank">Report a Bug</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h4>Community</h4>
+          <ul>
+            <li><a href="https://github.com/dorianbayart/pixel-fortress/discussions" target="_blank">Discussions</a></li>
+            <li><a href="https://github.com/dorianbayart" target="_blank">Developer</a></li>
+            <li><a href="https://ko-fi.com/0xdba" target="_blank" rel="noopener noreferrer">Support on Ko-fi</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© Dorian Bayart — Pixel Fortress is open source under GPL-3.0-or-later.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/landing.js"></script>
+  <script src="js/release-notes.js"></script>
+</body>
+</html>

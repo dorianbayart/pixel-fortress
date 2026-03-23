@@ -12,6 +12,7 @@
     "features": "Features",
     "pricing": "Pricing",
     "opensource": "Open Source",
+    "releaseNotes": "Release Notes",
     "github": "GitHub",
     "playNow": "Play Now"
   },
@@ -23,7 +24,8 @@
     "ctaSecondary": "Wishlist on Steam (Soon)",
     "note": "No download required • Play in browser • Full GPL v3 source code",
     "githubStar": "⭐ Star on GitHub",
-    "kofiSupport": "☕ Support on Ko-fi"
+    "kofiSupport": "☕ Support on Ko-fi",
+    "releaseNotes": "What's new? View the latest release notes →"
   },
   "preview": {
     "heading": "Strategy Without the Grind",
@@ -163,6 +165,7 @@
     "quickLinks": "Quick Links",
     "playNow": "Play Now",
     "github": "GitHub",
+    "releaseNotes": "Release Notes",
     "downloads": "Downloads",
     "licenseLink": "License",
     "resources": "Resources",

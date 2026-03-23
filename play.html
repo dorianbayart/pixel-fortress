@@ -54,7 +54,7 @@
       // Add Font to document
       document.fonts.add(f)
       // Hide loader when fonts are ready
-      document.getElementById('progressBar').style.opacity = 0
+      if(document.getElementById('progressBar')) document.getElementById('progressBar').style.opacity = 0
       setTimeout(() => {
         document.getElementById('progressBar').style.display = 'none'
         document.getElementById('mainMenuButtons').style.opacity = 1

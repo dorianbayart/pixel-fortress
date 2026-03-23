@@ -154,7 +154,7 @@ a:hover {
   align-items: center;
   gap: var(--spacing-sm);
   font-family: var(--font-heading);
-  font-size: 1.5rem;
+  font-size: max(1.2rem, 2.25dvw);
   color: var(--color-accent);
 }
 
@@ -201,27 +201,83 @@ a:hover {
 }
 
 .nav-lang {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
   margin-left: var(--spacing-sm);
 }
 
-.nav-lang a {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  text-decoration: none;
-  padding: var(--spacing-xs) var(--spacing-xs);
-  border-radius: var(--radius-sm);
+.lang-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
   border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: var(--spacing-xs);
   transition: all var(--transition-fast);
   letter-spacing: 0.05em;
 }
 
-.nav-lang a:hover {
+.lang-btn:hover,
+.nav-lang.open .lang-btn {
   color: var(--color-accent);
   border-color: var(--color-accent);
+}
+
+.lang-arrow {
+  font-size: 0.65rem;
+  transition: transform var(--transition-fast);
+  line-height: 1;
+}
+
+.nav-lang.open .lang-arrow {
+  transform: rotate(180deg);
+}
+
+.lang-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  background: rgba(26, 26, 26, 0.98);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  min-width: 110px;
+  z-index: 1100;
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+
+.nav-lang.open .lang-dropdown {
+  display: block;
+}
+
+.lang-dropdown a {
+  display: block;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+  text-decoration: none;
+  letter-spacing: 0.05em;
+}
+
+.lang-dropdown a:hover {
+  background: rgba(255, 215, 0, 0.1);
+  color: var(--color-accent);
+}
+
+.lang-dropdown a.active {
+  background: rgba(255, 215, 0, 0.07);
+  color: var(--color-accent);
+  font-weight: 700;
 }
 
 .nav-toggle {
@@ -285,8 +341,8 @@ a:hover {
 }
 
 .hero-logo {
-  width: 256px;
-  height: 256px;
+  width: max(12dvh, 120px);
+  height: max(12dvh, 120px);
   image-rendering: pixelated;
   margin-bottom: var(--spacing-md);
   filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.6));
@@ -299,7 +355,7 @@ a:hover {
     filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.6));
   }
   50% {
-    transform: scale(1.05);
+    transform: scale(1.08);
     filter: drop-shadow(0 0 50px rgba(255, 215, 0, 0.8));
   }
 }
@@ -354,6 +410,22 @@ a:hover {
   gap: 1rem;
   justify-content: center;
   flex-wrap: wrap;
+}
+
+.hero-release-link {
+  margin-top: var(--spacing-sm);
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.hero-release-link a {
+  color: rgba(255, 255, 255, 0.55);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.hero-release-link a:hover {
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .github-star-link {
@@ -1073,6 +1145,10 @@ a:hover {
   }
 
   /* Navigation */
+  .nav-container {
+    padding: var(--spacing-sm);
+  }
+
   .nav-links {
     display: none;
     position: absolute;
@@ -1104,11 +1180,6 @@ a:hover {
     min-height: 80vh;
   }
 
-  .hero-logo {
-    width: 150px;
-    height: 150px;
-  }
-
   .hero-title {
     font-size: 2.5rem;
   }
@@ -1127,7 +1198,7 @@ a:hover {
   }
 
   .btn-large {
-    padding: var(--spacing-md);
+    padding: var(--spacing-sm);
     font-size: 1.1rem;
     width: 100%;
   }
@@ -1159,11 +1230,6 @@ a:hover {
 
 /* Small mobile */
 @media (max-width: 480px) {
-  .hero-logo {
-    width: 120px;
-    height: 120px;
-  }
-
   .hero-title {
     font-size: 2rem;
   }

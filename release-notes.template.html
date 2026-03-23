@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Release Notes — Pixel Fortress</title>
+  <meta name="description" content="Pixel Fortress release notes — full changelog of every version.">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://dorianbayart.github.io/pixel-fortress/release-notes.html">
+  <meta property="og:title" content="Release Notes — Pixel Fortress">
+  <meta property="og:description" content="Pixel Fortress release notes — full changelog of every version.">
+  <meta property="og:image" content="https://dorianbayart.github.io/pixel-fortress/assets/og-image.png">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/landing.css">
+  <link rel="stylesheet" href="css/release-notes.css">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-logo">
+        <img src="assets/base_512_pixelated.png" alt="Pixel Fortress Logo" width="32" height="32">
+        <span>Pixel Fortress</span>
+      </div>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="play.html" class="btn-play" target="_blank">Play Now</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="rn-hero">
+    <div class="rn-hero-bg"></div>
+    <div class="container rn-hero-content">
+      <img src="assets/base_512_pixelated.png" alt="Pixel Fortress" class="rn-hero-logo">
+      <h1 class="rn-title">Release Notes</h1>
+      <p class="rn-subtitle">Full changelog of every Pixel Fortress version.</p>
+    </div>
+  </section>
+
+  <!-- Release Notes Content -->
+  <main class="rn-main">
+    <div class="container rn-container">
+      {{releaseNotesHtml}}
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-section">
+          <h4>Pixel Fortress</h4>
+          <p>2D auto-battler strategy game for your browser.</p>
+          <p>Licensed under GPL-3.0-or-later.</p>
+        </div>
+        <div class="footer-section">
+          <h4>Quick Links</h4>
+          <ul>
+            <li><a href="play.html" target="_blank">Play Now</a></li>
+            <li><a href="https://github.com/dorianbayart/pixel-fortress" target="_blank">GitHub</a></li>
+            <li><a href="https://github.com/dorianbayart/pixel-fortress/releases" target="_blank">Downloads</a></li>
+            <li><a href="https://github.com/dorianbayart/pixel-fortress/blob/main/LICENSE" target="_blank">License</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h4>Resources</h4>
+          <ul>
+            <li><a href="https://github.com/dorianbayart/pixel-fortress/blob/main/README.md" target="_blank">Documentation</a></li>
+            <li><a href="https://github.com/dorianbayart/pixel-fortress/blob/main/CONTRIBUTING.md" target="_blank">Contribute</a></li>
+            <li><a href="https://github.com/dorianbayart/pixel-fortress/issues" target="_blank">Report a Bug</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h4>Community</h4>
+          <ul>
+            <li><a href="https://github.com/dorianbayart/pixel-fortress/discussions" target="_blank">Discussions</a></li>
+            <li><a href="https://github.com/dorianbayart" target="_blank">Developer</a></li>
+            <li><a href="https://ko-fi.com/0xdba" target="_blank" rel="noopener noreferrer">Support on Ko-fi</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© Dorian Bayart — Pixel Fortress is open source under GPL-3.0-or-later.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/landing.js"></script>
+  <script src="js/release-notes.js"></script>
+</body>
+</html>

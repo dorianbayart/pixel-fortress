@@ -12,6 +12,7 @@
     "features": "Features",
     "pricing": "Preise",
     "opensource": "Open Source",
+    "releaseNotes": "Versionshinweise",
     "github": "GitHub",
     "playNow": "Spielen"
   },
@@ -23,7 +24,8 @@
     "ctaSecondary": "Steam-Wunschliste (bald)",
     "note": "Kein Download nötig • Im Browser spielen • Vollständiger GPL v3 Quellcode",
     "githubStar": "⭐ Auf GitHub vormerken",
-    "kofiSupport": "☕ Unterstützen auf Ko-fi"
+    "kofiSupport": "☕ Unterstützen auf Ko-fi",
+    "releaseNotes": "Was ist neu? Versionshinweise lesen →"
   },
   "preview": {
     "heading": "Strategie ohne Routine",
@@ -163,6 +165,7 @@
     "quickLinks": "Schnelllinks",
     "playNow": "Spielen",
     "github": "GitHub",
+    "releaseNotes": "Versionshinweise",
     "downloads": "Downloads",
     "licenseLink": "Lizenz",
     "resources": "Ressourcen",

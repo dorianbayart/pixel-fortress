@@ -12,6 +12,7 @@
     "features": "Características",
     "pricing": "Precios",
     "opensource": "Código Abierto",
+    "releaseNotes": "Notas de versión",
     "github": "GitHub",
     "playNow": "Jugar"
   },
@@ -23,7 +24,8 @@
     "ctaSecondary": "Lista de deseos en Steam (pronto)",
     "note": "Sin descarga • Juega en el navegador • Código fuente completo GPL v3",
     "githubStar": "⭐ Star en GitHub",
-    "kofiSupport": "☕ Apoyar en Ko-fi"
+    "kofiSupport": "☕ Apoyar en Ko-fi",
+    "releaseNotes": "¿Qué hay de nuevo? Ver las notas de versión →"
   },
   "preview": {
     "heading": "Estrategia sin lo tedioso",
@@ -163,6 +165,7 @@
     "quickLinks": "Enlaces rápidos",
     "playNow": "Jugar",
     "github": "GitHub",
+    "releaseNotes": "Notas de versión",
     "downloads": "Descargas",
     "licenseLink": "Licencia",
     "resources": "Recursos",

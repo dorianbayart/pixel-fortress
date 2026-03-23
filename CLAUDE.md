@@ -17,6 +17,7 @@ The project can run:
 - The game is launched by opening `play.html` directly in a browser or via `npm run start` for Electron. The `index.html` file serves as the landing/marketing page.
 - Run tests with `npm run test` before submitting changes.
 - **IMPORTANT — Landing pages:** Never edit `index.html`, `fr/index.html`, `de/index.html`, or `es/index.html` directly. These are auto-generated from `index.template.html` + `locales/landing/*.json`. Always edit the template and/or locale data files, then rebuild with `node scripts/build-landing.js`.
+- **IMPORTANT — Release notes page:** Never edit `release-notes.html` directly. It is auto-generated from `release-notes.template.html` + `RELEASE_NOTES.md`. Always edit those source files, then rebuild with `node scripts/build-release-notes.js` (or `npm run build-release-notes`). The `{{version}}` placeholder in `RELEASE_NOTES.md` is resolved from `package.json` at build time.
 
 ## Coding Style & Conventions
 

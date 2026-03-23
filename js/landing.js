@@ -17,9 +17,9 @@ function initMobileNav() {
       // Animate hamburger icon
       const spans = navToggle.querySelectorAll('span')
       if (navToggle.classList.contains('active')) {
-        spans[0].style.transform = 'rotate(45deg) translateY(10px)'
+        spans[0].style.transform = 'rotate(45deg) translateY(5px) translateX(5px)'
         spans[1].style.opacity = '0'
-        spans[2].style.transform = 'rotate(-45deg) translateY(-10px)'
+        spans[2].style.transform = 'rotate(-45deg) translateY(-5px) translateX(5px)'
       } else {
         spans[0].style.transform = 'none'
         spans[1].style.opacity = '1'
@@ -349,12 +349,92 @@ function initLazyLoad() {
 }
 
 // ============================================
+// Language Dropdown
+// convertIsoCodeToEmoji: https://github.com/dorianbayart/sandbox
+// ============================================
+function convertIsoCodeToEmoji(code) {
+  return code
+    .split('')
+    .map(letter => letter.charCodeAt(0) % 32 + 0x1F1E5)
+    .map(n => String.fromCodePoint(n))
+    .join('')
+}
+
+// Maps language codes that differ from their country codes
+const LANG_TO_COUNTRY = { en: 'gb' }
+
+function initLangDropdown() {
+  const navLang = document.querySelector('.nav-lang')
+  const langBtn = document.querySelector('.lang-btn')
+  const langDropdown = document.querySelector('.lang-dropdown')
+  if (!navLang || !langBtn || !langDropdown) return
+
+  const currentLang = (langBtn.dataset.lang || document.documentElement.lang || 'en').split('-')[0].toLowerCase()
+
+  // Populate dropdown options with emoji flags
+  const options = langDropdown.querySelectorAll('a[data-lang]')
+  options.forEach(opt => {
+    const code = opt.dataset.lang
+    const countryCode = LANG_TO_COUNTRY[code] || code
+    opt.textContent = `${convertIsoCodeToEmoji(countryCode)} ${code.toUpperCase()}`
+    if (code === currentLang) opt.classList.add('active')
+  })
+
+  // Update button label with current language flag
+  const currentSpan = langBtn.querySelector('.lang-current')
+  if (currentSpan) {
+    const currentCountry = LANG_TO_COUNTRY[currentLang] || currentLang
+    currentSpan.textContent = `${convertIsoCodeToEmoji(currentCountry)} ${currentLang.toUpperCase()}`
+  }
+
+  // Toggle on button click
+  langBtn.addEventListener('click', (e) => {
+    e.stopPropagation()
+    const isOpen = navLang.classList.toggle('open')
+    langBtn.setAttribute('aria-expanded', String(isOpen))
+  })
+
+  // Close when clicking outside
+  document.addEventListener('click', () => {
+    navLang.classList.remove('open')
+    langBtn.setAttribute('aria-expanded', 'false')
+  })
+}
+
+// ============================================
+// Language Persistence
+// Saves the current page language to localStorage so other pages
+// (e.g. release-notes.html) can link back to the right locale.
+// The in-game i18n system uses the same key: pixelFortress.language
+// ============================================
+function savePageLanguage() {
+  // Only persist language from actual landing pages (URLs ending in / or index.html).
+  // Other pages that load landing.js (e.g. release-notes.html) must not overwrite
+  // the preference that was set by the localized landing page.
+  const path = window.location.pathname
+  if (!path.endsWith('/') && !path.endsWith('index.html')) return
+  try {
+    const lang = document.documentElement.lang
+    if (lang && lang !== '') {
+      // Normalise "fr-FR" → "fr" etc.
+      const code = lang.split('-')[0].toLowerCase()
+      localStorage.setItem('pixelFortress.language', code)
+    }
+  } catch (e) {
+    // localStorage may be unavailable (private browsing, etc.)
+  }
+}
+
+// ============================================
 // Initialize on Page Load
 // ============================================
 function init() {
   console.log('Pixel Fortress Landing Page - Initializing...')
 
+  savePageLanguage()
+
   // Core functionality
+  initLangDropdown()
   initMobileNav()
   initFAQ()
   initSmoothScroll()

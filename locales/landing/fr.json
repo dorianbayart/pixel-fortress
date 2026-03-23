@@ -12,6 +12,7 @@
     "features": "Fonctionnalités",
     "pricing": "Tarifs",
     "opensource": "Open Source",
+    "releaseNotes": "Notes de version",
     "github": "GitHub",
     "playNow": "Jouer"
   },
@@ -23,7 +24,8 @@
     "ctaSecondary": "Liste de souhaits Steam (bientôt)",
     "note": "Sans téléchargement • Jouez dans le navigateur • Code source GPL v3 complet",
     "githubStar": "⭐ Star sur GitHub",
-    "kofiSupport": "☕ Soutenir sur Ko-fi"
+    "kofiSupport": "☕ Soutenir sur Ko-fi",
+    "releaseNotes": "Quoi de neuf ? Voir les notes de version →"
   },
   "preview": {
     "heading": "La stratégie sans la routine",
@@ -163,6 +165,7 @@
     "quickLinks": "Liens rapides",
     "playNow": "Jouer",
     "github": "GitHub",
+    "releaseNotes": "Notes de version",
     "downloads": "Téléchargements",
     "licenseLink": "Licence",
     "resources": "Ressources",
