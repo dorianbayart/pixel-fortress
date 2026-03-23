@@ -63,6 +63,7 @@ Unit (base class)
 │   │   └── HeavyInfantry
 │   │   └── EliteWarrior
 │   └── RangedUnit (attacks from distance)
+│       └── Archer
 │       └── Mage
 
 */
