@@ -192,15 +192,15 @@
       "details": "Attacks nearby enemies."
     },
     "bulletTower": {
-      "name": "Bullet Tower",
+      "name": "Bullet",
       "description": "Balanced - medium attack, speed and range"
     },
     "rapidTower": {
-      "name": "Rapid Tower",
+      "name": "Rapidfire",
       "description": "Fast attacks, short range, lower damage"
     },
     "sniperTower": {
-      "name": "Sniper Tower",
+      "name": "Farstrike",
       "description": "Slow but hits hard at very long range"
     }
   },

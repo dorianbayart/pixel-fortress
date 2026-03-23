@@ -64,7 +64,7 @@ Details: Accelerated resource gathering (5x faster) allows for rapid base expans
 - [x] **Tower Upgrades:** Allow players to upgrade towers to increase their effectiveness.
 - [x] **Building Upgrades:** Allow players to upgrade buildings to increase their capacity.  
 Details: Can affect more workers, can produce quicklyer units, etc.
-- [x] **Building Specialization:** Upgrades open branching paths — buildings evolve into specialized variants (e.g. Tower → Bullet, Rapid or Sniper Tower).
+- [x] **Building Specialization:** Upgrades open branching paths — buildings evolve into specialized variants (e.g. Tower → Bullet, Rapidfire or Farstrike).
 - [ ] **Global Upgrades:** Implement upgrades that affect the entire game (e.g., increased resource gain). *(Not Planned)*  
 Details: this will come with a new building: the University.
 

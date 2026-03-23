@@ -192,15 +192,15 @@
       "details": "Greift nahe Feinde an."
     },
     "bulletTower": {
-      "name": "Kugel-Turm",
+      "name": "Schuss",
       "description": "Ausgewogen - mittlerer Angriff, Geschwindigkeit und Reichweite"
     },
     "rapidTower": {
-      "name": "Schnell-Turm",
+      "name": "Salve",
       "description": "Schnelle Angriffe, kurze Reichweite, geringerer Schaden"
     },
     "sniperTower": {
-      "name": "Sniper-Turm",
+      "name": "Fernschuss",
       "description": "Langsam aber trifft hart auf sehr lange Reichweite"
     }
   },

@@ -192,15 +192,15 @@
       "details": "Ataca a los enemigos cercanos."
     },
     "bulletTower": {
-      "name": "Torre Bala",
+      "name": "Proyectil",
       "description": "Equilibrada - ataque, velocidad y alcance medios"
     },
     "rapidTower": {
-      "name": "Torre rápida",
+      "name": "Ráfaga",
       "description": "Ataques rápidos, corto alcance, menor daño"
     },
     "sniperTower": {
-      "name": "Torre Sniper",
+      "name": "Lejano",
       "description": "Lenta pero muy poderosa a muy largo alcance"
     }
   },

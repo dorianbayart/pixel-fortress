@@ -315,7 +315,7 @@ class Building {
             {
               key: 'bulletTower',
               typeName: 'BULLET_TOWER',
-              name: 'Bullet Tower',
+              name: 'Bullet',
               icon: '🗼',
               description: 'Balanced - medium attack, speed and range',
               costs: { wood: 50, stone: 60, gold: 20 },
@@ -324,7 +324,7 @@ class Building {
             {
               key: 'rapidTower',
               typeName: 'RAPID_TOWER',
-              name: 'Rapid Tower',
+              name: 'Rapidfire',
               icon: '🗼',
               description: 'Fast attacks, short range, lower damage',
               costs: { wood: 40, stone: 30, gold: 20 },
@@ -333,7 +333,7 @@ class Building {
             {
               key: 'sniperTower',
               typeName: 'SNIPER_TOWER',
-              name: 'Sniper Tower',
+              name: 'Farstrike',
               icon: '🎯',
               description: 'Slow but hits hard at very long range',
               costs: { wood: 30, stone: 80, gold: 40 },
@@ -341,7 +341,7 @@ class Building {
             }
           ],
           description: "Defensive tower that attacks enemies",
-          details: "Specialize into Bullet, Rapid or Sniper tower.",
+          details: "Specialize into Bullet, Rapidfire or Farstrike.",
           sprite_coords: {
             cyan: { x: 15, y: 26 },
             red: { x: 15, y: 26 },
@@ -350,7 +350,7 @@ class Building {
         },
         BULLET_TOWER: {
           key: 'bulletTower',
-          name: "Bullet Tower",
+          name: "Bullet",
           icon: "🗼",
           costs: { wood: 30, stone: 40, gold: 20 },
           UPGRADES: {
@@ -366,7 +366,7 @@ class Building {
         },
         RAPID_TOWER: {
           key: 'rapidTower',
-          name: "Rapid Tower",
+          name: "Rapidfire",
           icon: "🗼",
           costs: { wood: 20, stone: 20, gold: 15 },
           UPGRADES: {
@@ -382,7 +382,7 @@ class Building {
         },
         SNIPER_TOWER: {
           key: 'sniperTower',
-          name: "Sniper Tower",
+          name: "Farstrike",
           icon: "🎯",
           costs: { wood: 20, stone: 60, gold: 30 },
           UPGRADES: {

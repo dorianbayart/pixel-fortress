@@ -192,15 +192,15 @@
       "details": "Attaque les ennemis proches."
     },
     "bulletTower": {
-      "name": "Tour à balles",
+      "name": "Perceur",
       "description": "Équilibrée - attaque, vitesse et portée moyennes"
     },
     "rapidTower": {
-      "name": "Tour rapide",
+      "name": "Rafale",
       "description": "Attaques rapides, courte portée, dégâts réduits"
     },
     "sniperTower": {
-      "name": "Tour sniper",
+      "name": "Tirlong",
       "description": "Lente mais très puissante à très longue portée"
     }
   },

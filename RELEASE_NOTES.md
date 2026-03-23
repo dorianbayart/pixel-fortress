@@ -4,7 +4,7 @@
 
 ### New Features
 - **Towers are here!** Build defensive towers that automatically detect and shoot down approaching enemies — fortify your base and hold the line
-- **Building Specialization**: A simple tower can specialized to Bullet, Rapid or Sniper Tower !
+- **Building Specialization**: A simple tower can specialized to Bullet, Rapidfire or Farstrike !
 - **Map Editor**: Create and export your own custom maps — paint terrain tiles, place start positions, and pre-build structures for any player
 
 ### Localization
