@@ -1613,9 +1613,46 @@ class CombatUnit extends Unit {
 class MeleeUnit extends CombatUnit {
   constructor(x, y, owner) {
     super(x, y, owner)
-    
+
     // Melee units have shorter range but higher health
     this.range = 0.75 * getTileSize()
+    this.attackCooldown = 1000 // ms between strikes
+    this.attackTimer = 0
+  }
+
+  /**
+   * Melee attack with cooldown-based discrete hits (mirrors RangedUnit pattern).
+   * Damage = this.attack per strike, applied when attackTimer reaches attackCooldown.
+   */
+  attackEnemy(delay) {
+    this.attackTimer += delay
+    if (this.attackTimer >= this.attackCooldown) {
+      this.attackTimer -= this.attackCooldown
+      if (this.goal?.life > 0) {
+        this.goal.life -= this.attack
+
+        const SPRITE_SIZE = getTileSize()
+        let targetX, targetY
+        if (this.goal.currentNode) {
+          targetX = this.goal.x
+          targetY = this.goal.y
+        } else {
+          targetX = this.goal.x * SPRITE_SIZE
+          targetY = this.goal.y * SPRITE_SIZE
+        }
+        createParticleEmitter(ParticleEffect.UNIT_ATTACK, {
+          x: targetX + SPRITE_SIZE / 2,
+          y: targetY + SPRITE_SIZE / 2,
+          duration: 500,
+        })
+      }
+    }
+
+    // Credit kill/XP when the target dies
+    if (this.goal?.life <= 0) {
+      this.kills++
+      this.gainExperience(5)
+    }
   }
 }
 
