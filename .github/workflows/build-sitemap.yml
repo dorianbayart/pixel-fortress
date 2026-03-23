@@ -1,0 +1,42 @@
+name: Build Sitemap
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'index.template.html'
+      - 'locales/landing/**'
+      - 'play.html'
+      - 'RELEASE_NOTES.md'
+      - 'release-notes.template.html'
+      - 'scripts/build-sitemap.js'
+      - 'package.json'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # full history needed for accurate git lastmod dates
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build sitemap
+        run: node scripts/build-sitemap.js
+
+      - name: Commit sitemap
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add sitemap.xml
+          git diff --cached --quiet || git commit -m "chore: rebuild sitemap.xml [skip ci]"
+          git push
