@@ -1005,17 +1005,18 @@ async function displayBuildingInfo(building) {
       })
       bottomBarContainer.addChild(btnBg)
 
-      // Branch name
+      // Branch name - centered horizontally for consistent padding
       const branchName = branch.key ? t(`buildings.${branch.key}.name`) : branch.name
-      const nameT = createText(branchName, TEXT_STYLES.buildingName, 6)
-      nameT.position.set(bx + 4, by + 2)
+      const nameT = createText(branchName, TEXT_STYLES.buildingName, 10)
+      nameT.anchor.set(0.5, 0)
+      nameT.position.set(bx + btnWidth / 2, by + 4)
       bottomBarContainer.addChild(nameT)
 
       // Stats line
       const s = branch.initialStats
       const statsLabel = `${t('ui.atk')}:${s.attackDamage}  ${t('ui.spd')}:${(1000/s.attackCooldown).toFixed(1)}/s  Rng:${s.attackRangeTiles}t`
       const statsT = createText(statsLabel, TEXT_STYLES.buildingInfoBlue, 6)
-      statsT.position.set(bx + 4, by + 4 + nameT.height)
+      statsT.position.set(bx + 4, by + 4 + (TEXT_STYLES.buildingName.fontSize || 20) + 4)
       bottomBarContainer.addChild(statsT)
 
       // Cost line
