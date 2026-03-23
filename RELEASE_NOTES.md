@@ -5,6 +5,8 @@
 ### New Features
 - **Towers are here!** Build defensive towers that automatically detect and shoot down approaching enemies — fortify your base and hold the line
 - **Building Specialization**: A simple tower can specialized to Bullet, Rapidfire or Farstrike !
+- **Archers**: Build an Archery to start training Archer units — ranged fighters that keep their distance while dealing sustained damage
+- **Mages**: Build an Arcana to summon Mage units — powerful spellcasters with high damage output
 - **Map Editor**: Create and export your own custom maps — paint terrain tiles, place start positions, and pre-build structures for any player
 
 ### Localization

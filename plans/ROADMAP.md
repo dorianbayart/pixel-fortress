@@ -24,8 +24,8 @@ Details: The AI builds structures and manages units similarly to the player.
 - [x] **Tower Placement:** Allow players to strategically place towers.
 - [x] **Tower Attacks:** Towers automatically attack enemies within their range.
 - [x] **Explorer:** Add an explorer that will be able to move around the map.
-- [ ] **Archery:** Add Archery building to produce archer units.
-- [ ] **Mage:** Add Mage building to produce mage units.
+- [x] **Archery:** Add Archery building to produce archer units.
+- [x] **Mage:** Add Mage building to produce mage units.
 
 
 ## User Interface
