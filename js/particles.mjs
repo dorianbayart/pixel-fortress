@@ -30,7 +30,8 @@ const ParticleEffect = {
   UNIT_ATTACK: 'unit_attack',
   UNIT_DEATH: 'unit_death',
   UI_BUTTON_CLICK: 'ui_button_click',
-  FIREBALL_IMPACT: 'fireball_impact'
+  FIREBALL_IMPACT: 'fireball_impact',
+  ARROW_IMPACT: 'arrow_impact'
 }
 
 
@@ -141,6 +142,9 @@ function createParticleEmitter(effectType, options = {}) {
       break
     case ParticleEffect.FIREBALL_IMPACT:
       createFireballImpactParticles(emitter)
+      break
+    case ParticleEffect.ARROW_IMPACT:
+      createArrowImpactParticles(emitter)
       break
   }
   
@@ -648,6 +652,58 @@ function createButtonClickParticles(emitter) {
   }
 
 /**
+ * Create arrow impact particles — small burst of sparks and wood chips
+ * @param {Object} emitter - The emitter to add particles to
+ */
+function createArrowImpactParticles(emitter) {
+  const particleCount = 5 + Math.random() * 5 | 0
+
+  // White/yellow sparks + brown wood splinters
+  const colorPool = [
+    0xFFFFFF, 0xFFEE88, 0xFFCC00,  // sparks
+    0x8B4513, 0xA0522D, 0xCD853F,  // wood
+  ]
+
+  for (let i = 0; i < particleCount; i++) {
+    const size = 1 + (Math.random() * 2) | 0
+    const color = colorPool[Math.floor(Math.random() * colorPool.length)]
+    const cacheKey = `rect_${size}_${color}`
+
+    let texture = particleTextureCache[cacheKey]
+    if (!texture) {
+      const graphics = new PIXI.Graphics()
+        .rect(0, 0, size, size)
+        .fill({ color })
+      texture = app.renderer.generateTexture(graphics)
+      particleTextureCache[cacheKey] = texture
+      graphics.destroy()
+    }
+
+    const sprite = new PIXI.Sprite(texture)
+    sprite.anchor.set(0.5)
+    containers.particles.addChild(sprite)
+
+    const angle = Math.random() * Math.PI * 2
+    const speed = 0.05 + Math.random() * 0.15
+
+    const particle = {
+      sprite,
+      x: emitter.x,
+      y: emitter.y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed - 0.05 - Math.random() * 0.1,
+      gravity: 0.008 + Math.random() * 0.008,
+      rotation: Math.random() * Math.PI * 2,
+      rotationSpeed: (Math.random() - 0.5) * 0.15,
+      life: 1,
+      decay: 0.02 + Math.random() * 0.02
+    }
+
+    emitter.particles.push(particle)
+  }
+}
+
+/**
  * Create fireball impact explosion particles — fire burst with rising embers
  * @param {Object} emitter - The emitter to add particles to
  */
@@ -684,8 +740,8 @@ function createFireballImpactParticles(emitter) {
     containers.particles.addChild(sprite)
 
     const angle = Math.random() * Math.PI * 2
-    const radialSpeed = 0.15 + Math.random() / 4
-    const upwardBias = 0.3 + Math.random() / 2
+    const radialSpeed = 0.05 + Math.random() * 0.1
+    const upwardBias = 0.08 + Math.random() * 0.15
 
     const particle = {
       sprite,
@@ -693,11 +749,11 @@ function createFireballImpactParticles(emitter) {
       y: emitter.y + (Math.random() - 0.5) * SPRITE_SIZE * 0.4,
       vx: Math.cos(angle) * radialSpeed,
       vy: Math.sin(angle) * radialSpeed - upwardBias,
-      gravity: -0.03 + Math.random() * 0.07,  // embers rise or fall
+      gravity: -0.005 + Math.random() * 0.012,  // embers rise or fall
       rotation: Math.random() * Math.PI * 2,
-      rotationSpeed: (Math.random() - 0.5) * 0.3,
+      rotationSpeed: (Math.random() - 0.5) * 0.15,
       life: 1,
-      decay: 0.012 + Math.random() * 0.035
+      decay: 0.008 + Math.random() * 0.018
     }
 
     emitter.particles.push(particle)

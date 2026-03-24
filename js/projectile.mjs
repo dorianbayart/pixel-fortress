@@ -103,6 +103,7 @@ class Projectile {
 
     if (dist <= hitRadius) {
       this.target.life -= this.damage
+      createParticleEmitter(ParticleEffect.ARROW_IMPACT, { x: this.x, y: this.y, duration: 600 })
       this.destroy()
       return
     }
