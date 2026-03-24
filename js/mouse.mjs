@@ -50,6 +50,10 @@ class Mouse {
     this.dragTime = 0
     this.isDraggingMomentum = false
 
+    // Pending drag delta (accumulated across pointermove events, applied once per game loop frame)
+    this._pendingDragDX = 0
+    this._pendingDragDY = 0
+
     // Movement physics for smooth transitions
     this.velocity = { x: 0, y: 0 }
     this.maxVelocity = this.keyboardMoveSpeed // Maximum velocity
@@ -149,6 +153,12 @@ class Mouse {
         this.previousDragPosition = { x: e.clientX, y: e.clientY }
         this.dragTime = performance.now()
         this.isDraggingMomentum = false
+
+        // Sync lastX/lastY and reset pending delta
+        this.lastX = e.clientX
+        this.lastY = e.clientY
+        this._pendingDragDX = 0
+        this._pendingDragDY = 0
       }
     })
 
@@ -253,24 +263,16 @@ class Mouse {
         if (dt > 0) {
           this.dragVelocity.x = (e.clientX - this.previousDragPosition.x) / dt * 16 // Scale to roughly match 60fps
           this.dragVelocity.y = (e.clientY - this.previousDragPosition.y) / dt * 16
-          
+
           // Store current position and time for next frame
           this.previousDragPosition = { x: e.clientX, y: e.clientY }
           this.dragTime = now
         }
-        
-        const dx = (e.clientX - this.lastX) / this.viewTransform.scale
-        const dy = (e.clientY - this.lastY) / this.viewTransform.scale
-        
-        // Update view offset
-        this.viewTransform.x -= dx
-        this.viewTransform.y -= dy
-        
-        // Apply boundary constraints
-        this.applyBoundaryConstraints()
 
-        // Flag that zoom/pan changed
-        this.zoomChanged = true
+        // Accumulate drag delta — applied once per game loop frame to prevent event flooding
+        this._pendingDragDX += (e.clientX - this.lastX)
+        this._pendingDragDY += (e.clientY - this.lastY)
+
         this._needWorldCoords = true
       }
       
@@ -530,6 +532,22 @@ class Mouse {
     drawBack()
     
     // Movement was applied
+    return true
+  }
+
+  applyMouseDrag() {
+    if (this._pendingDragDX === 0 && this._pendingDragDY === 0) return false
+
+    this.viewTransform.x -= this._pendingDragDX / this.viewTransform.scale
+    this.viewTransform.y -= this._pendingDragDY / this.viewTransform.scale
+
+    this._pendingDragDX = 0
+    this._pendingDragDY = 0
+
+    this.applyBoundaryConstraints()
+    updateZoom()
+    drawBack()
+
     return true
   }
 

@@ -374,6 +374,8 @@ const gameLoop = async () => {
 
   // Handle keyboard movement
   gameState.UI?.mouse?.applyKeyboardMovement(actualDelay)
+  // Handle mouse drag (batched from pointermove events)
+  gameState.UI?.mouse?.applyMouseDrag()
   // Handle drag momentum
   gameState.UI?.mouse?.applyDragMomentum(actualDelay)
 
