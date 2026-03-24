@@ -161,6 +161,9 @@ let buildingPreviewSprite = null
 let isValidPlacement = false
 let selectedBuildingType = null
 
+// building info panel state
+let currentSpecMode = false
+
 /**
  * Initialize UI components
  * @param {Object} mouseInstance - Mouse controller instance
@@ -766,6 +769,7 @@ async function createBottomBar() {
   }
 
   const selectedBuildingChangedEvent = async (building) => {
+    currentSpecMode = false
     if (building) {
       displayBuildingInfo(building)
     } else {
@@ -803,7 +807,7 @@ function updateBottomBarPosition() {
   if (!gameState.selectedBuilding) {
     createBuildingSlots()
   } else {
-    displayBuildingInfo(gameState.selectedBuilding)
+    displayBuildingInfo(gameState.selectedBuilding, currentSpecMode)
   }
 }
 
@@ -813,6 +817,7 @@ function updateBottomBarPosition() {
  */
 async function displayBuildingInfo(building, specMode = false) {
   if (!bottomBarContainer) return
+  currentSpecMode = specMode
 
   // Clear existing content
   bottomBarContainer.removeChildren()
