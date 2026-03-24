@@ -21,6 +21,7 @@ export { Projectile, FireballProjectile, updateProjectiles, resetProjectiles }
 'use strict'
 
 import { getTileSize } from 'dimensions'
+import { createParticleEmitter, ParticleEffect } from 'particles'
 import * as PIXI from 'pixijs'
 import { containers } from 'renderer'
 import { fireballTextures } from 'sprites'
@@ -127,7 +128,7 @@ class FireballProjectile extends Projectile {
    * @param {number} damage - Damage dealt on hit
    */
   constructor(x, y, target, damage) {
-    super(x, y, target, damage, getTileSize() * 5)
+    super(x, y, target, damage, getTileSize() * 3)
 
     // Replace the arrow graphics with an animated sprite
     if (this.graphics?.parent) {
@@ -139,6 +140,8 @@ class FireballProjectile extends Projectile {
     this.animFrame = 0
     this.animTimer = 0
     this.animSpeed = 120 // ms per frame
+    this.spinAngle = 0
+    this.spinSpeed = 4 // radians per second
 
     this.sprite = null
     if (fireballTextures.length > 0) {
@@ -172,6 +175,7 @@ class FireballProjectile extends Projectile {
 
     if (dist <= hitRadius) {
       this.target.life -= this.damage
+      createParticleEmitter(ParticleEffect.FIREBALL_IMPACT, { x: this.x, y: this.y, duration: 1500 })
       this.destroy()
       return
     }
@@ -181,10 +185,12 @@ class FireballProjectile extends Projectile {
     this.x += dx * ratio
     this.y += dy * ratio
 
+    this.spinAngle += this.spinSpeed * delay / 1000
+
     if (this.sprite) {
       this.sprite.texture = fireballTextures[this.animFrame]
       this.sprite.position.set(this.x, this.y)
-      this.sprite.rotation = Math.atan2(dy, dx)
+      this.sprite.rotation = Math.atan2(dy, dx) + this.spinAngle
     }
   }
 

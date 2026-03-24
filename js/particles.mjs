@@ -29,7 +29,8 @@ const ParticleEffect = {
   BUILDING_PLACE: 'building_place',
   UNIT_ATTACK: 'unit_attack',
   UNIT_DEATH: 'unit_death',
-  UI_BUTTON_CLICK: 'ui_button_click'
+  UI_BUTTON_CLICK: 'ui_button_click',
+  FIREBALL_IMPACT: 'fireball_impact'
 }
 
 
@@ -137,6 +138,9 @@ function createParticleEmitter(effectType, options = {}) {
       break
     case ParticleEffect.UI_BUTTON_CLICK: // Add this new case
       createButtonClickParticles(emitter)
+      break
+    case ParticleEffect.FIREBALL_IMPACT:
+      createFireballImpactParticles(emitter)
       break
   }
   
@@ -642,6 +646,63 @@ function createButtonClickParticles(emitter) {
       emitter.particles.push(particle)
     }
   }
+
+/**
+ * Create fireball impact explosion particles — fire burst with rising embers
+ * @param {Object} emitter - The emitter to add particles to
+ */
+function createFireballImpactParticles(emitter) {
+  const SPRITE_SIZE = getTileSize()
+  const particleCount = 75 + Math.random() * 25 | 0
+
+  // Fire color palette weighted toward orange/red, with bright white/yellow core
+  const colorPool = [
+    0xFFFFFF, 0xFFFFFF,                         // white core (rare)
+    0xFFFF88, 0xFFFF00, 0xFFEE00,               // bright yellow
+    0xFF9900, 0xFF8800, 0xFF6600,               // orange
+    0xFF4400, 0xFF3300, 0xFF2200, 0xFF1100,     // red-orange / red
+    0xCC2200, 0xAA1100,                         // dark red embers
+  ]
+
+  for (let i = 0; i < particleCount; i++) {
+    const size = 1 + (Math.random() * 3) | 0
+    const color = colorPool[Math.floor(Math.random() * colorPool.length)]
+    const cacheKey = `rect_${size}_${color}`
+
+    let texture = particleTextureCache[cacheKey]
+    if (!texture) {
+      const graphics = new PIXI.Graphics()
+        .rect(0, 0, size, size)
+        .fill({ color })
+      texture = app.renderer.generateTexture(graphics)
+      particleTextureCache[cacheKey] = texture
+      graphics.destroy()
+    }
+
+    const sprite = new PIXI.Sprite(texture)
+    sprite.anchor.set(0.5)
+    containers.particles.addChild(sprite)
+
+    const angle = Math.random() * Math.PI * 2
+    const radialSpeed = 0.5 + Math.random() / 2
+    const upwardBias = 0.3 + Math.random()
+
+    const particle = {
+      sprite,
+      x: emitter.x + (Math.random() - 0.5) * SPRITE_SIZE * 0.4,
+      y: emitter.y + (Math.random() - 0.5) * SPRITE_SIZE * 0.4,
+      vx: Math.cos(angle) * radialSpeed,
+      vy: Math.sin(angle) * radialSpeed - upwardBias,
+      gravity: -0.03 + Math.random() * 0.07,  // embers rise or fall
+      rotation: Math.random() * Math.PI * 2,
+      rotationSpeed: (Math.random() - 0.5) * 0.3,
+      life: 1,
+      decay: 0.012 + Math.random() * 0.035
+    }
+
+    emitter.particles.push(particle)
+  }
+}
 
 /**
  * Update all particle emitters
