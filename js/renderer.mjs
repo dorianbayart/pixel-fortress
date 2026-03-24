@@ -62,6 +62,9 @@ const unitFilterMap = new Map()  // entity.uid → PlayerColorFilter (one per en
 const backgroundSpriteMap = new Map()
 const worldObjectSpriteMap = new Map()
 
+// Pre-allocated scratch array for drawMain — reused each frame to avoid allocations
+const _allEntitiesScratch = []
+
 // Sprite coordinates for special tiles
 let spriteCoords_Start = { x: 21, y: 5 }
 let spriteCoords_End = { x: 22, y: 4 }
@@ -558,27 +561,39 @@ function drawMain(player, AIs) {
   // Reset unit sprite counter
   renderStats.unitSpritesVisible = 0
 
-  const allEntities = [...player.getUnits(), ...player.getBuildings()]
+  // Reuse scratch array to avoid per-frame allocations
+  _allEntitiesScratch.length = 0
+  const humanUnits = player.getUnits()
+  const humanBuildings = player.getBuildings()
+  for (let i = 0; i < humanUnits.length; i++) _allEntitiesScratch.push(humanUnits[i])
+  for (let i = 0; i < humanBuildings.length; i++) _allEntitiesScratch.push(humanBuildings[i])
 
-  // Add AI entities if they are visible
-  const aiEntities = [...AIs.flatMap(ai => ai.getUnits()), ...AIs.flatMap(ai => ai.getBuildings())]
-  aiEntities.forEach(entity => {
-    const entityX = entity.currentNode ? entity.x : entity.x * SPRITE_SIZE
-    const entityY = entity.currentNode ? entity.y : entity.y * SPRITE_SIZE
-    const tileX = Math.floor(entityX / SPRITE_SIZE)
-    const tileY = Math.floor(entityY / SPRITE_SIZE)
-
-    if (viewTransform && (
-      tileX >= viewport.startX && 
-      tileX <= viewport.endX && 
-      tileY >= viewport.startY && 
-      tileY <= viewport.endY
-    )) {
-      if (!gameState.settings.fogOfWar || isPositionVisible(tileX, tileY)) {
-        allEntities.push(entity)
+  // Add AI entities if they are within viewport and visible
+  for (let a = 0; a < AIs.length; a++) {
+    const aiEntityLists = [AIs[a].getUnits(), AIs[a].getBuildings()]
+    for (let l = 0; l < 2; l++) {
+      const list = aiEntityLists[l]
+      for (let i = 0; i < list.length; i++) {
+        const entity = list[i]
+        const entityX = entity.currentNode ? entity.x : entity.x * SPRITE_SIZE
+        const entityY = entity.currentNode ? entity.y : entity.y * SPRITE_SIZE
+        const tileX = Math.floor(entityX / SPRITE_SIZE)
+        const tileY = Math.floor(entityY / SPRITE_SIZE)
+        if (viewTransform && (
+          tileX >= viewport.startX &&
+          tileX <= viewport.endX &&
+          tileY >= viewport.startY &&
+          tileY <= viewport.endY
+        )) {
+          if (!gameState.settings.fogOfWar || isPositionVisible(tileX, tileY)) {
+            _allEntitiesScratch.push(entity)
+          }
+        }
       }
     }
-  })
+  }
+
+  const allEntities = _allEntitiesScratch
 
   const currentEntityIds = new Set()
 
