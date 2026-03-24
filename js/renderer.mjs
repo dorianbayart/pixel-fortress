@@ -777,8 +777,10 @@ function renderWorldObjects(map, viewport) {
       const tile = map[x][y]
       const tileType = tile.type
 
+      // Skip unexplored tiles entirely for performance
+      if (gameState.settings.fogOfWar && !isPositionExplored(x, y)) continue
+
       // Render living trees (trees with resources) - these need depth sorting
-      // Note: We don't check fog of war here - trees render and fog appears on top
       if (tileType === TERRAIN_TYPES.TREE.type && tile.resource > 0) {
         visibleWorldObjectSprites.add(tile.uid)
 

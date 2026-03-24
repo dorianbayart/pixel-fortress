@@ -162,7 +162,7 @@ function updateFogBitmapContents(startX, startY, endX, endY, fogGrid, exploredGr
       let fogAlpha
 
       if (!isExplored) {
-        fogAlpha = 0.95
+        fogAlpha = 1.0
       } else if (fogValue <= 0.1) {
         continue
       } else {

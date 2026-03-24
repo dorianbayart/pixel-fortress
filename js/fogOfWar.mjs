@@ -371,9 +371,9 @@ function renderFog(delay) {
       let fogAlpha = 0
 
       if (!isExplored) {
-        // Unexplored: very heavy fog
+        // Unexplored: fully opaque fog
         needsFog = true
-        fogAlpha = 0.95
+        fogAlpha = 1.0
       } else if (fogValue > 0.1) {
         // Explored but not fully visible
         needsFog = true
