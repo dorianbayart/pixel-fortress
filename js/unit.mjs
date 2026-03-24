@@ -195,7 +195,12 @@ class Unit {
    */
   async updatePath(delay, time) {
     const mathPathLength = this.path?.length || 1
-    const maxTime = Math.min(6000, mathPathLength * 600)
+    // For moving targets (enemy units), keep the original 600ms floor — the enemy position changes frequently.
+    // For static targets (buildings, tiles), floor at 2500ms to match the map worker update interval.
+    const isMovingGoal = this.goal?.currentNode !== undefined
+    const maxTime = isMovingGoal
+      ? Math.min(6000, mathPathLength * 600)
+      : Math.max(2500, Math.min(6000, mathPathLength * 600))
     const updatePath = time - this.lastPathUpdate > maxTime
     const distToNextNode = distance(this.currentNode, this.nextNode) || 0
 
@@ -451,8 +456,7 @@ class Unit {
     if(!unitsSpritesDescription) return
     const keys = Object.keys(unitsSpritesDescription[this.spriteName][type])
 
-    this.spriteTimer += delay
-    if(this.spriteTimer >= keys.length * 300) this.spriteTimer -= keys.length * 300
+    this.spriteTimer = (this.spriteTimer + delay) % (keys.length * 300)
     const spriteVar = `_${this.spriteTimer / 300 | 0}`
 
     try {
@@ -1512,8 +1516,9 @@ class CombatUnit extends Unit {
       }))
       .sort((a, b) => a.dist - b.dist)
 
-    // Pick the closest 10 candidates instead of random ones
-    const candidates = sortedBorderTiles.slice(0, Math.min(borderTiles.length, 10)).map(item => item.tile)
+    // Pick the closest 4 candidates — tiles are already sorted by euclidean distance,
+    // so top 4 gives sufficient coverage without firing 10 concurrent pathfinding requests
+    const candidates = sortedBorderTiles.slice(0, Math.min(borderTiles.length, 4)).map(item => item.tile)
 
     // Check all paths concurrently instead of sequentially to avoid long delays
     const pathPromises = candidates.map(tile =>
