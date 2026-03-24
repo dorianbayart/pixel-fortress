@@ -31,7 +31,8 @@ const ParticleEffect = {
   UNIT_DEATH: 'unit_death',
   UI_BUTTON_CLICK: 'ui_button_click',
   FIREBALL_IMPACT: 'fireball_impact',
-  ARROW_IMPACT: 'arrow_impact'
+  ARROW_IMPACT: 'arrow_impact',
+  FIREBALL_TRAIL: 'fireball_trail'
 }
 
 
@@ -145,6 +146,9 @@ function createParticleEmitter(effectType, options = {}) {
       break
     case ParticleEffect.ARROW_IMPACT:
       createArrowImpactParticles(emitter)
+      break
+    case ParticleEffect.FIREBALL_TRAIL:
+      createFireballTrailParticles(emitter)
       break
   }
   
@@ -650,6 +654,62 @@ function createButtonClickParticles(emitter) {
       emitter.particles.push(particle)
     }
   }
+
+/**
+ * Create fireball trail particles — a few fire particles emitted continuously while flying
+ * @param {Object} emitter - The emitter to add particles to
+ */
+function createFireballTrailParticles(emitter) {
+  const SPRITE_SIZE = getTileSize()
+  const particleCount = 4 + Math.random() * 4 | 0
+
+  const colorPool = [
+    0xFFFFFF, 0xFFFFFF,
+    0xFFFF88, 0xFFFF00,
+    0xFF9900, 0xFF8800, 0xFF6600,
+    0xFF4400, 0xFF2200,
+    0xCC2200,
+  ]
+
+  for (let i = 0; i < particleCount; i++) {
+    const size = 1 + (Math.random() * 3) | 0
+    const color = colorPool[Math.floor(Math.random() * colorPool.length)]
+    const cacheKey = `rect_${size}_${color}`
+
+    let texture = particleTextureCache[cacheKey]
+    if (!texture) {
+      const graphics = new PIXI.Graphics()
+        .rect(0, 0, size, size)
+        .fill({ color })
+      texture = app.renderer.generateTexture(graphics)
+      particleTextureCache[cacheKey] = texture
+      graphics.destroy()
+    }
+
+    const sprite = new PIXI.Sprite(texture)
+    sprite.anchor.set(0.5)
+    containers.particles.addChild(sprite)
+
+    // Scatter slightly around the fireball center
+    const angle = Math.random() * Math.PI * 2
+    const scatter = Math.random() * SPRITE_SIZE * 0.3
+
+    const particle = {
+      sprite,
+      x: emitter.x + Math.cos(angle) * scatter,
+      y: emitter.y + Math.sin(angle) * scatter,
+      vx: (Math.random() - 0.5) * 0.06,
+      vy: -0.06 - Math.random() * 0.1,   // gently rise
+      gravity: -0.003,                    // keep rising slowly
+      rotation: Math.random() * Math.PI * 2,
+      rotationSpeed: (Math.random() - 0.5) * 0.1,
+      life: 1,
+      decay: 0.018 + Math.random() * 0.022
+    }
+
+    emitter.particles.push(particle)
+  }
+}
 
 /**
  * Create arrow impact particles — small burst of sparks and wood chips
