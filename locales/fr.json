@@ -126,6 +126,7 @@
     "rangeUpgrade": "Portée +{amount}c",
     "productionSpeedUpgrade": "Vitesse prod. +{amount}%",
     "cooldownUpgrade": "Délai -{amount}%",
+    "specialize": "Spécialiser",
     "close": "Fermer",
     "placed": "{name} placé !",
     "cannotAfford": "Pas assez de ressources pour {name} (Besoin de {costs})"

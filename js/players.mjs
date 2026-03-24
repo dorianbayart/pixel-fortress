@@ -60,6 +60,8 @@ class Player {
     this._cachedExploredBorderTiles = null
     this._lastExploredBorderTilesUpdateTime = 0
     this._exploredBorderTilesInterval = 2500 // 2.5 seconds
+    this._cachedVisibleEnemies = null
+    this._lastVisibleEnemiesCacheTime = 0
 
     this.resources = {
       wood: 15 + (Building.TYPES.TENT.costs.wood || 0),
@@ -75,6 +77,9 @@ class Player {
     for (const type in Building.TYPES) {
       this.buildingsBuiltCount[Building.TYPES[type].name] = 0
     }
+
+    // Track first tent placement so it is marked as non-specializable
+    this.initialTentPlaced = false
 
     if(this.isHuman()) {
       gameState.humanPlayer = this
@@ -227,12 +232,19 @@ class Player {
   }
 
   getVisibleEnemies() {
-    return this.getEnemies().filter(enemy => {
+    const now = performance.now()
+    if (this._cachedVisibleEnemies && (now - this._lastVisibleEnemiesCacheTime < CONSTANTS.FOG_OF_WAR.UPDATE_INTERVAL)) {
+      return this._cachedVisibleEnemies
+    }
+    const result = this.getEnemies().filter(enemy => {
       const x = enemy.currentNode?.x !== undefined ? enemy.currentNode.x : enemy.x
       const y = enemy.currentNode?.y !== undefined ? enemy.currentNode.y : enemy.y
       // Use this player's visibility grid
       return isPositionVisible(x, y, this)
     })
+    this._cachedVisibleEnemies = result
+    this._lastVisibleEnemiesCacheTime = now
+    return result
   }
 
   getResources() {
@@ -466,56 +478,62 @@ class Player {
 
   /**
    * AI logic to decide the next building type to construct based on difficulty.
+   * Combat buildings (Barracks, Archery, etc.) are no longer built directly;
+   * instead the AI builds Tents and then calls decideSpecialization() to convert them.
    * @returns {object|null} - The building type object or null if no building is decided.
    */
   async decideNextBuildingType() {
-    const resources = this.getResources()
     const buildings = this.getBuildings()
     const lumberjacks = buildings.filter(b => b.type === Building.TYPES.LUMBERJACK).length
     const quarries = buildings.filter(b => b.type === Building.TYPES.QUARRY).length
     const wells = buildings.filter(b => b.type === Building.TYPES.WELL).length
     const goldMines = buildings.filter(b => b.type === Building.TYPES.GOLD_MINE).length
     const markets = buildings.filter(b => b.type === Building.TYPES.MARKET).length
-    const arcanas = buildings.filter(b => b.type === Building.TYPES.ARCANA).length
-    const archeries = buildings.filter(b => b.type === Building.TYPES.ARCHERY).length
-    const barracks = buildings.filter(b => b.type === Building.TYPES.BARRACKS).length
-    const armories = buildings.filter(b => b.type === Building.TYPES.ARMORY).length
-    const citadels = buildings.filter(b => b.type === Building.TYPES.CITADEL).length
     const tents = buildings.filter(b => b.type === Building.TYPES.TENT).length
+
+    // Combat capacity: all specialized combat buildings + unspecialized Tents (potential slots)
+    const combatCapacity = buildings.filter(b =>
+      b.type === Building.TYPES.BARRACKS ||
+      b.type === Building.TYPES.ARCHERY ||
+      b.type === Building.TYPES.ARCANA ||
+      b.type === Building.TYPES.ARMORY ||
+      b.type === Building.TYPES.CITADEL ||
+      (b.type === Building.TYPES.TENT && b.canSpecialize)
+    ).length
 
     // Helper to check if AI can afford and if a building type is needed
     const canBuild = (buildingType, currentCount, targetCount) => {
       return currentCount < targetCount && this.canAffordBuilding(buildingType)
     }
+    // Helper to build a combat Tent (for later specialization)
+    const canBuildCombatTent = (targetCapacity) => {
+      return combatCapacity < targetCapacity && this.canAffordBuilding(Building.TYPES.TENT)
+    }
 
     switch (this.difficulty) {
       case 'easy':
-        // Simple, sequential priorities, very guided AI
+        // Simple, sequential priorities
         if (canBuild(Building.TYPES.LUMBERJACK, lumberjacks, 2) && this.findBuildingPlacement(Building.TYPES.LUMBERJACK)) return Building.TYPES.LUMBERJACK
         if (canBuild(Building.TYPES.QUARRY, quarries, 1) && this.findBuildingPlacement(Building.TYPES.QUARRY)) return Building.TYPES.QUARRY
         if (canBuild(Building.TYPES.WELL, wells, 1) && this.findBuildingPlacement(Building.TYPES.WELL)) return Building.TYPES.WELL
         if (canBuild(Building.TYPES.GOLD_MINE, goldMines, 1) && this.findBuildingPlacement(Building.TYPES.GOLD_MINE)) return Building.TYPES.GOLD_MINE
-        if (canBuild(Building.TYPES.LUMBERJACK, lumberjacks, 3) && this.findBuildingPlacement(Building.TYPES.LUMBERJACK)) return Building.TYPES.LUMBERJACK // third lumberjack
+        if (canBuild(Building.TYPES.LUMBERJACK, lumberjacks, 3) && this.findBuildingPlacement(Building.TYPES.LUMBERJACK)) return Building.TYPES.LUMBERJACK
         if (canBuild(Building.TYPES.QUARRY, quarries, 2) && this.findBuildingPlacement(Building.TYPES.QUARRY)) return Building.TYPES.QUARRY
         if (canBuild(Building.TYPES.WELL, wells, 2) && this.findBuildingPlacement(Building.TYPES.WELL)) return Building.TYPES.WELL
-        if (canBuild(Building.TYPES.BARRACKS, barracks, 1) && this.findBuildingPlacement(Building.TYPES.BARRACKS)) return Building.TYPES.BARRACKS
+        if (canBuildCombatTent(1) && this.findBuildingPlacement(Building.TYPES.TENT)) return Building.TYPES.TENT
         if (canBuild(Building.TYPES.GOLD_MINE, goldMines, 3) && this.findBuildingPlacement(Building.TYPES.GOLD_MINE)) return Building.TYPES.GOLD_MINE
         if (canBuild(Building.TYPES.LUMBERJACK, lumberjacks, 5) && this.findBuildingPlacement(Building.TYPES.LUMBERJACK)) return Building.TYPES.LUMBERJACK
         if (canBuild(Building.TYPES.QUARRY, quarries, 4) && this.findBuildingPlacement(Building.TYPES.QUARRY)) return Building.TYPES.QUARRY
         if (canBuild(Building.TYPES.MARKET, markets, 2) && this.findBuildingPlacement(Building.TYPES.MARKET)) return Building.TYPES.MARKET
-        if (canBuild(Building.TYPES.BARRACKS, barracks, 3) && this.findBuildingPlacement(Building.TYPES.BARRACKS)) return Building.TYPES.BARRACKS
+        if (canBuildCombatTent(3) && this.findBuildingPlacement(Building.TYPES.TENT)) return Building.TYPES.TENT
         if (canBuild(Building.TYPES.WELL, wells, 4) && this.findBuildingPlacement(Building.TYPES.WELL)) return Building.TYPES.WELL
-        if (canBuild(Building.TYPES.ARMORY, armories, 1) && armories >= 1 && this.findBuildingPlacement(Building.TYPES.ARMORY)) return Building.TYPES.ARMORY
-        if (canBuild(Building.TYPES.CITADEL, citadels, 1) && barracks >= 1 && this.findBuildingPlacement(Building.TYPES.CITADEL)) return Building.TYPES.CITADEL
-        // Keep building, basic growth, with high but finite targets
+        // Keep building, basic growth
         if (canBuild(Building.TYPES.LUMBERJACK, lumberjacks, 8) && this.findBuildingPlacement(Building.TYPES.LUMBERJACK)) return Building.TYPES.LUMBERJACK
         if (canBuild(Building.TYPES.QUARRY, quarries, 7) && this.findBuildingPlacement(Building.TYPES.QUARRY)) return Building.TYPES.QUARRY
         if (canBuild(Building.TYPES.WELL, wells, 6) && this.findBuildingPlacement(Building.TYPES.WELL)) return Building.TYPES.WELL
         if (canBuild(Building.TYPES.GOLD_MINE, goldMines, this.goldTiles/4) && this.findBuildingPlacement(Building.TYPES.GOLD_MINE)) return Building.TYPES.GOLD_MINE
         if (canBuild(Building.TYPES.MARKET, markets, 4) && this.findBuildingPlacement(Building.TYPES.MARKET)) return Building.TYPES.MARKET
-        if (canBuild(Building.TYPES.BARRACKS, barracks, 8) && this.findBuildingPlacement(Building.TYPES.BARRACKS)) return Building.TYPES.BARRACKS
-        if (canBuild(Building.TYPES.ARMORY, armories, 6) && this.findBuildingPlacement(Building.TYPES.ARMORY)) return Building.TYPES.ARMORY
-        if (canBuild(Building.TYPES.CITADEL, citadels, 4) && this.findBuildingPlacement(Building.TYPES.CITADEL)) return Building.TYPES.CITADEL
+        if (canBuildCombatTent(8) && this.findBuildingPlacement(Building.TYPES.TENT)) return Building.TYPES.TENT
         if (canBuild(Building.TYPES.TENT, tents, 5) && this.findBuildingPlacement(Building.TYPES.TENT)) return Building.TYPES.TENT
         break
 
@@ -525,19 +543,15 @@ class Player {
         if (canBuild(Building.TYPES.QUARRY, quarries, 3) && this.findBuildingPlacement(Building.TYPES.QUARRY)) return Building.TYPES.QUARRY
         if (canBuild(Building.TYPES.WELL, wells, 2) && this.findBuildingPlacement(Building.TYPES.WELL)) return Building.TYPES.WELL
         if (canBuild(Building.TYPES.GOLD_MINE, goldMines, 2) && this.findBuildingPlacement(Building.TYPES.GOLD_MINE)) return Building.TYPES.GOLD_MINE
-        // Attack a bit
-        if (canBuild(Building.TYPES.BARRACKS, barracks, 1) && this.findBuildingPlacement(Building.TYPES.BARRACKS)) return Building.TYPES.BARRACKS
+        // Early combat Tent
+        if (canBuildCombatTent(1) && this.findBuildingPlacement(Building.TYPES.TENT)) return Building.TYPES.TENT
         // Then grow
         if (canBuild(Building.TYPES.MARKET, markets, 5) && this.findBuildingPlacement(Building.TYPES.MARKET)) return Building.TYPES.MARKET
         if (canBuild(Building.TYPES.LUMBERJACK, lumberjacks, 10) && this.findBuildingPlacement(Building.TYPES.LUMBERJACK)) return Building.TYPES.LUMBERJACK
         if (canBuild(Building.TYPES.QUARRY, quarries, 10) && this.findBuildingPlacement(Building.TYPES.QUARRY)) return Building.TYPES.QUARRY
         if (canBuild(Building.TYPES.WELL, wells, 6) && this.findBuildingPlacement(Building.TYPES.WELL)) return Building.TYPES.WELL
         if (canBuild(Building.TYPES.GOLD_MINE, goldMines, this.goldTiles.length/2) && this.findBuildingPlacement(Building.TYPES.GOLD_MINE)) return Building.TYPES.GOLD_MINE
-        if (canBuild(Building.TYPES.BARRACKS, barracks, 8) && this.findBuildingPlacement(Building.TYPES.BARRACKS)) return Building.TYPES.BARRACKS
-        if (canBuild(Building.TYPES.ARCHERY, archeries, 2) && this.findBuildingPlacement(Building.TYPES.ARCHERY)) return Building.TYPES.ARCHERY
-        if (canBuild(Building.TYPES.ARCANA, arcanas, 2) && this.findBuildingPlacement(Building.TYPES.ARCANA)) return Building.TYPES.ARCANA
-        if (canBuild(Building.TYPES.ARMORY, armories, 8) && this.findBuildingPlacement(Building.TYPES.ARMORY)) return Building.TYPES.ARMORY
-        if (canBuild(Building.TYPES.CITADEL, citadels, 8) && this.findBuildingPlacement(Building.TYPES.CITADEL)) return Building.TYPES.CITADEL
+        if (canBuildCombatTent(12) && this.findBuildingPlacement(Building.TYPES.TENT)) return Building.TYPES.TENT
         if (canBuild(Building.TYPES.TENT, tents, 10) && this.findBuildingPlacement(Building.TYPES.TENT)) return Building.TYPES.TENT
         break
 
@@ -548,24 +562,77 @@ class Player {
         if (canBuild(Building.TYPES.WELL, wells, 3) && this.findBuildingPlacement(Building.TYPES.WELL)) return Building.TYPES.WELL
         if (canBuild(Building.TYPES.GOLD_MINE, goldMines, 3) && this.findBuildingPlacement(Building.TYPES.GOLD_MINE)) return Building.TYPES.GOLD_MINE
         if (canBuild(Building.TYPES.MARKET, markets, 2) && this.findBuildingPlacement(Building.TYPES.MARKET)) return Building.TYPES.MARKET
-        // Then build-up with unlimited military buildings
+        // Build-up with unlimited combat Tents
         if (canBuild(Building.TYPES.LUMBERJACK, lumberjacks, 12) && this.findBuildingPlacement(Building.TYPES.LUMBERJACK)) return Building.TYPES.LUMBERJACK
         if (canBuild(Building.TYPES.QUARRY, quarries, 12) && this.findBuildingPlacement(Building.TYPES.QUARRY)) return Building.TYPES.QUARRY
         if (canBuild(Building.TYPES.WELL, wells, 12) && this.findBuildingPlacement(Building.TYPES.WELL)) return Building.TYPES.WELL
         if (canBuild(Building.TYPES.GOLD_MINE, goldMines, this.goldTiles.length) && this.findBuildingPlacement(Building.TYPES.GOLD_MINE)) return Building.TYPES.GOLD_MINE
-        if (canBuild(Building.TYPES.BARRACKS, barracks, 5) && this.findBuildingPlacement(Building.TYPES.BARRACKS)) return Building.TYPES.BARRACKS
-        if (canBuild(Building.TYPES.ARCHERY, archeries, 2) && this.findBuildingPlacement(Building.TYPES.ARCHERY)) return Building.TYPES.ARCHERY
-        if (canBuild(Building.TYPES.ARCANA, arcanas, 2) && this.findBuildingPlacement(Building.TYPES.ARCANA)) return Building.TYPES.ARCANA
         if (canBuild(Building.TYPES.MARKET, markets, 5) && this.findBuildingPlacement(Building.TYPES.MARKET)) return Building.TYPES.MARKET
-        if (canBuild(Building.TYPES.ARMORY, armories, 8) && this.findBuildingPlacement(Building.TYPES.ARMORY)) return Building.TYPES.ARMORY
-        if (canBuild(Building.TYPES.CITADEL, citadels, 15) && this.findBuildingPlacement(Building.TYPES.CITADEL)) return Building.TYPES.CITADEL
         if (canBuild(Building.TYPES.TENT, tents, 8) && this.findBuildingPlacement(Building.TYPES.TENT)) return Building.TYPES.TENT
-        // Default
-        if (canBuild(Building.TYPES.BARRACKS, barracks, Infinity) && this.findBuildingPlacement(Building.TYPES.BARRACKS)) return Building.TYPES.BARRACKS
+        // Default: keep building combat Tents indefinitely
+        if (this.canAffordBuilding(Building.TYPES.TENT) && this.findBuildingPlacement(Building.TYPES.TENT)) return Building.TYPES.TENT
         break
     }
 
     return null // No building to construct at this time
+  }
+
+  /**
+   * AI logic to specialize existing Tents and Barracks based on difficulty.
+   * Called each AI tick before decideNextBuildingType.
+   * @returns {boolean} True if a specialization was performed.
+   */
+  decideSpecialization() {
+    const buildings = this.getBuildings()
+
+    const specializableTents = buildings.filter(b =>
+      b.type === Building.TYPES.TENT && b.canSpecialize
+    )
+    const specializableBarracks = buildings.filter(b =>
+      b.type === Building.TYPES.BARRACKS && b.canSpecialize
+    )
+
+    const archeries = buildings.filter(b => b.type === Building.TYPES.ARCHERY).length
+    const arcanas = buildings.filter(b => b.type === Building.TYPES.ARCANA).length
+    const armories = buildings.filter(b => b.type === Building.TYPES.ARMORY).length
+    const citadels = buildings.filter(b => b.type === Building.TYPES.CITADEL).length
+
+    const trySpec = (building, typeName) => building.handleSpecialization(typeName)
+
+    switch (this.difficulty) {
+      case 'easy':
+        // Specialize all available Tents into Barracks only
+        if (specializableTents.length > 0)
+          return trySpec(specializableTents[0], 'BARRACKS')
+        break
+
+      case 'medium':
+        // Diversify: 1 Archery, 1 Arcana, rest Barracks; Barracks → Armory/Citadel alternately
+        if (specializableTents.length > 0) {
+          if (archeries < 1 && trySpec(specializableTents[0], 'ARCHERY')) return true
+          if (arcanas < 1 && trySpec(specializableTents[0], 'ARCANA')) return true
+          if (trySpec(specializableTents[0], 'BARRACKS')) return true
+        }
+        if (specializableBarracks.length > 0) {
+          if (armories <= citadels && trySpec(specializableBarracks[0], 'ARMORY')) return true
+          if (trySpec(specializableBarracks[0], 'CITADEL')) return true
+        }
+        break
+
+      case 'hard':
+        // Aggressive: specialize everything as fast as possible
+        if (specializableTents.length > 0) {
+          if (archeries < 2 && trySpec(specializableTents[0], 'ARCHERY')) return true
+          if (arcanas < 2 && trySpec(specializableTents[0], 'ARCANA')) return true
+          if (trySpec(specializableTents[0], 'BARRACKS')) return true
+        }
+        if (specializableBarracks.length > 0) {
+          if (armories <= citadels && trySpec(specializableBarracks[0], 'ARMORY')) return true
+          if (trySpec(specializableBarracks[0], 'CITADEL')) return true
+        }
+        break
+    }
+    return false
   }
 
   async update(delay) {
@@ -593,15 +660,22 @@ class Player {
       this.aiBuildingTimer += delay
       if (this.aiBuildingTimer >= this.aiBuildingCooldown) {
         this.aiBuildingTimer -= this.aiBuildingCooldown
-        const buildingType = await this.decideNextBuildingType()
 
-        if (buildingType) {
-          const placement = await this.findBuildingPlacement(buildingType)
-          if (placement?.x && placement?.y) {
-            const building = this.addBuilding(placement.x, placement.y, buildingType)
+        // First try to specialize an existing Tent or Barracks
+        const specialized = this.decideSpecialization()
 
-            if(building.type === Building.TYPES.MARKET) { // Sell a random resource
-              building.setSellingResource(building.getValidSellingResources()[Math.random() * building.getValidSellingResources().length | 0])
+        if (!specialized) {
+          // Otherwise build a new building
+          const buildingType = await this.decideNextBuildingType()
+
+          if (buildingType) {
+            const placement = await this.findBuildingPlacement(buildingType)
+            if (placement?.x && placement?.y) {
+              const building = this.addBuilding(placement.x, placement.y, buildingType)
+
+              if(building.type === Building.TYPES.MARKET) { // Sell a random resource
+                building.setSellingResource(building.getValidSellingResources()[Math.random() * building.getValidSellingResources().length | 0])
+              }
             }
           }
         }
@@ -642,7 +716,15 @@ class Player {
     this.buildingsBuiltCount[buildingType.name] = (this.buildingsBuiltCount[buildingType.name] || 0) + 1
 
     // Create building
-    return Building.create(buildingType, x, y, this.color, this)
+    const building = Building.create(buildingType, x, y, this.color, this)
+
+    // Mark the very first Tent as the initial tent (cannot specialize)
+    if (buildingType === Building.TYPES.TENT && !this.initialTentPlaced) {
+      this.initialTentPlaced = true
+      building.isInitialTent = true
+    }
+
+    return building
   }
 
   addWorker(x, y) {

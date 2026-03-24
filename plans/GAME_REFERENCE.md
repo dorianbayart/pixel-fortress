@@ -27,7 +27,7 @@ TILE_SIZE = 16px. All buildings are 1×1 tile unless noted.
 ### Resource Buildings
 
 #### ⛺ Tent
-Produces Peon workers continuously.
+Produces Peon workers continuously. Can be specialized into a combat building (non-initial Tents only).
 
 | Stat | Value |
 |------|-------|
@@ -35,6 +35,9 @@ Produces Peon workers continuously.
 | Cost | 50 Wood, 25 Water, 15 Money |
 | Produces | Peon (every 10s) |
 | Upgrade | +50 HP, −10% production time |
+| Specializes into | Barracks, Archery, Arcana (non-initial, non-upgraded Tents only) |
+
+> **Note:** The initial Tent (the one placed at game start) can never specialize — it is permanently the base Peon producer. Additional Tents built by the player may be upgraded as-is **or** specialized into a combat building — but not both. Upgrading a Tent permanently removes its specialization options.
 
 ---
 
@@ -101,61 +104,99 @@ Automatically sells one resource for Money every 15 seconds. Configurable which 
 
 ### Combat Buildings
 
-#### ⚔️ Barracks
-Trains Soldiers.
+Combat buildings are **not built directly** from the build menu. They are obtained by specializing a Tent or Barracks into a more advanced structure. Only the initial Tent cannot specialize.
 
-| Stat | Value |
-|------|-------|
-| HP | 50 |
-| Cost | 15 Wood, 10 Water, 5 Gold |
-| Produces | Soldier (every 12s) |
-| Upgrade | +50 HP, −10% production time |
+#### Combat Building Tree
+
+```
+⛺ Tent  (buildable — non-initial Tents can upgrade OR specialize, not both)
+ │
+ ├─ [upgrade] ⛺ Tent (Lv2+): +50 HP, −10% production time
+ │               ⚠ Permanently removes specialization options
+ │
+ ├─ [specialize] ⚔️  Barracks    (only if not yet upgraded)
+ │    │
+ │    ├─ [upgrade] ⚔️  Barracks (Lv2+): +50 HP, −10% production time
+ │    │               ⚠ Permanently removes specialization options
+ │    │
+ │    ├─ [specialize] 🛡️  Armory    (only if not yet upgraded)
+ │    │               └─ upgrade only: +HP, faster production
+ │    │
+ │    └─ [specialize] 🏰  Citadel   (only if not yet upgraded)
+ │                    └─ upgrade only: +HP, faster production
+ │
+ ├─ [specialize] 🏹  Archery    (only if not yet upgraded)
+ │               └─ upgrade only: +HP, faster production
+ │
+ └─ [specialize] 🔮  Arcana     (only if not yet upgraded)
+                 └─ upgrade only: +HP, faster production
+```
+
+**Specialization rules:**
+- Specialization transforms the building in place. The new building inherits the current HP of the old one.
+- Costs for specialization use the target building's resource cost (to be balanced post-implementation).
+- Barracks can be further specialized into Armory or Citadel (both are dead-ends: upgrade only).
+- Archery, Arcana, Armory, and Citadel can only be upgraded, not specialized further.
+- **Upgrading locks specialization:** If a Tent or Barracks has been upgraded at least once (`level > 1`), it can no longer specialize. Players must choose: upgrade for better stats, or specialize for access to higher-tier units. This is a one-way decision.
 
 ---
 
-#### 🔮 Arcana
-Trains Mages.
+#### ⚔️ Barracks
+Trains Soldiers. Obtained by specializing a non-initial Tent.
 
 | Stat | Value |
 |------|-------|
-| HP | 120 |
-| Cost | 20 Wood, 15 Stone, 10 Water, 25 Gold |
-| Produces | Mage (every 20s) |
+| HP | 50 (+ Tent's current HP inherited) |
+| Specialization Cost | 15 Wood, 10 Water, 5 Gold *(placeholder — to be balanced)* |
+| Produces | Soldier (every 12s) |
 | Upgrade | +50 HP, −10% production time |
+| Specializes into | Armory, Citadel (only if not yet upgraded) |
 
 ---
 
 #### 🏹 Archery
-Trains Archers.
+Trains Archers. Obtained by specializing a non-initial Tent.
 
 | Stat | Value |
 |------|-------|
-| HP | 100 |
-| Cost | 20 Wood, 10 Stone, 15 Water, 10 Gold |
+| HP | 100 (+ Tent's current HP inherited) |
+| Specialization Cost | 20 Wood, 10 Stone, 15 Water, 10 Gold *(placeholder)* |
 | Produces | Archer (every 16s) |
 | Upgrade | +50 HP, −10% production time |
 
 ---
 
-#### 🛡️ Armory
-Trains Heavy Infantry.
+#### 🔮 Arcana
+Trains Mages. Obtained by specializing a non-initial Tent.
 
 | Stat | Value |
 |------|-------|
-| HP | 150 |
-| Cost | 25 Wood, 20 Water, 10 Money, 20 Gold |
+| HP | 120 (+ Tent's current HP inherited) |
+| Specialization Cost | 20 Wood, 15 Stone, 10 Water, 25 Gold *(placeholder)* |
+| Produces | Mage (every 20s) |
+| Upgrade | +50 HP, −10% production time |
+
+---
+
+#### 🛡️ Armory
+Trains Heavy Infantry. Obtained by specializing a Barracks.
+
+| Stat | Value |
+|------|-------|
+| HP | 150 (+ Barracks' current HP inherited) |
+| Specialization Cost | 25 Wood, 20 Water, 10 Money, 20 Gold *(placeholder)* |
 | Produces | Heavy Infantry (every 20s) |
 | Upgrade | +75 HP, −10% production time |
 
 ---
 
 #### 🏰 Citadel
-Trains Elite Warriors.
+Trains Elite Warriors. Obtained by specializing a Barracks.
 
 | Stat | Value |
 |------|-------|
-| HP | 250 |
-| Cost | 40 Wood, 40 Water, 20 Money, 50 Gold |
+| HP | 250 (+ Barracks' current HP inherited) |
+| Specialization Cost | 40 Wood, 40 Water, 20 Money, 50 Gold *(placeholder)* |
 | Produces | Elite Warrior (every 30s) |
 | Upgrade | +100 HP, −10% production time |
 
@@ -361,20 +402,22 @@ Combat units gain experience from kills and can level up:
 
 ### Buildings — Cost Summary
 
-| Building | Wood | Stone | Water | Gold | Money | HP |
-|----------|------|-------|-------|------|-------|----|
-| Tent | 50 | — | 25 | — | 15 | 200 |
-| Wood Hut | 8 | — | — | — | — | 150 |
-| Quarry | 20 | — | — | — | — | 150 |
-| Well | 8 | 20 | — | — | — | 150 |
-| Gold Mine | 25 | 15 | — | — | — | 150 |
-| Barracks | 15 | — | 10 | 5 | — | 50 |
-| Archery | 20 | 10 | 15 | 10 | — | 100 |
-| Arcana | 20 | 15 | 10 | 25 | — | 120 |
-| Armory | 25 | — | 20 | 20 | 10 | 150 |
-| Citadel | 40 | — | 40 | 50 | 20 | 250 |
-| Market | 25 | 50 | 10 | 15 | — | 100 |
-| Tower | 30 | 40 | — | 15 | — | 200 |
+> Combat buildings marked with *(spec.)* are not built directly; they are obtained via specialization.
+
+| Building | Wood | Stone | Water | Gold | Money | HP | Access |
+|----------|------|-------|-------|------|-------|----|--------|
+| Tent | 50 | — | 25 | — | 15 | 200 | Build menu |
+| Wood Hut | 8 | — | — | — | — | 150 | Build menu |
+| Quarry | 20 | — | — | — | — | 150 | Build menu |
+| Well | 8 | 20 | — | — | — | 150 | Build menu |
+| Gold Mine | 25 | 15 | — | — | — | 150 | Build menu |
+| Market | 25 | 50 | 10 | 15 | — | 100 | Build menu |
+| Tower | 30 | 40 | — | 15 | — | 200 | Build menu |
+| Barracks | 15 | — | 10 | 5 | — | 50 | *(spec.)* from Tent |
+| Archery | 20 | 10 | 15 | 10 | — | 100 | *(spec.)* from Tent |
+| Arcana | 20 | 15 | 10 | 25 | — | 120 | *(spec.)* from Tent |
+| Armory | 25 | — | 20 | 20 | 10 | 150 | *(spec.)* from Barracks |
+| Citadel | 40 | — | 40 | 50 | 20 | 250 | *(spec.)* from Barracks |
 
 ### Units — Combat Summary
 

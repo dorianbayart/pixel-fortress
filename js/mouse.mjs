@@ -629,7 +629,7 @@ class Mouse {
     } else {
       // Otherwise, prevent scrolling past map edges
       this.viewTransform.y = Math.max(
-        0, 
+        0,
         Math.min(this.viewTransform.y, mapHeight - viewHeight)
       )
     }

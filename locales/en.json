@@ -126,6 +126,7 @@
     "rangeUpgrade": "Range +{amount}t",
     "productionSpeedUpgrade": "Prod. Speed +{amount}%",
     "cooldownUpgrade": "Cooldown -{amount}%",
+    "specialize": "Specialize",
     "close": "Close",
     "placed": "{name} placed!",
     "cannotAfford": "Cannot afford {name} (Needs {costs})"

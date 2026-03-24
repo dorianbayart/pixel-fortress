@@ -250,6 +250,7 @@ class Building {
           UPGRADES: {
             benefits: { life: 50, productionSpeed: 10 } // +50 life, 10% faster production
           },
+          canSpecializeInto: ['ARMORY', 'CITADEL'],
           description: "Trains soldiers",
           details: "Soldier is basic and versatile.",
           sprite_coords: {
@@ -404,6 +405,7 @@ class Building {
           UPGRADES: {
             benefits: { life: 50, productionSpeed: 10 } // +50 life, 10% faster production
           },
+          canSpecializeInto: ['BARRACKS', 'ARCHERY', 'ARCANA'],
           description: "Produces peons",
           details: "Work work !",
           sprite_coords: {
@@ -435,6 +437,7 @@ class Building {
     this.productionCooldown = 10000 // 10 seconds by default
     this.visibilityRange = getTileSize() * 8
     this.type = null
+    this.isInitialTent = false // Set to true on the very first Tent each player starts with
 
     // Progress indicator properties
     this.showProgressIndicator = false
@@ -478,6 +481,155 @@ class Building {
    */
   getUpgradeBenefits() {
     return this.type.UPGRADES?.benefits
+  }
+
+  /**
+   * Whether this building can currently be specialized into a sub-type.
+   * True only if: not the initial Tent, never upgraded (level === 1), and type defines canSpecializeInto.
+   */
+  get canSpecialize() {
+    return !this.isInitialTent && this.level === 1 && Array.isArray(this.type.canSpecializeInto) && this.type.canSpecializeInto.length > 0
+  }
+
+  /**
+   * Returns the list of specialization options, or null if none available.
+   * Each entry has { typeName, type, costs }.
+   */
+  getSpecializationChoices() {
+    if (!this.canSpecialize) return null
+    return this.type.canSpecializeInto.map(typeName => ({
+      typeName,
+      type: Building.TYPES[typeName],
+      costs: Building.TYPES[typeName].costs
+    }))
+  }
+
+  /**
+   * Morph this building in-place into the target specialization.
+   * Inherits current HP. Replaces type, production behavior, and sprite.
+   * @param {string} targetTypeName - Key in Building.TYPES (e.g. 'BARRACKS')
+   */
+  specializeInPlace(targetTypeName) {
+    const targetType = Building.TYPES[targetTypeName]
+    if (!targetType) return
+
+    const currentLife = this.life
+    const SPRITE_SIZE = getTileSize()
+
+    // Base max-life values per target type
+    const baseMaxLifeMap = {
+      BARRACKS: 50, ARCHERY: 100, ARCANA: 120, ARMORY: 150, CITADEL: 250
+    }
+    const baseMaxLife = baseMaxLifeMap[targetTypeName] || 100
+
+    // Update type and HP
+    this.type = targetType
+    this.name = targetType.name
+    this.maxLife = Math.max(baseMaxLife, currentLife)
+    this.life = currentLife
+    applyGameModeModifiers(this)
+
+    // Update production settings
+    const cooldownMap = {
+      BARRACKS: 12000, ARCHERY: 16000, ARCANA: 20000, ARMORY: 20000, CITADEL: 30000
+    }
+    this.productionCooldown = cooldownMap[targetTypeName] || 15000
+    this.productionTimer = 0
+    this.progress = 0
+    this.indicatorColor = 0xFF0000
+
+    // If this was a Tent (WorkerBuilding), install CombatBuilding update logic
+    if (this.produceWorker) {
+      this.update = function(delay) {
+        Building.prototype.update.call(this, delay)
+        this.productionTimer += delay
+        this.progress = this.productionTimer / this.productionCooldown
+        updateProgressIndicator(this, this.progress)
+        if (this.productionTimer >= this.productionCooldown) {
+          this.produceWarrior()
+          this.productionTimer -= this.productionCooldown
+          this.progress = 0
+        }
+      }
+      this.produceWorker = null
+    }
+
+    // Install the correct produceWarrior for the target type
+    const unitMethodMap = {
+      BARRACKS: 'addSoldier',
+      ARCHERY: 'addArcher',
+      ARCANA: 'addMage',
+      ARMORY: 'addHeavyInfantry',
+      CITADEL: 'addEliteWarrior',
+    }
+    const addMethod = unitMethodMap[targetTypeName]
+    this.produceWarrior = async function() {
+      if (this.owner) {
+        const enemy = this.owner.getEnemies()[0]
+        if (!enemy) {
+          console.warn('No enemy tent found to target for combat unit spawn.')
+          return
+        }
+        const target = enemy.currentNode ? enemy.currentNode : enemy
+        const spawnLocation = await findBestSpawnLocation(this.x, this.y, target.x, target.y)
+        if (spawnLocation) {
+          this.owner[addMethod](spawnLocation.x, spawnLocation.y)
+        } else {
+          console.warn(`No valid spawn location found from ${this.type.name} at (${this.x}, ${this.y})`)
+        }
+      }
+    }
+
+    // Update sprite on the map tile
+    const spriteX = targetType.sprite_coords['cyan'].x
+    const spriteY = targetType.sprite_coords['cyan'].y
+    const buildingSprite = sprites[`tile_${spriteX}_${spriteY}`]
+    gameState.map[this.x][this.y].sprite = buildingSprite
+    gameState.map[this.x][this.y].building = this
+    this.sprite = buildingSprite
+    this.tileX = spriteX
+    this.tileY = spriteY
+
+    createParticleEmitter(ParticleEffect.BUILDING_PLACE, {
+      x: this.x * SPRITE_SIZE + SPRITE_SIZE / 2,
+      y: this.y * SPRITE_SIZE + SPRITE_SIZE / 2,
+      duration: 1500
+    })
+
+    if (this.owner === gameState.humanPlayer) {
+      showDebugMessage(`Specialized into ${targetType.name}!`)
+    }
+  }
+
+  /**
+   * Check affordability, deduct resources and specialize this building in-place.
+   * @param {string} targetTypeName - Key in Building.TYPES (e.g. 'BARRACKS')
+   * @returns {boolean} True if specialization succeeded
+   */
+  handleSpecialization(targetTypeName) {
+    if (!this.canSpecialize) return false
+
+    const targetType = Building.TYPES[targetTypeName]
+    if (!targetType) return false
+
+    const costs = targetType.costs
+    const canAfford = Object.entries(costs).every(
+      ([resource, amount]) => (this.owner.resources[resource] || 0) >= amount
+    )
+    if (!canAfford) {
+      if (this.owner === gameState.humanPlayer) {
+        const costText = Object.entries(costs).map(([r, a]) => `${r}: ${a}`).join(', ')
+        showDebugMessage(`Cannot afford specialization (Needs ${costText})`)
+      }
+      return false
+    }
+
+    for (const [resource, amount] of Object.entries(costs)) {
+      this.owner.addResource(resource, -amount)
+    }
+
+    this.specializeInPlace(targetTypeName)
+    return true
   }
 
   /**

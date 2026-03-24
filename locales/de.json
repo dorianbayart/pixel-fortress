@@ -126,6 +126,7 @@
     "rangeUpgrade": "Reichweite +{amount}F",
     "productionSpeedUpgrade": "Prod.-Geschw. +{amount}%",
     "cooldownUpgrade": "Abklingzeit -{amount}%",
+    "specialize": "Spezialisieren",
     "close": "Schließen",
     "placed": "{name} platziert!",
     "cannotAfford": "{name} nicht leistbar (Benötigt {costs})"

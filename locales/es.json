@@ -126,6 +126,7 @@
     "rangeUpgrade": "Alcance +{amount}c",
     "productionSpeedUpgrade": "Vel. prod. +{amount}%",
     "cooldownUpgrade": "Recarga -{amount}%",
+    "specialize": "Especializar",
     "close": "Cerrar",
     "placed": "¡{name} colocado!",
     "cannotAfford": "No puedes permitirte {name} (Necesitas {costs})"

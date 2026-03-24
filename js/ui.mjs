@@ -811,7 +811,7 @@ function updateBottomBarPosition() {
  * Display information about the selected building in the bottom bar.
  * @param {Building} building - The selected building instance.
  */
-async function displayBuildingInfo(building) {
+async function displayBuildingInfo(building, specMode = false) {
   if (!bottomBarContainer) return
 
   // Clear existing content
@@ -1030,115 +1030,274 @@ async function displayBuildingInfo(building) {
     }
   }
 
-  // Upgrade Information and Button
+  // ── Action area: upgrade and/or specialization ──────────────────────────
+  const specializationChoices = building.getSpecializationChoices?.()
   const upgradeCosts = building.getUpgradeCosts()
   const upgradeBenefits = building.getUpgradeBenefits()
+  const hasBothActions = specializationChoices && upgradeCosts && upgradeBenefits
 
-  if (upgradeCosts && upgradeBenefits) {
-    const canAffordUpgrade = gameState.humanPlayer.canAffordUpgrade(building)
+  // Shared helpers
+  const RESOURCE_ICONS = { wood: '🪵', stone: '🪨', gold: '🪙', water: '💧', money: '💰' }
+  const formatCosts = (costs) => Object.entries(costs).map(([r, a]) => `${RESOURCE_ICONS[r] || r}${a}`).join(' ')
 
-    // Upgrade Button
+  // Shared helper to render an upgrade button container (identical design everywhere)
+  const renderUpgradeButton = async (canAfford, onClickFn) => {
     const upgradeButton = new PIXI.Container()
-    upgradeButton.position.set(currentX, padding)
-
-    
 
     const upgradeButtonIcon = new PIXI.Sprite(await PIXI.Assets.load('assets/ui/upgrade_google23eb.png'))
     upgradeButtonIcon.width = 48
     upgradeButtonIcon.height = 48
     upgradeButtonIcon.anchor.set(0.5)
     upgradeButtonIcon.position.set(30, 20 + padding)
-    
+
     const upgradeUText = new PIXI.Text({
       text: 'U',
-      style: {
-        fontFamily: UI_FONTS.PRIMARY,
-        fontSize: 16,
-        fill: 0xFFD700, // Gold color for 'U'
-        fontWeight: 'bold',
-        padding: 4
-      }
+      style: { fontFamily: UI_FONTS.PRIMARY, fontSize: 16, fill: 0xFFD700, fontWeight: 'bold', padding: 10 }
     })
     upgradeUText.anchor.set(0.5)
-    upgradeUText.position.set(65, 30) // Simplified positioning
+    upgradeUText.position.set(65, 30)
 
     const pgradeText = createText('pgrade', TEXT_STYLES.upgradeButton)
-    pgradeText.anchor.set(0, 0.5)  // Anchor to left-center
-    pgradeText.position.set(upgradeUText.x + upgradeUText.width / 2 + 2, 30) // Position next to 'U' with small gap
-    
+    pgradeText.anchor.set(0, 0.5)
+    pgradeText.position.set(upgradeUText.x + upgradeUText.width / 2 + 2, 30)
 
     const upgradeButtonBg = new PIXI.Graphics()
       .roundRect(0, 0, 3 * padding + upgradeButtonIcon.width + upgradeUText.width * 1.25 + pgradeText.width, 60, 4)
-      .fill({ color: canAffordUpgrade ? 0x006400 : 0x333333, alpha: 0.7 }) // Dark green if affordable, grey otherwise
+      .fill({ color: canAfford ? 0x006400 : 0x333333, alpha: 0.7 })
       .stroke({ width: 1, color: 0xFFD700, alpha: 0.8 })
-    
 
-    upgradeButtonBg.eventMode = canAffordUpgrade ? 'static' : 'none'
-    upgradeButtonBg.cursor = canAffordUpgrade ? 'pointer' : 'not-allowed'
-    upgradeButtonBg.on('pointerup', (e) => {
-      e.stopPropagation()
-      building.handleBuildingUpgrade()
-    })
-
-    currentX += upgradeButtonBg.width + 2 * padding
-
-    // Upgrade Benefits Display
-    let benefitsText = []
-    if (upgradeBenefits.life) benefitsText.push(t('ui.lifeUpgrade', { amount: upgradeBenefits.life }))
-    if (upgradeBenefits.productionSpeed) benefitsText.push(t('ui.productionSpeedUpgrade', { amount: upgradeBenefits.productionSpeed }))
-    if (upgradeBenefits.maxWorkers) benefitsText.push(t('ui.maxWorkersUpgrade', { amount: upgradeBenefits.maxWorkers }))
-    if (upgradeBenefits.attackDamage) benefitsText.push(t('ui.atkUpgrade', { amount: upgradeBenefits.attackDamage }))
-    if (upgradeBenefits.cooldown) benefitsText.push(t('ui.cooldownUpgrade', { amount: upgradeBenefits.cooldown }))
-    if (upgradeBenefits.range) benefitsText.push(t('ui.rangeUpgrade', { amount: (upgradeBenefits.range / getTileSize()).toFixed(1) }))
-
-    const benefitsLabel = `Next Level: ${benefitsText.join(', ')}`
-    const upgradeBenefitsDisplay = createText(benefitsLabel, TEXT_STYLES.upgradeBenefits)
-    upgradeBenefitsDisplay.position.set(currentX, padding + 10)
-    
-
+    upgradeButtonBg.eventMode = canAfford ? 'static' : 'none'
+    upgradeButtonBg.cursor = canAfford ? 'pointer' : 'not-allowed'
+    upgradeButtonBg.on('pointerup', (e) => { e.stopPropagation(); onClickFn() })
 
     upgradeButton.addChild(upgradeButtonBg)
     upgradeButton.addChild(upgradeButtonIcon)
     upgradeButton.addChild(upgradeUText)
     upgradeButton.addChild(pgradeText)
-    bottomBarContainer.addChild(upgradeButton)
-    bottomBarContainer.addChild(upgradeBenefitsDisplay)
+    return { upgradeButton, upgradeButtonBg }
+  }
 
-    // Upgrade Costs Display
-    const resourceIcons = {
-      wood: "🪵",
-      water: "💧",
-      gold: "🪙",
-      money: "💰",
-      stone: "🪨"
-    }
-    let costDisplayX = currentX
-    let costDisplayY = padding + 10 + upgradeBenefitsDisplay.height + 5
+  // Shared helper to render upgrade benefits + costs text
+  const renderUpgradeInfo = (xStart, yStart, benefits, costs) => {
+    let benefitsText = []
+    if (benefits.life) benefitsText.push(t('ui.lifeUpgrade', { amount: benefits.life }))
+    if (benefits.productionSpeed) benefitsText.push(t('ui.productionSpeedUpgrade', { amount: benefits.productionSpeed }))
+    if (benefits.maxWorkers) benefitsText.push(t('ui.maxWorkersUpgrade', { amount: benefits.maxWorkers }))
+    if (benefits.attackDamage) benefitsText.push(t('ui.atkUpgrade', { amount: benefits.attackDamage }))
+    if (benefits.cooldown) benefitsText.push(t('ui.cooldownUpgrade', { amount: benefits.cooldown }))
+    if (benefits.range) benefitsText.push(t('ui.rangeUpgrade', { amount: (benefits.range / getTileSize()).toFixed(1) }))
 
-    for (const [resource, amount] of Object.entries(upgradeCosts)) {
+    const benefitsDisplay = createText(`Next Level: ${benefitsText.join(', ')}`, TEXT_STYLES.upgradeBenefits)
+    benefitsDisplay.position.set(xStart, yStart)
+    bottomBarContainer.addChild(benefitsDisplay)
+
+    const costsY = yStart + benefitsDisplay.height + 4
+    let costDisplayX = xStart
+    for (const [resource, amount] of Object.entries(costs)) {
       const costContainer = new PIXI.Container()
-      costContainer.position.set(costDisplayX, costDisplayY)
-
-      const icon = new PIXI.Text({
-        text: resourceIcons[resource] || "❓",
-        style: { fontSize: 16 }
-      })
+      costContainer.position.set(costDisplayX, costsY)
+      const icon = new PIXI.Text({ text: RESOURCE_ICONS[resource] || '❓', style: { fontSize: 16, padding: 10 } })
       costContainer.addChild(icon)
-
       const amountText = new PIXI.Text({
-        text: `${amount.toString()}`,
-        style: {
-          fontFamily: UI_FONTS.PRIMARY,
-          fontSize: 12,
-          fill: 0xFFFFFF
-        }
+        text: `${amount}`,
+        style: { fontFamily: UI_FONTS.PRIMARY, fontSize: 12, fill: 0xFFFFFF, padding: 10 }
       })
       amountText.position.set(20, 4)
       costContainer.addChild(amountText)
-
       bottomBarContainer.addChild(costContainer)
       costDisplayX += 55
     }
+  }
+
+  if (hasBothActions) {
+    const btnHeight = CONSTANTS.UI.BOTTOM_BAR_HEIGHT - 2 * padding
+
+    if (specMode) {
+      // ── SPEC MODE: [← Back] + spec choice buttons ──────────────────────
+      const backBtnWidth = 90
+
+      const backBg = new PIXI.Graphics()
+        .roundRect(0, 0, backBtnWidth, btnHeight, 4)
+        .fill({ color: 0x333333, alpha: 0.9 })
+        .stroke({ width: 1, color: 0x888888, alpha: 0.9 })
+      backBg.position.set(currentX + padding, padding)
+      backBg.eventMode = 'static'
+      backBg.cursor = 'pointer'
+      backBg.on('pointerup', (e) => {
+        e.stopPropagation()
+        displayBuildingInfo(building, false)
+      })
+      bottomBarContainer.addChild(backBg)
+
+      const backText = createText('← ' + t('menu.back'), TEXT_STYLES.upgradeButton)
+      backText.anchor.set(0.5, 0.5)
+      backText.position.set(currentX + padding + backBtnWidth / 2, padding + btnHeight / 2)
+      bottomBarContainer.addChild(backText)
+
+      currentX += padding + backBtnWidth
+
+      // Spec choice buttons
+      const remaining = width - currentX
+      const choiceBtnWidth = Math.floor((remaining - (specializationChoices.length + 1) * padding) / specializationChoices.length)
+
+      for (let i = 0; i < specializationChoices.length; i++) {
+        const choice = specializationChoices[i]
+        const bx = currentX + padding + i * (choiceBtnWidth + padding)
+        const by = padding
+        const canAfford = Object.entries(choice.costs).every(
+          ([resource, amount]) => (gameState.humanPlayer.resources[resource] || 0) >= amount
+        )
+
+        const btnBg = new PIXI.Graphics()
+          .roundRect(0, 0, choiceBtnWidth, btnHeight, 4)
+          .fill({ color: canAfford ? 0x1a4a1a : 0x2a2a2a, alpha: 0.9 })
+          .stroke({ width: 1, color: canAfford ? 0xFFD700 : 0x666666, alpha: 0.9 })
+        btnBg.position.set(bx, by)
+        btnBg.eventMode = canAfford ? 'static' : 'none'
+        btnBg.cursor = canAfford ? 'pointer' : 'not-allowed'
+        btnBg.on('pointerup', (e) => {
+          e.stopPropagation()
+          if (building.handleSpecialization(choice.typeName)) {
+            displayBuildingInfo(building)
+          }
+        })
+        bottomBarContainer.addChild(btnBg)
+
+        const choiceName = choice.type.key ? t(`buildings.${choice.type.key}.name`) : choice.type.name
+        const nameT = createText(choiceName, TEXT_STYLES.upgradeButton, 20)
+        nameT.anchor.set(0.5, 0)
+        nameT.position.set(bx + choiceBtnWidth / 2, by + 4)
+        bottomBarContainer.addChild(nameT)
+
+        const descLabel = choice.type.key ? t(`buildings.${choice.type.key}.description`) : choice.type.description
+        const descT = createText(descLabel, TEXT_STYLES.buildingInfoBlue, 20)
+        descT.position.set(bx + 4, by + 4 + (TEXT_STYLES.upgradeButton.fontSize || 16) + 4)
+        bottomBarContainer.addChild(descT)
+
+        const costT = createText(formatCosts(choice.costs), TEXT_STYLES.upgradeBenefits, 20)
+        costT.position.set(bx + 4, by + btnHeight - costT.height - 2)
+        bottomBarContainer.addChild(costT)
+      }
+
+    } else {
+      // ── DEFAULT MODE: Specialize (primary, leftmost) + Upgrade (secondary) ──
+      const canAffordUpgrade = gameState.humanPlayer.canAffordUpgrade(building)
+      const canAffordAnySpec = specializationChoices.some(choice =>
+        Object.entries(choice.costs).every(([r, a]) => (gameState.humanPlayer.resources[r] || 0) >= a)
+      )
+
+      // ── Specialize button — use a container with local coords (same pattern as renderUpgradeButton)
+      // text.width in PixiJS v8 does NOT include TextStyle.padding, so centering formula is:
+      //   x = (SPEC_BTN_WIDTH - text.width) / 2 - TEXT_PADDING
+      // Glyph content stays within [0, SPEC_BTN_WIDTH]; only the invisible padding overflows.
+      const TEXT_PADDING = 40
+      const SPEC_BTN_WIDTH = 245
+
+      const specContainer = new PIXI.Container()
+      specContainer.position.set(currentX + padding, padding)
+      specContainer.eventMode = 'static'
+      specContainer.cursor = 'pointer'
+      specContainer.on('pointerup', (e) => {
+        e.stopPropagation()
+        displayBuildingInfo(building, true)
+      })
+
+      const specBg = new PIXI.Graphics()
+        .roundRect(0, 0, SPEC_BTN_WIDTH, btnHeight, 4)
+        .fill({ color: canAffordAnySpec ? 0x006400 : 0x333333, alpha: 0.7 })
+        .stroke({ width: 1, color: 0xFFD700, alpha: 0.8 })
+      specContainer.addChild(specBg)
+
+      const titleFontSize = TEXT_STYLES.upgradeButton.fontSize || 16
+      const subtitleFontSize = TEXT_STYLES.upgradeBenefits.fontSize || 12
+      const textGap = 6
+      const totalTextHeight = titleFontSize + textGap + subtitleFontSize
+      const verticalOffset = Math.floor((btnHeight - totalTextHeight) / 2)
+
+      const specTitleT = createText(t('ui.specialize') + ' →', TEXT_STYLES.upgradeButton, TEXT_PADDING)
+      specTitleT.y = verticalOffset
+      specContainer.addChild(specTitleT)
+      specTitleT.x = Math.round((SPEC_BTN_WIDTH - specTitleT.width - TEXT_PADDING) / 2)
+
+      const choiceNames = specializationChoices
+        .map(c => c.type.key ? t(`buildings.${c.type.key}.name`) : c.type.name)
+        .join(' · ')
+      const choiceNamesT = createText(choiceNames, TEXT_STYLES.upgradeBenefits, TEXT_PADDING)
+      choiceNamesT.y = verticalOffset + titleFontSize + textGap
+      specContainer.addChild(choiceNamesT)
+      choiceNamesT.x = Math.round((SPEC_BTN_WIDTH - choiceNamesT.width - TEXT_PADDING) / 2)
+
+      bottomBarContainer.addChild(specContainer)
+      currentX += padding + SPEC_BTN_WIDTH + padding
+
+      // ── Upgrade button (secondary, same design as always) ──
+      const { upgradeButton, upgradeButtonBg } = await renderUpgradeButton(canAffordUpgrade, () => building.handleBuildingUpgrade())
+      upgradeButton.position.set(currentX, padding)
+      bottomBarContainer.addChild(upgradeButton)
+      currentX += upgradeButtonBg.width + 2 * padding
+
+      renderUpgradeInfo(currentX, padding + 10, upgradeBenefits, upgradeCosts)
+    }
+
+  } else if (specializationChoices) {
+    // Only specialization, no upgrade (safety fallback)
+    const remaining = width - currentX
+    const btnWidth = Math.floor((remaining - (specializationChoices.length + 1) * padding) / specializationChoices.length)
+    const btnHeight = CONSTANTS.UI.BOTTOM_BAR_HEIGHT - 2 * padding
+
+    const specLabel = createText(t('ui.specialize'), TEXT_STYLES.buildingDetails, 20)
+    specLabel.position.set(currentX + padding, padding)
+    bottomBarContainer.addChild(specLabel)
+
+    for (let i = 0; i < specializationChoices.length; i++) {
+      const choice = specializationChoices[i]
+      const bx = currentX + padding + i * (btnWidth + padding)
+      const by = padding
+      const canAfford = Object.entries(choice.costs).every(
+        ([resource, amount]) => (gameState.humanPlayer.resources[resource] || 0) >= amount
+      )
+
+      const btnBg = new PIXI.Graphics()
+        .roundRect(0, 0, btnWidth, btnHeight, 4)
+        .fill({ color: canAfford ? 0x1a4a1a : 0x2a2a2a, alpha: 0.9 })
+        .stroke({ width: 1, color: canAfford ? 0xFFD700 : 0x666666, alpha: 0.9 })
+      btnBg.position.set(bx, by)
+      btnBg.eventMode = canAfford ? 'static' : 'none'
+      btnBg.cursor = canAfford ? 'pointer' : 'not-allowed'
+      btnBg.on('pointerup', (e) => {
+        e.stopPropagation()
+        if (building.handleSpecialization(choice.typeName)) {
+          displayBuildingInfo(building)
+        }
+      })
+      bottomBarContainer.addChild(btnBg)
+
+      const choiceName = choice.type.key ? t(`buildings.${choice.type.key}.name`) : choice.type.name
+      const nameT = createText(choiceName, TEXT_STYLES.upgradeButton, 20)
+      nameT.anchor.set(0.5, 0)
+      nameT.position.set(bx + btnWidth / 2, by + 4)
+      bottomBarContainer.addChild(nameT)
+
+      const descLabel = choice.type.key ? t(`buildings.${choice.type.key}.description`) : choice.type.description
+      const descT = createText(descLabel, TEXT_STYLES.buildingInfoBlue, 80)
+      descT.position.set(bx + 4, by + 4 + (TEXT_STYLES.upgradeButton.fontSize || 16) + 4)
+      bottomBarContainer.addChild(descT)
+
+      const costT = createText(formatCosts(choice.costs), TEXT_STYLES.upgradeBenefits, 20)
+      costT.position.set(bx + 4, by + btnHeight - costT.height - 2)
+      bottomBarContainer.addChild(costT)
+    }
+
+  } else if (upgradeCosts && upgradeBenefits) {
+    // Only upgrade (standard path — no specialization available)
+    const canAffordUpgrade = gameState.humanPlayer.canAffordUpgrade(building)
+
+    const { upgradeButton, upgradeButtonBg } = await renderUpgradeButton(canAffordUpgrade, () => building.handleBuildingUpgrade())
+    upgradeButton.position.set(currentX, padding)
+    bottomBarContainer.addChild(upgradeButton)
+    currentX += upgradeButtonBg.width + 2 * padding
+
+    renderUpgradeInfo(currentX, padding + 10, upgradeBenefits, upgradeCosts)
   }
 }
 
@@ -1177,17 +1336,14 @@ async function createBuildingSlots() {
   buildingSlots = []
   
   // Create slots based on available buildings
+  // Combat buildings (Barracks, Archery, Arcana, Armory, Citadel) are accessed
+  // via Tent/Barracks specialization, not built directly from the menu.
   const buildings = [
     Building.TYPES.TENT,
     Building.TYPES.LUMBERJACK,
     Building.TYPES.QUARRY,
     Building.TYPES.WELL,
     Building.TYPES.GOLD_MINE,
-    Building.TYPES.ARCANA,
-    Building.TYPES.ARCHERY,
-    Building.TYPES.BARRACKS,
-    Building.TYPES.ARMORY,
-    Building.TYPES.CITADEL,
     Building.TYPES.TOWER,
     Building.TYPES.MARKET,
   ]
