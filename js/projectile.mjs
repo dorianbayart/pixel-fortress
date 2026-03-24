@@ -48,9 +48,9 @@ class Projectile {
     this.alive = true
 
     // Offset start position toward target so projectile spawns at the shooter's edge
-    const targetPos = this.getTargetPixelPos()
-    const dx = targetPos.x - x
-    const dy = targetPos.y - y
+    this.lastTargetPos = this.getTargetPixelPos()
+    const dx = this.lastTargetPos.x - x
+    const dy = this.lastTargetPos.y - y
     const dist = Math.sqrt(dx * dx + dy * dy)
     if (dist > 0) {
       const offset = getTileSize() * 0.7
@@ -90,19 +90,19 @@ class Projectile {
   update(delay) {
     if (!this.alive) return
 
-    if (this.target.life <= 0) {
-      this.destroy()
-      return
+    // Keep tracking the target position while it's alive
+    if (this.target.life > 0) {
+      this.lastTargetPos = this.getTargetPixelPos()
     }
 
-    const targetPos = this.getTargetPixelPos()
+    const targetPos = this.lastTargetPos
     const dx = targetPos.x - this.x
     const dy = targetPos.y - this.y
     const dist = Math.sqrt(dx * dx + dy * dy)
     const hitRadius = getTileSize() * 0.6
 
     if (dist <= hitRadius) {
-      this.target.life -= this.damage
+      if (this.target.life > 0) this.target.life -= this.damage
       createParticleEmitter(ParticleEffect.ARROW_IMPACT, { x: this.x, y: this.y, duration: 600 })
       this.destroy()
       return
@@ -154,6 +154,8 @@ class FireballProjectile extends Projectile {
     this.animSpeed = 120 // ms per frame
     this.spinAngle = 0
     this.spinSpeed = 4 // radians per second
+    this.trailTimer = 0
+    this.trailInterval = 50 // ms between trail particle bursts
 
     this.sprite = null
     if (fireballTextures.length > 0) {
@@ -167,9 +169,9 @@ class FireballProjectile extends Projectile {
   update(delay) {
     if (!this.alive) return
 
-    if (this.target.life <= 0) {
-      this.destroy()
-      return
+    // Keep tracking the target position while it's alive
+    if (this.target.life > 0) {
+      this.lastTargetPos = this.getTargetPixelPos()
     }
 
     // Advance animation
@@ -179,14 +181,14 @@ class FireballProjectile extends Projectile {
       this.animFrame = (this.animFrame + 1) % 3
     }
 
-    const targetPos = this.getTargetPixelPos()
+    const targetPos = this.lastTargetPos
     const dx = targetPos.x - this.x
     const dy = targetPos.y - this.y
     const dist = Math.sqrt(dx * dx + dy * dy)
     const hitRadius = getTileSize() * 0.6
 
     if (dist <= hitRadius) {
-      this.target.life -= this.damage
+      if (this.target.life > 0) this.target.life -= this.damage
       createParticleEmitter(ParticleEffect.FIREBALL_IMPACT, { x: this.x, y: this.y, duration: 1500 })
       this.destroy()
       return
@@ -198,6 +200,13 @@ class FireballProjectile extends Projectile {
     this.y += dy * ratio
 
     this.spinAngle += this.spinSpeed * delay / 1000
+
+    // Emit trail particles
+    this.trailTimer += delay
+    while (this.trailTimer >= this.trailInterval) {
+      this.trailTimer -= this.trailInterval
+      createParticleEmitter(ParticleEffect.FIREBALL_TRAIL, { x: this.x, y: this.y, duration: 800 })
+    }
 
     if (this.sprite) {
       this.sprite.texture = fireballTextures[this.animFrame]
