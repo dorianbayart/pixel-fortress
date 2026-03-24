@@ -684,8 +684,8 @@ function createFireballImpactParticles(emitter) {
     containers.particles.addChild(sprite)
 
     const angle = Math.random() * Math.PI * 2
-    const radialSpeed = 0.5 + Math.random() / 2
-    const upwardBias = 0.3 + Math.random()
+    const radialSpeed = 0.15 + Math.random() / 4
+    const upwardBias = 0.3 + Math.random() / 2
 
     const particle = {
       sprite,

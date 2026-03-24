@@ -47,6 +47,17 @@ class Projectile {
     this.speed = speed
     this.alive = true
 
+    // Offset start position toward target so projectile spawns at the shooter's edge
+    const targetPos = this.getTargetPixelPos()
+    const dx = targetPos.x - x
+    const dy = targetPos.y - y
+    const dist = Math.sqrt(dx * dx + dy * dy)
+    if (dist > 0) {
+      const offset = getTileSize() * 0.7
+      this.x = x + (dx / dist) * offset
+      this.y = y + (dy / dist) * offset
+    }
+
     // Draw the arrow shape once; only position/rotation change each frame
     this.graphics = new PIXI.Graphics()
     this.graphics.rect(-4, -1, 8, 2).fill({ color: 0x6D5226 })
