@@ -52,6 +52,7 @@ let elapsed = -5000
 let elapsedBack = -5000
 let delays = new Uint8Array(60).fill(255) // For game logic (capped)
 let fpsDelays = new Float32Array(60).fill(16.67) // For FPS display (uncapped)
+let fpsDelaysSum = 60 * 16.67 // Running sum of fpsDelays — avoids reduce() every frame
 let waterAnimationTimer = 0 // Global timer for water animation (cycles through 4 frames, uses real time)
 let delaysIndex = 0
 let fpsDelaysIndex = 0
@@ -434,13 +435,13 @@ const gameLoop = async () => {
     renderFog(delay)
   }
 
-  // Track FPS (using actual uncapped delay)
-  fpsDelays[fpsDelaysIndex++] = actualDelay
-  if(fpsDelaysIndex === fpsDelays.length) fpsDelaysIndex = 0
+  // Track FPS (using actual uncapped delay) — incremental sum avoids reduce() every frame
+  fpsDelaysSum -= fpsDelays[fpsDelaysIndex]
+  fpsDelays[fpsDelaysIndex] = actualDelay
+  fpsDelaysSum += actualDelay
+  fpsDelaysIndex = (fpsDelaysIndex + 1) % fpsDelays.length
 
-  // Calculate real FPS from uncapped delays
-  const totalDelay = fpsDelays.reduce((a, b) => a + b, 0)
-  const realFPS = totalDelay > 0 ? (1000 * fpsDelays.length / totalDelay) : 60
+  const realFPS = fpsDelaysSum > 0 ? (1000 * fpsDelays.length / fpsDelaysSum) : 60
 
   // Render UI
   updateUI(realFPS)
