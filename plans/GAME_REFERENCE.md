@@ -32,7 +32,7 @@ Produces Peon workers continuously. Can be specialized into a combat building (n
 | Stat | Value |
 |------|-------|
 | HP | 200 |
-| Cost | 50 Wood, 25 Water, 15 Money |
+| Cost | 12 Wood, 8 Water, 5 Stone |
 | Produces | Peon (every 10s) |
 | Upgrade | +50 HP, −10% production time |
 | Specializes into | Barracks, Archery, Arcana (non-initial, non-upgraded Tents only) |
@@ -59,7 +59,7 @@ Converts a Peon into a QuarryMiner. Must be placed on rock.
 | Stat | Value |
 |------|-------|
 | HP | 150 |
-| Cost | 20 Wood |
+| Cost | 15 Wood |
 | Max Workers | 1 |
 | Upgrade | +25 HP, −10% production time |
 
@@ -71,7 +71,7 @@ Converts a Peon into a WaterCarrier. Must be placed next to water.
 | Stat | Value |
 |------|-------|
 | HP | 150 |
-| Cost | 8 Wood, 20 Stone |
+| Cost | 8 Wood, 12 Stone |
 | Max Workers | 1 (upgradable to 2) |
 | Upgrade | +25 HP, +1 max worker |
 
@@ -83,7 +83,7 @@ Converts a Peon into a GoldMiner. Must be placed on gold ore.
 | Stat | Value |
 |------|-------|
 | HP | 150 |
-| Cost | 25 Wood, 15 Stone |
+| Cost | 20 Wood, 15 Stone |
 | Max Workers | 1 |
 | Upgrade | +25 HP, −10% production time |
 
@@ -95,7 +95,7 @@ Automatically sells one resource for Money every 15 seconds. Configurable which 
 | Stat | Value |
 |------|-------|
 | HP | 100 |
-| Cost | 25 Wood, 10 Water, 50 Stone, 15 Gold |
+| Cost | 10 Wood, 10 Stone, 5 Water, 5 Gold |
 | Sells | 1 unit of chosen resource → 1 Money (every 15s) |
 | Sellable resources | Wood, Water, Stone, Gold |
 | Upgrade | +50 HP, +1 selling price per unit |
@@ -210,7 +210,7 @@ Automatically attacks nearby enemies. Can be upgraded into one of three speciali
 | Stat | Value |
 |------|-------|
 | HP | 200 |
-| Cost | 30 Wood, 40 Stone, 15 Gold |
+| Cost | 15 Wood, 25 Stone |
 | Attack Damage | 5 |
 | Attack Range | 5 tiles |
 | Attack Cooldown | 2000 ms (0.5 atk/s) |
@@ -402,17 +402,19 @@ Combat units gain experience from kills and can level up:
 
 ### Buildings — Cost Summary
 
+> **Cost scaling:** Resource buildings (Wood Hut, Quarry, Well, Gold Mine), Tower, and Market have their costs increase each time an additional copy is built. Production buildings (Tent, Barracks, Archery, Arcana, Armory, Citadel) always cost the same regardless of how many are built.
+
 > Combat buildings marked with *(spec.)* are not built directly; they are obtained via specialization.
 
 | Building | Wood | Stone | Water | Gold | Money | HP | Access |
 |----------|------|-------|-------|------|-------|----|--------|
-| Tent | 50 | — | 25 | — | 15 | 200 | Build menu |
+| Tent | 12 | 5 | 8 | — | — | 200 | Build menu |
 | Wood Hut | 8 | — | — | — | — | 150 | Build menu |
-| Quarry | 20 | — | — | — | — | 150 | Build menu |
-| Well | 8 | 20 | — | — | — | 150 | Build menu |
-| Gold Mine | 25 | 15 | — | — | — | 150 | Build menu |
-| Market | 25 | 50 | 10 | 15 | — | 100 | Build menu |
-| Tower | 30 | 40 | — | 15 | — | 200 | Build menu |
+| Quarry | 15 | — | — | — | — | 150 | Build menu |
+| Well | 8 | 12 | — | — | — | 150 | Build menu |
+| Gold Mine | 20 | 15 | — | — | — | 150 | Build menu |
+| Market | 10 | 10 | 5 | 5 | — | 100 | Build menu |
+| Tower | 15 | 25 | — | — | — | 200 | Build menu |
 | Barracks | 15 | — | 10 | 5 | — | 50 | *(spec.)* from Tent |
 | Archery | 20 | 10 | 15 | 10 | — | 100 | *(spec.)* from Tent |
 | Arcana | 20 | 15 | 10 | 25 | — | 120 | *(spec.)* from Tent |

@@ -166,7 +166,7 @@ class Building {
           key: 'goldMine',
           name: "Gold Mine",
           icon: "⛏️",
-          costs: { wood: 25, stone: 15 },
+          costs: { wood: 20, stone: 15 },
           UPGRADES: {
             benefits: { life: 25, productionSpeed: 10 } // +25 life, 10% faster
           },
@@ -182,7 +182,7 @@ class Building {
           key: 'quarry',
           name: "Quarry",
           icon: "🪨",
-          costs: { wood: 20 },
+          costs: { wood: 15 },
           UPGRADES: {
             benefits: { life: 25, productionSpeed: 10 } // +25 life, 10% faster
           },
@@ -198,7 +198,7 @@ class Building {
           key: 'well',
           name: "Well",
           icon: "🧱",
-          costs: { wood: 8, stone: 20 },
+          costs: { wood: 8, stone: 12 },
           UPGRADES: {
             benefits: { life: 25, maxWorkers: 1 } // +25 life, +1 worker
           },
@@ -295,7 +295,7 @@ class Building {
           key: 'market',
           name: "Market",
           icon: "🏦",
-          costs: { wood: 25, water: 10, stone: 50, gold: 15 },
+          costs: { wood: 10, stone: 10, water: 5, gold: 5 },
           UPGRADES: {
             benefits: { life: 50, sellingPrice: 1 } // +50 life, +1 selling price
           },
@@ -311,7 +311,7 @@ class Building {
           key: 'tower',
           name: "Tower",
           icon: "🗼",
-          costs: { wood: 30, stone: 40, gold: 15 },
+          costs: { wood: 15, stone: 25 },
           BRANCHES: [
             {
               key: 'bulletTower',
@@ -401,7 +401,7 @@ class Building {
           key: 'tent',
           name: "Tent",
           icon: "⛺",
-          costs: { wood: 50, water: 25, money: 15 },
+          costs: { wood: 12, water: 8, stone: 5 },
           UPGRADES: {
             benefits: { life: 50, productionSpeed: 10 } // +50 life, 10% faster production
           },

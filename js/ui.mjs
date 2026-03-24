@@ -1344,11 +1344,11 @@ async function createBuildingSlots() {
   // Combat buildings (Barracks, Archery, Arcana, Armory, Citadel) are accessed
   // via Tent/Barracks specialization, not built directly from the menu.
   const buildings = [
-    Building.TYPES.TENT,
     Building.TYPES.LUMBERJACK,
     Building.TYPES.QUARRY,
     Building.TYPES.WELL,
     Building.TYPES.GOLD_MINE,
+    Building.TYPES.TENT,
     Building.TYPES.TOWER,
     Building.TYPES.MARKET,
   ]
