@@ -248,7 +248,7 @@ async function initCanvases() {
   initParticleSystem()
 
   // Initialize minimap
-  initMinimap(containers.ui)
+  initMinimap()
   
   console.log("Canvas initialized:", app.canvas.width, "x", app.canvas.height, app)
 
@@ -432,7 +432,7 @@ async function recreateRenderer() {
 
   // Reinitialize systems
   initParticleSystem()
-  initMinimap(containers.ui)
+  initMinimap()
   resetFogTexture()  // Reset fog texture before reinitializing
 
   // Update CSS rendering

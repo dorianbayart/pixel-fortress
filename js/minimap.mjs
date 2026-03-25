@@ -2,241 +2,235 @@ export { initMinimap, updateMinimap, resizeMinimap }
 
 'use strict'
 
-import * as PIXI from 'pixijs'
 import CONSTANTS from 'constants'
 import { getCanvasDimensions, getMapDimensions, getTileSize } from 'dimensions'
 import { isPositionExplored, isPositionVisible } from 'fogOfWar'
 import gameState from 'state'
 
-// Minimap configuration (from constants)
 const MINIMAP_SIZE = CONSTANTS.MINIMAP.SIZE
-const MINIMAP_PADDING = CONSTANTS.MINIMAP.PADDING
 const MINIMAP_CONTENT_ALPHA = CONSTANTS.MINIMAP.CONTENT_ALPHA
 const MINIMAP_UPDATE_INTERVAL = CONSTANTS.MINIMAP.UPDATE_INTERVAL
 const COLORS = CONSTANTS.MINIMAP.COLORS
 const TERRAIN_TYPES = CONSTANTS.TERRAIN.TYPES
 
-let minimapContainer = null
-let minimapGraphics = null
-let minimapBackground = null
-let lastMinimapUpdate = 0
+let mainCanvas = null
+let ctx = null
+let offscreenCanvas = null
+let offCtx = null
+let lastContentUpdate = 0
+
+function hexToRgba(hex, alpha = 1) {
+  const r = (hex >> 16) & 0xff
+  const g = (hex >> 8) & 0xff
+  const b = hex & 0xff
+  return `rgba(${r},${g},${b},${alpha})`
+}
 
 /**
- * Initialize the minimap
- * @param {PIXI.Container} uiContainer - The UI container to add minimap to
+ * Initialize the minimap using a dedicated HTML canvas element.
+ * No parameters — the canvas is found by ID in the DOM.
  */
-function initMinimap(uiContainer) {
-  // Create container for the minimap
-  minimapContainer = new PIXI.Container()
+function initMinimap() {
+  mainCanvas = document.getElementById('minimap-canvas')
+  if (!mainCanvas) return
 
-  // Position in top-right corner, just below the top bar
-  const { width: canvasWidth } = getCanvasDimensions()
-  minimapContainer.x = canvasWidth - MINIMAP_SIZE - MINIMAP_PADDING
-  minimapContainer.y = MINIMAP_PADDING
+  const dpr = window.devicePixelRatio || 1
+  mainCanvas.width = MINIMAP_SIZE * dpr
+  mainCanvas.height = MINIMAP_SIZE * dpr
+  ctx = mainCanvas.getContext('2d')
+  ctx.scale(dpr, dpr)
 
-  // Set z-index to ensure minimap renders on top of fog of war
-  minimapContainer.zIndex = 1000
+  offscreenCanvas = document.createElement('canvas')
+  offscreenCanvas.width = MINIMAP_SIZE * dpr
+  offscreenCanvas.height = MINIMAP_SIZE * dpr
+  offCtx = offscreenCanvas.getContext('2d')
+  offCtx.scale(dpr, dpr)
 
-  // Create background for the minimap (matching bottom bar style)
-  minimapBackground = new PIXI.Graphics()
-    .rect(0, 0, MINIMAP_SIZE, MINIMAP_SIZE)
-    .fill({ color: 0x114611, alpha: 0.85 }) // Dark green matching bottom bar
-    .stroke({ width: 2, color: 0xFFD700, alpha: 0.5 }) // Gold border matching bottom bar
-
-  minimapContainer.addChild(minimapBackground)
-
-  // Create graphics object for drawing the minimap
-  minimapGraphics = new PIXI.Graphics()
-  minimapContainer.addChild(minimapGraphics)
-
-  // Add to UI container
-  uiContainer.addChild(minimapContainer)
-
-  // Ensure UI container has sortable children enabled
-  if (!uiContainer.sortableChildren) {
-    uiContainer.sortableChildren = true
-  }
-
+  lastContentUpdate = 0
   console.log('Minimap initialized')
 }
 
 /**
- * Update the minimap display
+ * Update the minimap display — called every frame.
+ * Content (terrain/buildings/units) is throttled; viewport rect updates every frame.
  * @param {number} timestamp - Current timestamp in milliseconds
  */
 function updateMinimap(timestamp = performance.now()) {
-  if (!minimapGraphics || !gameState.map) return
+  if (!ctx || !gameState.map) return
 
-  // Throttle updates to once per second
-  if (timestamp - lastMinimapUpdate < MINIMAP_UPDATE_INTERVAL) {
-    return
+  if (timestamp - lastContentUpdate >= MINIMAP_UPDATE_INTERVAL) {
+    updateMinimapContent()
+    lastContentUpdate = timestamp
   }
-  lastMinimapUpdate = timestamp
 
+  renderMinimap()
+}
+
+/**
+ * Draw terrain, buildings and units onto the offscreen canvas.
+ * Throttled to MINIMAP_UPDATE_INTERVAL.
+ */
+function updateMinimapContent() {
   const { width: mapWidth, height: mapHeight } = getMapDimensions()
   const tileSize = getTileSize()
 
-  // Calculate scale to fill the minimap completely (using smaller dimension)
-  // This ensures no empty space - the minimap is always full
   const minDimension = Math.min(mapWidth, mapHeight)
   const pixelSize = MINIMAP_SIZE / minDimension
 
-  // Get current viewport position to center the minimap view
   const viewTransform = gameState.UI?.mouse?.getViewTransform()
   const { width: canvasWidth, height: canvasHeight } = getCanvasDimensions()
 
-  const viewWidthInTiles = (canvasWidth / (tileSize * (viewTransform?.scale || 1)))
-  const viewHeightInTiles = (canvasHeight / (tileSize * (viewTransform?.scale || 1)))
-
-  // Get center of current viewport in tile coordinates
+  const scale = viewTransform?.scale || 1
+  const viewWidthInTiles = canvasWidth / (tileSize * scale)
+  const viewHeightInTiles = canvasHeight / (tileSize * scale)
   const viewCenterX = (viewTransform?.x || 0) / tileSize + viewWidthInTiles / 2
   const viewCenterY = (viewTransform?.y || 0) / tileSize + viewHeightInTiles / 2
 
-  // Calculate how many tiles fit in the minimap at this scale
   const minimapTilesWidth = MINIMAP_SIZE / pixelSize
   const minimapTilesHeight = MINIMAP_SIZE / pixelSize
 
-  // Center the minimap view on the player's viewport
   let startX = Math.floor(viewCenterX - minimapTilesWidth / 2)
   let startY = Math.floor(viewCenterY - minimapTilesHeight / 2)
-
-  // Clamp to map bounds
   startX = Math.max(0, Math.min(startX, mapWidth - minimapTilesWidth))
   startY = Math.max(0, Math.min(startY, mapHeight - minimapTilesHeight))
 
   const endX = Math.min(mapWidth, startX + minimapTilesWidth)
   const endY = Math.min(mapHeight, startY + minimapTilesHeight)
 
-  // Clear previous frame
-  minimapGraphics.clear()
+  offCtx.clearRect(0, 0, MINIMAP_SIZE, MINIMAP_SIZE)
+  offCtx.globalAlpha = MINIMAP_CONTENT_ALPHA
 
-  // Draw terrain (only the visible portion)
+  // Draw terrain
   for (let x = Math.floor(startX); x < Math.ceil(endX); x++) {
     for (let y = Math.floor(startY); y < Math.ceil(endY); y++) {
-      // Skip if out of bounds
       if (x < 0 || x >= mapWidth || y < 0 || y >= mapHeight) continue
 
       const tile = gameState.map[x][y]
 
-      // Skip unexplored tiles if fog of war is enabled
       if (gameState.settings.fogOfWar && !isPositionExplored(x, y)) {
-        minimapGraphics
-          .rect((x - startX) * pixelSize, (y - startY) * pixelSize, pixelSize, pixelSize)
-          .fill({ color: COLORS.UNEXPLORED, alpha: MINIMAP_CONTENT_ALPHA })
+        offCtx.fillStyle = hexToRgba(COLORS.UNEXPLORED)
+        offCtx.fillRect((x - startX) * pixelSize, (y - startY) * pixelSize, pixelSize, pixelSize)
         continue
       }
 
-      // Determine color based on terrain type
       let color = COLORS.GRASS
-
       switch (tile.type) {
-        case TERRAIN_TYPES.WATER.type:
-          color = COLORS.WATER
-          break
-        case TERRAIN_TYPES.GRASS.type:
-          color = COLORS.GRASS
-          break
-        case TERRAIN_TYPES.SAND.type:
-          color = COLORS.SAND
-          break
-        case TERRAIN_TYPES.TREE.type:
-          color = COLORS.TREE
-          break
-        case TERRAIN_TYPES.DEPLETED_TREE.type:
-          color = COLORS.DEPLETED_TREE
-          break
-        case TERRAIN_TYPES.ROCK.type:
-          color = COLORS.ROCK
-          break
-        case TERRAIN_TYPES.GOLD.type:
-          color = COLORS.GOLD
-          break
+        case TERRAIN_TYPES.WATER.type:         color = COLORS.WATER; break
+        case TERRAIN_TYPES.GRASS.type:         color = COLORS.GRASS; break
+        case TERRAIN_TYPES.SAND.type:          color = COLORS.SAND; break
+        case TERRAIN_TYPES.TREE.type:          color = COLORS.TREE; break
+        case TERRAIN_TYPES.DEPLETED_TREE.type: color = COLORS.DEPLETED_TREE; break
+        case TERRAIN_TYPES.ROCK.type:          color = COLORS.ROCK; break
+        case TERRAIN_TYPES.GOLD.type:          color = COLORS.GOLD; break
       }
-
-      // Draw the pixel with transparency
-      minimapGraphics
-        .rect((x - startX) * pixelSize, (y - startY) * pixelSize, pixelSize, pixelSize)
-        .fill({ color, alpha: MINIMAP_CONTENT_ALPHA })
+      offCtx.fillStyle = hexToRgba(color)
+      offCtx.fillRect((x - startX) * pixelSize, (y - startY) * pixelSize, pixelSize, pixelSize)
     }
   }
 
-  // Draw buildings (only within visible minimap bounds)
+  // Draw buildings
   if (gameState.humanPlayer) {
-    const color = gameState.humanPlayer.color
+    offCtx.fillStyle = hexToRgba(gameState.humanPlayer.color)
     gameState.humanPlayer.getBuildings().forEach(building => {
       if (building.x >= startX && building.x < endX && building.y >= startY && building.y < endY) {
-        minimapGraphics
-          .rect((building.x - startX) * pixelSize, (building.y - startY) * pixelSize, pixelSize, pixelSize)
-          .fill({ color, alpha: MINIMAP_CONTENT_ALPHA })
+        offCtx.fillRect((building.x - startX) * pixelSize, (building.y - startY) * pixelSize, pixelSize, pixelSize)
       }
     })
   }
 
   if (gameState.aiPlayers) {
     gameState.aiPlayers.forEach(ai => {
-      const color = ai.color
+      offCtx.fillStyle = hexToRgba(ai.color)
       ai.getBuildings().forEach(building => {
         if (building.x >= startX && building.x < endX && building.y >= startY && building.y < endY) {
           if (!gameState.settings.fogOfWar || isPositionVisible(building.x, building.y)) {
-            minimapGraphics
-              .rect((building.x - startX) * pixelSize, (building.y - startY) * pixelSize, pixelSize, pixelSize)
-              .fill({ color, alpha: MINIMAP_CONTENT_ALPHA })
+            offCtx.fillRect((building.x - startX) * pixelSize, (building.y - startY) * pixelSize, pixelSize, pixelSize)
           }
         }
       })
     })
   }
 
-  // Draw units (only within visible minimap bounds)
+  // Draw units
   if (gameState.humanPlayer) {
-    const color = gameState.humanPlayer.color
+    offCtx.fillStyle = hexToRgba(gameState.humanPlayer.color)
     gameState.humanPlayer.getUnits().forEach(unit => {
       const tileX = Math.floor(unit.x / tileSize)
       const tileY = Math.floor(unit.y / tileSize)
       if (tileX >= startX && tileX < endX && tileY >= startY && tileY < endY) {
-        minimapGraphics
-          .rect((tileX - startX) * pixelSize, (tileY - startY) * pixelSize, pixelSize, pixelSize)
-          .fill({ color, alpha: MINIMAP_CONTENT_ALPHA })
+        offCtx.fillRect((tileX - startX) * pixelSize, (tileY - startY) * pixelSize, pixelSize, pixelSize)
       }
     })
   }
 
   if (gameState.aiPlayers) {
     gameState.aiPlayers.forEach(ai => {
-      const color = ai.color
+      offCtx.fillStyle = hexToRgba(ai.color)
       ai.getUnits().forEach(unit => {
         const tileX = Math.floor(unit.x / tileSize)
         const tileY = Math.floor(unit.y / tileSize)
         if (tileX >= startX && tileX < endX && tileY >= startY && tileY < endY) {
           if (!gameState.settings.fogOfWar || isPositionVisible(tileX, tileY)) {
-            minimapGraphics
-              .rect((tileX - startX) * pixelSize, (tileY - startY) * pixelSize, pixelSize, pixelSize)
-              .fill({ color, alpha: MINIMAP_CONTENT_ALPHA })
+            offCtx.fillRect((tileX - startX) * pixelSize, (tileY - startY) * pixelSize, pixelSize, pixelSize)
           }
         }
       })
     })
   }
-
-  // Draw viewport indicator showing current screen view
-  const vpStartX = ((viewTransform?.x || 0) / tileSize - startX) * pixelSize
-  const vpStartY = ((viewTransform?.y || 0) / tileSize - startY) * pixelSize
-  const vpWidth = viewWidthInTiles * pixelSize
-  const vpHeight = viewHeightInTiles * pixelSize
-
-  // Draw viewport rectangle
-  minimapGraphics
-    .rect(vpStartX, vpStartY, vpWidth, vpHeight)
-    .stroke({ width: 2, color: 0xFFFFFF, alpha: 0.8 })
 }
 
 /**
- * Resize the minimap when window is resized
+ * Blit the offscreen canvas and draw the viewport indicator — called every frame.
+ */
+function renderMinimap() {
+  ctx.clearRect(0, 0, MINIMAP_SIZE, MINIMAP_SIZE)
+  ctx.globalAlpha = 1
+  ctx.drawImage(offscreenCanvas, 0, 0, MINIMAP_SIZE, MINIMAP_SIZE)
+  drawViewportIndicator()
+}
+
+/**
+ * Draw the white viewport rectangle on the main canvas — runs every frame.
+ * Recomputes start/pixel values from current viewTransform so it tracks smoothly.
+ */
+function drawViewportIndicator() {
+  if (!gameState.map) return
+
+  const { width: mapWidth, height: mapHeight } = getMapDimensions()
+  const tileSize = getTileSize()
+  const viewTransform = gameState.UI?.mouse?.getViewTransform()
+  const { width: canvasWidth, height: canvasHeight } = getCanvasDimensions()
+
+  const scale = viewTransform?.scale || 1
+  const viewWidthInTiles = canvasWidth / (tileSize * scale)
+  const viewHeightInTiles = canvasHeight / (tileSize * scale)
+  const viewCenterX = (viewTransform?.x || 0) / tileSize + viewWidthInTiles / 2
+  const viewCenterY = (viewTransform?.y || 0) / tileSize + viewHeightInTiles / 2
+
+  const minDimension = Math.min(mapWidth, mapHeight)
+  const pixelSize = MINIMAP_SIZE / minDimension
+  const minimapTilesWidth = MINIMAP_SIZE / pixelSize
+
+  let startX = Math.floor(viewCenterX - minimapTilesWidth / 2)
+  let startY = Math.floor(viewCenterY - minimapTilesWidth / 2)
+  startX = Math.max(0, Math.min(startX, mapWidth - minimapTilesWidth))
+  startY = Math.max(0, Math.min(startY, mapHeight - minimapTilesWidth))
+
+  const vpX = ((viewTransform?.x || 0) / tileSize - startX) * pixelSize
+  const vpY = ((viewTransform?.y || 0) / tileSize - startY) * pixelSize
+  const vpW = viewWidthInTiles * pixelSize
+  const vpH = viewHeightInTiles * pixelSize
+
+  ctx.globalAlpha = 0.8
+  ctx.strokeStyle = '#ffffff'
+  ctx.lineWidth = 1.5
+  ctx.strokeRect(vpX, vpY, vpW, vpH)
+  ctx.globalAlpha = 1
+}
+
+/**
+ * Resize the minimap on window resize — recreates canvases at new DPR.
  */
 function resizeMinimap() {
-  if (!minimapContainer) return
-
-  const { width: canvasWidth } = getCanvasDimensions()
-  minimapContainer.x = canvasWidth - MINIMAP_SIZE - MINIMAP_PADDING
-  minimapContainer.y = MINIMAP_PADDING
+  initMinimap()
 }

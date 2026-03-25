@@ -366,3 +366,23 @@
   font-size: 11px;
   margin-top: 4px;
 }
+
+/* ── Minimap ──────────────────────────────────────────────────── */
+
+#minimap-canvas {
+  position: fixed;
+  top: 31px;
+  right: 0;
+  left: auto;
+  width: 220px;
+  height: 220px;
+  z-index: 15;
+  display: none;
+  image-rendering: pixelated;
+  background: rgba(17, 70, 17, 0.85);
+  border: 1px solid rgba(255, 215, 0, 0.5);
+}
+
+body.playing-mode #minimap-canvas {
+  display: block;
+}
