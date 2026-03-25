@@ -666,19 +666,13 @@ async function setupSkirmishSection() {
     }
   })
 
-  // Escape key also closes the modal
+  // Escape key also closes the options modal (if open while skirmish setup was active)
   window.addEventListener('keydown', (event) => {
-    const optionsSection = document.getElementById('optionsSection')
-    const closeOptionsModal = () => {
-      playCloseSound()
-      optionsSection.classList.remove('show')
-      setTimeout(() => {
-          optionsSection.style.display = 'none'
-      }, 600)
+    const optSect = document.getElementById('optionsSection')
+    if (event.key === 'Escape' && optSect?.classList.contains('show')) {
+      optSect.classList.remove('show')
+      setTimeout(() => { optSect.style.display = 'none' }, 600)
     }
-      if (event.key === 'Escape' && optionsSection.classList.contains('show')) {
-          closeOptionsModal()
-      }
   })
 }
 
@@ -785,12 +779,21 @@ async function setupOptionsSection() {
     }, 20)
   }
 
+  // Resume game if options were opened from in-game (game menu is gone, game is still paused)
+  const resumeIfInGame = () => {
+    const gameMenuVisible = document.getElementById('gameMenuSection')?.classList.contains('show')
+    if (!gameMenuVisible && gameState.gameStatus === 'paused') {
+      gameState.gameStatus = 'playing'
+    }
+  }
+
   // Function to close the modal
   const closeOptionsModal = () => {
     playCloseSound()
     optionsSection.classList.remove('show')
     setTimeout(() => {
         optionsSection.style.display = 'none'
+        resumeIfInGame()
     }, 600)
   }
 

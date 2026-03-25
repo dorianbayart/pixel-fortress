@@ -129,7 +129,20 @@
     "specialize": "Specialize",
     "close": "Close",
     "placed": "{name} placed!",
-    "cannotAfford": "Cannot afford {name} (Needs {costs})"
+    "cannotAfford": "Cannot afford {name} (Needs {costs})",
+    "selectedForPlacement": "{name} selected for placement",
+    "healthBarsOn": "Health bars enabled",
+    "healthBarsOff": "Health bars disabled",
+    "resettingMap": "Resetting map...",
+    "returningToMenu": "Returning to main menu...",
+    "mapExported": "Map exported: {filename}",
+    "errorExportingMap": "Error exporting map",
+    "specializedInto": "Specialized into {name}!",
+    "cannotAffordSpec": "Cannot afford specialization (Needs {costs})",
+    "noMoreUpgrades": "No more upgrades available.",
+    "upgradedToLevel": "{name} upgraded to Level {level}!",
+    "cannotAffordUpgrade": "Cannot afford upgrade (Needs {costs})",
+    "towerSpecialized": "Tower specialized to {name}!"
   },
   "buildings": {
     "tent": {

@@ -167,7 +167,7 @@ class Mouse {
         // If barely moved, treat as a click
         const dx = Math.abs(e.clientX - this.dragStartX)
         const dy = Math.abs(e.clientY - this.dragStartY)
-        if (dx < 5 && dy < 5 && e.clientY < getCanvasDimensions().height - 80) {
+        if (dx < 5 && dy < 5) {
             this.clicked = true
 
             // Handle building selection
@@ -293,18 +293,6 @@ class Mouse {
       const touchX = e.touches[0].clientX
       const touchY = e.touches[0].clientY
 
-      // Check if touch is in the bottom bar area
-      const bottomBarY = app.renderer.height - CONSTANTS.UI.BOTTOM_BAR_HEIGHT
-      const isBottomBarTouch = touchY >= bottomBarY
-
-      // If touch is in bottom bar, don't initiate dragging or pinching
-      if (isBottomBarTouch) {
-        // Just update position for UI interaction
-        //this._needWorldCoords = true
-        //this.updatePosition(touchX, touchY)
-        //return
-      }
-      
       if (e.touches.length === 1) { // Single finger touch
         this.isDragging = true
         this.dragStartX = e.touches[0].clientX
@@ -330,16 +318,6 @@ class Mouse {
     pixiView.addEventListener('touchmove', (e) => {
       e.preventDefault()
 
-      // Check if touch is in the bottom bar area
-      const touchY = e.touches[0].clientY
-      const bottomBarY = app.renderer.height - CONSTANTS.UI.BOTTOM_BAR_HEIGHT
-      const isBottomBarTouch = touchY >= bottomBarY
-
-      // Skip dragging if touch is in bottom bar
-      if (isBottomBarTouch) {
-        return
-      }
-      
       if (e.touches.length === 1 && this.isDragging) { // Single finger move
         // Calculate drag distance
         const dx = (e.touches[0].clientX - this.lastX) / this.viewTransform.scale
@@ -422,15 +400,11 @@ class Mouse {
           const touchX = e.changedTouches[0].clientX
           const touchY = e.changedTouches[0].clientY
 
-          // Check if touch is in the bottom bar area
-          const bottomBarY = app.renderer.height - CONSTANTS.UI.BOTTOM_BAR_HEIGHT
-          const isBottomBarTouch = touchY >= bottomBarY
-          
           const dx = Math.abs(touchX - this.dragStartX)
           const dy = Math.abs(touchY - this.dragStartY)
 
           // If barely moved, treat as a click
-          if ((dx < 10 && dy < 10) || isBottomBarTouch) {
+          if (dx < 10 && dy < 10) {
             this.clicked = true
             this._needWorldCoords = true
             this.updatePosition(touchX, touchY)
@@ -440,9 +414,10 @@ class Mouse {
       }
     })
 
-    // Prevent context menu
+    // Right-click: cancel current action + prevent context menu
     pixiView.addEventListener('contextmenu', (e) => {
       e.preventDefault()
+      this.rightClicked = true
     })
   }
 
@@ -628,8 +603,8 @@ class Mouse {
     const mapWidth = width * getTileSize()
     const mapHeight = height * getTileSize()
     const viewWidth = app.renderer.width / this.viewTransform.scale
-    const viewHeight = (app.renderer.height - CONSTANTS.UI.BOTTOM_BAR_HEIGHT) / this.viewTransform.scale
-  
+    const viewHeight = app.renderer.height / this.viewTransform.scale
+
     // If zoomed out enough to see entire map width, center it
     if (viewWidth >= mapWidth) {
       this.viewTransform.x = (mapWidth - viewWidth) / 2
@@ -671,7 +646,7 @@ class Mouse {
 
     // Calculate visible view dimensions in world space at current scale
     const viewWidth = app.renderer.width / this.viewTransform.scale
-    const viewHeight = (app.renderer.height - CONSTANTS.UI.BOTTOM_BAR_HEIGHT) / this.viewTransform.scale
+    const viewHeight = app.renderer.height / this.viewTransform.scale
 
     // Get human player's tent position
     const humanTents = gameState.humanPlayer?.getTents()

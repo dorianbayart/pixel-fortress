@@ -1,7 +1,9 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) Pixel Fortress contributors
 export {
   handleMouseInteraction, initUI, mouse, setupEventListeners, setupGameMenuEventListeners, showDebugMessage, showModal, updateUI, recreateUIElements
 }
-  
+
 'use strict'
 
 import { playClickSound, playCloseSound, playConfirmSound } from 'audio'
@@ -17,127 +19,9 @@ import { sprites } from 'sprites'
 import { app, containers, indicatorMap, updateZoom, unitSpriteMap, backgroundSpriteMap, worldObjectSpriteMap, getRenderStats } from 'renderer'
 import gameState from 'state'
 import { getPathfindingStats } from 'pathfinding'
+import { viewportChange } from 'viewport'
 
 const UI_FONTS = CONSTANTS.UI.FONTS
-
-// Helper function to create text with dynamic padding based on text length
-function createText(text, style, customPadding = null) {
-  // Calculate dynamic padding based on text length and font size
-  const textLength = text.toString().length
-  const fontSize = style.fontSize || 14
-  const calculatedPadding = customPadding || Math.max(20, textLength * fontSize * 0.5)
-
-  // Clone the style and set dynamic padding
-  const dynamicStyle = style.clone()
-  dynamicStyle.padding = calculatedPadding
-
-  const textObj = new PIXI.Text({
-    text: text,
-    style: dynamicStyle,
-    resolution: 2
-  })
-  return textObj
-}
-
-// Shared TextStyle instances for better performance (PixiJS 8.13.0+)
-// Text objects that share the same TextStyle instance will share textures
-const TEXT_STYLES = {
-  resource: new PIXI.TextStyle({
-    fontFamily: UI_FONTS.PRIMARY,
-    fontSize: 14,
-    fill: 0xFFD700,
-    padding: 8,  // Increased padding to prevent clipping
-    strokeThickness: 1,
-    stroke: 0x000000,
-    wordWrap: false
-  }),
-  buildingName: new PIXI.TextStyle({
-    fontFamily: UI_FONTS.PRIMARY,
-    fontSize: 20,  // Corrected to match actual usage
-    fill: 0xFFD700,
-    fontWeight: 'bold',
-    padding: 10  // Increased for bold text which needs more space
-  }),
-  buildingDescription: new PIXI.TextStyle({
-    fontFamily: UI_FONTS.PRIMARY,
-    fontSize: 14,
-    fill: 0xFFFFFF,
-    padding: 8
-  }),
-  buildingDetails: new PIXI.TextStyle({
-    fontFamily: UI_FONTS.PRIMARY,
-    fontSize: 12,  // Corrected to match actual usage
-    fill: 0xCCCCCC,
-    fontStyle: 'italic',
-    padding: 8  // Italic text may extend beyond normal bounds
-  }),
-  buildingInfo: new PIXI.TextStyle({
-    fontFamily: UI_FONTS.PRIMARY,
-    fontSize: 14,
-    fill: 0x00FF00,
-    padding: 8
-  }),
-  buildingInfoBlue: new PIXI.TextStyle({
-    fontFamily: UI_FONTS.PRIMARY,
-    fontSize: 14,
-    fill: 0xADD8E6,
-    padding: 8
-  }),
-  marketLabel: new PIXI.TextStyle({
-    fontFamily: UI_FONTS.PRIMARY,
-    fontSize: 14,
-    fill: 0xFFD700,
-    padding: 8
-  }),
-  marketInfo: new PIXI.TextStyle({
-    fontFamily: UI_FONTS.PRIMARY,
-    fontSize: 14,
-    fill: 0xFFFFFF,
-    padding: 8
-  }),
-  upgradeButton: new PIXI.TextStyle({
-    fontFamily: UI_FONTS.PRIMARY,
-    fontSize: 16,
-    fill: 0xFFFFFF,
-    padding: 10  // Larger text needs more padding
-  }),
-  upgradeBenefits: new PIXI.TextStyle({
-    fontFamily: UI_FONTS.PRIMARY,
-    fontSize: 12,
-    fill: 0xFFFFFF,
-    padding: 8
-  }),
-  slotName: new PIXI.TextStyle({
-    fontFamily: UI_FONTS.PRIMARY,
-    fontSize: 11,
-    fill: 0xFFD700,
-    padding: 8,
-    align: 'center'
-  }),
-  tooltipTitle: new PIXI.TextStyle({
-    fontFamily: UI_FONTS.PRIMARY,
-    fontSize: 16,
-    fill: 0xFFD700,
-    fontWeight: 'bold',
-    padding: 10,
-    wordWrap: false
-  }),
-  tooltipDescription: new PIXI.TextStyle({
-    fontFamily: UI_FONTS.PRIMARY,
-    fontSize: 12,
-    fill: 0xFFFFFF,
-    padding: 8,
-    wordWrap: false
-  }),
-  tooltipDetails: new PIXI.TextStyle({
-    fontFamily: UI_FONTS.PRIMARY,
-    fontSize: 11,
-    fill: 0xCCCCCC,
-    fontStyle: 'italic',
-    padding: 8,
-    wordWrap: false
-  })
-}
 
 // Mouse object (will be initialized in initUI)
 let mouse = null
@@ -148,21 +32,506 @@ let cursorUpdateRafId = null
 let cursorSprite = null
 let statsText = null
 let statsBackground = null
-let topBarContainer = null
-let bottomBarContainer = null
-let resourceTexts = {}
-let buildingSlots = []
-let selectedBuildingIndex = -1
-let tooltipContainer = null
-let tooltipVisible = false
 
 // building placement
 let buildingPreviewSprite = null
 let isValidPlacement = false
 let selectedBuildingType = null
 
-// building info panel state
+// DOM-based HUD state
+let selectedBuildingIndex = -1
 let currentSpecMode = false
+let _resourcesChangedHandler = null
+let _selectedBuildingChangedHandler = null
+let _gameModeMenuBtnBound = null
+
+function getBuildingList() {
+  return [
+    Building.TYPES.LUMBERJACK,
+    Building.TYPES.QUARRY,
+    Building.TYPES.WELL,
+    Building.TYPES.GOLD_MINE,
+    Building.TYPES.TENT,
+    Building.TYPES.TOWER,
+    Building.TYPES.MARKET,
+  ]
+}
+
+const RESOURCE_ICONS = { wood: '🪵', stone: '🪨', gold: '🪙', water: '💧', money: '💰' }
+
+// ── DOM helpers ────────────────────────────────────────────────
+
+function showGameUI() {
+  document.body.classList.add('playing-mode')
+  document.getElementById('game-top-bar').classList.add('visible')
+  document.getElementById('game-bottom-bar').classList.add('visible')
+
+  const btn = document.getElementById('game-menu-btn')
+  if (!_gameModeMenuBtnBound) {
+    _gameModeMenuBtnBound = (e) => { e.stopPropagation(); openGameMenu() }
+  }
+  btn.removeEventListener('click', _gameModeMenuBtnBound)
+  btn.addEventListener('click', _gameModeMenuBtnBound)
+}
+
+function hideGameUI() {
+  document.body.classList.remove('playing-mode')
+  document.getElementById('game-top-bar').classList.remove('visible')
+  document.getElementById('game-bottom-bar').classList.remove('visible')
+
+  const btn = document.getElementById('game-menu-btn')
+  if (_gameModeMenuBtnBound) {
+    btn.removeEventListener('click', _gameModeMenuBtnBound)
+  }
+}
+
+function updateResourceDisplay(resources) {
+  const keys = ['wood', 'stone', 'gold', 'water', 'money', 'population']
+  for (const key of keys) {
+    const el = document.getElementById(`res-${key}`)
+    if (el && resources[key] !== undefined) {
+      el.textContent = resources[key].toString()
+    }
+  }
+  // Also refresh affordability on slots
+  _refreshSlotAffordability()
+}
+
+function _refreshSlotAffordability() {
+  const panel = document.getElementById('building-slots-panel')
+  if (!panel || !panel.children.length) return
+  getBuildingList().forEach((bt, i) => {
+    const slot = panel.children[i]
+    if (!slot) return
+    const canAfford = gameState.humanPlayer?.canAffordBuilding(bt)
+    slot.classList.toggle('unaffordable', !canAfford)
+    slot.classList.toggle('selected', i === selectedBuildingIndex)
+  })
+}
+
+function renderBuildingSlots() {
+  const panel = document.getElementById('building-slots-panel')
+  panel.innerHTML = ''
+
+  getBuildingList().forEach((bt, i) => {
+    const canAfford = gameState.humanPlayer?.canAffordBuilding(bt)
+    const btn = document.createElement('button')
+    btn.className = 'building-slot' + (canAfford ? '' : ' unaffordable')
+    if (i === selectedBuildingIndex) btn.classList.add('selected')
+
+    const img = document.createElement('img')
+    img.src = bt.sprite || ''
+    img.alt = bt.key ? t(`buildings.${bt.key}.name`) : bt.name
+    btn.appendChild(img)
+
+    const name = document.createElement('span')
+    name.className = 'slot-name'
+    name.textContent = bt.key ? t(`buildings.${bt.key}.name`) : bt.name
+    btn.appendChild(name)
+
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation()
+      handleBuildingSelect(i)
+      addButtonSparkles(e)
+    })
+
+    btn.addEventListener('mouseenter', () => showTooltip(bt, btn))
+    btn.addEventListener('mouseleave', () => hideTooltip())
+
+    panel.appendChild(btn)
+  })
+}
+
+function showTooltip(bt, slotEl) {
+  const tooltip = document.getElementById('hud-tooltip')
+  const name = bt.key ? t(`buildings.${bt.key}.name`) : bt.name
+  const desc = bt.key ? t(`buildings.${bt.key}.description`) : (bt.description || '')
+  const details = bt.key ? t(`buildings.${bt.key}.details`) : (bt.details || '')
+  const costs = gameState.humanPlayer?.getBuildingCost(bt) || {}
+
+  tooltip.innerHTML = ''
+
+  const titleEl = document.createElement('span')
+  titleEl.className = 'tooltip-title'
+  titleEl.textContent = name
+  tooltip.appendChild(titleEl)
+
+  if (desc) {
+    const descEl = document.createElement('span')
+    descEl.className = 'tooltip-desc'
+    descEl.textContent = desc
+    tooltip.appendChild(descEl)
+  }
+
+  if (details) {
+    const detEl = document.createElement('span')
+    detEl.className = 'tooltip-details'
+    detEl.textContent = details
+    tooltip.appendChild(detEl)
+  }
+
+  if (Object.keys(costs).length > 0) {
+    const costEl = document.createElement('span')
+    costEl.className = 'tooltip-costs'
+    costEl.textContent = t('ui.costs') + ': ' + Object.entries(costs)
+      .map(([r, a]) => `${RESOURCE_ICONS[r] || r}${a}`)
+      .join(' ')
+    tooltip.appendChild(costEl)
+  }
+
+  tooltip.classList.add('visible')
+
+  // Position: above the slot, centered
+  const rect = slotEl.getBoundingClientRect()
+  const tw = tooltip.offsetWidth || 200
+  let left = rect.left + rect.width / 2 - tw / 2
+  left = Math.max(4, Math.min(left, window.innerWidth - tw - 4))
+  const top = rect.top - tooltip.offsetHeight - 6
+  tooltip.style.left = `${left}px`
+  tooltip.style.top = `${Math.max(4, top)}px`
+}
+
+function hideTooltip() {
+  document.getElementById('hud-tooltip').classList.remove('visible')
+}
+
+// ── Building Info Panel ────────────────────────────────────────
+
+function renderBuildingInfo(building, specMode = false) {
+  currentSpecMode = specMode
+
+  const slotsPanel = document.getElementById('building-slots-panel')
+  const infoPanel = document.getElementById('building-info-panel')
+
+  slotsPanel.style.display = 'none'
+  infoPanel.innerHTML = ''
+  infoPanel.classList.add('visible')
+
+  const padding = 10
+  const SPRITE_SIZE = getTileSize()
+
+  // Icon
+  if (building.type.sprite) {
+    const icon = document.createElement('img')
+    icon.className = 'bi-icon'
+    icon.src = building.type.sprite
+    icon.alt = ''
+    infoPanel.appendChild(icon)
+  }
+
+  // Main text column
+  const main = document.createElement('div')
+  main.className = 'bi-main'
+
+  const buildingName = building.type.key ? t(`buildings.${building.type.key}.name`) : building.type.name
+  const nameEl = document.createElement('span')
+  nameEl.className = 'bi-name'
+  nameEl.textContent = `${buildingName} (${t('ui.level')} ${building.level})`
+  main.appendChild(nameEl)
+
+  const buildingDesc = building.type.key ? t(`buildings.${building.type.key}.description`) : building.type.description
+  const descEl = document.createElement('span')
+  descEl.className = 'bi-desc'
+  descEl.textContent = buildingDesc
+  main.appendChild(descEl)
+
+  const lifeEl = document.createElement('span')
+  lifeEl.className = 'bi-life'
+  lifeEl.textContent = `${t('ui.life')}: ${building.life.toFixed(0)}/${building.maxLife}`
+  main.appendChild(lifeEl)
+
+  // Production info
+  if (building.attackDamage === undefined && building.productionCooldown > 1000 && building.productionTimer !== undefined) {
+    const prodEl = document.createElement('span')
+    prodEl.className = 'bi-extra'
+    prodEl.textContent = `${t('ui.producing')}: ${(building.productionTimer / 1000).toFixed(1)}s / ${(building.productionCooldown / 1000).toFixed(1)}s`
+    main.appendChild(prodEl)
+  }
+
+  // Workers
+  if (building.maxWorkers > 0 && building instanceof WorkerBuilding) {
+    const wEl = document.createElement('span')
+    wEl.className = 'bi-extra'
+    wEl.textContent = `${t('ui.workers')}: ${building.assignedWorkers?.length ?? 0} / ${building.maxWorkers}`
+    main.appendChild(wEl)
+  }
+
+  // Attack stats
+  if (building.attackDamage !== undefined) {
+    const statsEl = document.createElement('span')
+    statsEl.className = 'bi-stats'
+    statsEl.textContent = `${t('ui.atk')}: ${building.attackDamage}  ${t('ui.spd')}: ${(1000 / building.attackCooldown).toFixed(2)}/s  ${t('ui.range')}: ${(building.attackRange / SPRITE_SIZE).toFixed(1)} ${t('ui.tiles')}`
+    main.appendChild(statsEl)
+  }
+
+  infoPanel.appendChild(main)
+
+  // Market UI
+  if (building.type === Building.TYPES.MARKET) {
+    const marketArea = document.createElement('div')
+    marketArea.className = 'bi-actions'
+    marketArea.style.flexDirection = 'column'
+    marketArea.style.alignItems = 'flex-start'
+    marketArea.style.gap = '4px'
+
+    const sellRow = document.createElement('div')
+    sellRow.className = 'bi-sell-row'
+    const sellLabel = document.createElement('span')
+    sellLabel.style.color = '#FFD700'
+    sellLabel.style.fontFamily = 'system-ui'
+    sellLabel.style.fontSize = '13px'
+    sellLabel.textContent = `${t('ui.sell')}: `
+    sellRow.appendChild(sellLabel)
+
+    const sellResources = [
+      { name: 'wood', icon: '🪵' },
+      { name: 'water', icon: '💧' },
+      { name: 'stone', icon: '🪨' },
+      { name: 'gold', icon: '🪙' }
+    ]
+    for (const res of sellResources) {
+      const sb = document.createElement('button')
+      sb.className = 'bi-sell-btn' + (building.sellingResource === res.name ? ' active' : '')
+      sb.textContent = res.icon
+      sb.addEventListener('click', (e) => {
+        e.stopPropagation()
+        building.setSellingResource(res.name)
+        renderBuildingInfo(building)
+      })
+      sellRow.appendChild(sb)
+    }
+    marketArea.appendChild(sellRow)
+
+    const sellingInfo = document.createElement('span')
+    sellingInfo.style.color = '#fff'
+    sellingInfo.style.fontFamily = 'system-ui'
+    sellingInfo.style.fontSize = '12px'
+    sellingInfo.textContent = t('ui.selling', { resource: building.sellingResource, price: building.sellingPrice })
+    marketArea.appendChild(sellingInfo)
+
+    infoPanel.appendChild(marketArea)
+  }
+
+  // Actions area
+  const actionsDiv = document.createElement('div')
+  actionsDiv.className = 'bi-actions'
+
+  const branchChoices = building.getBranchChoices?.()
+  const specializationChoices = building.getSpecializationChoices?.()
+  const upgradeCosts = building.getUpgradeCosts()
+  const upgradeBenefits = building.getUpgradeBenefits()
+  const hasBothActions = specializationChoices && upgradeCosts && upgradeBenefits
+
+  if (branchChoices) {
+    // Tower branch selection
+    for (const branch of branchChoices) {
+      const canAfford = Object.entries(branch.costs).every(
+        ([r, a]) => (gameState.humanPlayer.resources[r] || 0) >= a
+      )
+      const btn = document.createElement('button')
+      btn.className = 'bi-btn' + (canAfford ? '' : ' unaffordable')
+      btn.disabled = !canAfford
+
+      const branchName = branch.key ? t(`buildings.${branch.key}.name`) : branch.name
+      const s = branch.initialStats
+      const statsLabel = `${t('ui.atk')}:${s.attackDamage}  ${t('ui.spd')}:${(1000/s.attackCooldown).toFixed(1)}/s  Rng:${s.attackRangeTiles}t`
+      const costLabel = Object.entries(branch.costs).map(([r, a]) => `${RESOURCE_ICONS[r] || r}${a}`).join(' ')
+
+      const titleEl2 = document.createElement('span')
+      titleEl2.className = 'bi-btn-title'
+      titleEl2.textContent = branchName
+      btn.appendChild(titleEl2)
+
+      const subEl = document.createElement('span')
+      subEl.className = 'bi-btn-sub'
+      subEl.textContent = statsLabel
+      btn.appendChild(subEl)
+
+      const costEl2 = document.createElement('span')
+      costEl2.className = 'bi-btn-cost'
+      costEl2.textContent = costLabel
+      btn.appendChild(costEl2)
+
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation()
+        if (building.handleBranchUpgrade(branch)) {
+          renderBuildingInfo(building)
+        }
+      })
+      actionsDiv.appendChild(btn)
+    }
+  } else if (hasBothActions) {
+    if (specMode) {
+      // Back button
+      const backBtn = document.createElement('button')
+      backBtn.className = 'bi-back-btn'
+      backBtn.textContent = '← ' + t('menu.back')
+      backBtn.addEventListener('click', (e) => {
+        e.stopPropagation()
+        renderBuildingInfo(building, false)
+      })
+      actionsDiv.appendChild(backBtn)
+
+      // Spec choices
+      for (const choice of specializationChoices) {
+        const canAfford = Object.entries(choice.costs).every(
+          ([r, a]) => (gameState.humanPlayer.resources[r] || 0) >= a
+        )
+        const btn = document.createElement('button')
+        btn.className = 'bi-btn' + (canAfford ? '' : ' unaffordable')
+        btn.disabled = !canAfford
+
+        const choiceName = choice.type.key ? t(`buildings.${choice.type.key}.name`) : choice.type.name
+        const choiceDesc = choice.type.key ? t(`buildings.${choice.type.key}.description`) : choice.type.description
+        const costLabel = Object.entries(choice.costs).map(([r, a]) => `${RESOURCE_ICONS[r] || r}${a}`).join(' ')
+
+        const t1 = document.createElement('span')
+        t1.className = 'bi-btn-title'
+        t1.textContent = choiceName
+        btn.appendChild(t1)
+
+        const t2 = document.createElement('span')
+        t2.className = 'bi-btn-sub'
+        t2.textContent = choiceDesc
+        btn.appendChild(t2)
+
+        const t3 = document.createElement('span')
+        t3.className = 'bi-btn-cost'
+        t3.textContent = costLabel
+        btn.appendChild(t3)
+
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation()
+          if (building.handleSpecialization(choice.typeName)) {
+            renderBuildingInfo(building)
+          }
+        })
+        actionsDiv.appendChild(btn)
+      }
+    } else {
+      // Specialize button (primary)
+      const canAffordAnySpec = specializationChoices.some(c =>
+        Object.entries(c.costs).every(([r, a]) => (gameState.humanPlayer.resources[r] || 0) >= a)
+      )
+      const specBtn = document.createElement('button')
+      specBtn.className = 'bi-btn' + (canAffordAnySpec ? '' : ' unaffordable')
+      const specTitle = document.createElement('span')
+      specTitle.className = 'bi-btn-title'
+      specTitle.textContent = t('ui.specialize') + ' →'
+      specBtn.appendChild(specTitle)
+      const specNames = specializationChoices.map(c => c.type.key ? t(`buildings.${c.type.key}.name`) : c.type.name).join(' · ')
+      const specSub = document.createElement('span')
+      specSub.className = 'bi-btn-sub'
+      specSub.textContent = specNames
+      specBtn.appendChild(specSub)
+      specBtn.addEventListener('click', (e) => {
+        e.stopPropagation()
+        renderBuildingInfo(building, true)
+      })
+      actionsDiv.appendChild(specBtn)
+
+      // Upgrade button (secondary)
+      const canAffordUpgrade = gameState.humanPlayer.canAffordUpgrade(building)
+      actionsDiv.appendChild(_makeUpgradeButton(building, canAffordUpgrade, upgradeBenefits, upgradeCosts))
+    }
+  } else if (specializationChoices) {
+    // Only specialization
+    for (const choice of specializationChoices) {
+      const canAfford = Object.entries(choice.costs).every(
+        ([r, a]) => (gameState.humanPlayer.resources[r] || 0) >= a
+      )
+      const btn = document.createElement('button')
+      btn.className = 'bi-btn' + (canAfford ? '' : ' unaffordable')
+      btn.disabled = !canAfford
+
+      const choiceName = choice.type.key ? t(`buildings.${choice.type.key}.name`) : choice.type.name
+      const choiceDesc = choice.type.key ? t(`buildings.${choice.type.key}.description`) : choice.type.description
+      const costLabel = Object.entries(choice.costs).map(([r, a]) => `${RESOURCE_ICONS[r] || r}${a}`).join(' ')
+
+      const t1 = document.createElement('span')
+      t1.className = 'bi-btn-title'
+      t1.textContent = choiceName
+      btn.appendChild(t1)
+
+      const t2 = document.createElement('span')
+      t2.className = 'bi-btn-sub'
+      t2.textContent = choiceDesc
+      btn.appendChild(t2)
+
+      const t3 = document.createElement('span')
+      t3.className = 'bi-btn-cost'
+      t3.textContent = costLabel
+      btn.appendChild(t3)
+
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation()
+        if (building.handleSpecialization(choice.typeName)) {
+          renderBuildingInfo(building)
+        }
+      })
+      actionsDiv.appendChild(btn)
+    }
+  } else if (upgradeCosts && upgradeBenefits) {
+    // Only upgrade
+    const canAffordUpgrade = gameState.humanPlayer.canAffordUpgrade(building)
+    actionsDiv.appendChild(_makeUpgradeButton(building, canAffordUpgrade, upgradeBenefits, upgradeCosts))
+  }
+
+  if (actionsDiv.children.length > 0) {
+    infoPanel.appendChild(actionsDiv)
+  }
+}
+
+function _makeUpgradeButton(building, canAfford, benefits, costs) {
+  const btn = document.createElement('button')
+  btn.className = 'bi-btn' + (canAfford ? '' : ' unaffordable')
+  btn.disabled = !canAfford
+
+  const titleEl3 = document.createElement('span')
+  titleEl3.className = 'bi-btn-title'
+  titleEl3.textContent = '⬆ Upgrade'
+  btn.appendChild(titleEl3)
+
+  // Benefits summary
+  let benefitsArr = []
+  if (benefits.life) benefitsArr.push(t('ui.lifeUpgrade', { amount: benefits.life }))
+  if (benefits.attackDamage) benefitsArr.push(t('ui.atkUpgrade', { amount: benefits.attackDamage }))
+  if (benefits.cooldown) benefitsArr.push(t('ui.cooldownUpgrade', { amount: benefits.cooldown }))
+  if (benefits.range) benefitsArr.push(t('ui.rangeUpgrade', { amount: (benefits.range / getTileSize()).toFixed(1) }))
+  if (benefits.productionSpeed) benefitsArr.push(t('ui.productionSpeedUpgrade', { amount: benefits.productionSpeed }))
+  if (benefits.maxWorkers) benefitsArr.push(t('ui.maxWorkersUpgrade', { amount: benefits.maxWorkers }))
+
+  if (benefitsArr.length > 0) {
+    const subEl2 = document.createElement('span')
+    subEl2.className = 'bi-btn-sub'
+    subEl2.textContent = benefitsArr.join(', ')
+    btn.appendChild(subEl2)
+  }
+
+  const costLabel2 = Object.entries(costs).map(([r, a]) => `${RESOURCE_ICONS[r] || r}${a}`).join(' ')
+  const costEl3 = document.createElement('span')
+  costEl3.className = 'bi-btn-cost'
+  costEl3.textContent = costLabel2
+  btn.appendChild(costEl3)
+
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation()
+    building.handleBuildingUpgrade()
+    addButtonSparkles(e)
+  })
+  return btn
+}
+
+function hideBuildingInfoDOM() {
+  const slotsPanel = document.getElementById('building-slots-panel')
+  const infoPanel = document.getElementById('building-info-panel')
+  infoPanel.classList.remove('visible')
+  infoPanel.innerHTML = ''
+  slotsPanel.style.display = ''
+  renderBuildingSlots()
+}
+
+// ── Main UI init ───────────────────────────────────────────────
 
 /**
  * Initialize UI components
@@ -175,7 +544,7 @@ async function initUI(mouseInstance) {
       statsText.visible = value
       if (statsBackground) statsBackground.visible = value
     })
-    
+
     gameState.events.on('game-status-changed', async (status) => {
       if (status === 'playing') {
         playConfirmSound()
@@ -185,11 +554,39 @@ async function initUI(mouseInstance) {
           document.getElementById('homeMenu').style.display = 'none'
         }, 600)
 
-        // Create the top resource bar
-        createTopBar()
+        showGameUI()
+        renderBuildingSlots()
 
-        // Create the bottom building bar
-        createBottomBar()
+        // Subscribe to resource changes
+        if (_resourcesChangedHandler) {
+          gameState.humanPlayer?.events.off?.('resources-changed', _resourcesChangedHandler)
+        }
+        _resourcesChangedHandler = () => {
+          updateResourceDisplay(gameState.humanPlayer.getResources())
+        }
+        if (gameState.humanPlayer) {
+          gameState.humanPlayer.events.on('resources-changed', _resourcesChangedHandler)
+          // Initial resource display
+          updateResourceDisplay(gameState.humanPlayer.getResources())
+        }
+
+        // Subscribe to building selection
+        if (_selectedBuildingChangedHandler) {
+          gameState.events.off?.('selected-building-changed', _selectedBuildingChangedHandler)
+        }
+        _selectedBuildingChangedHandler = (building) => {
+          currentSpecMode = false
+          if (building) {
+            renderBuildingInfo(building)
+          } else {
+            hideBuildingInfoDOM()
+          }
+        }
+        gameState.events.on('selected-building-changed', _selectedBuildingChangedHandler)
+
+        // Resize canvas for bars
+        viewportChange()
+
       } else if (status === 'paused') {
         playCloseSound()
 
@@ -200,6 +597,7 @@ async function initUI(mouseInstance) {
         }
         selectedBuildingType = null
         selectedBuildingIndex = -1
+
       } else if (status === 'menu') {
         playClickSound()
 
@@ -216,16 +614,19 @@ async function initUI(mouseInstance) {
         setTimeout(() => {
           document.getElementById('homeMenu').style.opacity = 1
         }, 20)
+
+        hideGameUI()
+        viewportChange()
+
+      } else if (status === 'gameOver' || status === 'win') {
+        hideGameUI()
+        viewportChange()
       }
     })
-  } else if (gameState.status === 'playing') {
-    // Create the top resource bar
-    createTopBar()
-
-    // Create the bottom building bar
-    createBottomBar()
+  } else if (gameState.gameStatus === 'playing') {
+    showGameUI()
+    renderBuildingSlots()
   }
-  
 
   mouse = mouseInstance
   gameState.UI = { mouse: mouse }
@@ -239,7 +640,7 @@ async function initUI(mouseInstance) {
     // Start dedicated cursor update loop
     updateCursor()
   }
-  
+
   // Create debug stats background
   statsBackground = new PIXI.Graphics()
   statsBackground.position.set(5, 33)
@@ -298,12 +699,6 @@ function recreateUIElements() {
     cursorSprite.pivot.set(4.5, 4.5)
     containers.ui.addChild(cursorSprite)
   }
-
-  // Recreate top and bottom bars if game is playing
-  if (gameState.gameStatus === 'playing') {
-    createTopBar()
-    createBottomBar()
-  }
 }
 
 /**
@@ -325,13 +720,12 @@ function setupEventListeners() {
         break
       case 'h':
         gameState.showHealthBars = !gameState.showHealthBars
-        showDebugMessage(`Health bars ${gameState.showHealthBars ? 'enabled' : 'disabled'}`)
+        showDebugMessage(gameState.showHealthBars ? t('ui.healthBarsOn') : t('ui.healthBarsOff'))
         break
       case 'u':
         if (gameState.selectedBuilding && gameState.humanPlayer.canAffordUpgrade(gameState.selectedBuilding)) {
           gameState.selectedBuilding.handleBuildingUpgrade()
-          // Simulate a click event for visual feedback (sparkles)
-          addButtonSparkles({ clientX: app.renderer.width / 2, clientY: app.renderer.height - CONSTANTS.UI.BOTTOM_BAR_HEIGHT / 2 })
+          addButtonSparkles({ clientX: window.innerWidth / 2, clientY: window.innerHeight - CONSTANTS.UI.BOTTOM_BAR_HEIGHT / 2 })
         }
         break
     }
@@ -358,14 +752,10 @@ function setupGameMenuEventListeners() {
   // Close button
   closeButton.addEventListener('click', closeGameMenu)
 
-  // Options button - close game menu and open options
+  // Options button - open options on top of the game menu (keep game menu open)
   openOptionsButton.addEventListener('click', () => {
     playClickSound()
-    closeGameMenu()
-    // Small delay to let the game menu close animation finish
-    setTimeout(() => {
-      openOptionsModal()
-    }, 100)
+    openOptionsModal()
   })
 
   // Reset map button
@@ -442,39 +832,48 @@ function openOptionsModal() {
  * @param {Object} player - Player object
  */
 function handleMouseInteraction(map, player) {
+  // Right-click cancels building placement
+  if (mouse?.rightClicked) {
+    mouse.rightClicked = false
+    if (selectedBuildingIndex >= 0) {
+      handleBuildingSelect(selectedBuildingIndex) // toggles off
+    }
+  }
+
   // Update building preview if a building type is selected
   if (selectedBuildingType) {
     updateBuildingPreview()
-    
+
     // Handle mouse click to place building
     if (mouse?.clicked) {
       // Check if player can afford the building
       if (isValidPlacement && player.canAffordBuilding(selectedBuildingType)) {
         // Create the building
         player.addBuilding(mouse.x, mouse.y, selectedBuildingType)
-        
+
         // Show message
         const placedName = selectedBuildingType.key ? t(`buildings.${selectedBuildingType.key}.name`) : selectedBuildingType.name
         showDebugMessage(t('ui.placed', { name: placedName }))
-        
+
         // Clear selection
         if (selectedBuildingIndex >= 0) {
           handleBuildingSelect(selectedBuildingIndex)
         }
-        
+
         // Request background redraw
         drawBack()
       }
-
-      // Reset mouse click
-      mouse.clicked = false
     }
+  }
+
+  // Always consume the click so stale clicks don't trigger placements
+  if (mouse?.clicked) {
+    mouse.clicked = false
   }
 
   // Handle zoom changes
   if (mouse?.zoomChanged) {
     updateZoom()
-    updateBottomBarPosition()
 
     statsText.style.fontSize = 14 * (window.devicePixelRatio || 1)
     statsText.resolution = window.devicePixelRatio || 1
@@ -498,7 +897,7 @@ function updateCursor() {
   if (cursorSprite && mouse) {
     cursorSprite.position.set(mouse.xPixels, mouse.yPixels);
   }
-  
+
   // Continue the cursor update loop
   cursorUpdateRafId = requestAnimationFrame(updateCursor);
 }
@@ -511,7 +910,6 @@ function updateUI(fps) {
   const now = performance.now()
 
   // Only update debug UI every 250ms (4 times per second) to reduce CPU usage
-  // Text rendering and string operations can be expensive
   if ((DEBUG() && now - elapsedUI > 250)) {
     drawUI(fps)
     elapsedUI = now
@@ -582,864 +980,9 @@ function drawUI(fps) {
   }
 }
 
-function updateResourceDisplay(resources) {
-  for (const [resource, value] of Object.entries(resources)) {
-    if (resourceTexts[resource]) {
-      resourceTexts[resource].text = value.toString()
-    }
-  }
-}
-
-async function createTopBar() {
-  if (topBarContainer) {
-    topBarContainer.removeChildren()
-    topBarContainer.destroy()
-  }
-  
-  const { width } = getCanvasDimensions()
-  const barHeight = 32 // Fixed height for the top bar
-  
-  // Create the container
-  topBarContainer = new PIXI.Container()
-  
-  // Create background
-  const background = new PIXI.Graphics()
-    .rect(0, 0, width, barHeight)
-    .fill({ color: 0x114611, alpha: 0.85 }) // Dark green with transparency
-    .stroke({ width: 2, color: 0xFFD700, alpha: 0.5}) // Gold border
-  topBarContainer.addChild(background)
-
-  // Get resources from the human player
-  const playerResources = gameState.humanPlayer?.getResources()
-  
-  // Resources to display
-  const resources = [
-    { name: 'wood',       sprite: './assets/buildings/wood.png',                  initial: playerResources?.wood       || 0 },
-    { name: 'stone',      sprite: './assets/buildings/rock.png',                  initial: playerResources?.stone      || 0 },
-    { name: 'gold',       sprite: './assets/buildings/gold-ore.png',              initial: playerResources?.gold       || 0 },
-    { name: 'water',      sprite: './assets/buildings/droplet.png',               initial: playerResources?.water      || 0 },
-    { name: 'money',      sprite: './assets/buildings/coin.png',                  initial: playerResources?.money      || 0 },
-    { name: 'population', sprite: './assets/buildings/busts-in-silhouette.png',   initial: playerResources?.population || 0 }
-  ]
-
-  const spacing = width / resources.length
-
-  // Create each resource display
-  for (const [index, resource] of resources.entries()) {
-    const resourceContainer = new PIXI.Container()
-    resourceContainer.position.set(Math.floor(index * spacing + 10), 6)
-
-    // Icon sprite
-    const icon = new PIXI.Sprite(await PIXI.Assets.load({ src: resource.sprite }))
-    icon.width = 20
-    icon.height = 20
-    resourceContainer.addChild(icon)
-
-    // Resource value
-    const text = createText(resource.initial.toString(), TEXT_STYLES.resource)
-    text.position.set(24, 2) // Position after the icon
-    resourceContainer.addChild(text)
-
-    // Store reference for updates
-    resourceTexts[resource.name] = text
-
-    topBarContainer.addChild(resourceContainer)
-  }
-
-  // Add menu button to the right side of the top bar
-  const menuButton = new PIXI.Container()
-  menuButton.position.set(width - 44, 4) // Position on the right side
-
-  // Create button background
-  const menuButtonBg = new PIXI.Graphics()
-    .roundRect(0, 0, 36, 26, 4)
-    .fill({ color: 0x114611, alpha: 0.7 })
-    .stroke({ width: 1, color: 0xFFD700, alpha: 0.8 })
-  menuButton.addChild(menuButtonBg)
-
-  // Create hamburger menu icon (three lines)
-  const menuIcon = new PIXI.Graphics()
-    .rect(8, 7, 20, 2)  // Top line
-    .rect(8, 13, 20, 2) // Middle line
-    .rect(8, 19, 20, 2) // Bottom line
-    .fill({ color: 0xFFD700 })
-  menuButton.addChild(menuIcon)
-
-  // Make button interactive
-  menuButtonBg.eventMode = 'static'
-  menuButtonBg.cursor = 'pointer'
-  menuButtonBg.on('pointerup', (e) => {
-    e.stopPropagation()
-    openGameMenu()
-  })
-
-  topBarContainer.addChild(menuButton)
-  
-  // Add to UI container
-  containers.ui.addChild(topBarContainer)
-  
-  // Subscribe to resource changes from human player
-  if (gameState.humanPlayer) {
-    if(!gameState.humanPlayer.events?.listeners['resources-changed']?.includes(
-      () => { updateResourceDisplay(gameState.humanPlayer.getResources()) })
-    )
-    gameState.humanPlayer.events.on('resources-changed', () => {
-      updateResourceDisplay(gameState.humanPlayer.getResources())
-    })
-  }
-  
-  // Handle window resize to update positioning
-  if(!gameState.events?.listeners['draw-back-requested-changed']?.includes(updateTopBarPosition))
-  gameState.events.on('draw-back-requested-changed', updateTopBarPosition)
-}
-
-
-function updateTopBarPosition() {
-  if (!topBarContainer || topBarContainer.children.length < 1) return
-  
-  const { width } = getCanvasDimensions()
-  const barHeight = 32
-  
-  // Update background
-  topBarContainer.getChildAt(0)
-    .clear()
-    .rect(0, 0, width, barHeight)
-    .fill({ color: 0x114611, alpha: 0.85 })
-    .stroke({ width: 2, color: 0xFFD700, alpha: 0.5 })
-  
-  // Update resource positions
-  const resources = Object.keys(resourceTexts)
-  const spacing = width / resources.length
-  
-  resources.forEach((resource, index) => {
-    const container = resourceTexts[resource].parent
-    container.position.set(Math.floor(index * spacing + 10), 6)
-  })
-}
-
-
-async function createBottomBar() {
-  if (bottomBarContainer) {
-    bottomBarContainer.removeChildren()
-    bottomBarContainer.destroy()
-  }
-
-  const { width } = getCanvasDimensions()
-  const barHeight = CONSTANTS.UI.BOTTOM_BAR_HEIGHT
-
-  // Create the container
-  bottomBarContainer = new PIXI.Container()
-
-  // Create background
-  const background = new PIXI.Graphics()
-    .rect(0, 0, width, barHeight)
-    .fill({ color: 0x114611, alpha: 0.85 }) // Dark green with transparency
-    .stroke({ width: 2, color: 0xFFD700, alpha: 0.5 }) // Gold border
-  bottomBarContainer.addChild(background)
-
-  // Position at bottom of screen
-  bottomBarContainer.position.set(0, app.renderer.height - barHeight)
-
-  // Update hit area to match new dimensions
-  bottomBarContainer.hitArea = new PIXI.Rectangle(0, 0, width, barHeight)
-
-  // Add event listeners to prevent touch events from reaching the canvas
-  bottomBarContainer.on('pointerdown', (e) => {
-    e.stopPropagation()
-  })
-
-  bottomBarContainer.on('pointermove', (e) => {
-    e.stopPropagation()
-  })
-
-  bottomBarContainer.on('pointerup', (e) => {
-    e.stopPropagation()
-  })
-
-  // Add to UI container
-  containers.ui.addChild(bottomBarContainer)
-
-  // Subscribe to resource changes from human player
-  if (gameState.humanPlayer) {
-    if(gameState.humanPlayer.events?.listeners['resources-changed']?.includes(updateBottomBarPosition)) {
-      updateBottomBarPosition()
-    } else {
-      gameState.humanPlayer.events.on('resources-changed', updateBottomBarPosition)
-    }
-  }
-
-  const selectedBuildingChangedEvent = async (building) => {
-    currentSpecMode = false
-    if (building) {
-      displayBuildingInfo(building)
-    } else {
-      hideBuildingInfo()
-    }
-  }
-
-  if(gameState.events?.listeners['selected-building-changed']?.includes(selectedBuildingChangedEvent)) {
-    selectedBuildingChangedEvent()
-  } else {
-    gameState.events.on('selected-building-changed', selectedBuildingChangedEvent)
-  }
-}
-
-function updateBottomBarPosition() {
-  if (!bottomBarContainer) return
-  
-  const { width } = getCanvasDimensions()
-  const barHeight = CONSTANTS.UI.BOTTOM_BAR_HEIGHT
-  
-  // Update position to stay at bottom
-  bottomBarContainer.position.set(0, app.renderer.height - barHeight)
-  
-  // Update hit area to match new dimensions
-  bottomBarContainer.hitArea = new PIXI.Rectangle(0, 0, width, barHeight)
-
-  // Update background
-  bottomBarContainer.getChildAt(0)
-    .clear()
-    .rect(0, 0, width, barHeight)
-    .fill({ color: 0x114611, alpha: 0.85 })
-    .stroke({ width: 2, color: 0xFFD700, alpha: 0.5 })
-
-  // Recreate building slots to adjust for new width
-  if (!gameState.selectedBuilding) {
-    createBuildingSlots()
-  } else {
-    displayBuildingInfo(gameState.selectedBuilding, currentSpecMode)
-  }
-}
-
-/**
- * Display information about the selected building in the bottom bar.
- * @param {Building} building - The selected building instance.
- */
-async function displayBuildingInfo(building, specMode = false) {
-  if (!bottomBarContainer) return
-  currentSpecMode = specMode
-
-  // Clear existing content
-  bottomBarContainer.removeChildren()
-
-  // Re-add background
-  const { width } = getCanvasDimensions()
-  const barHeight = CONSTANTS.UI.BOTTOM_BAR_HEIGHT
-  const background = new PIXI.Graphics()
-    .rect(0, 0, width, barHeight)
-    .fill({ color: 0x114611, alpha: 0.85 })
-    .stroke({ width: 2, color: 0xFFD700, alpha: 0.5 })
-  bottomBarContainer.addChild(background)
-
-  const padding = 10
-  let currentX = padding
-  let fontSize = 12
-
-  // Building Icon
-  let iconSprite
-  if (building.type.sprite) {
-    iconSprite = new PIXI.Sprite(await PIXI.Assets.load({ src: building.type.sprite }))
-    iconSprite.width = 48
-    iconSprite.height = 48
-    iconSprite.position.set(currentX, padding)
-    bottomBarContainer.addChild(iconSprite)
-    currentX += iconSprite.width + padding
-  } else if (building.type.icon) {
-    const iconText = new PIXI.Text({
-      text: building.type.icon,
-      style: {
-        fontSize: 36,
-        fill: 0xFFFFFF
-      }
-    })
-    iconText.position.set(currentX, padding)
-    bottomBarContainer.addChild(iconText)
-    currentX += iconText.width + padding
-  }
-
-  // Building Name and Level
-  fontSize = 20
-  const buildingName = building.type.key ? t(`buildings.${building.type.key}.name`) : building.type.name
-  const nameText = createText(`${buildingName} (${t('ui.level')} ${building.level})`, TEXT_STYLES.buildingName)
-  nameText.position.set(currentX, padding)
-  bottomBarContainer.addChild(nameText)
-
-  // Building Description
-  fontSize = 14
-  const buildingDesc = building.type.key ? t(`buildings.${building.type.key}.description`) : building.type.description
-  const descText = createText(buildingDesc, TEXT_STYLES.buildingDescription)
-  descText.position.set(currentX, padding + nameText.height + 5)
-  bottomBarContainer.addChild(descText)
-
-  // Building Details (if present)
-  let detailsText = null
-  if (building.type.details) {
-    fontSize = 12
-    const buildingDetails = building.type.key ? t(`buildings.${building.type.key}.details`) : building.type.details
-    detailsText = createText(buildingDetails, TEXT_STYLES.buildingDetails)
-    detailsText.position.set(currentX, padding + nameText.height + descText.height + 8)
-    bottomBarContainer.addChild(detailsText)
-  }
-
-  const maxTextWidth = Math.max(
-    nameText.width,
-    descText.width,
-    detailsText ? detailsText.width : 0
-  )
-  currentX += maxTextWidth * 1.4
-
-  // Life/MaxLife
-  fontSize = 14
-  const lifeLabel = `${t('ui.life')}: ${building.life.toFixed(0)}/${building.maxLife}`
-  const lifeText = createText(lifeLabel, TEXT_STYLES.buildingInfo)
-  lifeText.position.set(currentX, padding)
-  bottomBarContainer.addChild(lifeText)
-
-  // Production Info (if applicable)
-  let productionText = null
-  fontSize = 14
-  if (building.attackDamage === undefined && building.productionCooldown > 1000 && building.productionTimer !== undefined) {
-    const productionLabel = `${t('ui.producing')}: ${(building.productionTimer / 1000).toFixed(1)}s / ${(building.productionCooldown / 1000).toFixed(1)}s`
-    productionText = createText(productionLabel, TEXT_STYLES.buildingInfoBlue)
-    productionText.position.set(currentX + lifeText.width + 40, padding)
-    bottomBarContainer.addChild(productionText)
-  }
-
-  let workersText = null
-  fontSize = 14
-  if (building.maxWorkers > 0 && building instanceof WorkerBuilding) {
-    const workersLabel = `${t('ui.workers')}: ${building.assignedWorkers?.length ?? 0} / ${building.maxWorkers}`
-    workersText = createText(workersLabel, TEXT_STYLES.buildingInfoBlue)
-    workersText.position.set(currentX + lifeText.width + 40, padding)
-    bottomBarContainer.addChild(workersText)
-  }
-
-  // Attack stats (for combat buildings like Tower)
-  if (building.attackDamage !== undefined) {
-    const SPRITE_SIZE = getTileSize()
-    const attackPower = `${t('ui.atk')}: ${building.attackDamage}`
-    const attackSpeed = `${t('ui.spd')}: ${(1000 / building.attackCooldown).toFixed(2)}/s`
-    const attackRange = `${t('ui.range')}: ${(building.attackRange / SPRITE_SIZE).toFixed(1)} ${t('ui.tiles')}`
-    const attackLabel = `${attackPower}  ${attackSpeed}  ${attackRange}`
-    const attackText = createText(attackLabel, TEXT_STYLES.buildingInfoBlue)
-    attackText.position.set(currentX, padding + lifeText.height + 5)
-    bottomBarContainer.addChild(attackText)
-  }
-
-  // Market specific UI for selling resources
-  if (building.type === Building.TYPES.MARKET) {
-    const sellResources = [
-      { name: 'wood', icon: '🪵' },
-      { name: 'water', icon: '💧' },
-      { name: 'stone', icon: '🪨' },
-      { name: 'gold', icon: '🪙' }
-    ]
-    
-    const sellLabel = createText(`${t('ui.sell')}:`, TEXT_STYLES.marketLabel)
-    sellLabel.position.set(currentX, padding + lifeText.height + 10)
-    bottomBarContainer.addChild(sellLabel)
-
-    let sellButtonX = currentX + sellLabel.width + 20
-    const sellButtonY = sellLabel.y - 4
-
-    sellResources.forEach(resource => {
-      const button = new PIXI.Container()
-      button.position.set(sellButtonX, sellButtonY)
-
-      const buttonBg = new PIXI.Graphics()
-        .roundRect(0, 0, 40, 24, 4)
-        .fill({ color: building.sellingResource === resource.name ? 0x006400 : 0x333333, alpha: 0.7 })
-        .stroke({ width: 1, color: 0xFFD700, alpha: 0.8 })
-      button.addChild(buttonBg)
-
-      const icon = new PIXI.Text({
-        text: resource.icon,
-        style: { fontSize: 16 }
-      })
-      icon.position.set(10, 2)
-      button.addChild(icon)
-
-      buttonBg.eventMode = 'static'
-      buttonBg.cursor = 'pointer'
-      buttonBg.on('pointerup', (e) => {
-        e.stopPropagation()
-        building.setSellingResource(resource.name)
-        displayBuildingInfo(building) // Refresh UI to show new selection
-      })
-
-      bottomBarContainer.addChild(button)
-      sellButtonX += 50 // Spacing between buttons
-    })
-    
-    const currentSellingInfo = createText(t('ui.selling', { resource: building.sellingResource, price: building.sellingPrice }), TEXT_STYLES.marketInfo)
-    currentSellingInfo.position.set(currentX, sellLabel.y + sellLabel.height + 10)
-    bottomBarContainer.addChild(currentSellingInfo)
-  }
-
-  currentX = width / 2
-
-  // Branch specialization UI (Tower level 1 only)
-  const branchChoices = building.getBranchChoices?.()
-  if (branchChoices) {
-    const rightHalf = width - currentX
-    const btnWidth = Math.floor((rightHalf - (branchChoices.length + 1) * padding) / branchChoices.length)
-    const btnHeight = CONSTANTS.UI.BOTTOM_BAR_HEIGHT - 2 * padding
-    const SPRITE_SIZE = getTileSize()
-
-    for (let i = 0; i < branchChoices.length; i++) {
-      const branch = branchChoices[i]
-      const bx = currentX + padding + i * (btnWidth + padding)
-      const by = padding
-
-      const canAfford = Object.entries(branch.costs).every(
-        ([resource, amount]) => (gameState.humanPlayer.resources[resource] || 0) >= amount
-      )
-
-      const btnBg = new PIXI.Graphics()
-        .roundRect(0, 0, btnWidth, btnHeight, 4)
-        .fill({ color: canAfford ? 0x1a4a1a : 0x2a2a2a, alpha: 0.9 })
-        .stroke({ width: 1, color: canAfford ? 0xFFD700 : 0x666666, alpha: 0.9 })
-      btnBg.position.set(bx, by)
-      btnBg.eventMode = canAfford ? 'static' : 'none'
-      btnBg.cursor = canAfford ? 'pointer' : 'not-allowed'
-      btnBg.on('pointerup', (e) => {
-        e.stopPropagation()
-        if (building.handleBranchUpgrade(branch)) {
-          displayBuildingInfo(building)
-        }
-      })
-      bottomBarContainer.addChild(btnBg)
-
-      // Branch name - centered horizontally for consistent padding
-      const branchName = branch.key ? t(`buildings.${branch.key}.name`) : branch.name
-      const nameT = createText(branchName, TEXT_STYLES.buildingName, 10)
-      nameT.anchor.set(0.5, 0)
-      nameT.position.set(bx + btnWidth / 2, by + 4)
-      bottomBarContainer.addChild(nameT)
-
-      // Stats line
-      const s = branch.initialStats
-      const statsLabel = `${t('ui.atk')}:${s.attackDamage}  ${t('ui.spd')}:${(1000/s.attackCooldown).toFixed(1)}/s  Rng:${s.attackRangeTiles}t`
-      const statsT = createText(statsLabel, TEXT_STYLES.buildingInfoBlue, 6)
-      statsT.position.set(bx + 4, by + 4 + (TEXT_STYLES.buildingName.fontSize || 20) + 4)
-      bottomBarContainer.addChild(statsT)
-
-      // Cost line
-      const costLabel = Object.entries(branch.costs).map(([r, a]) => {
-        const icons = { wood: '🪵', stone: '🪨', gold: '🪙', water: '💧', money: '💰' }
-        return `${icons[r] || r}${a}`
-      }).join(' ')
-      const costT = createText(costLabel, TEXT_STYLES.upgradeBenefits, 6)
-      costT.position.set(bx + 4, by + btnHeight - costT.height - 2)
-      bottomBarContainer.addChild(costT)
-    }
-  }
-
-  // ── Action area: upgrade and/or specialization ──────────────────────────
-  const specializationChoices = building.getSpecializationChoices?.()
-  const upgradeCosts = building.getUpgradeCosts()
-  const upgradeBenefits = building.getUpgradeBenefits()
-  const hasBothActions = specializationChoices && upgradeCosts && upgradeBenefits
-
-  // Shared helpers
-  const RESOURCE_ICONS = { wood: '🪵', stone: '🪨', gold: '🪙', water: '💧', money: '💰' }
-  const formatCosts = (costs) => Object.entries(costs).map(([r, a]) => `${RESOURCE_ICONS[r] || r}${a}`).join(' ')
-
-  // Shared helper to render an upgrade button container (identical design everywhere)
-  const renderUpgradeButton = async (canAfford, onClickFn) => {
-    const upgradeButton = new PIXI.Container()
-
-    const upgradeButtonIcon = new PIXI.Sprite(await PIXI.Assets.load('assets/ui/upgrade_google23eb.png'))
-    upgradeButtonIcon.width = 48
-    upgradeButtonIcon.height = 48
-    upgradeButtonIcon.anchor.set(0.5)
-    upgradeButtonIcon.position.set(30, 20 + padding)
-
-    const upgradeUText = new PIXI.Text({
-      text: 'U',
-      style: { fontFamily: UI_FONTS.PRIMARY, fontSize: 16, fill: 0xFFD700, fontWeight: 'bold', padding: 10 }
-    })
-    upgradeUText.anchor.set(0.5)
-    upgradeUText.position.set(65, 30)
-
-    const pgradeText = createText('pgrade', TEXT_STYLES.upgradeButton)
-    pgradeText.anchor.set(0, 0.5)
-    pgradeText.position.set(upgradeUText.x + upgradeUText.width / 2 + 2, 30)
-
-    const upgradeButtonBg = new PIXI.Graphics()
-      .roundRect(0, 0, 3 * padding + upgradeButtonIcon.width + upgradeUText.width * 1.25 + pgradeText.width, 60, 4)
-      .fill({ color: canAfford ? 0x006400 : 0x333333, alpha: 0.7 })
-      .stroke({ width: 1, color: 0xFFD700, alpha: 0.8 })
-
-    upgradeButtonBg.eventMode = canAfford ? 'static' : 'none'
-    upgradeButtonBg.cursor = canAfford ? 'pointer' : 'not-allowed'
-    upgradeButtonBg.on('pointerup', (e) => { e.stopPropagation(); onClickFn() })
-
-    upgradeButton.addChild(upgradeButtonBg)
-    upgradeButton.addChild(upgradeButtonIcon)
-    upgradeButton.addChild(upgradeUText)
-    upgradeButton.addChild(pgradeText)
-    return { upgradeButton, upgradeButtonBg }
-  }
-
-  // Shared helper to render upgrade benefits + costs text
-  const renderUpgradeInfo = (xStart, yStart, benefits, costs) => {
-    let benefitsText = []
-    if (benefits.life) benefitsText.push(t('ui.lifeUpgrade', { amount: benefits.life }))
-    if (benefits.productionSpeed) benefitsText.push(t('ui.productionSpeedUpgrade', { amount: benefits.productionSpeed }))
-    if (benefits.maxWorkers) benefitsText.push(t('ui.maxWorkersUpgrade', { amount: benefits.maxWorkers }))
-    if (benefits.attackDamage) benefitsText.push(t('ui.atkUpgrade', { amount: benefits.attackDamage }))
-    if (benefits.cooldown) benefitsText.push(t('ui.cooldownUpgrade', { amount: benefits.cooldown }))
-    if (benefits.range) benefitsText.push(t('ui.rangeUpgrade', { amount: (benefits.range / getTileSize()).toFixed(1) }))
-
-    const benefitsDisplay = createText(`Next Level: ${benefitsText.join(', ')}`, TEXT_STYLES.upgradeBenefits)
-    benefitsDisplay.position.set(xStart, yStart)
-    bottomBarContainer.addChild(benefitsDisplay)
-
-    const costsY = yStart + benefitsDisplay.height + 4
-    let costDisplayX = xStart
-    for (const [resource, amount] of Object.entries(costs)) {
-      const costContainer = new PIXI.Container()
-      costContainer.position.set(costDisplayX, costsY)
-      const icon = new PIXI.Text({ text: RESOURCE_ICONS[resource] || '❓', style: { fontSize: 16, padding: 10 } })
-      costContainer.addChild(icon)
-      const amountText = new PIXI.Text({
-        text: `${amount}`,
-        style: { fontFamily: UI_FONTS.PRIMARY, fontSize: 12, fill: 0xFFFFFF, padding: 10 }
-      })
-      amountText.position.set(20, 4)
-      costContainer.addChild(amountText)
-      bottomBarContainer.addChild(costContainer)
-      costDisplayX += 55
-    }
-  }
-
-  if (hasBothActions) {
-    const btnHeight = CONSTANTS.UI.BOTTOM_BAR_HEIGHT - 2 * padding
-
-    if (specMode) {
-      // ── SPEC MODE: [← Back] + spec choice buttons ──────────────────────
-      const backBtnWidth = 90
-
-      const backBg = new PIXI.Graphics()
-        .roundRect(0, 0, backBtnWidth, btnHeight, 4)
-        .fill({ color: 0x333333, alpha: 0.9 })
-        .stroke({ width: 1, color: 0x888888, alpha: 0.9 })
-      backBg.position.set(currentX + padding, padding)
-      backBg.eventMode = 'static'
-      backBg.cursor = 'pointer'
-      backBg.on('pointerup', (e) => {
-        e.stopPropagation()
-        displayBuildingInfo(building, false)
-      })
-      bottomBarContainer.addChild(backBg)
-
-      const backText = createText('← ' + t('menu.back'), TEXT_STYLES.upgradeButton)
-      backText.anchor.set(0.5, 0.5)
-      backText.position.set(currentX + padding + backBtnWidth / 2, padding + btnHeight / 2)
-      bottomBarContainer.addChild(backText)
-
-      currentX += padding + backBtnWidth
-
-      // Spec choice buttons
-      const remaining = width - currentX
-      const choiceBtnWidth = Math.floor((remaining - (specializationChoices.length + 1) * padding) / specializationChoices.length)
-
-      for (let i = 0; i < specializationChoices.length; i++) {
-        const choice = specializationChoices[i]
-        const bx = currentX + padding + i * (choiceBtnWidth + padding)
-        const by = padding
-        const canAfford = Object.entries(choice.costs).every(
-          ([resource, amount]) => (gameState.humanPlayer.resources[resource] || 0) >= amount
-        )
-
-        const btnBg = new PIXI.Graphics()
-          .roundRect(0, 0, choiceBtnWidth, btnHeight, 4)
-          .fill({ color: canAfford ? 0x1a4a1a : 0x2a2a2a, alpha: 0.9 })
-          .stroke({ width: 1, color: canAfford ? 0xFFD700 : 0x666666, alpha: 0.9 })
-        btnBg.position.set(bx, by)
-        btnBg.eventMode = canAfford ? 'static' : 'none'
-        btnBg.cursor = canAfford ? 'pointer' : 'not-allowed'
-        btnBg.on('pointerup', (e) => {
-          e.stopPropagation()
-          if (building.handleSpecialization(choice.typeName)) {
-            displayBuildingInfo(building)
-          }
-        })
-        bottomBarContainer.addChild(btnBg)
-
-        const choiceName = choice.type.key ? t(`buildings.${choice.type.key}.name`) : choice.type.name
-        const nameT = createText(choiceName, TEXT_STYLES.upgradeButton, 20)
-        nameT.anchor.set(0.5, 0)
-        nameT.position.set(bx + choiceBtnWidth / 2, by + 4)
-        bottomBarContainer.addChild(nameT)
-
-        const descLabel = choice.type.key ? t(`buildings.${choice.type.key}.description`) : choice.type.description
-        const descT = createText(descLabel, TEXT_STYLES.buildingInfoBlue, 20)
-        descT.position.set(bx + 4, by + 4 + (TEXT_STYLES.upgradeButton.fontSize || 16) + 4)
-        bottomBarContainer.addChild(descT)
-
-        const costT = createText(formatCosts(choice.costs), TEXT_STYLES.upgradeBenefits, 20)
-        costT.position.set(bx + 4, by + btnHeight - costT.height - 2)
-        bottomBarContainer.addChild(costT)
-      }
-
-    } else {
-      // ── DEFAULT MODE: Specialize (primary, leftmost) + Upgrade (secondary) ──
-      const canAffordUpgrade = gameState.humanPlayer.canAffordUpgrade(building)
-      const canAffordAnySpec = specializationChoices.some(choice =>
-        Object.entries(choice.costs).every(([r, a]) => (gameState.humanPlayer.resources[r] || 0) >= a)
-      )
-
-      // ── Specialize button — use a container with local coords (same pattern as renderUpgradeButton)
-      // text.width in PixiJS v8 does NOT include TextStyle.padding, so centering formula is:
-      //   x = (SPEC_BTN_WIDTH - text.width) / 2 - TEXT_PADDING
-      // Glyph content stays within [0, SPEC_BTN_WIDTH]; only the invisible padding overflows.
-      const TEXT_PADDING = 40
-      const SPEC_BTN_WIDTH = 245
-
-      const specContainer = new PIXI.Container()
-      specContainer.position.set(currentX + padding, padding)
-      specContainer.eventMode = 'static'
-      specContainer.cursor = 'pointer'
-      specContainer.on('pointerup', (e) => {
-        e.stopPropagation()
-        displayBuildingInfo(building, true)
-      })
-
-      const specBg = new PIXI.Graphics()
-        .roundRect(0, 0, SPEC_BTN_WIDTH, btnHeight, 4)
-        .fill({ color: canAffordAnySpec ? 0x006400 : 0x333333, alpha: 0.7 })
-        .stroke({ width: 1, color: 0xFFD700, alpha: 0.8 })
-      specContainer.addChild(specBg)
-
-      const titleFontSize = TEXT_STYLES.upgradeButton.fontSize || 16
-      const subtitleFontSize = TEXT_STYLES.upgradeBenefits.fontSize || 12
-      const textGap = 6
-      const totalTextHeight = titleFontSize + textGap + subtitleFontSize
-      const verticalOffset = Math.floor((btnHeight - totalTextHeight) / 2)
-
-      const specTitleT = createText(t('ui.specialize') + ' →', TEXT_STYLES.upgradeButton, TEXT_PADDING)
-      specTitleT.y = verticalOffset
-      specContainer.addChild(specTitleT)
-      specTitleT.x = Math.round((SPEC_BTN_WIDTH - specTitleT.width - TEXT_PADDING) / 2)
-
-      const choiceNames = specializationChoices
-        .map(c => c.type.key ? t(`buildings.${c.type.key}.name`) : c.type.name)
-        .join(' · ')
-      const choiceNamesT = createText(choiceNames, TEXT_STYLES.upgradeBenefits, TEXT_PADDING)
-      choiceNamesT.y = verticalOffset + titleFontSize + textGap
-      specContainer.addChild(choiceNamesT)
-      choiceNamesT.x = Math.round((SPEC_BTN_WIDTH - choiceNamesT.width - TEXT_PADDING) / 2)
-
-      bottomBarContainer.addChild(specContainer)
-      currentX += padding + SPEC_BTN_WIDTH + padding
-
-      // ── Upgrade button (secondary, same design as always) ──
-      const { upgradeButton, upgradeButtonBg } = await renderUpgradeButton(canAffordUpgrade, () => building.handleBuildingUpgrade())
-      upgradeButton.position.set(currentX, padding)
-      bottomBarContainer.addChild(upgradeButton)
-      currentX += upgradeButtonBg.width + 2 * padding
-
-      renderUpgradeInfo(currentX, padding + 10, upgradeBenefits, upgradeCosts)
-    }
-
-  } else if (specializationChoices) {
-    // Only specialization, no upgrade (safety fallback)
-    const remaining = width - currentX
-    const btnWidth = Math.floor((remaining - (specializationChoices.length + 1) * padding) / specializationChoices.length)
-    const btnHeight = CONSTANTS.UI.BOTTOM_BAR_HEIGHT - 2 * padding
-
-    const specLabel = createText(t('ui.specialize'), TEXT_STYLES.buildingDetails, 20)
-    specLabel.position.set(currentX + padding, padding)
-    bottomBarContainer.addChild(specLabel)
-
-    for (let i = 0; i < specializationChoices.length; i++) {
-      const choice = specializationChoices[i]
-      const bx = currentX + padding + i * (btnWidth + padding)
-      const by = padding
-      const canAfford = Object.entries(choice.costs).every(
-        ([resource, amount]) => (gameState.humanPlayer.resources[resource] || 0) >= amount
-      )
-
-      const btnBg = new PIXI.Graphics()
-        .roundRect(0, 0, btnWidth, btnHeight, 4)
-        .fill({ color: canAfford ? 0x1a4a1a : 0x2a2a2a, alpha: 0.9 })
-        .stroke({ width: 1, color: canAfford ? 0xFFD700 : 0x666666, alpha: 0.9 })
-      btnBg.position.set(bx, by)
-      btnBg.eventMode = canAfford ? 'static' : 'none'
-      btnBg.cursor = canAfford ? 'pointer' : 'not-allowed'
-      btnBg.on('pointerup', (e) => {
-        e.stopPropagation()
-        if (building.handleSpecialization(choice.typeName)) {
-          displayBuildingInfo(building)
-        }
-      })
-      bottomBarContainer.addChild(btnBg)
-
-      const choiceName = choice.type.key ? t(`buildings.${choice.type.key}.name`) : choice.type.name
-      const nameT = createText(choiceName, TEXT_STYLES.upgradeButton, 20)
-      nameT.anchor.set(0.5, 0)
-      nameT.position.set(bx + btnWidth / 2, by + 4)
-      bottomBarContainer.addChild(nameT)
-
-      const descLabel = choice.type.key ? t(`buildings.${choice.type.key}.description`) : choice.type.description
-      const descT = createText(descLabel, TEXT_STYLES.buildingInfoBlue, 80)
-      descT.position.set(bx + 4, by + 4 + (TEXT_STYLES.upgradeButton.fontSize || 16) + 4)
-      bottomBarContainer.addChild(descT)
-
-      const costT = createText(formatCosts(choice.costs), TEXT_STYLES.upgradeBenefits, 20)
-      costT.position.set(bx + 4, by + btnHeight - costT.height - 2)
-      bottomBarContainer.addChild(costT)
-    }
-
-  } else if (upgradeCosts && upgradeBenefits) {
-    // Only upgrade (standard path — no specialization available)
-    const canAffordUpgrade = gameState.humanPlayer.canAffordUpgrade(building)
-
-    const { upgradeButton, upgradeButtonBg } = await renderUpgradeButton(canAffordUpgrade, () => building.handleBuildingUpgrade())
-    upgradeButton.position.set(currentX, padding)
-    bottomBarContainer.addChild(upgradeButton)
-    currentX += upgradeButtonBg.width + 2 * padding
-
-    renderUpgradeInfo(currentX, padding + 10, upgradeBenefits, upgradeCosts)
-  }
-}
-
-/**
- * Hide building information and show building slots.
- */
-function hideBuildingInfo() {
-  if (!bottomBarContainer) return
-
-  // Clear existing content
-  bottomBarContainer.removeChildren()
-
-  // Re-add background
-  const { width } = getCanvasDimensions()
-  const barHeight = CONSTANTS.UI.BOTTOM_BAR_HEIGHT
-  const background = new PIXI.Graphics()
-    .rect(0, 0, width, barHeight)
-    .fill({ color: 0x114611, alpha: 0.85 })
-    .stroke({ width: 2, color: 0xFFD700, alpha: 0.5 })
-  bottomBarContainer.addChild(background)
-
-  // Recreate building slots
-  createBuildingSlots()
-}
-
-async function createBuildingSlots() {
-  const { width } = getCanvasDimensions()
-  const slotSize = 64 // Size of building icon slots
-  const padding = 10
-  const maxSlots = Math.floor(width / (slotSize + padding))
-  
-  // Clear existing slots
-  buildingSlots.forEach(slot => {
-    if (slot.parent) slot.parent.removeChild(slot)
-  })
-  buildingSlots = []
-  
-  // Create slots based on available buildings
-  // Combat buildings (Barracks, Archery, Arcana, Armory, Citadel) are accessed
-  // via Tent/Barracks specialization, not built directly from the menu.
-  const buildings = [
-    Building.TYPES.LUMBERJACK,
-    Building.TYPES.QUARRY,
-    Building.TYPES.WELL,
-    Building.TYPES.GOLD_MINE,
-    Building.TYPES.TENT,
-    Building.TYPES.TOWER,
-    Building.TYPES.MARKET,
-  ]
-  
-  const numSlots = Math.min(buildings.length, maxSlots)
-  const startX = (width - (numSlots * (slotSize + padding) - padding)) / 2
-  
-  for (let i = 0; i < numSlots; i++) {
-    // Check if player can afford this building and adjust appearance
-    const canAfford = gameState.humanPlayer.canAffordBuilding(buildings[i])
-
-    const slot = new PIXI.Container()
-    slot.position.set(startX + i * (slotSize + padding), 12)
-    slot.alpha = canAfford ? 1 : 0.2
-
-    buildings[i].slotPosition = { x: slot.position.x, y: slot.position.y }
-
-    const slotBg = new PIXI.Graphics()
-      .rect(0, 0, slotSize, slotSize)
-      .fill({ color: 0x333333, alpha: 0.7 })
-      .stroke({ width: 1, color: 0xFFD700, alpha: 0.8 })
-    slot.addChild(slotBg)
-
-    let icon
-    if(buildings[i].sprite) {
-      icon = new PIXI.Sprite(await PIXI.Assets.load({ src: buildings[i].sprite }))
-      icon.width = 36
-      icon.height = 36
-      icon.position.set(slotSize / 2 - 18, 6) // Center the icon in the slot
-    } else {
-      icon = new PIXI.Text({
-        text: buildings[i].icon,
-        style: {
-          fontSize: 30,
-          fill: 0xFFFFFF
-        }
-      })
-      icon.position.set(slotSize / 2 - 15, 5)
-    }
-    slot.addChild(icon)
-
-    const slotBuildingName = buildings[i].key ? t(`buildings.${buildings[i].key}.name`) : buildings[i].name
-    const name = createText(slotBuildingName, TEXT_STYLES.slotName)
-    name.anchor.set(0.5, 0)  // Center horizontally
-    name.position.set(slotSize / 2, slotSize - 18)  // Removed +7 offset for proper centering
-    slot.addChild(name)
-
-    slot.eventMode = 'static'
-    slot.cursor = canAfford ? 'pointer' : 'not-allowed'
-    slot.buildingData = buildings[i]
-
-    slot.on('pointerup', (e) => {
-      e.stopPropagation()
-      handleBuildingSelect(i)
-      addButtonSparkles(e)
-    })
-
-    slot.on('pointerdown', (e) => {
-      e.stopPropagation()
-    })
-
-    slot.on('touchend', (e) => {
-      e.stopPropagation()
-    })
-
-    slot.on('pointerover', (e) => {
-      e.stopPropagation()
-      updateTooltip(buildings[i])
-    })
-    slot.on('pointerout', (e) => {
-      e.stopPropagation()
-      hideTooltip()
-    })
-
-    bottomBarContainer.addChild(slot)
-    buildingSlots.push(slot)
-  }
-
-  createBuildingTooltip()
-}
+// ── Building slot selection ────────────────────────────────────
 
 function handleBuildingSelect(index) {
-  // Deselect previous selection
-  if (selectedBuildingIndex >= 0 && selectedBuildingIndex < buildingSlots.length) {
-    buildingSlots[selectedBuildingIndex].getChildAt(0)
-      .clear()
-      .rect(0, 0, 64, 64)
-      .fill({ color: 0x333333, alpha: 0.7 })
-      .stroke({ width: 1, color: 0xFFD700, alpha: 0.8 })
-  }
-  
   // If clicking same building, deselect it
   if (selectedBuildingIndex === index) {
     selectedBuildingIndex = -1
@@ -1450,50 +993,40 @@ function handleBuildingSelect(index) {
       buildingPreviewSprite.parent.removeChild(buildingPreviewSprite)
       buildingPreviewSprite = null
     }
+    _refreshSlotAffordability()
     return
   }
-  
-  // Select new building
+
+  const bt = getBuildingList()[index]
+  if (!bt) return
+
   selectedBuildingIndex = index
+  selectedBuildingType = bt
 
-  // Highlight selected building
-  const slot = buildingSlots[index]
-  slot.getChildAt(0)
-    .clear()
-    .rect(0, 0, 64, 64)
-    .fill({ color: 0x555555, alpha: 0.9 })
-    .stroke({ width: 2, color: 0xFFFFFF, alpha: 1 })
-  
-  // Store the selected building type
-  selectedBuildingType = slot.buildingData
+  const canAfford = gameState.humanPlayer.canAffordBuilding(bt)
+  _refreshSlotAffordability()
 
-  // Format cost display
-  const costs = gameState.humanPlayer.getBuildingCost(selectedBuildingType)
-  const costText = Object.entries(costs)
-    .map(([resource, amount]) => `${resource}: ${amount}`)
-    .join(', ')
-  
-  // Display building info
-  const canAfford = gameState.humanPlayer.canAffordBuilding(selectedBuildingType)
-  if(!canAfford) {
-    // selectedBuildingType = null
-    handleBuildingSelect(index)
-  }
-  
-
-  const slotName = slot.buildingData.key ? t(`buildings.${slot.buildingData.key}.name`) : slot.buildingData.name
+  const costs = gameState.humanPlayer.getBuildingCost(bt)
+  const costText = Object.entries(costs).map(([r, a]) => `${r}: ${a}`).join(', ')
+  const slotName = bt.key ? t(`buildings.${bt.key}.name`) : bt.name
   const statusMessage = canAfford ?
-    `Selected ${slotName} for placement` :
+    t('ui.selectedForPlacement', { name: slotName }) :
     t('ui.cannotAfford', { name: slotName, costs: costText })
   showDebugMessage(statusMessage)
+
+  if (!canAfford) {
+    selectedBuildingIndex = -1
+    selectedBuildingType = null
+    _refreshSlotAffordability()
+  }
 }
 
-
+// ── Building placement preview ─────────────────────────────────
 
 function isValidBuildingPosition(x, y) {
   // Check if coordinates are in bounds
   if (!gameState.map[x] || !gameState.map[x][y]) return false
-  
+
   // For quarry, check if it's placed on ROCK tile
   if (selectedBuildingType === Building.TYPES.QUARRY) {
     return gameState.map[x][y].type === 'ROCK';
@@ -1510,12 +1043,12 @@ function isValidBuildingPosition(x, y) {
     for (let dx = -1; dx <= 1; dx++) {
       for (let dy = -1; dy <= 1; dy++) {
         if (dx === 0 && dy === 0) continue // Skip the center tile
-        
+
         const nx = x + dx
         const ny = y + dy
-        
+
         // Check bounds
-        if (nx >= 0 && nx < getMapDimensions().width && 
+        if (nx >= 0 && nx < getMapDimensions().width &&
             ny >= 0 && ny < getMapDimensions().height) {
           // Check if this neighbor is water
           if (gameState.map[nx][ny].type === 'WATER') {
@@ -1532,16 +1065,11 @@ function isValidBuildingPosition(x, y) {
   return ['GRASS', 'SAND'].includes(gameState.map[x][y].type)
 }
 
-
 /**
- * 
  * Draw a building sprite preview following the mouse cursor.
- * 
- * @returns {Promise<void>} 
  */
 async function updateBuildingPreview() {
   if (!selectedBuildingType || !mouse) return
-
 
   const viewTransform = gameState.UI?.mouse?.getViewTransform()
 
@@ -1557,18 +1085,18 @@ async function updateBuildingPreview() {
 
   // Check if the current position is valid
   isValidPlacement = isValidBuildingPosition(mouse.x, mouse.y)
-  
+
   // Update preview position
   const tileSize = getTileSize()
-  
+
   // Convert grid coordinates to world coordinates (center of the tile)
   const worldX = (mouse.x * tileSize) + (tileSize / 2)
   const worldY = (mouse.y * tileSize) + (tileSize / 2)
-  
+
   // Convert world coordinates to screen coordinates (with zoom)
   const screenX = (worldX - viewTransform.x) * viewTransform.scale
   const screenY = (worldY - viewTransform.y) * viewTransform.scale
-  
+
   // Update preview position to be at the center of the grid tile
   buildingPreviewSprite.x = screenX
   buildingPreviewSprite.y = screenY
@@ -1576,191 +1104,21 @@ async function updateBuildingPreview() {
 
   // Set tint color based on validity (green if valid, red if invalid)
   buildingPreviewSprite.tint = isValidPlacement ? 0x00FF00 : 0xFF0000
-  
+
   // Set alpha for better visibility
   buildingPreviewSprite.alpha = 0.7
 }
 
-
-
-
-// Create a tooltip container for building information
-function createBuildingTooltip() {
-  if (tooltipContainer) {
-    bottomBarContainer.removeChild(tooltipContainer)
-  }
-  
-  tooltipContainer = new PIXI.Container()
-  tooltipContainer.visible = false
-  
-  // Background for the tooltip (will be resized dynamically)
-  const background = new PIXI.Graphics()
-    .roundRect(0, 0, 350, 140, 8)
-    .fill({ color: 0x333333, alpha: 0.9 })
-    .stroke({ width: 2, color: 0xFFD700, alpha: 0.8 })
-  tooltipContainer.addChild(background)
-  
-  // Add placeholder text elements that will be updated on hover
-  const titleText = createText("", TEXT_STYLES.tooltipTitle)
-  titleText.position.set(10, 10)
-  tooltipContainer.addChild(titleText)
-  
-  const iconContainer = new PIXI.Container()
-  iconContainer.position.set(10, 35)
-  tooltipContainer.addChild(iconContainer)
-  
-  const descText = createText("", TEXT_STYLES.tooltipDescription)
-  descText.position.set(64, 48)
-  tooltipContainer.addChild(descText)
-
-  const detailsText = createText("", TEXT_STYLES.tooltipDetails)
-  detailsText.position.set(64, 66)
-  tooltipContainer.addChild(detailsText)
-
-  const costTitle = createText(`${t('ui.costs')}:`, new PIXI.TextStyle({
-    fontFamily: UI_FONTS.PRIMARY,
-    fontSize: 12,
-    fill: 0xFFD700
-  }))
-  costTitle.position.set(10, 85)
-  tooltipContainer.addChild(costTitle)
-  
-  const costContainer = new PIXI.Container()
-  costContainer.position.set(10, 105)
-  tooltipContainer.addChild(costContainer)
-  
-  bottomBarContainer.addChild(tooltipContainer)
-}
-
-// Update the tooltip with building information
-async function updateTooltip(building) {
-  if (!tooltipContainer) return
-
-  // Remove old text elements and recreate with new content for proper padding
-  const oldTitle = tooltipContainer.getChildAt(1)
-  const oldDesc = tooltipContainer.getChildAt(3)
-  const oldDetails = tooltipContainer.getChildAt(4)
-
-  tooltipContainer.removeChild(oldTitle)
-  tooltipContainer.removeChild(oldDesc)
-  tooltipContainer.removeChild(oldDetails)
-
-  const tooltipName = building.key ? t(`buildings.${building.key}.name`) : building.name
-  const titleText = createText(tooltipName, TEXT_STYLES.tooltipTitle)
-  titleText.position.set(10, 10)
-  tooltipContainer.addChildAt(titleText, 1)
-
-  const tooltipDesc = building.key ? t(`buildings.${building.key}.description`) : building.description
-  const descText = createText(tooltipDesc, TEXT_STYLES.tooltipDescription)
-  descText.position.set(64, 48)
-  tooltipContainer.addChildAt(descText, 3)
-
-  const tooltipDetails = building.key ? t(`buildings.${building.key}.details`) : (building.details || "")
-  const detailsText = createText(tooltipDetails, TEXT_STYLES.tooltipDetails)
-  detailsText.position.set(64, 66)
-  tooltipContainer.addChildAt(detailsText, 4)
-
-  const iconContainer = tooltipContainer.getChildAt(2)
-  const costContainer = tooltipContainer.getChildAt(6)
-
-  // Clear previous cost items
-  while (costContainer.children.length > 0) {
-    costContainer.removeChildAt(0)
-  }
-
-  // Clear and update icon container
-  while (iconContainer.children.length > 0) {
-    iconContainer.removeChildAt(0)
-  }
-  const iconSprite = new PIXI.Sprite(await PIXI.Assets.load({ src: building.sprite }))
-  iconSprite.width = 42
-  iconSprite.height = 42
-  iconContainer.addChild(iconSprite)
-  
-  // Add resource costs with icons
-  let xOffset = 0;
-  
-  const resourceIcons = {
-    wood: "🪵",
-    water: "💧",
-    gold: "🪙",
-    money: "💰",
-    stone: "🪨"
-  }
-
-  const costs = gameState.humanPlayer.getBuildingCost(building)
-  
-  for (const [resource, amount] of Object.entries(costs)) {
-    const container = new PIXI.Container()
-    container.position.set(xOffset, 0)
-    
-    // Resource icon
-    const icon = createText(resourceIcons[resource] || "❓", new PIXI.TextStyle({ fontSize: 16 }))
-    container.addChild(icon)
-
-    // Resource amount
-    const amountText = createText(amount.toString(), new PIXI.TextStyle({
-      fontFamily: UI_FONTS.PRIMARY,
-      fontSize: 12,
-      fill: 0xFFFFFF
-    }))
-    amountText.position.set(20, 4)
-    container.addChild(amountText)
-    
-    costContainer.addChild(container)
-    xOffset += 55
-  }
-  
-  // Calculate dynamic tooltip width based on content
-  // Use text length for more accurate width estimation
-  const titleLength = tooltipName.length
-  const descLength = tooltipDesc.length
-  const detailsLength = tooltipDetails.length
-
-  const maxLength = Math.max(titleLength * 16, descLength * 12, detailsLength * 11)
-  const tooltipWidth = Math.max(Math.min(maxLength * 0.6 + 100, 700), 300)
-
-  // Resize background
-  const background = tooltipContainer.getChildAt(0)
-  background.clear()
-    .roundRect(0, 0, tooltipWidth, 140, 8)
-    .fill({ color: 0x333333, alpha: 0.9 })
-    .stroke({ width: 2, color: 0xFFD700, alpha: 0.8 })
-
-  // Position the tooltip
-  const { width } = getCanvasDimensions()
-
-  // Calculate position to ensure tooltip stays within screen bounds
-  let tooltipX = building.slotPosition.x + 56 / 2 - tooltipWidth / 2
-  if (tooltipX + tooltipWidth > width) {
-    tooltipX = width - tooltipWidth - 10
-  }
-  
-  tooltipContainer.position.set(tooltipX, -150) // Position above the slot
-  tooltipContainer.visible = true
-  tooltipVisible = true
-}
-
-// Hide the tooltip
-function hideTooltip() {
-  if (tooltipContainer) {
-    tooltipContainer.visible = false
-    tooltipVisible = false
-  }
-}
-
-
+// ── Sparkles ───────────────────────────────────────────────────
 
 /**
  * Add sparkle effect at button position
  * @param {Object} event - The click/touch event
  */
 function addButtonSparkles(event) {
-  // Get click coordinates
   const x = event.clientX || (event.touches ? event.touches[0].clientX : 0)
   const y = event.clientY || (event.touches ? event.touches[0].clientY : 0)
-  
-  // Create sparkle effect at the click position
+
   createParticleEmitter(ParticleEffect.UI_BUTTON_CLICK, {
     x: x,
     y: y,
@@ -1768,17 +1126,13 @@ function addButtonSparkles(event) {
   })
 }
 
+// ── Game menu ──────────────────────────────────────────────────
 
 /**
  * Open the game menu modal, pausing the game
  */
 function openGameMenu() {
-  // Pause the game
-  //const previousStatus = gameState.gameStatus
   gameState.gameStatus = 'paused'
-
-  // Store previous status to return to it when closing
-  //gameState._previousStatus = previousStatus
 
   // Update map info display
   updateMapInfo()
@@ -1830,15 +1184,13 @@ function closeGameMenu(destination) {
   gameMenuSection.classList.remove('show')
 
   playCloseSound()
-  
+
   // Wait for transition to complete before hiding and resuming
   setTimeout(() => {
     gameMenuSection.style.display = 'none'
-    
-    // Resume game state (usually 'playing')
-    if (destination === 'home' || destination === 'reset') {
-      
-    } else if (destination === 'game') {
+
+    // Resume game state unless navigating away
+    if (destination !== 'home' && destination !== 'reset') {
       gameState.gameStatus = 'playing'
     }
   }, 250) // Same as transition time
@@ -1848,44 +1200,26 @@ function closeGameMenu(destination) {
  * Reset the current map while keeping the same seed
  */
 function resetCurrentMap() {
-  // Store the current seed
-  //const currentSeed = gameState.mapSeed
-  
   // Close the menu first
   closeGameMenu('reset')
-  
-  // Set the saved seed and initialize new game
-  //gameState.mapSeed = currentSeed
+
   console.log('Reset to Map Seed: ', gameState.mapSeed)
   gameState.gameStatus = 'initialize'
-  
-  showDebugMessage('Resetting map...')
+
+  showDebugMessage(t('ui.resettingMap'))
 }
 
 /**
  * Quit to the home menu
  */
 function quitToHome() {
-  // Remove toolbars
-  if (topBarContainer) {
-    topBarContainer.removeChildren()
-    topBarContainer.destroy()
-  }
-  if (tooltipContainer) {
-    bottomBarContainer.removeChild(tooltipContainer)
-  }
-  if (bottomBarContainer) {
-    bottomBarContainer.removeChildren()
-    bottomBarContainer.destroy()
-  }
-
   // Close the menu first
   closeGameMenu('home')
 
-  // Set game status to menu
+  // Set game status to menu (triggers hideGameUI via event listener)
   gameState.gameStatus = 'menu'
 
-  showDebugMessage('Returning to main menu...')
+  showDebugMessage(t('ui.returningToMenu'))
 }
 
 /**
@@ -1913,38 +1247,40 @@ function handleExportMap() {
     // Download the map as JSON
     const filename = downloadMapJSON(mapName, description)
 
-    showDebugMessage(`Map exported successfully: ${filename}`)
+    showDebugMessage(t('ui.mapExported', { filename }))
   } catch (error) {
     console.error('Error exporting map:', error)
-    showDebugMessage('Error exporting map')
+    showDebugMessage(t('ui.errorExportingMap'))
   }
 }
 
+// ── Debug message ──────────────────────────────────────────────
 
 const showDebugMessage = async (message) => {
   const debugElement = document.createElement('div')
-  debugElement.style.position = 'absolute'
-  debugElement.style.bottom = '40px'
-  debugElement.style.right = '40px'
-  debugElement.style.backgroundColor = 'rgba(0,0,0,0.7)'
-  debugElement.style.color = 'white'
-  debugElement.style.padding = '5px'
-  debugElement.style.zIndex = '1000'
+  debugElement.style.position = 'fixed'
+  debugElement.style.bottom = `${CONSTANTS.UI.BOTTOM_BAR_HEIGHT + 8}px`
+  debugElement.style.right = '16px'
+  debugElement.style.backgroundColor = 'rgba(0,0,0,0.75)'
+  debugElement.style.color = '#fff'
+  debugElement.style.padding = '5px 10px'
+  debugElement.style.borderRadius = '4px'
+  debugElement.style.zIndex = '30'
+  debugElement.style.fontFamily = 'system-ui, sans-serif'
+  debugElement.style.fontSize = '13px'
+  debugElement.style.pointerEvents = 'none'
   debugElement.textContent = message
   document.body.appendChild(debugElement)
-  
+
   setTimeout(() => {
       document.body.removeChild(debugElement)
   }, 3000)
 }
 
+// ── Generic modal ──────────────────────────────────────────────
+
 /**
  * Show a generic modal with a title, message, and a close button.
- * @param {string} title - The title of the modal.
- * @param {string} message - The message content of the modal.
- * @param {string} gameStatus - The game status during opened modal.
- * @param {string} destinationStatus - The after close new game status.
- * @param {Function} onCloseCallback - Callback function to execute when the modal is closed.
  */
 function showModal(title, message, gameStatus, destinationStatus, onCloseCallback) {
   // Pause the game

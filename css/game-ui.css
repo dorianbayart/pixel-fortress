@@ -1,0 +1,368 @@
+/* Game HUD: top and bottom bars */
+
+#game-top-bar,
+#game-bottom-bar {
+  position: fixed;
+  z-index: 10;
+  left: 0;
+  right: 0;
+  background: rgba(17, 70, 17, 0.9);
+  display: none;
+}
+
+#game-top-bar.visible {
+  display: flex;
+}
+
+#game-bottom-bar.visible {
+  display: flex;
+}
+
+/* ── Top Bar ─────────────────────────────────────────────────── */
+
+#game-top-bar {
+  top: 0;
+  height: 32px;
+  border-bottom: 1px solid rgba(255, 215, 0, 0.5);
+  align-items: center;
+  padding: 0 8px;
+  gap: 8px;
+}
+
+#resources-display {
+  display: flex;
+  flex: 1;
+  justify-content: space-evenly;
+  align-items: center;
+  overflow: hidden;
+}
+
+.resource-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.resource-item img {
+  width: 18px;
+  height: 18px;
+  image-rendering: pixelated;
+  flex-shrink: 0;
+}
+
+.resource-value {
+  color: #FFD700;
+  font-size: 13px;
+  font-family: system-ui, sans-serif;
+  min-width: 28px;
+  font-variant-numeric: tabular-nums;
+}
+
+#game-menu-btn {
+  flex-shrink: 0;
+  width: 34px;
+  height: 24px;
+  background: rgba(17, 70, 17, 0.7);
+  border: 1px solid rgba(255, 215, 0, 0.8);
+  color: #FFD700;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#game-menu-btn:hover {
+  background: rgba(34, 139, 34, 0.8);
+}
+
+/* ── Bottom Bar ───────────────────────────────────────────────── */
+
+#game-bottom-bar {
+  bottom: 0;
+  height: 80px;
+  border-top: 1px solid rgba(255, 215, 0, 0.5);
+  align-items: stretch;
+  overflow: hidden;
+}
+
+/* ── Building Slots Panel ─────────────────────────────────────── */
+
+#building-slots-panel {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.building-slot {
+  width: 64px;
+  height: 68px;
+  cursor: pointer;
+  background: rgba(17, 70, 17, 0.7);
+  border: 1px solid rgba(255, 215, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px 2px 2px;
+  gap: 2px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.building-slot:hover {
+  border-color: #FFD700;
+  background: rgba(34, 139, 34, 0.7);
+}
+
+.building-slot.selected {
+  border-color: #FFD700;
+  border-width: 2px;
+  background: rgba(34, 139, 34, 0.9);
+}
+
+.building-slot.unaffordable {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.building-slot img {
+  width: 44px;
+  height: 44px;
+  image-rendering: pixelated;
+}
+
+.slot-name {
+  color: #FFD700;
+  font-size: 10px;
+  font-family: system-ui, sans-serif;
+  text-align: center;
+  line-height: 1.1;
+  max-width: 62px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* ── Building Info Panel ──────────────────────────────────────── */
+
+#building-info-panel {
+  display: none;
+  flex: 1;
+  align-items: center;
+  padding: 4px 10px;
+  gap: 10px;
+  overflow: hidden;
+}
+
+#building-info-panel.visible {
+  display: flex;
+}
+
+.bi-icon {
+  width: 48px;
+  height: 48px;
+  image-rendering: pixelated;
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.bi-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex-shrink: 1;
+}
+
+.bi-name {
+  color: #FFD700;
+  font-size: 15px;
+  font-weight: bold;
+  font-family: system-ui, sans-serif;
+  white-space: nowrap;
+}
+
+.bi-desc {
+  color: #fff;
+  font-size: 11px;
+  font-family: system-ui, sans-serif;
+}
+
+.bi-stats {
+  color: #ADD8E6;
+  font-size: 11px;
+  font-family: system-ui, sans-serif;
+}
+
+.bi-life {
+  color: #00ff00;
+  font-size: 12px;
+  font-family: system-ui, sans-serif;
+}
+
+.bi-extra {
+  color: #ADD8E6;
+  font-size: 11px;
+  font-family: system-ui, sans-serif;
+}
+
+.bi-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  flex-shrink: 0;
+  padding: 4px 0;
+}
+
+/* Action buttons (upgrade, specialize, sell, branch) */
+.bi-btn {
+  background: rgba(0, 100, 0, 0.7);
+  border: 1px solid rgba(255, 215, 0, 0.8);
+  color: #fff;
+  font-family: system-ui, sans-serif;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 70px;
+  max-width: 160px;
+  height: 68px;
+  justify-content: center;
+}
+
+.bi-btn:hover:not(:disabled) {
+  background: rgba(34, 139, 34, 0.9);
+  border-color: #FFD700;
+}
+
+.bi-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.bi-btn.unaffordable {
+  background: rgba(50, 50, 50, 0.7);
+  border-color: rgba(150, 150, 150, 0.5);
+}
+
+.bi-btn-title {
+  font-weight: bold;
+  font-size: 13px;
+  color: #FFD700;
+  text-align: center;
+}
+
+.bi-btn-sub {
+  font-size: 10px;
+  color: #ccc;
+  text-align: center;
+}
+
+.bi-btn-cost {
+  font-size: 10px;
+  color: #FFD700;
+  text-align: center;
+}
+
+/* Market sell buttons */
+.bi-sell-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.bi-sell-btn {
+  background: rgba(50, 50, 50, 0.7);
+  border: 1px solid rgba(255, 215, 0, 0.6);
+  color: #fff;
+  font-size: 15px;
+  cursor: pointer;
+  width: 34px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.bi-sell-btn.active {
+  background: rgba(0, 100, 0, 0.8);
+  border-color: #FFD700;
+}
+
+.bi-sell-btn:hover {
+  background: rgba(34, 139, 34, 0.7);
+}
+
+/* Specialize back button */
+.bi-back-btn {
+  background: rgba(50, 50, 50, 0.8);
+  border: 1px solid rgba(136, 136, 136, 0.8);
+  color: #ccc;
+  font-family: system-ui, sans-serif;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 10px;
+  height: 68px;
+  flex-shrink: 0;
+}
+
+.bi-back-btn:hover {
+  background: rgba(80, 80, 80, 0.9);
+}
+
+/* ── Tooltip ──────────────────────────────────────────────────── */
+
+#hud-tooltip {
+  position: fixed;
+  z-index: 20;
+  background: rgba(17, 70, 17, 0.97);
+  border: 1px solid rgba(255, 215, 0, 0.7);
+  color: #fff;
+  font-family: system-ui, sans-serif;
+  font-size: 13px;
+  padding: 8px 10px;
+  pointer-events: none;
+  display: none;
+  max-width: 260px;
+  min-width: 160px;
+  gap: 4px;
+  flex-direction: column;
+}
+
+#hud-tooltip.visible {
+  display: flex;
+}
+
+.tooltip-title {
+  color: #FFD700;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.tooltip-desc {
+  color: #fff;
+  font-size: 12px;
+}
+
+.tooltip-details {
+  color: #ccc;
+  font-size: 11px;
+  font-style: italic;
+}
+
+.tooltip-costs {
+  color: #FFD700;
+  font-size: 11px;
+  margin-top: 4px;
+}

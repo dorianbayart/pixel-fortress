@@ -91,6 +91,9 @@ body.playing-mode {
 }
 
 canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
   height: 100dvh;
   width: 100dvw;
   overflow: hidden;
@@ -98,6 +101,11 @@ canvas {
   cursor: none;
   touch-action: none;
   image-rendering: pixelated;
+}
+
+body.playing-mode canvas {
+  top: 32px;
+  height: calc(100dvh - 32px - 80px);
 }
 
 #stats {

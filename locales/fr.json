@@ -129,7 +129,20 @@
     "specialize": "Spécialiser",
     "close": "Fermer",
     "placed": "{name} placé !",
-    "cannotAfford": "Pas assez de ressources pour {name} (Besoin de {costs})"
+    "cannotAfford": "Pas assez de ressources pour {name} (Besoin de {costs})",
+    "selectedForPlacement": "{name} sélectionné pour placement",
+    "healthBarsOn": "Barres de vie activées",
+    "healthBarsOff": "Barres de vie désactivées",
+    "resettingMap": "Réinitialisation de la carte...",
+    "returningToMenu": "Retour au menu principal...",
+    "mapExported": "Carte exportée : {filename}",
+    "errorExportingMap": "Erreur lors de l'exportation",
+    "specializedInto": "Spécialisé en {name} !",
+    "cannotAffordSpec": "Pas assez pour la spécialisation (Besoin de {costs})",
+    "noMoreUpgrades": "Aucune amélioration disponible.",
+    "upgradedToLevel": "{name} amélioré au Niveau {level} !",
+    "cannotAffordUpgrade": "Pas assez pour l'amélioration (Besoin de {costs})",
+    "towerSpecialized": "Tour spécialisée en {name} !"
   },
   "buildings": {
     "tent": {

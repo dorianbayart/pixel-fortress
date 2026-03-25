@@ -129,7 +129,20 @@
     "specialize": "Spezialisieren",
     "close": "Schließen",
     "placed": "{name} platziert!",
-    "cannotAfford": "{name} nicht leistbar (Benötigt {costs})"
+    "cannotAfford": "{name} nicht leistbar (Benötigt {costs})",
+    "selectedForPlacement": "{name} zur Platzierung ausgewählt",
+    "healthBarsOn": "Lebensbalken aktiviert",
+    "healthBarsOff": "Lebensbalken deaktiviert",
+    "resettingMap": "Karte wird zurückgesetzt...",
+    "returningToMenu": "Zurück zum Hauptmenü...",
+    "mapExported": "Karte exportiert: {filename}",
+    "errorExportingMap": "Fehler beim Exportieren",
+    "specializedInto": "Spezialisiert auf {name}!",
+    "cannotAffordSpec": "Nicht genug für Spezialisierung (Benötigt {costs})",
+    "noMoreUpgrades": "Keine weiteren Upgrades verfügbar.",
+    "upgradedToLevel": "{name} auf Level {level} aufgerüstet!",
+    "cannotAffordUpgrade": "Nicht genug für Upgrade (Benötigt {costs})",
+    "towerSpecialized": "Turm auf {name} spezialisiert!"
   },
   "buildings": {
     "tent": {

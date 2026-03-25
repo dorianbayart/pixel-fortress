@@ -5,6 +5,7 @@ export { Arcana, Archery, Building, CombatBuilding, GoldMine, Quarry, Tent, Well
 import { playBuildingSound } from 'audio'
 import CONSTANTS from 'constants'
 import { getMapDimensions, getTileSize } from 'dimensions'
+import { t } from 'i18n'
 import { isPositionVisible } from 'fogOfWar'
 import { ParticleEffect, createParticleEmitter } from 'particles'
 import { searchPath, updateMapInWorker } from 'pathfinding'
@@ -597,7 +598,13 @@ class Building {
     })
 
     if (this.owner === gameState.humanPlayer) {
-      showDebugMessage(`Specialized into ${targetType.name}!`)
+      const specName = targetType.key ? t(`buildings.${targetType.key}.name`) : targetType.name
+      showDebugMessage(t('ui.specializedInto', { name: specName }))
+    }
+
+    // Refresh the info panel if this building is currently selected
+    if (gameState.selectedBuilding === this) {
+      gameState.events.emit('selected-building-changed', this)
     }
   }
 
@@ -619,7 +626,7 @@ class Building {
     if (!canAfford) {
       if (this.owner === gameState.humanPlayer) {
         const costText = Object.entries(costs).map(([r, a]) => `${r}: ${a}`).join(', ')
-        showDebugMessage(`Cannot afford specialization (Needs ${costText})`)
+        showDebugMessage(t('ui.cannotAffordSpec', { costs: costText }))
       }
       return false
     }
@@ -700,7 +707,7 @@ class Building {
   async handleBuildingUpgrade() {
     const upgradeCosts = this.getUpgradeCosts()
     if (!upgradeCosts) {
-      showDebugMessage('No more upgrades available for this building.')
+      showDebugMessage(t('ui.noMoreUpgrades'))
       return
     }
 
@@ -715,13 +722,18 @@ class Building {
       // Apply upgrade benefits
       this.applyUpgrade()
 
-      showDebugMessage(`${this.type.name} upgraded to Level ${this.level}!`)
-      // displayBuildingInfo(this) // Refresh UI
+      const upgradedName = this.type.key ? t(`buildings.${this.type.key}.name`) : this.type.name
+      showDebugMessage(t('ui.upgradedToLevel', { name: upgradedName, level: this.level }))
+
+      // Refresh the info panel if this building is currently selected
+      if (gameState.selectedBuilding === this) {
+        gameState.events.emit('selected-building-changed', this)
+      }
     } else {
       const costText = Object.entries(upgradeCosts)
         .map(([resource, amount]) => `${resource}: ${amount}`)
         .join(', ')
-      showDebugMessage(`Cannot afford upgrade (Needs ${costText})`)
+      showDebugMessage(t('ui.cannotAffordUpgrade', { costs: costText }))
     }
   }
 
@@ -1968,7 +1980,7 @@ class Tower extends Building {
 
     if (!canAfford) {
       const costText = Object.entries(costs).map(([r, a]) => `${r}: ${a}`).join(', ')
-      showDebugMessage(`Cannot afford specialization (Needs ${costText})`)
+      showDebugMessage(t('ui.cannotAffordSpec', { costs: costText }))
       return false
     }
 
@@ -2007,7 +2019,13 @@ class Tower extends Building {
       duration: 1500
     })
 
-    showDebugMessage(`Tower specialized to ${branchType.name}!`)
+    const branchName = branchType.key ? t(`buildings.${branchType.key}.name`) : branchType.name
+    showDebugMessage(t('ui.towerSpecialized', { name: branchName }))
+
+    // Refresh the info panel if this building is currently selected
+    if (gameState.selectedBuilding === this) {
+      gameState.events.emit('selected-building-changed', this)
+    }
   }
 
   /**

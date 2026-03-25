@@ -62,14 +62,18 @@ const setMapDimensions = (width, height) => {
 const updateDimensions = async () => {
     dpr = (window.devicePixelRatio || 1)
 
+    const isPlaying = gameState.gameStatus === 'playing' || gameState.gameStatus === 'paused'
+    const topH = isPlaying ? CONSTANTS.UI.TOP_BAR_HEIGHT : 0
+    const bottomH = isPlaying ? CONSTANTS.UI.BOTTOM_BAR_HEIGHT : 0
+
     // Store canvas dimensions in pixels
     canvasWidth = window.innerWidth
-    canvasHeight = window.innerHeight
+    canvasHeight = window.innerHeight - topH - bottomH
 
     // Log new dimensions for debugging
     console.log(`Canvas: ${canvasWidth} x ${canvasHeight} pixels`)
     console.log(`Viewport: ${window.innerWidth} x ${window.innerHeight} pixels (DPR: ${dpr})`)
-    
+
     return { width: canvasWidth, height: canvasHeight, dpr: dpr }
 }
 

@@ -41,6 +41,46 @@ import { recreateUIElements } from 'ui'
 
 const TERRAIN_TYPES = CONSTANTS.TERRAIN.TYPES
 
+// Whether the game was auto-paused by losing focus/mouse (vs. intentionally by the menu)
+let _autopaused = false
+let _focusPauseSetup = false
+
+/**
+ * Set up window-level focus/blur listeners to auto-pause when the player leaves the browser.
+ * Called once; safe to call on renderer re-init (no-op after first call).
+ */
+function setupFocusPause() {
+  if (_focusPauseSetup) return
+  _focusPauseSetup = true
+
+  const tryPause = () => {
+    if (gameState.gameStatus === 'playing') {
+      gameState.gameStatus = 'paused'
+      _autopaused = true
+    }
+  }
+
+  const tryResume = () => {
+    if (_autopaused && gameState.gameStatus === 'paused') {
+      gameState.gameStatus = 'playing'
+      _autopaused = false
+    }
+  }
+
+  // Mouse leaves the browser viewport
+  document.addEventListener('mouseleave', (e) => {
+    if (e.relatedTarget === null) tryPause()
+  })
+
+  document.addEventListener('mouseenter', () => {
+    tryResume()
+  })
+
+  // Browser window loses / regains focus (Alt-Tab, etc.)
+  window.addEventListener('blur', tryPause)
+  window.addEventListener('focus', tryResume)
+}
+
 // Pixi.js Application
 let app = null
 
@@ -155,13 +195,7 @@ async function initCanvases() {
     app.canvas.style.cursor = 'none'
     
   
-    app.canvas.addEventListener('mouseenter', () => {
-      if(gameState.gameStatus === 'paused') gameState.gameStatus = 'playing'
-    })
-  
-    app.canvas.addEventListener('mouseleave', () => {
-      if(gameState.gameStatus === 'playing') gameState.gameStatus = 'paused'
-    })
+    setupFocusPause()
   } else {
     // Clear terrain bitmaps before clearing containers
     clearTerrainBitmaps()
@@ -375,14 +409,7 @@ async function recreateRenderer() {
     canvasParent.appendChild(app.canvas)
   }
 
-  // Re-add event listeners
-  app.canvas.addEventListener('mouseenter', () => {
-    if(gameState.gameStatus === 'paused') gameState.gameStatus = 'playing'
-  })
-
-  app.canvas.addEventListener('mouseleave', () => {
-    if(gameState.gameStatus === 'playing') gameState.gameStatus = 'paused'
-  })
+  // Focus/blur listeners are set up once via setupFocusPause() — no re-add needed here
 
   // Recreate containers
   containers.background = new PIXI.Container()

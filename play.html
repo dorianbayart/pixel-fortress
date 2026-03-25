@@ -45,6 +45,7 @@
 
   <link rel="stylesheet" href="css/menu.css">
   <link rel="stylesheet" href="css/mapEditor.css">
+  <link rel="stylesheet" href="css/game-ui.css">
 
   <script>
     // Font loading first
@@ -164,6 +165,46 @@
   </div>
 
   <canvas id="canvas" width="100" height="100"></canvas>
+
+  <!-- Game HUD: top bar -->
+  <div id="game-top-bar">
+    <div id="resources-display">
+      <div class="resource-item" data-resource="wood">
+        <img src="assets/buildings/wood.png" alt="wood">
+        <span class="resource-value" id="res-wood">0</span>
+      </div>
+      <div class="resource-item" data-resource="stone">
+        <img src="assets/buildings/rock.png" alt="stone">
+        <span class="resource-value" id="res-stone">0</span>
+      </div>
+      <div class="resource-item" data-resource="gold">
+        <img src="assets/buildings/gold-ore.png" alt="gold">
+        <span class="resource-value" id="res-gold">0</span>
+      </div>
+      <div class="resource-item" data-resource="water">
+        <img src="assets/buildings/droplet.png" alt="water">
+        <span class="resource-value" id="res-water">0</span>
+      </div>
+      <div class="resource-item" data-resource="money">
+        <img src="assets/buildings/coin.png" alt="money">
+        <span class="resource-value" id="res-money">0</span>
+      </div>
+      <div class="resource-item" data-resource="population">
+        <img src="assets/buildings/busts-in-silhouette.png" alt="population">
+        <span class="resource-value" id="res-population">0</span>
+      </div>
+    </div>
+    <button id="game-menu-btn">☰</button>
+  </div>
+
+  <!-- Game HUD: bottom bar -->
+  <div id="game-bottom-bar">
+    <div id="building-slots-panel"></div>
+    <div id="building-info-panel"></div>
+  </div>
+
+  <!-- Custom tooltip shown over slots on hover -->
+  <div id="hud-tooltip"></div>
 
   <div id="progressBar">
     <label data-i18n="menu.loadingAssets">Loading game assets...</label>

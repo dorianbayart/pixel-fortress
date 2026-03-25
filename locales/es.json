@@ -129,7 +129,20 @@
     "specialize": "Especializar",
     "close": "Cerrar",
     "placed": "¡{name} colocado!",
-    "cannotAfford": "No puedes permitirte {name} (Necesitas {costs})"
+    "cannotAfford": "No puedes permitirte {name} (Necesitas {costs})",
+    "selectedForPlacement": "{name} seleccionado para colocar",
+    "healthBarsOn": "Barras de vida activadas",
+    "healthBarsOff": "Barras de vida desactivadas",
+    "resettingMap": "Reiniciando mapa...",
+    "returningToMenu": "Volviendo al menú principal...",
+    "mapExported": "Mapa exportado: {filename}",
+    "errorExportingMap": "Error al exportar el mapa",
+    "specializedInto": "¡Especializado en {name}!",
+    "cannotAffordSpec": "No puedes permitirte la especialización (Necesitas {costs})",
+    "noMoreUpgrades": "No hay más mejoras disponibles.",
+    "upgradedToLevel": "¡{name} mejorado al Nivel {level}!",
+    "cannotAffordUpgrade": "No puedes permitirte la mejora (Necesitas {costs})",
+    "towerSpecialized": "¡Torre especializada en {name}!"
   },
   "buildings": {
     "tent": {

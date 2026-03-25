@@ -32,7 +32,7 @@ function initMinimap(uiContainer) {
   // Position in top-right corner, just below the top bar
   const { width: canvasWidth } = getCanvasDimensions()
   minimapContainer.x = canvasWidth - MINIMAP_SIZE - MINIMAP_PADDING
-  minimapContainer.y = CONSTANTS.UI.TOP_BAR_HEIGHT + MINIMAP_PADDING
+  minimapContainer.y = MINIMAP_PADDING
 
   // Set z-index to ensure minimap renders on top of fog of war
   minimapContainer.zIndex = 1000
@@ -85,9 +85,8 @@ function updateMinimap(timestamp = performance.now()) {
   const viewTransform = gameState.UI?.mouse?.getViewTransform()
   const { width: canvasWidth, height: canvasHeight } = getCanvasDimensions()
 
-  // Match applyBoundaryConstraints: view height goes from canvas top to bottom of game area
   const viewWidthInTiles = (canvasWidth / (tileSize * (viewTransform?.scale || 1)))
-  const viewHeightInTiles = ((canvasHeight - CONSTANTS.UI.BOTTOM_BAR_HEIGHT) / (tileSize * (viewTransform?.scale || 1)))
+  const viewHeightInTiles = (canvasHeight / (tileSize * (viewTransform?.scale || 1)))
 
   // Get center of current viewport in tile coordinates
   const viewCenterX = (viewTransform?.x || 0) / tileSize + viewWidthInTiles / 2
@@ -239,5 +238,5 @@ function resizeMinimap() {
 
   const { width: canvasWidth } = getCanvasDimensions()
   minimapContainer.x = canvasWidth - MINIMAP_SIZE - MINIMAP_PADDING
-  minimapContainer.y = CONSTANTS.UI.TOP_BAR_HEIGHT + MINIMAP_PADDING
+  minimapContainer.y = MINIMAP_PADDING
 }
