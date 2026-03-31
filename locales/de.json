@@ -70,6 +70,7 @@
     "sfxVolume": "Soundeffekt-Lautstärke",
     "musicVolume": "Musik-Lautstärke",
     "language": "Sprache",
+    "extraParticles": "Zusätzliche Partikeleffekte",
     "save": "Speichern",
     "cancel": "Abbrechen"
   },

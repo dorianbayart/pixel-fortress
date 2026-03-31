@@ -101,6 +101,7 @@ class Unit {
     this.nextNextNode = { x: this.x/SPRITE_SIZE, y: this.y/SPRITE_SIZE }
     this.angle = -PI/2
     this.visible = true
+    this.walkParticleTimer = 0
 
     // Tasks management
     this.task = 'idle'
@@ -439,6 +440,33 @@ class Unit {
         // we finally are on nextNode now
         this.currentNode.x = this.nextNode.x
         this.currentNode.y = this.nextNode.y
+      }
+
+      // Terrain walk particles
+      if (gameState.settings.extraParticles) {
+        this.walkParticleTimer += delay
+        if (this.walkParticleTimer >= 250) {
+          this.walkParticleTimer -= 250
+          const tileX = Math.round(this.x / SPRITE_SIZE)
+          const tileY = Math.round(this.y / SPRITE_SIZE)
+          const tile = gameState.map[tileX]?.[tileY]
+          if (tile) {
+            const walkEffect = {
+              GRASS: ParticleEffect.WALK_GRASS,
+              SAND: ParticleEffect.WALK_SAND,
+              WATER: ParticleEffect.WALK_WATER,
+              TREE: ParticleEffect.WALK_TREE,
+              DEPLETED_TREE: ParticleEffect.WALK_TREE,
+            }[tile.type]
+            if (walkEffect) {
+              createParticleEmitter(walkEffect, {
+                x: this.x + SPRITE_SIZE / 2,
+                y: this.y + SPRITE_SIZE * 0.9,
+                duration: 400
+              })
+            }
+          }
+        }
       }
     }
 

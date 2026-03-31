@@ -70,6 +70,7 @@
     "sfxVolume": "Sound Effects Volume",
     "musicVolume": "Music Volume",
     "language": "Language",
+    "extraParticles": "Extra Particle Effects",
     "save": "Save",
     "cancel": "Cancel"
   },

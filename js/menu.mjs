@@ -739,6 +739,7 @@ async function setupOptionsSection() {
   // Get option buttons
   const debugToggle = document.getElementById('debugToggle')
   const healthBarsToggle = document.getElementById('healthBarsToggle')
+  const extraParticlesToggle = document.getElementById('extraParticlesToggle')
   const fullscreenToggle = document.getElementById('fullscreenToggle')
   const antialiasingToggle = document.getElementById('antialiasingToggle')
   const antialiasingStatus = document.getElementById('antialiasingStatus')
@@ -763,6 +764,7 @@ async function setupOptionsSection() {
     // Set current values based on game settings or defaults
     debugToggle.checked = gameState.settings?.debugMode === true
     healthBarsToggle.checked = gameState.settings?.showHealthBars === true
+    extraParticlesToggle.checked = gameState.settings?.extraParticles ?? true
     fullscreenToggle.checked = gameState.settings?.fullscreen ?? false
     antialiasingToggle.checked = gameState.settings?.antialiasing ?? false
     fpsCapSelect.value = gameState.settings?.fpsCap ?? 0
@@ -803,6 +805,7 @@ async function setupOptionsSection() {
 
     const debugModeEnabled = debugToggle.checked
     const showHealthBarsEnabled = healthBarsToggle.checked
+    const extraParticlesEnabled = extraParticlesToggle.checked
     const fullscreenEnabled = fullscreenToggle.checked
     const antialiasingEnabled = antialiasingToggle.checked
     const fpsCap = parseInt(fpsCapSelect.value)
@@ -818,6 +821,7 @@ async function setupOptionsSection() {
     gameState.updateSettings({
         debugMode: debugModeEnabled,
         showHealthBars: showHealthBarsEnabled,
+        extraParticles: extraParticlesEnabled,
         fullscreen: fullscreenEnabled,
         antialiasing: antialiasingEnabled,
         fpsCap: fpsCap,
@@ -848,6 +852,7 @@ async function setupOptionsSection() {
   // Add click handlers for option buttons
   debugToggle.addEventListener('change', playClickSound)
   healthBarsToggle.addEventListener('change', playClickSound)
+  extraParticlesToggle.addEventListener('change', playClickSound)
   fullscreenToggle.addEventListener('change', playClickSound)
   antialiasingToggle.addEventListener('change', () => {
     playClickSound()

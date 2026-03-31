@@ -34,7 +34,11 @@ const ParticleEffect = {
   ARROW_IMPACT: 'arrow_impact',
   FIREBALL_TRAIL: 'fireball_trail',
   SNOWBALL_TRAIL: 'snowball_trail',
-  SNOWBALL_IMPACT: 'snowball_impact'
+  SNOWBALL_IMPACT: 'snowball_impact',
+  WALK_GRASS: 'walk_grass',
+  WALK_SAND: 'walk_sand',
+  WALK_WATER: 'walk_water',
+  WALK_TREE: 'walk_tree'
 }
 
 
@@ -157,6 +161,18 @@ function createParticleEmitter(effectType, options = {}) {
       break
     case ParticleEffect.SNOWBALL_IMPACT:
       createSnowballImpactParticles(emitter)
+      break
+    case ParticleEffect.WALK_GRASS:
+      createWalkGrassParticles(emitter)
+      break
+    case ParticleEffect.WALK_SAND:
+      createWalkSandParticles(emitter)
+      break
+    case ParticleEffect.WALK_WATER:
+      createWalkWaterParticles(emitter)
+      break
+    case ParticleEffect.WALK_TREE:
+      createWalkTreeParticles(emitter)
       break
   }
   
@@ -999,6 +1015,187 @@ function createSnowballImpactParticles(emitter) {
       rotationSpeed: (Math.random() - 0.5) * 0.2,
       life: 1,
       decay: 0.010 + Math.random() * 0.018
+    }
+
+    emitter.particles.push(particle)
+  }
+}
+
+/**
+ * Create walk-on-grass particles — tiny green/tan dust puffs at unit feet
+ * @param {Object} emitter - The emitter to add particles to
+ */
+function createWalkGrassParticles(emitter) {
+  const SPRITE_SIZE = getTileSize()
+  const particleCount = 2 + Math.random() * 2 | 0
+  const colors = [0x88CC44, 0xAABB66, 0xCCDD88, 0x99BB55, 0xBBCC77]
+
+  for (let i = 0; i < particleCount; i++) {
+    const size = 1 + (Math.random() * 2) | 0
+    const color = colors[Math.floor(Math.random() * colors.length)]
+    const cacheKey = `rect_${size}_${color}`
+
+    let texture = particleTextureCache[cacheKey]
+    if (!texture) {
+      const graphics = new PIXI.Graphics().rect(0, 0, size, size).fill({ color })
+      texture = app.renderer.generateTexture(graphics)
+      particleTextureCache[cacheKey] = texture
+      graphics.destroy()
+    }
+
+    const sprite = new PIXI.Sprite(texture)
+    sprite.anchor.set(0.5)
+    containers.particles.addChild(sprite)
+
+    const angle = Math.random() * Math.PI * 2
+    const scatter = Math.random() * SPRITE_SIZE * 0.3
+
+    const particle = {
+      sprite,
+      x: emitter.x + Math.cos(angle) * scatter,
+      y: emitter.y + Math.sin(angle) * scatter,
+      vx: (Math.random() - 0.5) * 0.04,
+      vy: -0.02 - Math.random() * 0.04,
+      gravity: 0.003,
+      rotation: Math.random() * Math.PI * 2,
+      rotationSpeed: (Math.random() - 0.5) * 0.1,
+      life: 1,
+      decay: 0.04 + Math.random() * 0.04
+    }
+
+    emitter.particles.push(particle)
+  }
+}
+
+/**
+ * Create walk-on-sand particles — beige/tan dust motes drifting sideways
+ * @param {Object} emitter - The emitter to add particles to
+ */
+function createWalkSandParticles(emitter) {
+  const SPRITE_SIZE = getTileSize()
+  const particleCount = 2 + Math.random() * 2 | 0
+  const colors = [0xDDCC88, 0xCCBB77, 0xEEDD99, 0xD4B860, 0xC8A84B]
+
+  for (let i = 0; i < particleCount; i++) {
+    const size = 1 + (Math.random() * 2) | 0
+    const color = colors[Math.floor(Math.random() * colors.length)]
+    const cacheKey = `rect_${size}_${color}`
+
+    let texture = particleTextureCache[cacheKey]
+    if (!texture) {
+      const graphics = new PIXI.Graphics().rect(0, 0, size, size).fill({ color })
+      texture = app.renderer.generateTexture(graphics)
+      particleTextureCache[cacheKey] = texture
+      graphics.destroy()
+    }
+
+    const sprite = new PIXI.Sprite(texture)
+    sprite.anchor.set(0.5)
+    containers.particles.addChild(sprite)
+
+    const particle = {
+      sprite,
+      x: emitter.x + (Math.random() - 0.5) * SPRITE_SIZE * 0.4,
+      y: emitter.y + (Math.random() - 0.5) * SPRITE_SIZE * 0.2,
+      vx: (Math.random() - 0.5) * 0.08,
+      vy: -0.01 - Math.random() * 0.02,
+      gravity: 0.002,
+      rotation: Math.random() * Math.PI * 2,
+      rotationSpeed: (Math.random() - 0.5) * 0.06,
+      life: 1,
+      decay: 0.025 + Math.random() * 0.025
+    }
+
+    emitter.particles.push(particle)
+  }
+}
+
+/**
+ * Create walk-on-water particles — small blue/white droplets that burst up and fall back
+ * @param {Object} emitter - The emitter to add particles to
+ */
+function createWalkWaterParticles(emitter) {
+  const SPRITE_SIZE = getTileSize()
+  const particleCount = 3 + Math.random() * 3 | 0
+  const colors = [0xFFFFFF, 0xCCEEFF, 0xAADDFF, 0x88CCFF, 0x66BBFF]
+
+  for (let i = 0; i < particleCount; i++) {
+    const size = 1 + (Math.random() * 2) | 0
+    const color = colors[Math.floor(Math.random() * colors.length)]
+    const cacheKey = `rect_${size}_${color}`
+
+    let texture = particleTextureCache[cacheKey]
+    if (!texture) {
+      const graphics = new PIXI.Graphics().rect(0, 0, size, size).fill({ color })
+      texture = app.renderer.generateTexture(graphics)
+      particleTextureCache[cacheKey] = texture
+      graphics.destroy()
+    }
+
+    const sprite = new PIXI.Sprite(texture)
+    sprite.anchor.set(0.5)
+    containers.particles.addChild(sprite)
+
+    const angle = Math.random() * Math.PI * 2
+    const scatter = Math.random() * SPRITE_SIZE * 0.25
+
+    const particle = {
+      sprite,
+      x: emitter.x + Math.cos(angle) * scatter,
+      y: emitter.y + Math.sin(angle) * scatter,
+      vx: (Math.random() - 0.5) * 0.06,
+      vy: -0.05 - Math.random() * 0.08,  // burst upward
+      gravity: 0.007,                     // falls back quickly
+      rotation: Math.random() * Math.PI * 2,
+      rotationSpeed: (Math.random() - 0.5) * 0.12,
+      life: 1,
+      decay: 0.03 + Math.random() * 0.03
+    }
+
+    emitter.particles.push(particle)
+  }
+}
+
+/**
+ * Create walk-on-tree particles — green leaf bits and brown bark chips
+ * @param {Object} emitter - The emitter to add particles to
+ */
+function createWalkTreeParticles(emitter) {
+  const SPRITE_SIZE = getTileSize()
+  const particleCount = 2 + Math.random() * 2 | 0
+  const colors = [0x558844, 0x66AA55, 0x447733, 0xAA7744, 0x886633]
+
+  for (let i = 0; i < particleCount; i++) {
+    const size = 1 + (Math.random() * 2) | 0
+    const color = colors[Math.floor(Math.random() * colors.length)]
+    const cacheKey = `rect_${size}_${color}`
+
+    let texture = particleTextureCache[cacheKey]
+    if (!texture) {
+      const graphics = new PIXI.Graphics().rect(0, 0, size, size).fill({ color })
+      texture = app.renderer.generateTexture(graphics)
+      particleTextureCache[cacheKey] = texture
+      graphics.destroy()
+    }
+
+    const sprite = new PIXI.Sprite(texture)
+    sprite.anchor.set(0.5)
+    containers.particles.addChild(sprite)
+
+    const angle = Math.random() * Math.PI * 2
+    const scatter = Math.random() * SPRITE_SIZE * 0.3
+
+    const particle = {
+      sprite,
+      x: emitter.x + Math.cos(angle) * scatter,
+      y: emitter.y + Math.sin(angle) * scatter,
+      vx: (Math.random() - 0.5) * 0.06,
+      vy: -0.03 - Math.random() * 0.05,
+      gravity: 0.004,
+      rotation: Math.random() * Math.PI * 2,
+      rotationSpeed: (Math.random() - 0.5) * 0.15,
+      life: 1,
+      decay: 0.03 + Math.random() * 0.03
     }
 
     emitter.particles.push(particle)
