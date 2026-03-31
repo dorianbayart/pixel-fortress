@@ -148,8 +148,8 @@
   "buildings": {
     "tent": {
       "name": "Zelt",
-      "description": "Ihr Hauptgebäude",
-      "details": "Um jeden Preis schützen!"
+      "description": "Produziert Knechte",
+      "details": "Arbeit, Arbeit!"
     },
     "lumberjack": {
       "name": "Holzhütte",

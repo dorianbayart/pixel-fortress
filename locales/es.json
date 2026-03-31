@@ -148,8 +148,8 @@
   "buildings": {
     "tent": {
       "name": "Tienda",
-      "description": "Tu edificio principal",
-      "details": "¡Protégelo a toda costa!"
+      "description": "Produce peones",
+      "details": "¡Trabajo, trabajo!"
     },
     "lumberjack": {
       "name": "Leñador",
