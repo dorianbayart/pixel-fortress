@@ -1,6 +1,6 @@
 'use strict'
 
-const CACHE_NAME = 'PixelFortress_Cache_0.0.1'
+const CACHE_NAME = 'PixelFortress_Cache_0.0.4'
 
 const CACHED_URLS = [
   '',
@@ -11,7 +11,9 @@ const CACHED_URLS = [
   'favicon.ico',
 
   // Styles
+  'css/game-ui.css',
   'css/landing.css',
+  'css/mapEditor.css',
   'css/menu.css',
   'css/modal.css',
 
@@ -28,6 +30,7 @@ const CACHED_URLS = [
   'js/index.mjs',
   'js/init.mjs',
   'js/map-preview.mjs',
+  'js/mapEditor.mjs',
   'js/mapGeneration.mjs',
   'js/maps.mjs',
   'js/menu.mjs',
@@ -65,6 +68,7 @@ const CACHED_URLS = [
   'assets/logo.png',
   'assets/logo.svg',
   'assets/logo_banner.svg',
+  'assets/base_16.png',
   'assets/base_512_pixelated.png',
   'assets/punyworld-overworld-tileset.png',
   'assets/punyworld-overworld-tileset-Mask.png',
@@ -79,6 +83,7 @@ const CACHED_URLS = [
   // Assets - Icons
   'assets/icons/external-link.svg',
   'assets/icons/github.svg',
+  'assets/icons/kofi_symbol.png',
   'assets/icons/music.svg',
   'assets/icons/music-solid.svg',
   'assets/icons/pause.svg',
@@ -88,6 +93,24 @@ const CACHED_URLS = [
   'assets/icons/sound-mute-solid.svg',
   'assets/icons/sound-on.svg',
   'assets/icons/sound-on-solid.svg',
+
+  // Assets - Attack sprites
+  'assets/attacks/fireball.png',
+
+  // Assets - Building sprites
+  'assets/buildings/axe.png',
+  'assets/buildings/balance.png',
+  'assets/buildings/bow-and-arrow.png',
+  'assets/buildings/crossed-swords.png',
+  'assets/buildings/cristal-ball.png',
+  'assets/buildings/fleur-de-lis.png',
+  'assets/buildings/gold-mine.png',
+  'assets/buildings/pick.png',
+  'assets/buildings/shield.png',
+  'assets/buildings/tent.png',
+  'assets/buildings/tower.png',
+  'assets/buildings/tower-2.png',
+  'assets/buildings/well-1.png',
 
   // Assets - Unit sprites
   'assets/units/Archer-Green.png',
@@ -124,9 +147,17 @@ const CACHED_URLS = [
 
   // Assets - UI
   'assets/ui/crosshair.png',
-]
 
-const self = this // For scope
+  // Assets - Sounds
+  'assets/sounds/button_fx_mid_002_01_cc0_avr.wav',
+  'assets/sounds/button_fx_mid_002_02_cc0_avr.wav',
+  'assets/sounds/Chest Close 2.ogg',
+  'assets/sounds/confirm_style_2_001.ogg',
+  'assets/sounds/Forest Day.ogg',
+
+  // Assets - Music
+  'assets/music/sonatina_letsadventure_3ToArms.ogg',
+]
 
 // Install Service Worker
 self.addEventListener('install', event => {

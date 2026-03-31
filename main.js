@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, globalShortcut } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -48,17 +48,37 @@ function createWindow () {
   const win = new BrowserWindow({
     width: 1400,
     height: 800,
+    show: false,
+    autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
+      devTools: !app.isPackaged,
     }
   });
 
   win.loadFile('play.html'); // Load the game HTML file
+
+  win.on('ready-to-show', () => {
+    win.removeMenu()
+    win.show()
+    win.maximize()
+    win.focus()
+  })
 }
 
 app.whenReady().then(() => {
   createWindow();
+
+  // Prevent page refresh and DevTools shortcuts in production
+  if (app.isPackaged) {
+    globalShortcut.register('F5', () => {})
+    globalShortcut.register('CommandOrControl+R', () => {})
+    globalShortcut.register('Shift+CommandOrControl+R', () => {})
+    globalShortcut.register('F12', () => {})
+    globalShortcut.register('CommandOrControl+Shift+I', () => {})
+    globalShortcut.register('CommandOrControl+Shift+J', () => {})
+  }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -66,6 +86,10 @@ app.whenReady().then(() => {
     }
   });
 });
+
+app.on('will-quit', () => {
+  globalShortcut.unregisterAll()
+})
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
