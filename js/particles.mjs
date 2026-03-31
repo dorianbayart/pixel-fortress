@@ -38,7 +38,8 @@ const ParticleEffect = {
   WALK_GRASS: 'walk_grass',
   WALK_SAND: 'walk_sand',
   WALK_WATER: 'walk_water',
-  WALK_TREE: 'walk_tree'
+  WALK_TREE: 'walk_tree',
+  ARROW_TRAIL: 'arrow_trail'
 }
 
 
@@ -173,6 +174,9 @@ function createParticleEmitter(effectType, options = {}) {
       break
     case ParticleEffect.WALK_TREE:
       createWalkTreeParticles(emitter)
+      break
+    case ParticleEffect.ARROW_TRAIL:
+      createArrowTrailParticles(emitter)
       break
   }
   
@@ -1015,6 +1019,53 @@ function createSnowballImpactParticles(emitter) {
       rotationSpeed: (Math.random() - 0.5) * 0.2,
       life: 1,
       decay: 0.010 + Math.random() * 0.018
+    }
+
+    emitter.particles.push(particle)
+  }
+}
+
+/**
+ * Create arrow trail particles — 1-2 tiny feather wisps and wood chips, very subtle
+ * @param {Object} emitter - The emitter to add particles to
+ */
+function createArrowTrailParticles(emitter) {
+  const SPRITE_SIZE = getTileSize()
+  const particleCount = 1 + Math.random() * 2 | 0
+  // Light gray feather wisps and brown shaft splinters
+  const colors = [0xDDCCAA, 0xCCBB99, 0xEEDDCC, 0x997755, 0x886644]
+
+  for (let i = 0; i < particleCount; i++) {
+    const size = 1
+    const color = colors[Math.floor(Math.random() * colors.length)]
+    const cacheKey = `rect_${size}_${color}`
+
+    let texture = particleTextureCache[cacheKey]
+    if (!texture) {
+      const graphics = new PIXI.Graphics().rect(0, 0, size, size).fill({ color })
+      texture = app.renderer.generateTexture(graphics)
+      particleTextureCache[cacheKey] = texture
+      graphics.destroy()
+    }
+
+    const sprite = new PIXI.Sprite(texture)
+    sprite.anchor.set(0.5)
+    containers.particles.addChild(sprite)
+
+    const angle = Math.random() * Math.PI * 2
+    const scatter = Math.random() * SPRITE_SIZE * 0.2
+
+    const particle = {
+      sprite,
+      x: emitter.x + Math.cos(angle) * scatter,
+      y: emitter.y + Math.sin(angle) * scatter,
+      vx: (Math.random() - 0.5) * 0.03,
+      vy: (Math.random() - 0.5) * 0.03,
+      gravity: 0.002,
+      rotation: Math.random() * Math.PI * 2,
+      rotationSpeed: (Math.random() - 0.5) * 0.08,
+      life: 1,
+      decay: 0.06 + Math.random() * 0.04  // fast fade — trail stays tight
     }
 
     emitter.particles.push(particle)

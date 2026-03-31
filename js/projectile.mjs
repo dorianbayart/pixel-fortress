@@ -24,6 +24,7 @@ import { getTileSize } from 'dimensions'
 import { createParticleEmitter, ParticleEffect } from 'particles'
 import * as PIXI from 'pixijs'
 import { containers } from 'renderer'
+import gameState from 'state'
 
 const activeProjectiles = new Set()
 
@@ -61,6 +62,9 @@ class Projectile {
     this.graphics = new PIXI.Graphics()
     this.graphics.rect(-4, -1, 8, 2).fill({ color: 0x6D5226 })
     containers.particles?.addChild(this.graphics)
+
+    this.trailTimer = 0
+    this.trailInterval = 50 // ms between arrow trail bursts
 
     activeProjectiles.add(this)
   }
@@ -114,6 +118,15 @@ class Projectile {
 
     this.graphics.position.set(this.x, this.y)
     this.graphics.rotation = Math.atan2(dy, dx)
+
+    // Subtle arrow trail, gated on extra particles setting
+    if (gameState.settings.extraParticles) {
+      this.trailTimer += delay
+      while (this.trailTimer >= this.trailInterval) {
+        this.trailTimer -= this.trailInterval
+        createParticleEmitter(ParticleEffect.ARROW_TRAIL, { x: this.x, y: this.y, duration: 300 })
+      }
+    }
   }
 
   /** Remove this projectile from the stage and mark it dead */
