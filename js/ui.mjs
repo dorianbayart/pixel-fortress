@@ -57,7 +57,33 @@ function getBuildingList() {
   ]
 }
 
-const RESOURCE_ICONS = { wood: '🪵', stone: '🪨', gold: '🪙', water: '💧', money: '💰' }
+const RESOURCE_IMG = {
+  wood: 'assets/buildings/wood.png',
+  stone: 'assets/buildings/rock.png',
+  gold: 'assets/buildings/gold-ore.png',
+  water: 'assets/buildings/droplet.png',
+  money: 'assets/buildings/coin.png',
+}
+
+function _makeCostEl(costs) {
+  const el = document.createElement('div')
+  el.className = 'bi-btn-cost'
+  for (const [r, a] of Object.entries(costs)) {
+    const item = document.createElement('span')
+    item.className = 'bi-btn-cost-item'
+    if (RESOURCE_IMG[r]) {
+      const img = document.createElement('img')
+      img.src = RESOURCE_IMG[r]
+      img.alt = r
+      item.appendChild(img)
+    } else {
+      item.appendChild(document.createTextNode(r + ' '))
+    }
+    item.appendChild(document.createTextNode(a))
+    el.appendChild(item)
+  }
+  return el
+}
 
 // ── DOM helpers ────────────────────────────────────────────────
 
@@ -174,8 +200,8 @@ function showTooltip(bt, slotEl) {
     const costEl = document.createElement('span')
     costEl.className = 'tooltip-costs'
     costEl.textContent = t('ui.costs') + ': ' + Object.entries(costs)
-      .map(([r, a]) => `${RESOURCE_ICONS[r] || r}${a}`)
-      .join(' ')
+      .map(([r, a]) => `${r} ${a}`)
+      .join('  ')
     tooltip.appendChild(costEl)
   }
 
@@ -333,24 +359,31 @@ function renderBuildingInfo(building, specMode = false) {
       btn.disabled = !canAfford
 
       const branchName = branch.key ? t(`buildings.${branch.key}.name`) : branch.name
-      const s = branch.initialStats
-      const statsLabel = `${t('ui.atk')}:${s.attackDamage}  ${t('ui.spd')}:${(1000/s.attackCooldown).toFixed(1)}/s  Rng:${s.attackRangeTiles}t`
-      const costLabel = Object.entries(branch.costs).map(([r, a]) => `${RESOURCE_ICONS[r] || r}${a}`).join(' ')
+      const statsLabel = branch.key ? t(`buildings.${branch.key}.description`) : branch.description
+
+      if (branch.sprite) {
+        const iconEl = document.createElement('img')
+        iconEl.className = 'bi-btn-icon'
+        iconEl.src = branch.sprite
+        iconEl.alt = ''
+        btn.appendChild(iconEl)
+      }
+
+      const textEl = document.createElement('div')
+      textEl.className = 'bi-btn-text'
 
       const titleEl2 = document.createElement('span')
       titleEl2.className = 'bi-btn-title'
       titleEl2.textContent = branchName
-      btn.appendChild(titleEl2)
+      textEl.appendChild(titleEl2)
 
       const subEl = document.createElement('span')
       subEl.className = 'bi-btn-sub'
       subEl.textContent = statsLabel
-      btn.appendChild(subEl)
+      textEl.appendChild(subEl)
 
-      const costEl2 = document.createElement('span')
-      costEl2.className = 'bi-btn-cost'
-      costEl2.textContent = costLabel
-      btn.appendChild(costEl2)
+      textEl.appendChild(_makeCostEl(branch.costs))
+      btn.appendChild(textEl)
 
       btn.addEventListener('click', (e) => {
         e.stopPropagation()
@@ -383,22 +416,30 @@ function renderBuildingInfo(building, specMode = false) {
 
         const choiceName = choice.type.key ? t(`buildings.${choice.type.key}.name`) : choice.type.name
         const choiceDesc = choice.type.key ? t(`buildings.${choice.type.key}.description`) : choice.type.description
-        const costLabel = Object.entries(choice.costs).map(([r, a]) => `${RESOURCE_ICONS[r] || r}${a}`).join(' ')
+
+        if (choice.type.sprite) {
+          const iconEl = document.createElement('img')
+          iconEl.className = 'bi-btn-icon'
+          iconEl.src = choice.type.sprite
+          iconEl.alt = ''
+          btn.appendChild(iconEl)
+        }
+
+        const textEl = document.createElement('div')
+        textEl.className = 'bi-btn-text'
 
         const t1 = document.createElement('span')
         t1.className = 'bi-btn-title'
         t1.textContent = choiceName
-        btn.appendChild(t1)
+        textEl.appendChild(t1)
 
         const t2 = document.createElement('span')
         t2.className = 'bi-btn-sub'
         t2.textContent = choiceDesc
-        btn.appendChild(t2)
+        textEl.appendChild(t2)
 
-        const t3 = document.createElement('span')
-        t3.className = 'bi-btn-cost'
-        t3.textContent = costLabel
-        btn.appendChild(t3)
+        textEl.appendChild(_makeCostEl(choice.costs))
+        btn.appendChild(textEl)
 
         btn.addEventListener('click', (e) => {
           e.stopPropagation()
@@ -415,15 +456,18 @@ function renderBuildingInfo(building, specMode = false) {
       )
       const specBtn = document.createElement('button')
       specBtn.className = 'bi-btn' + (canAffordAnySpec ? '' : ' unaffordable')
+      const specText = document.createElement('div')
+      specText.className = 'bi-btn-text'
       const specTitle = document.createElement('span')
       specTitle.className = 'bi-btn-title'
       specTitle.textContent = t('ui.specialize') + ' →'
-      specBtn.appendChild(specTitle)
+      specText.appendChild(specTitle)
       const specNames = specializationChoices.map(c => c.type.key ? t(`buildings.${c.type.key}.name`) : c.type.name).join(' · ')
       const specSub = document.createElement('span')
       specSub.className = 'bi-btn-sub'
       specSub.textContent = specNames
-      specBtn.appendChild(specSub)
+      specText.appendChild(specSub)
+      specBtn.appendChild(specText)
       specBtn.addEventListener('click', (e) => {
         e.stopPropagation()
         renderBuildingInfo(building, true)
@@ -446,22 +490,30 @@ function renderBuildingInfo(building, specMode = false) {
 
       const choiceName = choice.type.key ? t(`buildings.${choice.type.key}.name`) : choice.type.name
       const choiceDesc = choice.type.key ? t(`buildings.${choice.type.key}.description`) : choice.type.description
-      const costLabel = Object.entries(choice.costs).map(([r, a]) => `${RESOURCE_ICONS[r] || r}${a}`).join(' ')
+
+      if (choice.type.sprite) {
+        const iconEl = document.createElement('img')
+        iconEl.className = 'bi-btn-icon'
+        iconEl.src = choice.type.sprite
+        iconEl.alt = ''
+        btn.appendChild(iconEl)
+      }
+
+      const textEl = document.createElement('div')
+      textEl.className = 'bi-btn-text'
 
       const t1 = document.createElement('span')
       t1.className = 'bi-btn-title'
       t1.textContent = choiceName
-      btn.appendChild(t1)
+      textEl.appendChild(t1)
 
       const t2 = document.createElement('span')
       t2.className = 'bi-btn-sub'
       t2.textContent = choiceDesc
-      btn.appendChild(t2)
+      textEl.appendChild(t2)
 
-      const t3 = document.createElement('span')
-      t3.className = 'bi-btn-cost'
-      t3.textContent = costLabel
-      btn.appendChild(t3)
+      textEl.appendChild(_makeCostEl(choice.costs))
+      btn.appendChild(textEl)
 
       btn.addEventListener('click', (e) => {
         e.stopPropagation()
@@ -487,10 +539,19 @@ function _makeUpgradeButton(building, canAfford, benefits, costs) {
   btn.className = 'bi-btn' + (canAfford ? '' : ' unaffordable')
   btn.disabled = !canAfford
 
+  const iconEl = document.createElement('img')
+  iconEl.className = 'bi-btn-icon'
+  iconEl.src = 'assets/ui/upgrade.png'
+  iconEl.alt = ''
+  btn.appendChild(iconEl)
+
+  const textEl = document.createElement('div')
+  textEl.className = 'bi-btn-text'
+
   const titleEl3 = document.createElement('span')
   titleEl3.className = 'bi-btn-title'
-  titleEl3.textContent = '⬆ Upgrade'
-  btn.appendChild(titleEl3)
+  titleEl3.textContent = 'Upgrade'
+  textEl.appendChild(titleEl3)
 
   // Benefits summary
   let benefitsArr = []
@@ -505,14 +566,11 @@ function _makeUpgradeButton(building, canAfford, benefits, costs) {
     const subEl2 = document.createElement('span')
     subEl2.className = 'bi-btn-sub'
     subEl2.textContent = benefitsArr.join(', ')
-    btn.appendChild(subEl2)
+    textEl.appendChild(subEl2)
   }
 
-  const costLabel2 = Object.entries(costs).map(([r, a]) => `${RESOURCE_ICONS[r] || r}${a}`).join(' ')
-  const costEl3 = document.createElement('span')
-  costEl3.className = 'bi-btn-cost'
-  costEl3.textContent = costLabel2
-  btn.appendChild(costEl3)
+  textEl.appendChild(_makeCostEl(costs))
+  btn.appendChild(textEl)
 
   btn.addEventListener('click', (e) => {
     e.stopPropagation()
