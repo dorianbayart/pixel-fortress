@@ -32,7 +32,9 @@ const ParticleEffect = {
   UI_BUTTON_CLICK: 'ui_button_click',
   FIREBALL_IMPACT: 'fireball_impact',
   ARROW_IMPACT: 'arrow_impact',
-  FIREBALL_TRAIL: 'fireball_trail'
+  FIREBALL_TRAIL: 'fireball_trail',
+  SNOWBALL_TRAIL: 'snowball_trail',
+  SNOWBALL_IMPACT: 'snowball_impact'
 }
 
 
@@ -149,6 +151,12 @@ function createParticleEmitter(effectType, options = {}) {
       break
     case ParticleEffect.FIREBALL_TRAIL:
       createFireballTrailParticles(emitter)
+      break
+    case ParticleEffect.SNOWBALL_TRAIL:
+      createSnowballTrailParticles(emitter)
+      break
+    case ParticleEffect.SNOWBALL_IMPACT:
+      createSnowballImpactParticles(emitter)
       break
   }
   
@@ -656,31 +664,25 @@ function createButtonClickParticles(emitter) {
   }
 
 /**
- * Create fireball trail particles — a few fire particles emitted continuously while flying
+ * Create fireball trail particles — a dense fire ball made of particles
+ * Combines a bright hot core with an outer fire cloud to form a visible fireball.
  * @param {Object} emitter - The emitter to add particles to
  */
 function createFireballTrailParticles(emitter) {
   const SPRITE_SIZE = getTileSize()
-  const particleCount = 4 + Math.random() * 4 | 0
 
-  const colorPool = [
-    0xFFFFFF, 0xFFFFFF,
-    0xFFFF88, 0xFFFF00,
-    0xFF9900, 0xFF8800, 0xFF6600,
-    0xFF4400, 0xFF2200,
-    0xCC2200,
-  ]
+  // Hot core — bright, tight cluster, fades quickly (gives the glowing ball shape)
+  const coreCount = 3 + Math.random() * 3 | 0
+  const coreColors = [0xFFFFFF, 0xFFFFEE, 0xFFFF88, 0xFFFF00, 0xFFDD00]
 
-  for (let i = 0; i < particleCount; i++) {
-    const size = 1 + (Math.random() * 3) | 0
-    const color = colorPool[Math.floor(Math.random() * colorPool.length)]
+  for (let i = 0; i < coreCount; i++) {
+    const size = 2 + (Math.random() * 3) | 0
+    const color = coreColors[Math.floor(Math.random() * coreColors.length)]
     const cacheKey = `rect_${size}_${color}`
 
     let texture = particleTextureCache[cacheKey]
     if (!texture) {
-      const graphics = new PIXI.Graphics()
-        .rect(0, 0, size, size)
-        .fill({ color })
+      const graphics = new PIXI.Graphics().rect(0, 0, size, size).fill({ color })
       texture = app.renderer.generateTexture(graphics)
       particleTextureCache[cacheKey] = texture
       graphics.destroy()
@@ -690,17 +692,59 @@ function createFireballTrailParticles(emitter) {
     sprite.anchor.set(0.5)
     containers.particles.addChild(sprite)
 
-    // Scatter slightly around the fireball center
     const angle = Math.random() * Math.PI * 2
-    const scatter = Math.random() * SPRITE_SIZE * 0.3
+    const scatter = Math.random() * SPRITE_SIZE * 0.15 // tight cluster
+
+    const particle = {
+      sprite,
+      x: emitter.x + Math.cos(angle) * scatter,
+      y: emitter.y + Math.sin(angle) * scatter,
+      vx: (Math.random() - 0.5) * 0.04,
+      vy: -0.02 - Math.random() * 0.06,
+      gravity: -0.002,
+      rotation: Math.random() * Math.PI * 2,
+      rotationSpeed: (Math.random() - 0.5) * 0.08,
+      life: 1,
+      decay: 0.04 + Math.random() * 0.04 // fast decay = stays near the head
+    }
+
+    emitter.particles.push(particle)
+  }
+
+  // Outer fire cloud — orange/red, wider scatter, slower decay (forms the fire aura)
+  const outerCount = 5 + Math.random() * 5 | 0
+  const outerColors = [
+    0xFF9900, 0xFF8800, 0xFF6600,
+    0xFF4400, 0xFF2200, 0xCC2200,
+  ]
+
+  for (let i = 0; i < outerCount; i++) {
+    const size = 1 + (Math.random() * 3) | 0
+    const color = outerColors[Math.floor(Math.random() * outerColors.length)]
+    const cacheKey = `rect_${size}_${color}`
+
+    let texture = particleTextureCache[cacheKey]
+    if (!texture) {
+      const graphics = new PIXI.Graphics().rect(0, 0, size, size).fill({ color })
+      texture = app.renderer.generateTexture(graphics)
+      particleTextureCache[cacheKey] = texture
+      graphics.destroy()
+    }
+
+    const sprite = new PIXI.Sprite(texture)
+    sprite.anchor.set(0.5)
+    containers.particles.addChild(sprite)
+
+    const angle = Math.random() * Math.PI * 2
+    const scatter = Math.random() * SPRITE_SIZE * 0.4 // wider spread for fire aura
 
     const particle = {
       sprite,
       x: emitter.x + Math.cos(angle) * scatter,
       y: emitter.y + Math.sin(angle) * scatter,
       vx: (Math.random() - 0.5) * 0.06,
-      vy: -0.06 - Math.random() * 0.1,   // gently rise
-      gravity: -0.003,                    // keep rising slowly
+      vy: -0.04 - Math.random() * 0.1,
+      gravity: -0.003,
       rotation: Math.random() * Math.PI * 2,
       rotationSpeed: (Math.random() - 0.5) * 0.1,
       life: 1,
@@ -814,6 +858,147 @@ function createFireballImpactParticles(emitter) {
       rotationSpeed: (Math.random() - 0.5) * 0.15,
       life: 1,
       decay: 0.008 + Math.random() * 0.018
+    }
+
+    emitter.particles.push(particle)
+  }
+}
+
+/**
+ * Create snowball trail particles — compact white/icy ball with a light snow dust trail
+ * @param {Object} emitter - The emitter to add particles to
+ */
+function createSnowballTrailParticles(emitter) {
+  const SPRITE_SIZE = getTileSize()
+
+  // Icy core — white/light-blue, tight cluster
+  const coreCount = 3 + Math.random() * 3 | 0
+  const coreColors = [0xFFFFFF, 0xFFFFFF, 0xEEF8FF, 0xDDF0FF, 0xCCEEFF]
+
+  for (let i = 0; i < coreCount; i++) {
+    const size = 2 + (Math.random() * 3) | 0
+    const color = coreColors[Math.floor(Math.random() * coreColors.length)]
+    const cacheKey = `rect_${size}_${color}`
+
+    let texture = particleTextureCache[cacheKey]
+    if (!texture) {
+      const graphics = new PIXI.Graphics().rect(0, 0, size, size).fill({ color })
+      texture = app.renderer.generateTexture(graphics)
+      particleTextureCache[cacheKey] = texture
+      graphics.destroy()
+    }
+
+    const sprite = new PIXI.Sprite(texture)
+    sprite.anchor.set(0.5)
+    containers.particles.addChild(sprite)
+
+    const angle = Math.random() * Math.PI * 2
+    const scatter = Math.random() * SPRITE_SIZE * 0.15
+
+    const particle = {
+      sprite,
+      x: emitter.x + Math.cos(angle) * scatter,
+      y: emitter.y + Math.sin(angle) * scatter,
+      vx: (Math.random() - 0.5) * 0.03,
+      vy: -0.01 - Math.random() * 0.03,
+      gravity: 0.003,   // falls slightly (snow is heavy)
+      rotation: Math.random() * Math.PI * 2,
+      rotationSpeed: (Math.random() - 0.5) * 0.06,
+      life: 1,
+      decay: 0.05 + Math.random() * 0.04
+    }
+
+    emitter.particles.push(particle)
+  }
+
+  // Snow dust — wider scatter, fades quickly
+  const dustCount = 3 + Math.random() * 4 | 0
+  const dustColors = [0xFFFFFF, 0xEEF8FF, 0xDDEEFF, 0xBBDDFF]
+
+  for (let i = 0; i < dustCount; i++) {
+    const size = 1 + (Math.random() * 2) | 0
+    const color = dustColors[Math.floor(Math.random() * dustColors.length)]
+    const cacheKey = `rect_${size}_${color}`
+
+    let texture = particleTextureCache[cacheKey]
+    if (!texture) {
+      const graphics = new PIXI.Graphics().rect(0, 0, size, size).fill({ color })
+      texture = app.renderer.generateTexture(graphics)
+      particleTextureCache[cacheKey] = texture
+      graphics.destroy()
+    }
+
+    const sprite = new PIXI.Sprite(texture)
+    sprite.anchor.set(0.5)
+    containers.particles.addChild(sprite)
+
+    const angle = Math.random() * Math.PI * 2
+    const scatter = Math.random() * SPRITE_SIZE * 0.45
+
+    const particle = {
+      sprite,
+      x: emitter.x + Math.cos(angle) * scatter,
+      y: emitter.y + Math.sin(angle) * scatter,
+      vx: (Math.random() - 0.5) * 0.08,
+      vy: 0.01 + Math.random() * 0.05, // drifts downward
+      gravity: 0.004,
+      rotation: Math.random() * Math.PI * 2,
+      rotationSpeed: (Math.random() - 0.5) * 0.12,
+      life: 1,
+      decay: 0.025 + Math.random() * 0.025
+    }
+
+    emitter.particles.push(particle)
+  }
+}
+
+/**
+ * Create snowball impact particles — burst of snow chunks and ice crystals
+ * @param {Object} emitter - The emitter to add particles to
+ */
+function createSnowballImpactParticles(emitter) {
+  const SPRITE_SIZE = getTileSize()
+  const particleCount = 50 + Math.random() * 25 | 0
+
+  const colorPool = [
+    0xFFFFFF, 0xFFFFFF, 0xFFFFFF,     // pure white snow (dominant)
+    0xEEF8FF, 0xDDF0FF, 0xCCEEFF,     // pale blue-white ice
+    0xAADDFF, 0x88CCFF,               // light blue ice shards
+    0x66BBFF,                          // blue ice (rare)
+  ]
+
+  for (let i = 0; i < particleCount; i++) {
+    const size = 1 + (Math.random() * 3) | 0
+    const color = colorPool[Math.floor(Math.random() * colorPool.length)]
+    const cacheKey = `rect_${size}_${color}`
+
+    let texture = particleTextureCache[cacheKey]
+    if (!texture) {
+      const graphics = new PIXI.Graphics().rect(0, 0, size, size).fill({ color })
+      texture = app.renderer.generateTexture(graphics)
+      particleTextureCache[cacheKey] = texture
+      graphics.destroy()
+    }
+
+    const sprite = new PIXI.Sprite(texture)
+    sprite.anchor.set(0.5)
+    containers.particles.addChild(sprite)
+
+    const angle = Math.random() * Math.PI * 2
+    const radialSpeed = 0.04 + Math.random() * 0.12
+    const upwardBias = 0.04 + Math.random() * 0.1
+
+    const particle = {
+      sprite,
+      x: emitter.x + (Math.random() - 0.5) * SPRITE_SIZE * 0.4,
+      y: emitter.y + (Math.random() - 0.5) * SPRITE_SIZE * 0.4,
+      vx: Math.cos(angle) * radialSpeed,
+      vy: Math.sin(angle) * radialSpeed - upwardBias,
+      gravity: 0.006 + Math.random() * 0.008,  // snow falls back down
+      rotation: Math.random() * Math.PI * 2,
+      rotationSpeed: (Math.random() - 0.5) * 0.2,
+      life: 1,
+      decay: 0.010 + Math.random() * 0.018
     }
 
     emitter.particles.push(particle)

@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-export { Projectile, FireballProjectile, updateProjectiles, resetProjectiles }
+export { Projectile, FireballProjectile, SnowballProjectile, updateProjectiles, resetProjectiles }
 
 'use strict'
 
@@ -24,7 +24,6 @@ import { getTileSize } from 'dimensions'
 import { createParticleEmitter, ParticleEffect } from 'particles'
 import * as PIXI from 'pixijs'
 import { containers } from 'renderer'
-import { fireballTextures } from 'sprites'
 
 const activeProjectiles = new Set()
 
@@ -129,8 +128,8 @@ class Projectile {
 }
 
 /**
- * An animated fireball projectile fired by a Mage unit.
- * Uses a 3-frame sprite animation from assets/attacks/fireball.png.
+ * A pure-particle fireball projectile fired by a Mage unit.
+ * No sprite — the fireball is entirely made of particles.
  */
 class FireballProjectile extends Projectile {
   /**
@@ -142,28 +141,15 @@ class FireballProjectile extends Projectile {
   constructor(x, y, target, damage) {
     super(x, y, target, damage, getTileSize() * 3)
 
-    // Replace the arrow graphics with an animated sprite
+    // Remove the arrow graphics — fireball is pure particles
     if (this.graphics?.parent) {
       this.graphics.parent.removeChild(this.graphics)
     }
     this.graphics?.destroy()
     this.graphics = null
 
-    this.animFrame = 0
-    this.animTimer = 0
-    this.animSpeed = 120 // ms per frame
-    this.spinAngle = 0
-    this.spinSpeed = 4 // radians per second
     this.trailTimer = 0
-    this.trailInterval = 50 // ms between trail particle bursts
-
-    this.sprite = null
-    if (fireballTextures.length > 0) {
-      this.sprite = new PIXI.Sprite(fireballTextures[0])
-      this.sprite.anchor.set(0.5)
-      containers.particles?.addChild(this.sprite)
-      this.sprite.position.set(this.x, this.y)
-    }
+    this.trailInterval = 20 // ms between trail particle bursts (dense emission)
   }
 
   update(delay) {
@@ -172,13 +158,6 @@ class FireballProjectile extends Projectile {
     // Keep tracking the target position while it's alive
     if (this.target.life > 0) {
       this.lastTargetPos = this.getTargetPixelPos()
-    }
-
-    // Advance animation
-    this.animTimer += delay
-    while (this.animTimer >= this.animSpeed) {
-      this.animTimer -= this.animSpeed
-      this.animFrame = (this.animFrame + 1) % 3
     }
 
     const targetPos = this.lastTargetPos
@@ -199,29 +178,78 @@ class FireballProjectile extends Projectile {
     this.x += dx * ratio
     this.y += dy * ratio
 
-    this.spinAngle += this.spinSpeed * delay / 1000
-
-    // Emit trail particles
+    // Emit trail particles — dense enough to form a visible fireball
     this.trailTimer += delay
     while (this.trailTimer >= this.trailInterval) {
       this.trailTimer -= this.trailInterval
       createParticleEmitter(ParticleEffect.FIREBALL_TRAIL, { x: this.x, y: this.y, duration: 800 })
     }
+  }
 
-    if (this.sprite) {
-      this.sprite.texture = fireballTextures[this.animFrame]
-      this.sprite.position.set(this.x, this.y)
-      this.sprite.rotation = Math.atan2(dy, dx) + this.spinAngle
+  destroy() {
+    this.alive = false
+  }
+}
+
+/**
+ * A pure-particle snowball projectile.
+ * Slower than an arrow, leaves a snow dust trail, and bursts into snow on impact.
+ */
+class SnowballProjectile extends Projectile {
+  /**
+   * @param {number} x - Start pixel X position
+   * @param {number} y - Start pixel Y position
+   * @param {Object} target - Enemy unit or building to fly toward
+   * @param {number} damage - Damage dealt on hit
+   */
+  constructor(x, y, target, damage) {
+    super(x, y, target, damage, getTileSize() * 4)
+
+    // Remove the arrow graphics — snowball is pure particles
+    if (this.graphics?.parent) {
+      this.graphics.parent.removeChild(this.graphics)
+    }
+    this.graphics?.destroy()
+    this.graphics = null
+
+    this.trailTimer = 0
+    this.trailInterval = 25 // ms between trail bursts
+  }
+
+  update(delay) {
+    if (!this.alive) return
+
+    if (this.target.life > 0) {
+      this.lastTargetPos = this.getTargetPixelPos()
+    }
+
+    const targetPos = this.lastTargetPos
+    const dx = targetPos.x - this.x
+    const dy = targetPos.y - this.y
+    const dist = Math.sqrt(dx * dx + dy * dy)
+    const hitRadius = getTileSize() * 0.6
+
+    if (dist <= hitRadius) {
+      if (this.target.life > 0) this.target.life -= this.damage
+      createParticleEmitter(ParticleEffect.SNOWBALL_IMPACT, { x: this.x, y: this.y, duration: 1000 })
+      this.destroy()
+      return
+    }
+
+    const moveDistance = this.speed * delay / 1000
+    const ratio = Math.min(moveDistance / dist, 1)
+    this.x += dx * ratio
+    this.y += dy * ratio
+
+    this.trailTimer += delay
+    while (this.trailTimer >= this.trailInterval) {
+      this.trailTimer -= this.trailInterval
+      createParticleEmitter(ParticleEffect.SNOWBALL_TRAIL, { x: this.x, y: this.y, duration: 600 })
     }
   }
 
   destroy() {
     this.alive = false
-    if (this.sprite?.parent) {
-      this.sprite.parent.removeChild(this.sprite)
-    }
-    this.sprite?.destroy()
-    this.sprite = null
   }
 }
 
