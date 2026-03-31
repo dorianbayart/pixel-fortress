@@ -90,7 +90,7 @@ body.playing-mode {
   animation: none;
 }
 
-canvas {
+#canvas {
   position: fixed;
   top: 0;
   left: 0;
@@ -103,7 +103,7 @@ canvas {
   image-rendering: pixelated;
 }
 
-body.playing-mode canvas {
+body.playing-mode #canvas {
   top: 32px;
   height: calc(100dvh - 32px - 80px);
 }
