@@ -3,12 +3,14 @@ export { handleWindowResize, initializeGame }
 'use strict'
 
 import { isMuted, musicManager, toggleMute } from 'audio'
+import { initCampaign } from 'campaign'
 import { getTileSize, initMapDimensions } from 'dimensions'
 import { initFogOfWar } from 'fogOfWar'
 import { gameLoop, initGame } from 'game'
 import { init as initI18n } from 'i18n'
 import { initMapEditor } from 'map-editor'
 import { initHomeMenu } from 'menu'
+import { initLevelStats, loadGameStats } from 'playerStats'
 import { app, containers, initCanvases, resizeCanvases } from 'renderer'
 import { loadSprites } from 'sprites'
 import gameState from 'state'
@@ -27,6 +29,9 @@ async function initializeGame() {
 
   // Initialize i18n before the menu
   await initI18n()
+
+  // Load persistent game stats (campaign progression, achievements foundation)
+  await loadGameStats()
 
   // Initialize home menu
   initHomeMenu()
@@ -152,8 +157,24 @@ async function initializeGame() {
         // Wait for essential assets to load
         await Promise.all([assetsPromise, fontPromise])
 
-        // Start game
-        startGame()
+        // Start game, then initialize campaign and stats (map exists after startGame resolves)
+        startGame().then(async () => {
+          const mapWidth = gameState.map?.length || 0
+          const mapHeight = gameState.map?.[0]?.length || 0
+          initLevelStats(mapWidth * mapHeight)
+
+          if (gameState.settings.gameMode === 'campaign' && gameState.campaignLevelId) {
+            let config = gameState.pendingCampaignConfig
+            if (config) {
+              // First launch: config was pre-fetched by menu.mjs
+              gameState.pendingCampaignConfig = null
+            } else {
+              // Restart after mission failed: re-fetch the level config
+              config = await fetch(`campaigns/${gameState.campaignLevelId}.json`).then(r => r.json())
+            }
+            initCampaign(config)
+          }
+        })
       }, 40)
     } else if (status === 'playing') {
 

@@ -517,7 +517,8 @@ class Unit {
 class WorkerUnit extends Unit {
   constructor(x, y, owner) {
     super(x, y, owner)
-    
+    this.isWorker = true
+
     // Peon units have weaker stats but can collect resources
     this.life = 5
     this.maxLife = this.life // Set maxLife to initial life

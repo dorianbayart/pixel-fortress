@@ -108,6 +108,75 @@
     "win": "You Win !",
     "winMsg": "You destroyed your opponent's main building ! Congrats !"
   },
+  "campaign": {
+    "title": "Campaign",
+    "objectives": "Objectives",
+    "levelComplete": "Mission Complete!",
+    "levelCompleteMsg": "All objectives accomplished. Well done, commander.",
+    "missionFailed": "Mission Failed",
+    "missionFailedMsg": "Your Tent has been destroyed. Restarting mission...",
+    "allCompleted": "All missions accomplished! You are a true commander.",
+    "lockedLevel": "Complete the previous level to unlock"
+  },
+  "campaigns": {
+    "tutorial01": {
+      "description": "Learn resource gathering in Pixel Fortress — build Wood Huts, Quarries, Wells, and Gold Mines to fuel your economy.",
+      "phase1": {
+        "banner": "Phase 1 — Wood Gathering",
+        "goals": {
+          "lumberjack1": { "title": "Build a Wood Hut", "desc": "Place a Wood Hut near trees. The closer it is to the forest, the faster your Peon can gather." },
+          "lumberjack2": { "title": "Build a 2nd Wood Hut", "desc": "Build a second Wood Hut. Your Tent will train another Peon to staff it." },
+          "lumberjack3": { "title": "Build a 3rd Wood Hut", "desc": "Build a third Wood Hut to maximize your wood income." }
+        },
+        "narratives": {
+          "n1": "Welcome to Pixel Fortress, Commander!\n\nThis is your Tent — your home base. It trains workers and keeps your economy running.\n\nTo gather wood, build a Wood Hut near the forest. The shorter the path to the trees, the faster your Peon will work. Select the Wood Hut from the bottom bar and place it!",
+          "n2": "Well done! Your Tent will now train a Peon and send them to work at that Wood Hut.\n\nPeons walk to their assigned building automatically — no need to manage them. Watch one appear!",
+          "n3": "Your first Peon is on the move! They will head to the Wood Hut, chop nearby trees, and carry the wood back to store it.\n\nWatch your wood counter in the top bar — it will grow soon...",
+          "n4": "First wood is in! You can see all your resources in the top bar at any time.\n\nBuild 2 more Wood Huts to go next — each one trains a new Peon and boosts your income!",
+          "n5": "Great progress! Just one more Wood Hut to go.\n\nPlace it close to trees so your Peon has a short round trip."
+        }
+      },
+      "phase2": {
+        "banner": "Phase 2 — Stone Mining",
+        "goals": {
+          "quarry1": { "title": "Build a Quarry", "desc": "Place a Quarry on rock tiles to mine stone. A new Peon will be trained." },
+          "quarry2": { "title": "Build a 2nd Quarry", "desc": "Build a second Quarry to double your stone output." }
+        },
+        "narratives": {
+          "n1": "Wood is flowing — nice work! Now you need stone.\n\nBuild a Quarry on rocky tiles — look for the gray rock patches on the map. A Peon will mine there and carry the stone back to your Tent to store it.",
+          "n2": "Quarry is up! A Peon is already heading there to start mining.\n\nUnlike wood, stone is carried all the way back to the Tent — so placing your Quarry close to the Tent speeds things up. Watch your stone counter in the top bar...",
+          "n3": "Stone is coming in! Build one more Quarry to double your output and complete this phase."
+        }
+      },
+      "phase3": {
+        "banner": "Phase 3 — Water & Gold",
+        "goals": {
+          "well": { "title": "Build a Well", "desc": "Place a Well next to water tiles to collect water." },
+          "goldMine": { "title": "Build a Gold Mine", "desc": "Place a Gold Mine on gold ore tiles to mine precious gold." }
+        },
+        "narratives": {
+          "n1": "Two resources down, two to go!\n\nFirst, build a Well to gather water. Place it next to water tiles — look for the blue areas on the map. The closer the Well is to your Tent, the faster your Peon can return to store the water.",
+          "n2": "Your Well is drawing fresh water!\n\nNow find the gold ore tiles on the map — they have a shimmering yellow tint. Build a Gold Mine directly on a gold tile. Just like the Quarry, your Peon will mine there and walk back to the Tent to store the gold.",
+          "n3": "All four resources are now being gathered: wood, stone, water, and gold!\n\nA strong economy is the foundation of any great fortress. Watch your stockpiles grow in the top bar."
+        }
+      },
+      "phase4": {
+        "banner": "Phase 4 — Upgrades",
+        "goals": {
+          "lumberjack": { "title": "Upgrade a Wood Hut", "desc": "Select a Wood Hut and upgrade it to level 2 for more workers." },
+          "quarry": { "title": "Upgrade a Quarry", "desc": "Upgrade a Quarry to level 2 for faster stone gathering." },
+          "well": { "title": "Upgrade the Well", "desc": "Upgrade the Well to level 2 to allow more workers." },
+          "goldMine": { "title": "Upgrade the Gold Mine", "desc": "Upgrade the Gold Mine to level 2 for faster gold extraction." }
+        },
+        "narratives": {
+          "n1": "Excellent! All four resources are online.\n\nBuildings can be upgraded to become more efficient. Click any building to select it — the bottom panel will show its stats and an Upgrade button.\n\nUpgrading a Wood Hut or a Well allows more Peons to work there. Upgrading a Quarry or a Gold Mine makes your Peons gather faster.",
+          "n2": "First upgrade done! Keep going — upgrade all four resource buildings to level 2 to complete the tutorial.\n\nWood Hut and Well: more workers. Quarry and Gold Mine: faster gathering.",
+          "n3": "Halfway there! A well-upgraded economy will let you train soldiers and build towers in future missions.\n\nUpgrade the remaining buildings to finish.",
+          "n4": "One last upgrade to go!\n\nOnce your economy is fully operational, combat awaits — soldiers, archers, towers, and battles in the next mission!"
+        }
+      }
+    }
+  },
   "ui": {
     "life": "Life",
     "producing": "Producing",

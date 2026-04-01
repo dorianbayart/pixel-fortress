@@ -43,6 +43,7 @@ import gameState from 'state'
 import { generateTerrainBitmaps, clearTerrainBitmaps, regenerateTerrainRegion } from 'terrainBitmaps'
 import { handleMouseInteraction, updateUI, showModal } from 'ui'
 import { t } from 'i18n'
+import { onGameLoop as campaignTick } from 'campaign'
 
 // Re-export constants for backward compatibility
 const TERRAIN_TYPES = CONSTANTS.TERRAIN.TYPES
@@ -398,9 +399,14 @@ const gameLoop = async () => {
   // Update players and units
   if(gameState.humanPlayer) await gameState.humanPlayer.update(gameState.gameSpeedMultiplier * delay, gameState.map)
 
-  // Check for game over condition
+  // Check for game over condition (same for both skirmish and campaign)
   if (gameState.humanPlayer.getTents().length === 0) {
-    showModal(t('game.gameOver'), t('game.gameOverMsg'), 'gameOver', 'menu', () => {})
+    if (gameState.settings.gameMode === 'campaign') {
+      // Campaign: restart the level instead of returning to menu
+      showModal(t('campaign.missionFailed'), t('campaign.missionFailedMsg'), 'gameOver', 'initialize', () => {})
+    } else {
+      showModal(t('game.gameOver'), t('game.gameOverMsg'), 'gameOver', 'menu', () => {})
+    }
     return // Stop the game loop
   }
   
@@ -409,10 +415,12 @@ const gameLoop = async () => {
     await ai.update(gameState.gameSpeedMultiplier * delay, gameState.map)
   }))
 
-  // Check for win condition
-  if (!gameState.aiPlayers.some(ai => ai.getTents().length)) {
-    showModal(t('game.win'), t('game.winMsg'), 'win', 'menu', () => {})
-    return // Stop the game loop
+  // Check for win condition (skirmish only — campaign win is handled by campaign.mjs phases)
+  if (gameState.settings.gameMode !== 'campaign') {
+    if (!gameState.aiPlayers.some(ai => ai.getTents().length)) {
+      showModal(t('game.win'), t('game.winMsg'), 'win', 'menu', () => {})
+      return // Stop the game loop
+    }
   }
 
   // Update projectiles (arrows in flight)
@@ -447,6 +455,11 @@ const gameLoop = async () => {
 
   // Render UI
   updateUI(realFPS)
+
+  // Update campaign state (phase triggers, AI script timers)
+  if (gameState.settings.gameMode === 'campaign') {
+    campaignTick(delay)
+  }
 
   // Update map in worker periodically
   if (now - lastMapUpdateTime > 2500) {

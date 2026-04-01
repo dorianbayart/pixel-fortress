@@ -108,6 +108,75 @@
     "win": "¡Has ganado!",
     "winMsg": "¡Has destruido el edificio principal de tu oponente! ¡Felicitaciones!"
   },
+  "campaign": {
+    "title": "Campaña",
+    "objectives": "Objetivos",
+    "levelComplete": "¡Misión completada!",
+    "levelCompleteMsg": "Todos los objetivos cumplidos. Bien hecho, comandante.",
+    "missionFailed": "Misión fallida",
+    "missionFailedMsg": "Tu Tienda ha sido destruida. Reiniciando misión...",
+    "allCompleted": "¡Todas las misiones cumplidas! Eres un verdadero comandante.",
+    "lockedLevel": "Completa el nivel anterior para desbloquear"
+  },
+  "campaigns": {
+    "tutorial01": {
+      "description": "Aprende a recolectar recursos en Pixel Fortress — construye Cabañas de Madera, Canteras, Pozos y Minas de Oro para impulsar tu economía.",
+      "phase1": {
+        "banner": "Fase 1 — Recolección de madera",
+        "goals": {
+          "lumberjack1": { "title": "Construir una Cabaña del Leñador", "desc": "Coloca una Cabaña del Leñador cerca de los árboles. Cuanto más cerca del bosque, más rápido recolectará tu Peón." },
+          "lumberjack2": { "title": "Construir una 2ª Cabaña del Leñador", "desc": "Construye una segunda Cabaña del Leñador. Tu Tienda formará otro Peón para trabajar allí." },
+          "lumberjack3": { "title": "Construir una 3ª Cabaña del Leñador", "desc": "Construye una tercera Cabaña del Leñador para maximizar tus ingresos de madera." }
+        },
+        "narratives": {
+          "n1": "¡Bienvenido a Pixel Fortress, Comandante!\n\nEsta es tu Tienda — tu base. Forma trabajadores y mantiene tu economía funcionando.\n\nPara recolectar madera, construye una Cabaña del Leñador cerca del bosque. Cuanto más corto sea el camino a los árboles, más rápido trabajará tu Peón. ¡Selecciona la Cabaña del Leñador en la barra inferior y colócala!",
+          "n2": "¡Bien hecho! Tu Tienda ahora formará un Peón y lo enviará a trabajar en esa Cabaña del Leñador.\n\nLos Peones caminan automáticamente a su edificio asignado — no necesitas gestionarlos. ¡Observa cómo aparece uno!",
+          "n3": "¡Tu primer Peón está en camino! Irá a la Cabaña del Leñador, talará árboles cercanos y traerá la madera de vuelta para almacenarla.\n\nObserva tu contador de madera en la barra superior — crecerá pronto...",
+          "n4": "¡Primera madera conseguida! Puedes ver todos tus recursos en la barra superior en cualquier momento.\n\n¡Construye 2 Cabañas de Madera más — cada una forma un nuevo Peón y aumenta tus ingresos!",
+          "n5": "¡Buen progreso! Solo falta una Cabaña del Leñador más.\n\nColócala cerca de los árboles para que tu Peón tenga un camino corto."
+        }
+      },
+      "phase2": {
+        "banner": "Fase 2 — Extracción de piedra",
+        "goals": {
+          "quarry1": { "title": "Construir una Cantera", "desc": "Coloca una Cantera en casillas rocosas para extraer piedra. Se formará un nuevo Peón." },
+          "quarry2": { "title": "Construir una 2ª Cantera", "desc": "Construye una segunda Cantera para duplicar tu producción de piedra." }
+        },
+        "narratives": {
+          "n1": "La madera fluye — ¡buen trabajo! Ahora necesitas piedra.\n\nConstruye una Cantera en casillas rocosas — busca las zonas grises en el mapa. Un Peón extraerá piedra allí y la llevará de vuelta a tu Tienda para almacenarla.",
+          "n2": "¡La Cantera está operativa! Un Peón ya se dirige allí para empezar a extraer.\n\nA diferencia de la madera, la piedra se lleva directamente a la Tienda — colocar tu Cantera cerca de la Tienda acelera las cosas. Observa tu contador de piedra en la barra superior...",
+          "n3": "¡La piedra está llegando! Construye una Cantera más para duplicar tu producción y completar esta fase."
+        }
+      },
+      "phase3": {
+        "banner": "Fase 3 — Agua & Oro",
+        "goals": {
+          "well": { "title": "Construir un Pozo", "desc": "Coloca un Pozo junto a casillas de agua para recolectar agua." },
+          "goldMine": { "title": "Construir una Mina de Oro", "desc": "Coloca una Mina de Oro en casillas de mineral de oro para extraer oro precioso." }
+        },
+        "narratives": {
+          "n1": "¡Dos recursos asegurados, dos más por venir!\n\nPrimero, construye un Pozo para recolectar agua. Colócalo junto a casillas de agua — busca las zonas azules en el mapa. Cuanto más cerca esté el Pozo de tu Tienda, más rápido podrá tu Peón volver a almacenar el agua.",
+          "n2": "¡Tu Pozo está extrayendo agua fresca!\n\nAhora encuentra las casillas de mineral de oro en el mapa — tienen un tinte amarillento. Construye una Mina de Oro directamente en una casilla de oro. Al igual que la Cantera, tu Peón extraerá el oro y regresará a la Tienda para almacenarlo.",
+          "n3": "¡Los cuatro recursos se están recolectando ahora: madera, piedra, agua y oro!\n\nUna economía sólida es el fundamento de cualquier gran fortaleza. Observa cómo crecen tus reservas en la barra superior."
+        }
+      },
+      "phase4": {
+        "banner": "Fase 4 — Mejoras",
+        "goals": {
+          "lumberjack": { "title": "Mejorar una Cabaña del Leñador", "desc": "Selecciona una Cabaña del Leñador y mejórala al nivel 2 para más trabajadores." },
+          "quarry": { "title": "Mejorar una Cantera", "desc": "Mejora una Cantera al nivel 2 para una extracción de piedra más rápida." },
+          "well": { "title": "Mejorar el Pozo", "desc": "Mejora el Pozo al nivel 2 para permitir más trabajadores." },
+          "goldMine": { "title": "Mejorar la Mina de Oro", "desc": "Mejora la Mina de Oro al nivel 2 para una extracción de oro más rápida." }
+        },
+        "narratives": {
+          "n1": "¡Sobresaliente, Comandante! Los cuatro recursos están en línea.\n\nLos edificios pueden mejorarse para ser más eficientes. Haz clic en cualquier edificio para seleccionarlo — el panel inferior mostrará sus estadísticas y un botón de Mejora.\n\nMejorar una Cabaña del Leñador o un Pozo permite que más Peones trabajen allí. Mejorar una Cantera o una Mina de Oro hace que tus Peones recolecten más rápido.",
+          "n2": "¡Primera mejora completada! Sigue adelante — mejora los cuatro edificios de recursos al nivel 2 para completar el tutorial.\n\nCabaña del Leñador y Pozo: más trabajadores. Cantera y Mina de Oro: recolección más rápida.",
+          "n3": "¡A mitad de camino! Una economía bien mejorada te permitirá entrenar soldados y construir torres en futuras misiones.\n\nMejora los edificios restantes para terminar.",
+          "n4": "¡Una última mejora!\n\nUna vez que tu economía esté completamente operativa, ¡el combate te espera — soldados, arqueros, torres y batallas en la próxima misión!"
+        }
+      }
+    }
+  },
   "ui": {
     "life": "Vida",
     "producing": "Produciendo",
@@ -152,7 +221,7 @@
       "details": "¡Trabajo, trabajo!"
     },
     "lumberjack": {
-      "name": "Leñador",
+      "name": "Cabaña del Leñador",
       "description": "Cosecha madera de árboles cercanos",
       "details": "Debe colocarse junto a árboles."
     },

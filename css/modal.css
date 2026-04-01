@@ -36,6 +36,44 @@
   color: var(--font-color);
 }
 
+.scenarii-item-locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.scenarii-item-locked:hover {
+  transform: none;
+  background-color: rgba(34, 139, 34, 0.3);
+  filter: none;
+  box-shadow: none;
+}
+
+.scenarii-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.scenarii-item-title {
+  font-weight: bold;
+  color: var(--font-color);
+  font-size: 14px;
+}
+
+.scenarii-item-difficulty {
+  font-size: 11px;
+  color: rgba(255, 215, 0, 0.8);
+  text-transform: capitalize;
+}
+
+.scenarii-item-description {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.75);
+  text-align: left;
+  line-height: 1.4;
+}
+
 .play-button {
   background-color: forestgreen;
   color: var(--font-color);
@@ -522,6 +560,52 @@ input {
 
 .export-button:hover {
   background-color: rgba(34, 139, 34, 0.8);
+}
+
+/* Campaign modal — centered, medium width */
+#campaignSetupSection {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+#campaignSetupSection.show {
+  display: flex;
+}
+
+#campaignSetupSection .modal-content {
+  margin: 0;
+  width: min(90dvw, 560px);
+  max-height: 85dvh;
+}
+
+#campaignSetupSection .modal-body {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+/* Campaign levels — full width single column list */
+#campaignLevelsList.scenarii-grid {
+  grid-template-columns: 1fr;
+}
+
+.campaign-success-banner {
+  text-align: center;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  background-color: rgba(255, 215, 0, 0.15);
+  border: 2px solid rgba(255, 215, 0, 0.6);
+  color: rgba(255, 215, 0, 0.95);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.scenarii-item-check {
+  color: limegreen;
+  font-size: 16px;
+  margin-right: 6px;
 }
 
 /* Skirmish modal — wider to accommodate two columns, fills viewport height */

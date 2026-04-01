@@ -489,6 +489,7 @@ class Building {
    * True only if: not the initial Tent, never upgraded (level === 1), and type defines canSpecializeInto.
    */
   get canSpecialize() {
+    if (this.owner === gameState.humanPlayer && gameState.campaignRestrictSpecialization) return false
     return !this.isInitialTent && this.level === 1 && Array.isArray(this.type.canSpecializeInto) && this.type.canSpecializeInto.length > 0
   }
 
@@ -636,6 +637,7 @@ class Building {
     }
 
     this.specializeInPlace(targetTypeName)
+    gameState.events.emit('building-specialized', { building: this, targetTypeName, player: this.owner })
     return true
   }
 
@@ -688,7 +690,8 @@ class Building {
       }
 
       this.level = nextLevel
-      
+      gameState.events.emit('building-upgraded', { building: this, level: this.level, player: this.owner })
+
       createParticleEmitter(ParticleEffect.BUILDING_PLACE, {
         x: this.x * getTileSize() + getTileSize()/2,
         y: this.y * getTileSize() + getTileSize()/2,
@@ -773,6 +776,8 @@ class Building {
       if (buildingSprite && buildingSprite !== tile.sprite) {
         buildingSprite.destroy()
       }
+      // Emit destruction event before cleanup (owner reference still valid)
+      gameState.events.emit('building-destroyed', { building: this, owner: this.owner })
       // Cleanup
       this.destroy()
 
@@ -950,7 +955,38 @@ class Tent extends WorkerBuilding {
    */
   update(delay) {
     super.update(delay)
-    
+
+    // Campaign restrictions: check production limits for the human player
+    let campaignLocked = false
+    if (this.owner === gameState.humanPlayer) {
+      if (!gameState.campaignTentProductionEnabled) {
+        campaignLocked = true
+      } else {
+        const workerCount = this.owner.units.filter(u => u.isWorker).length
+        if (gameState.campaignMaxPeons !== null && workerCount >= gameState.campaignMaxPeons) {
+          campaignLocked = true
+        }
+        if (!campaignLocked && gameState.campaignPeonsMatchBuilding) {
+          const keys = Array.isArray(gameState.campaignPeonsMatchBuilding)
+            ? gameState.campaignPeonsMatchBuilding
+            : [gameState.campaignPeonsMatchBuilding]
+          const buildingCapacity = this.owner.getBuildings()
+            .filter(b => keys.includes(b.type?.key))
+            .reduce((sum, b) => sum + (b.maxWorkers || 1), 0)
+          if (workerCount >= buildingCapacity) campaignLocked = true
+        }
+      }
+    }
+
+    // When locked, freeze the timer and hide the indicator
+    if (campaignLocked) {
+      this.productionTimer = 0
+      this.progress = 0
+      this.showProgressIndicator = false
+      return
+    }
+    this.showProgressIndicator = this.owner === gameState.humanPlayer
+
     // Update production timer
     this.productionTimer += delay
 
@@ -958,7 +994,7 @@ class Tent extends WorkerBuilding {
     this.progress = this.productionTimer / this.productionCooldown
 
     updateProgressIndicator(this, this.progress)
-    
+
     // Check if it's time to produce a worker
     if (this.productionTimer >= this.productionCooldown) {
       this.produceWorker()
@@ -966,13 +1002,15 @@ class Tent extends WorkerBuilding {
       this.progress = 0 // Reset progress after producing
     }
   }
-  
+
   /**
    * Produce a worker unit
    */
   async produceWorker() {
     if (this.owner) {
-      const target = this.owner.getEnemies()[0].currentNode ? this.owner.getEnemies()[0].currentNode : this.owner.getEnemies()[0]
+      const enemies = this.owner.getEnemies()
+      const enemyRef = enemies[0]
+      const target = enemyRef ? (enemyRef.currentNode ?? enemyRef) : this
       const spawnLocation = await findBestSpawnLocation(this.x, this.y, target.x, target.y)
       if (spawnLocation) {
         this.owner.addWorker(spawnLocation.x, spawnLocation.y)
@@ -1932,7 +1970,9 @@ class Market extends Building {
       const resourceAmount = 1 // Sell 1 unit of resource at a time
       if (this.owner.resources[this.sellingResource] >= resourceAmount) {
         this.owner.addResource(this.sellingResource, -resourceAmount)
-        this.owner.addResource('money', this.sellingPrice * resourceAmount | 0)
+        const moneyEarned = this.sellingPrice * resourceAmount | 0
+        gameState.events.emit('money-earned', { amount: moneyEarned, player: this.owner })
+        this.owner.addResource('money', moneyEarned)
       }
     }
   }

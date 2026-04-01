@@ -7,7 +7,8 @@ export {
   updateVisibility,
   updatePlayerVisibility,
   getTeamId,
-  resetFogTexture
+  resetFogTexture,
+  getExplorationPercent
 }
 
 'use strict'
@@ -193,7 +194,10 @@ function updatePlayerVisibility(player) {
               // Brighter at center, darker at edges
               fogGrid[x][y] = Math.min(fogGrid[x][y], 1 - distanceFactor)
 
-              // Mark as explored
+              // Mark as explored (emit event only for newly explored tiles)
+              if (!exploredGrid[x][y]) {
+                gameState.events.emit('tile-explored', { x, y, teamId })
+              }
               exploredGrid[x][y] = true
             }
           }
@@ -461,6 +465,28 @@ function isPositionVisible(x, y, player = null) {
 
   // Return true if fog value is less than 0.9 (10% or more visible)
   return fogGrid[x][y] < 0.9
+}
+
+/**
+ * Get the percentage of the map explored by a player (0–100).
+ * @param {Player} player - Optional player (defaults to human player)
+ * @returns {number} Percentage explored (0–100)
+ */
+function getExplorationPercent(player = null) {
+  if (!gameState.settings?.fogOfWar) return 100
+  const checkPlayer = player || gameState.humanPlayer
+  if (!checkPlayer) return 0
+  const teamId = getTeamId(checkPlayer)
+  const { exploredGrid } = getTeamGrids(teamId)
+  if (!exploredGrid) return 0
+  const { width, height } = getMapDimensions()
+  let explored = 0
+  for (let x = 0; x < width; x++) {
+    for (let y = 0; y < height; y++) {
+      if (exploredGrid[x][y]) explored++
+    }
+  }
+  return (explored / (width * height)) * 100
 }
 
 /**

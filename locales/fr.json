@@ -108,6 +108,75 @@
     "win": "Victoire !",
     "winMsg": "Vous avez détruit le bâtiment principal de votre adversaire ! Félicitations !"
   },
+  "campaign": {
+    "title": "Campagne",
+    "objectives": "Objectifs",
+    "levelComplete": "Mission accomplie !",
+    "levelCompleteMsg": "Tous les objectifs sont remplis. Bien joué, commandant.",
+    "missionFailed": "Mission échouée",
+    "missionFailedMsg": "Votre Tente a été détruite. Redémarrage de la mission...",
+    "allCompleted": "Toutes les missions accomplies ! Vous êtes un vrai commandant.",
+    "lockedLevel": "Terminez le niveau précédent pour déverrouiller"
+  },
+  "campaigns": {
+    "tutorial01": {
+      "description": "Apprenez à récolter des ressources dans Pixel Fortress — construisez des Cabanes de bûcheron, des Carrières, des Puits et des Mines d'or pour alimenter votre économie.",
+      "phase1": {
+        "banner": "Phase 1 — Récolte de bois",
+        "goals": {
+          "lumberjack1": { "title": "Construire une Cabane de bûcheron", "desc": "Placez une Cabane de bûcheron près des arbres. Plus le chemin vers les arbres est court, plus votre Paysan récolte vite." },
+          "lumberjack2": { "title": "Construire une 2e Cabane de bûcheron", "desc": "Construisez une deuxième Cabane de bûcheron. Votre Tente formera un autre Paysan pour l'occuper." },
+          "lumberjack3": { "title": "Construire une 3e Cabane de bûcheron", "desc": "Construisez une troisième Cabane de bûcheron pour maximiser vos revenus de bois." }
+        },
+        "narratives": {
+          "n1": "Bienvenue dans Pixel Fortress, Commandant !\n\nVoici votre Tente — votre base. Elle forme des paysans et fait tourner votre économie.\n\nPour récolter du bois, construisez une Cabane de bûcheron près de la forêt. Plus le chemin vers les arbres est court, plus votre Paysan travaillera vite. Sélectionnez la Cabane de bûcheron dans la barre du bas et placez-la !",
+          "n2": "Bien joué ! Votre Tente va maintenant former un Paysan et l'envoyer travailler à cette Cabane de bûcheron.\n\nLes Paysans rejoignent automatiquement leur bâtiment — pas besoin de les gérer. Regardez-en apparaître un !",
+          "n3": "Votre premier Paysan est en route ! Il va se diriger vers la Cabane de bûcheron, abattre des arbres proches, puis rapporter le bois pour le stocker.\n\nSurveillez votre compteur de bois dans la barre du haut — il va bientôt augmenter...",
+          "n4": "Premier bois récolté ! Vous pouvez voir toutes vos ressources dans la barre du haut à tout moment.\n\nConstruisez encore 2 Cabanes de bûcheron — chacune forme un nouveau Paysan et augmente vos revenus !",
+          "n5": "Bonne progression ! Plus qu'une seule Cabane de bûcheron à construire.\n\nPlacez-la près des arbres pour que votre Paysan ait un trajet court."
+        }
+      },
+      "phase2": {
+        "banner": "Phase 2 — Extraction de pierre",
+        "goals": {
+          "quarry1": { "title": "Construire une Carrière", "desc": "Placez une Carrière sur des cases rocheuses pour extraire de la pierre. Un nouveau Paysan sera formé." },
+          "quarry2": { "title": "Construire une 2e Carrière", "desc": "Construisez une deuxième Carrière pour doubler votre production de pierre." }
+        },
+        "narratives": {
+          "n1": "Le bois afflue — beau travail ! Il vous faut maintenant de la pierre.\n\nConstruisez une Carrière sur des cases rocheuses — repérez les zones grises sur la carte. Un Paysan y extraira la pierre et la rapportera à votre Tente pour la stocker.",
+          "n2": "La Carrière est opérationnelle ! Un Paysan s'y dirige déjà pour commencer l'extraction.\n\nContrairement au bois, la pierre est rapportée directement à la Tente — placer votre Carrière près de la Tente accélère donc les choses. Surveillez votre compteur de pierre dans la barre du haut...",
+          "n3": "La pierre arrive ! Construisez une deuxième Carrière pour doubler votre production et compléter cette phase."
+        }
+      },
+      "phase3": {
+        "banner": "Phase 3 — Eau & Or",
+        "goals": {
+          "well": { "title": "Construire un Puits", "desc": "Placez un Puits à côté de cases d'eau pour collecter de l'eau." },
+          "goldMine": { "title": "Construire une Mine d'or", "desc": "Placez une Mine d'or sur des cases de minerai d'or pour extraire l'or précieux." }
+        },
+        "narratives": {
+          "n1": "Deux ressources assurées, deux à venir !\n\nCommencez par construire un Puits pour récolter de l'eau. Placez-le à côté des cases d'eau — repérez les zones bleues sur la carte. Plus le Puits est proche de votre Tente, plus votre Paysan peut revenir stocker l'eau rapidement.",
+          "n2": "Votre Puits pompe de l'eau fraîche !\n\nTrouvez maintenant les cases de minerai d'or sur la carte — elles ont un reflet jaune chatoyant. Construisez une Mine d'or directement sur une case d'or. Tout comme la Carrière, votre Paysan extraira l'or et retournera à la Tente pour le stocker.",
+          "n3": "Les quatre ressources sont désormais récoltées : bois, pierre, eau et or !\n\nUne économie solide est le fondement de toute grande forteresse. Regardez vos stocks croître dans la barre du haut."
+        }
+      },
+      "phase4": {
+        "banner": "Phase 4 — Améliorations",
+        "goals": {
+          "lumberjack": { "title": "Améliorer une Cabane de bûcheron", "desc": "Sélectionnez une Cabane de bûcheron et améliorez-la au niveau 2 pour accueillir plus d'ouvriers." },
+          "quarry": { "title": "Améliorer une Carrière", "desc": "Améliorez une Carrière au niveau 2 pour une extraction de pierre plus rapide." },
+          "well": { "title": "Améliorer le Puits", "desc": "Améliorez le Puits au niveau 2 pour accueillir plus d'ouvriers." },
+          "goldMine": { "title": "Améliorer la Mine d'or", "desc": "Améliorez la Mine d'or au niveau 2 pour une extraction d'or plus rapide." }
+        },
+        "narratives": {
+          "n1": "Remarquable, Commandant ! Les quatre ressources sont opérationnelles.\n\nLes bâtiments peuvent être améliorés pour gagner en efficacité. Cliquez sur un bâtiment pour le sélectionner — le panneau du bas affichera ses statistiques et un bouton Améliorer.\n\nAméliorer une Cabane de bûcheron ou un Puits permet à davantage de Paysans d'y travailler. Améliorer une Carrière ou une Mine d'or accélère la récolte de vos Paysans.",
+          "n2": "Première amélioration effectuée ! Continuez — améliorez les quatre bâtiments de ressources au niveau 2 pour terminer le tutoriel.\n\nCabane de bûcheron et Puits : plus d'ouvriers. Carrière et Mine d'or : récolte plus rapide.",
+          "n3": "À mi-chemin ! Une économie bien améliorée vous permettra de former des soldats et de construire des tours dans les prochaines missions.\n\nAméliorez les bâtiments restants pour terminer.",
+          "n4": "Plus qu'une seule amélioration !\n\nUne fois votre économie pleinement opérationnelle, le combat vous attend — soldats, archers, tours et batailles dans la prochaine mission !"
+        }
+      }
+    }
+  },
   "ui": {
     "life": "Vie",
     "producing": "Production",
@@ -152,7 +221,7 @@
       "details": "Du travail, encore du travail !"
     },
     "lumberjack": {
-      "name": "Bûcheron",
+      "name": "Cabane de bûcheron",
       "description": "Récolte du bois des arbres proches",
       "details": "À placer près des arbres."
     },

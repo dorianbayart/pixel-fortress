@@ -10,6 +10,7 @@ import { setupEventListeners } from 'ui'
 import { getPredefinedMaps } from 'maps'
 import { renderCustomMapPreview, generateMapPreviewFromSeed } from 'map-preview'
 import { openMapEditor } from 'map-editor'
+import { isLevelCompleted } from 'playerStats'
 
 /**
  * Apply translations to all elements with data-i18n attributes
@@ -877,6 +878,130 @@ async function setupOptionsSection() {
   })
 }
 
+// ── Campaign menu ──────────────────────────────────────────────
+
+function openCampaignModal() {
+  const modal = document.getElementById('campaignSetupSection')
+  if (!modal) return
+
+  // Populate level list
+  fetch('campaigns/manifest.json')
+    .then(r => r.json())
+    .then(manifest => _renderCampaignLevels(manifest.levels || []))
+    .catch(err => console.error('[campaign] Failed to load manifest:', err))
+
+  modal.style.display = 'flex'
+  setTimeout(() => modal.classList.add('show'), 20)
+
+  document.getElementById('closeCampaignSetup')?.addEventListener('click', closeCampaignModal)
+  document.getElementById('closeCampaignSetupBtn')?.addEventListener('click', closeCampaignModal)
+}
+
+function closeCampaignModal() {
+  const modal = document.getElementById('campaignSetupSection')
+  if (!modal) return
+  modal.classList.remove('show')
+  setTimeout(() => { modal.style.display = 'none' }, 600)
+}
+
+function _renderCampaignLevels(levels) {
+  const list = document.getElementById('campaignLevelsList')
+  if (!list) return
+  list.innerHTML = ''
+
+  // Find index of the first locked level (the "next to unlock")
+  let nextToUnlockIndex = -1
+  for (let i = 0; i < levels.length; i++) {
+    const isUnlocked = i === 0 || isLevelCompleted(levels[i - 1]?.id)
+    if (!isUnlocked) {
+      nextToUnlockIndex = i
+      break
+    }
+  }
+
+  const allCompleted = nextToUnlockIndex === -1 && levels.length > 0 && levels.every(l => isLevelCompleted(l.id))
+
+  // Show success banner if all levels are completed
+  if (allCompleted) {
+    const banner = document.createElement('div')
+    banner.className = 'campaign-success-banner'
+    banner.textContent = t('campaign.allCompleted')
+    list.appendChild(banner)
+  }
+
+  // Display levels in reverse order (highest first)
+  const reversed = [...levels].reverse()
+
+  reversed.forEach((level) => {
+    const originalIndex = levels.indexOf(level)
+    const isUnlocked = originalIndex === 0 || isLevelCompleted(levels[originalIndex - 1]?.id)
+    const isCompleted = isLevelCompleted(level.id)
+    const isNextToUnlock = originalIndex === nextToUnlockIndex
+
+    // Hide fully locked levels (only show the next one to unlock, grayed out)
+    if (!isUnlocked && !isNextToUnlock) return
+
+    const card = document.createElement('div')
+    card.className = 'scenarii-item' + (isNextToUnlock ? ' scenarii-item-locked' : '')
+
+    const header = document.createElement('div')
+    header.className = 'scenarii-item-header'
+
+    const titleEl = document.createElement('span')
+    titleEl.className = 'scenarii-item-title'
+
+    if (isCompleted) {
+      const check = document.createElement('span')
+      check.className = 'scenarii-item-check'
+      check.textContent = '✓'
+      titleEl.appendChild(check)
+    }
+    titleEl.appendChild(document.createTextNode(level.title))
+
+    const diffEl = document.createElement('span')
+    diffEl.className = 'scenarii-item-difficulty'
+    diffEl.textContent = level.difficulty || ''
+
+    header.appendChild(titleEl)
+    header.appendChild(diffEl)
+
+    const desc = document.createElement('div')
+    desc.className = 'scenarii-item-description'
+    desc.textContent = isNextToUnlock ? t('campaign.lockedLevel') : t(level.description)
+
+    card.appendChild(header)
+    card.appendChild(desc)
+
+    if (isUnlocked) {
+      card.addEventListener('click', () => {
+        playConfirmSound()
+        closeCampaignModal()
+        startCampaignLevel(level.id)
+      })
+    }
+
+    list.appendChild(card)
+  })
+}
+
+async function startCampaignLevel(levelId) {
+  try {
+    const levelConfig = await fetch(`campaigns/${levelId}.json`).then(r => r.json())
+    gameState.customMapId = levelConfig.mapId
+    gameState.campaignLevelId = levelId
+    gameState.pendingCampaignConfig = levelConfig
+    gameState.updateSettings({
+      gameMode: 'campaign',
+      fogOfWar: true,
+      aiCount: 1,
+      difficulty: 'easy'
+    })
+    gameState.gameStatus = 'initialize'
+  } catch (err) {
+    console.error('[campaign] Failed to start level:', err)
+  }
+}
+
 // Function to show the main menu buttons
 function showMainMenu() {
   document.getElementById('mainMenuButtons').style.display = 'block'
@@ -896,8 +1021,7 @@ function showPlayOptions() {
   })
   document.getElementById('campaignButton').addEventListener('click', () => {
     playClickSound()
-    console.log('Campaign button clicked - functionality to be implemented')
-    // TODO: Implement campaign selection/start logic
+    openCampaignModal()
   })
   document.getElementById('skirmishButton').addEventListener('click', () => {
     openSkirmishSetupModal()

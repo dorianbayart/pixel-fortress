@@ -257,6 +257,15 @@ class Player {
     const oldResources = { ...this.resources }
     this.resources = { ...this.resources, ...updates }
     this.events.emit('resources-changed', this.resources, oldResources)
+    for (const [type, newVal] of Object.entries(updates)) {
+      const oldVal = oldResources[type] ?? 0
+      const diff = newVal - oldVal
+      if (diff < 0) {
+        gameState.events.emit('resource-spent', { type, amount: -diff, player: this })
+      } else if (diff > 0 && type !== 'money') {
+        gameState.events.emit('resource-gathered', { type, amount: diff, player: this })
+      }
+    }
   }
 
   // Add wood, subtract wood, etc.
@@ -264,6 +273,11 @@ class Player {
     if (this.resources[type] !== undefined) {
       this.resources[type] += amount
       this.events.emit('resources-changed', this.resources)
+      if (amount > 0 && type !== 'money') {
+        gameState.events.emit('resource-gathered', { type, amount, player: this })
+      } else if (amount < 0) {
+        gameState.events.emit('resource-spent', { type, amount: -amount, player: this })
+      }
     }
   }
 
@@ -652,11 +666,16 @@ class Player {
       }
     })
 
+    this.getUnits().forEach(unit => {
+      if (unit.life <= 0) {
+        gameState.events.emit('unit-killed', { unit, owner: this })
+      }
+    })
     this.units = this.getUnits().filter(unit => unit.life > 0)
     this.buildings = this.getBuildings().filter(building => building.life > 0)
 
-    // AI building logic
-    if (!this.isHuman()) {
+    // AI building logic (skipped in campaign until enable_normal_ai script action fires)
+    if (!this.isHuman() && !(gameState.settings.gameMode === 'campaign' && !gameState.campaignNormalAiEnabled)) {
       this.aiBuildingTimer += delay
       if (this.aiBuildingTimer >= this.aiBuildingCooldown) {
         this.aiBuildingTimer -= this.aiBuildingCooldown
@@ -724,100 +743,112 @@ class Player {
       building.isInitialTent = true
     }
 
+    gameState.events.emit('building-built', { building, player: this })
     return building
   }
 
   addWorker(x, y) {
-    this.units.push(
-      new Peon(x, y, this)
-    )
+    const unit = new Peon(x, y, this)
+    this.units.push(unit)
+    gameState.events.emit('unit-produced', { unit, player: this })
+    return unit
   }
 
   addLumberjackWorker(x, y, assignedBuilding) {
     const worker = new LumberjackWorker(x, y, this)
-    
+
     if (assignedBuilding) {
       // Assign the worker to the building
       worker.assignedBuilding = assignedBuilding
       assignedBuilding.assignedWorkers.push(worker)
     }
-    
+
     this.units.push(worker)
+    gameState.events.emit('unit-produced', { unit: worker, player: this })
     return worker
   }
 
   addQuarryMiner(x, y, assignedBuilding) {
     const miner = new QuarryMiner(x, y, this)
-    
+
     if (assignedBuilding) {
       // Assign the miner to the building
       miner.assignedBuilding = assignedBuilding
       assignedBuilding.assignedWorkers.push(miner)
     }
-    
+
     this.units.push(miner)
+    gameState.events.emit('unit-produced', { unit: miner, player: this })
     return miner
   }
 
   addWaterCarrier(x, y, assignedBuilding) {
     const carrier = new WaterCarrier(x, y, this)
-    
+
     if (assignedBuilding) {
       // Assign the worker to the building
       carrier.assignedBuilding = assignedBuilding
       assignedBuilding.assignedWorkers.push(carrier)
     }
-    
+
     this.units.push(carrier)
+    gameState.events.emit('unit-produced', { unit: carrier, player: this })
     return carrier
   }
 
   addGoldMiner(x, y, assignedBuilding) {
     const miner = new GoldMiner(x, y, this)
-    
+
     if (assignedBuilding) {
       // Assign the miner to the building
       miner.assignedBuilding = assignedBuilding
       assignedBuilding.assignedWorkers.push(miner)
     }
-    
+
     this.units.push(miner)
+    gameState.events.emit('unit-produced', { unit: miner, player: this })
     return miner
   }
 
   addPeonSoldier(x, y) {
-    this.units.push(
-      new PeonSoldier(x, y, this)
-    )
+    const unit = new PeonSoldier(x, y, this)
+    this.units.push(unit)
+    gameState.events.emit('unit-produced', { unit, player: this })
+    return unit
   }
 
   addMage(x, y) {
-    this.units.push(
-      new Mage(x, y, this)
-    )
+    const unit = new Mage(x, y, this)
+    this.units.push(unit)
+    gameState.events.emit('unit-produced', { unit, player: this })
+    return unit
   }
 
   addArcher(x, y) {
-    this.units.push(
-      new Archer(x, y, this)
-    )
+    const unit = new Archer(x, y, this)
+    this.units.push(unit)
+    gameState.events.emit('unit-produced', { unit, player: this })
+    return unit
   }
 
   addSoldier(x, y) {
-    this.units.push(
-      new Soldier(x, y, this)
-    )
+    const unit = new Soldier(x, y, this)
+    this.units.push(unit)
+    gameState.events.emit('unit-produced', { unit, player: this })
+    return unit
   }
 
   addHeavyInfantry(x, y) {
-    this.units.push(
-      new HeavyInfantry(x, y, this)
-    )
+    const unit = new HeavyInfantry(x, y, this)
+    this.units.push(unit)
+    gameState.events.emit('unit-produced', { unit, player: this })
+    return unit
   }
 
   addEliteWarrior(x, y) {
-    this.units.push(
-      new EliteWarrior(x, y, this)
-    )
+    const unit = new EliteWarrior(x, y, this)
+    this.units.push(unit)
+    gameState.events.emit('unit-produced', { unit, player: this })
+    return unit
   }
 }

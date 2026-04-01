@@ -73,6 +73,16 @@ class GameState {
     this.customMapId = null // Custom map identifier (e.g., "custom_4698963")
     this.customMapData = null // Custom map metadata
 
+    // Campaign state (set by campaign.mjs; defaults ensure no skirmish behavior change)
+    this.campaignLevelId = null           // e.g. '01_tutorial' — null in skirmish
+    this.pendingCampaignConfig = null     // pre-fetched level JSON, consumed by campaign.mjs on init
+    this.campaignAllowedBuildings = null  // string[] | null — whitelist of buildingType keys
+    this.campaignRestrictSpecialization = false
+    this.campaignTentProductionEnabled = true
+    this.campaignMaxPeons = null          // number | null
+    this.campaignPeonsMatchBuilding = null // string key | null — caps peons at count of that building type
+    this.campaignNormalAiEnabled = false  // true after 'enable_normal_ai' script action
+
     // Game status
     this._gameStatus = 'menu' // 'menu', 'initialize', 'playing', 'paused', 'gameOver', 'win'
     

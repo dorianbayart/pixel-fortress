@@ -1,0 +1,227 @@
+{
+  "id": "01_tutorial",
+  "version": "1.0",
+  "title": "Tutorial",
+  "mapId": "campaigns/01_tutorial",
+  "startingResources": { "wood": 15, "stone": 0, "water": 0, "gold": 0, "money": 0 },
+  "phases": [
+    {
+      "id": "phase_1",
+      "bannerText": "campaigns.tutorial01.phase1.banner",
+      "restrictions": {
+        "tentProduction": true,
+        "peonsMatchBuilding": "lumberjack",
+        "allowedBuildings": ["lumberjack"],
+        "disableSpecialization": true
+      },
+      "goals": [
+        {
+          "id": "build_lumberjack_1",
+          "type": "has_buildings",
+          "buildingKey": "lumberjack",
+          "count": 1,
+          "title": "campaigns.tutorial01.phase1.goals.lumberjack1.title",
+          "description": "campaigns.tutorial01.phase1.goals.lumberjack1.desc"
+        },
+        {
+          "id": "build_lumberjack_2",
+          "type": "has_buildings",
+          "buildingKey": "lumberjack",
+          "count": 2,
+          "title": "campaigns.tutorial01.phase1.goals.lumberjack2.title",
+          "description": "campaigns.tutorial01.phase1.goals.lumberjack2.desc"
+        },
+        {
+          "id": "build_lumberjack_3",
+          "type": "has_buildings",
+          "buildingKey": "lumberjack",
+          "count": 3,
+          "title": "campaigns.tutorial01.phase1.goals.lumberjack3.title",
+          "description": "campaigns.tutorial01.phase1.goals.lumberjack3.desc"
+        }
+      ],
+      "narratives": [
+        {
+          "message": "campaigns.tutorial01.phase1.narratives.n1",
+          "autoAdvanceOn": "building-built",
+          "autoAdvanceFilter": { "buildingKey": "lumberjack" }
+        },
+        {
+          "message": "campaigns.tutorial01.phase1.narratives.n2",
+          "autoAdvanceOn": "unit-produced"
+        },
+        {
+          "message": "campaigns.tutorial01.phase1.narratives.n3",
+          "autoAdvanceOn": "resource-gathered",
+          "autoAdvanceFilter": { "resource": "wood" }
+        },
+        {
+          "message": "campaigns.tutorial01.phase1.narratives.n4",
+          "autoAdvanceOn": "building-built",
+          "autoAdvanceFilter": { "buildingKey": "lumberjack" }
+        },
+        {
+          "message": "campaigns.tutorial01.phase1.narratives.n5",
+          "autoAdvanceOn": "building-built",
+          "autoAdvanceFilter": { "buildingKey": "lumberjack" }
+        }
+      ]
+    },
+    {
+      "id": "phase_2",
+      "bannerText": "campaigns.tutorial01.phase2.banner",
+      "restrictions": {
+        "tentProduction": true,
+        "peonsMatchBuilding": ["lumberjack", "quarry"],
+        "allowedBuildings": ["lumberjack", "quarry"],
+        "disableSpecialization": true
+      },
+      "goals": [
+        {
+          "id": "build_quarry_1",
+          "type": "has_buildings",
+          "buildingKey": "quarry",
+          "count": 1,
+          "title": "campaigns.tutorial01.phase2.goals.quarry1.title",
+          "description": "campaigns.tutorial01.phase2.goals.quarry1.desc"
+        },
+        {
+          "id": "build_quarry_2",
+          "type": "has_buildings",
+          "buildingKey": "quarry",
+          "count": 2,
+          "title": "campaigns.tutorial01.phase2.goals.quarry2.title",
+          "description": "campaigns.tutorial01.phase2.goals.quarry2.desc"
+        }
+      ],
+      "narratives": [
+        {
+          "message": "campaigns.tutorial01.phase2.narratives.n1",
+          "autoAdvanceOn": "building-built",
+          "autoAdvanceFilter": { "buildingKey": "quarry" }
+        },
+        {
+          "message": "campaigns.tutorial01.phase2.narratives.n2",
+          "autoAdvanceOn": "resource-gathered",
+          "autoAdvanceFilter": { "resource": "stone" }
+        },
+        {
+          "message": "campaigns.tutorial01.phase2.narratives.n3",
+          "autoAdvanceOn": "building-built",
+          "autoAdvanceFilter": { "buildingKey": "quarry" }
+        }
+      ]
+    },
+    {
+      "id": "phase_3",
+      "bannerText": "campaigns.tutorial01.phase3.banner",
+      "restrictions": {
+        "tentProduction": true,
+        "peonsMatchBuilding": ["lumberjack", "quarry", "well", "goldMine"],
+        "allowedBuildings": ["lumberjack", "quarry", "well", "goldMine"],
+        "disableSpecialization": true
+      },
+      "goals": [
+        {
+          "id": "build_well",
+          "type": "has_buildings",
+          "buildingKey": "well",
+          "count": 1,
+          "title": "campaigns.tutorial01.phase3.goals.well.title",
+          "description": "campaigns.tutorial01.phase3.goals.well.desc"
+        },
+        {
+          "id": "build_gold_mine",
+          "type": "has_buildings",
+          "buildingKey": "goldMine",
+          "count": 1,
+          "title": "campaigns.tutorial01.phase3.goals.goldMine.title",
+          "description": "campaigns.tutorial01.phase3.goals.goldMine.desc"
+        }
+      ],
+      "narratives": [
+        {
+          "message": "campaigns.tutorial01.phase3.narratives.n1",
+          "autoAdvanceOn": "building-built",
+          "autoAdvanceFilter": { "buildingKey": "well" }
+        },
+        {
+          "message": "campaigns.tutorial01.phase3.narratives.n2",
+          "autoAdvanceOn": "building-built",
+          "autoAdvanceFilter": { "buildingKey": "goldMine" }
+        },
+        {
+          "message": "campaigns.tutorial01.phase3.narratives.n3",
+          "autoAdvanceOn": "resource-gathered",
+          "autoAdvanceFilter": { "resource": "gold" }
+        }
+      ]
+    },
+    {
+      "id": "phase_4",
+      "bannerText": "campaigns.tutorial01.phase4.banner",
+      "restrictions": {
+        "tentProduction": true,
+        "peonsMatchBuilding": ["lumberjack", "quarry", "well", "goldMine"],
+        "maxPeons": null,
+        "allowedBuildings": ["lumberjack", "quarry", "well", "goldMine"],
+        "disableSpecialization": true
+      },
+      "goals": [
+        {
+          "id": "upgrade_lumberjack",
+          "type": "upgrade_building",
+          "buildingKey": "lumberjack",
+          "targetLevel": 2,
+          "title": "campaigns.tutorial01.phase4.goals.lumberjack.title",
+          "description": "campaigns.tutorial01.phase4.goals.lumberjack.desc"
+        },
+        {
+          "id": "upgrade_quarry",
+          "type": "upgrade_building",
+          "buildingKey": "quarry",
+          "targetLevel": 2,
+          "title": "campaigns.tutorial01.phase4.goals.quarry.title",
+          "description": "campaigns.tutorial01.phase4.goals.quarry.desc"
+        },
+        {
+          "id": "upgrade_well",
+          "type": "upgrade_building",
+          "buildingKey": "well",
+          "targetLevel": 2,
+          "title": "campaigns.tutorial01.phase4.goals.well.title",
+          "description": "campaigns.tutorial01.phase4.goals.well.desc"
+        },
+        {
+          "id": "upgrade_gold_mine",
+          "type": "upgrade_building",
+          "buildingKey": "goldMine",
+          "targetLevel": 2,
+          "title": "campaigns.tutorial01.phase4.goals.goldMine.title",
+          "description": "campaigns.tutorial01.phase4.goals.goldMine.desc"
+        }
+      ],
+      "narratives": [
+        {
+          "message": "campaigns.tutorial01.phase4.narratives.n1",
+          "autoAdvanceOn": "building-upgraded"
+        },
+        {
+          "message": "campaigns.tutorial01.phase4.narratives.n2",
+          "autoAdvanceOn": "building-upgraded"
+        },
+        {
+          "message": "campaigns.tutorial01.phase4.narratives.n3",
+          "autoAdvanceOn": "building-upgraded"
+        },
+        {
+          "message": "campaigns.tutorial01.phase4.narratives.n4"
+        }
+      ]
+    }
+  ],
+  "ai": {
+    "enabled": false,
+    "script": []
+  }
+}

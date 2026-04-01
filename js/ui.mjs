@@ -46,7 +46,7 @@ let _selectedBuildingChangedHandler = null
 let _gameModeMenuBtnBound = null
 
 function getBuildingList() {
-  return [
+  const all = [
     Building.TYPES.LUMBERJACK,
     Building.TYPES.QUARRY,
     Building.TYPES.WELL,
@@ -55,6 +55,9 @@ function getBuildingList() {
     Building.TYPES.TOWER,
     Building.TYPES.MARKET,
   ]
+  const allowed = gameState.campaignAllowedBuildings
+  if (!allowed) return all
+  return all.filter(bt => allowed.includes(bt.key))
 }
 
 const RESOURCE_IMG = {
@@ -119,8 +122,11 @@ function updateResourceDisplay(resources) {
       el.textContent = resources[key].toString()
     }
   }
-  // Also refresh affordability on slots
+  // Also refresh affordability on slots and the selected building's action buttons
   _refreshSlotAffordability()
+  if (gameState.selectedBuilding) {
+    renderBuildingInfo(gameState.selectedBuilding)
+  }
 }
 
 function _refreshSlotAffordability() {
@@ -615,6 +621,19 @@ async function initUI(mouseInstance) {
         showGameUI()
         renderBuildingSlots()
 
+        // Show objectives panel if in campaign mode
+        const objPanel = document.getElementById('objectives-panel')
+        if (gameState.settings?.gameMode === 'campaign') {
+          objPanel?.classList.add('visible')
+        } else {
+          objPanel?.classList.remove('visible')
+        }
+
+        // Re-render building slots when campaign phase changes (allowed buildings may change)
+        gameState.events.on('campaign-phase-changed', () => {
+          renderBuildingSlots()
+        })
+
         // Subscribe to resource changes
         if (_resourcesChangedHandler) {
           gameState.humanPlayer?.events.off?.('resources-changed', _resourcesChangedHandler)
@@ -673,10 +692,12 @@ async function initUI(mouseInstance) {
           document.getElementById('homeMenu').style.opacity = 1
         }, 20)
 
+        document.getElementById('objectives-panel')?.classList.remove('visible')
         hideGameUI()
         viewportChange()
 
       } else if (status === 'gameOver' || status === 'win') {
+        document.getElementById('objectives-panel')?.classList.remove('visible')
         hideGameUI()
         viewportChange()
       }

@@ -1,0 +1,10 @@
+{
+  "levels": [
+    {
+      "id": "01_tutorial",
+      "title": "Tutorial",
+      "description": "campaigns.tutorial01.description",
+      "difficulty": "easy"
+    }
+  ]
+}
