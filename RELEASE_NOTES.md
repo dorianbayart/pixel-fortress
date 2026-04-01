@@ -3,19 +3,36 @@
 ## Version {{version}}
 
 ### New Features
+- **Campaign & Tutorial**: The Campaign menu is now active — dive into the first Tutorial mission to learn the ropes before facing the enemy
 - **Towers are here!** Build defensive towers that automatically detect and shoot down approaching enemies — fortify your base and hold the line
-- **Building Specialization**: A simple tower can specialized to Bullet, Rapidfire or Farstrike !
+- **Building Specialization**: A simple tower can be specialized to Bullet, Rapidfire or Farstrike — and combat buildings now also benefit from specialization
 - **Archers**: Build an Archery to start training Archer units — ranged fighters that keep their distance while dealing sustained damage
 - **Mages**: Build an Arcana to summon Mage units — powerful spellcasters with high damage output
 - **Map Editor**: Create and export your own custom maps — paint terrain tiles, place start positions, and pre-build structures for any player
+- **Installable as a PWA**: Pixel Fortress can now be installed directly from your browser as a Progressive Web App — play offline, launch from your home screen
 
 ### Localization
 - **Multi-language support**: The game is now available in 4 languages — English, French, German, and Spanish
 - **Language selector**: Choose your preferred language directly from the Options menu — preference is saved across sessions
 
+### Gameplay
+- **Melee attack cooldown**: Melee units now respect a 1-second cooldown between attacks — combat feels more tactical and balanced
+- **Rebalanced building costs**: Building costs have been reviewed and adjusted for a smoother progression curve
+
 ### Visuals
+- **Particle effects**: Rich particle trails added to arrows, fireballs and snowballs — plus dust particles on walking units for extra life
+- **Extra particles option**: Toggle extra particle effects from the Options menu based on your performance preference
 - **Fresh look**: UI got stunning new artwork
 - **Pixel-art UI**: All menus reworked with consistent pixel-art styling — sharp edges, gold borders, and pixelated controls throughout
+
+### Major Improvements
+- **HTML UI**: The entire in-game HUD has been rewritten from PixiJS to native HTML/CSS — more responsive, more accessible, easier to extend
+- **Minimap rework**: The minimap now renders in its own dedicated 2D Canvas — cleaner separation and better performance
+
+### Performance
+- Optimized renderer to reduce array allocations and garbage collection pressure
+- Optimized pathfinding to reduce redundant calculations per tick
+- Improved FPS counter efficiency
 
 ---
 
