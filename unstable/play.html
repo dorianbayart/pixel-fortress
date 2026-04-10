@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, height=device-height, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=contain, shrink-to-fit=no">
+
+  <title>Pixel Fortress - A 2D pixel-based strategy game</title>
+  <meta name="description"
+    content="A 2D pixel-based strategy game that uniquely merges the depth of Tower Defense with the addictive simplicity of Clicker styles.">
+  <meta name="author" content="Dorian Bayart">
+  <meta name="keywords"
+    content="pixel, fortress, game, strategy, tower defense, TD, clicker, pixel art, 2D, HTML5, JavaScript, canvas, web, browser, open source, dungeon, monsters, waves, upgrades, skills, achievements, resource management, base building, survival">
+  <link rel="canonical" href="https://dorianbayart.github.io/pixel-fortress/">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://dorianbayart.github.io/pixel-fortress/">
+  <meta property="og:title" content="Pixel Fortress - A 2D pixel-based strategy game">
+  <meta property="og:description"
+    content="A 2D pixel-based strategy game that uniquely merges the depth of Tower Defense with the addictive simplicity of Clicker styles.">
+  <meta property="og:image" content="https://dorianbayart.github.io/pixel-fortress/logo.svg">
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://dorianbayart.github.io/pixel-fortress/">
+  <meta property="twitter:title" content="Pixel Fortress - A 2D pixel-based strategy game">
+  <meta property="twitter:description"
+    content="A 2D pixel-based strategy game that uniquely merges the depth of Tower Defense with the addictive simplicity of Clicker styles.">
+  <meta property="twitter:image" content="https://dorianbayart.github.io/pixel-fortress/logo.svg">
+
+  <!-- iOS -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link rel="apple-touch-icon" sizes="192x192" type="image/png" href="assets/base_512_pixelated.png">
+  <link rel="icon" sizes="192x192" type="image/png" href="assets/base_512_pixelated.png">
+  <link rel="icon" type="image/png" href="favicon.png">
+
+  <link rel="manifest" href="manifest.json">
+
+  <link rel="stylesheet" href="css/menu.css">
+  <link rel="stylesheet" href="css/mapEditor.css">
+  <link rel="stylesheet" href="css/game-ui.css">
+
+  <script>
+    // Font loading first
+    const font = new FontFace('Jacquarda-Bastarda-9', `url('assets/fonts/Jacquarda-Bastarda-9.woff2')`)
+    font.load().then(f => document.fonts.add(f)).catch(e => console.log(e))
+    font.load().then((f) => {
+      // Add Font to document
+      document.fonts.add(f)
+      // Hide loader when fonts are ready
+      if(document.getElementById('progressBar')) document.getElementById('progressBar').style.opacity = 0
+      setTimeout(() => {
+        document.getElementById('progressBar').style.display = 'none'
+        document.getElementById('mainMenuButtons').style.opacity = 1
+      }, 500)
+    }).catch(e => console.log('Error loading font:', e))
+  </script>
+
+  <link rel="stylesheet" href="css/modal.css">
+
+  <script type="importmap">
+    {
+      "imports": {
+        "audio": "./js/audio.mjs",
+        "building": "./js/building.mjs",
+        "constants": "./js/constants.mjs",
+        "dimensions": "./js/dimensions.mjs",
+        "fogBitmaps": "./js/fogBitmaps.mjs",
+        "fogOfWar": "./js/fogOfWar.mjs",
+        "game": "./js/game.mjs",
+        "globals": "./js/globals.mjs",
+        "init": "./js/init.mjs",
+        "mapGeneration": "./js/mapGeneration.mjs",
+        "maps": "./js/maps.mjs",
+        "map-preview": "./js/map-preview.mjs",
+        "map-editor": "./js/mapEditor.mjs",
+        "menu": "./js/menu.mjs",
+        "minimap": "./js/minimap.mjs",
+        "mouse": "./js/mouse.mjs",
+        "pathfinding": "./js/pathfinding.mjs",
+        "particles": "./js/particles.mjs",
+        "playerColorFilter": "./js/playerColorFilter.mjs",
+        "players": "./js/players.mjs",
+        "projectile": "./js/projectile.mjs",
+        "renderer": "./js/renderer.mjs",
+        "state": "./js/state.mjs",
+        "sprites": "./js/sprites.mjs",
+        "terrainBitmaps": "./js/terrainBitmaps.mjs",
+        "i18n": "./js/i18n.mjs",
+        "ui": "./js/ui.mjs",
+        "unit": "./js/unit.mjs",
+        "utils": "./js/utils.mjs",
+        "viewport": "./js/viewport.mjs",
+        "worker": "./js/worker.mjs",
+        "campaign": "./js/campaign.mjs",
+        "objectives": "./js/objectives.mjs",
+        "narrative": "./js/narrative.mjs",
+        "playerStats": "./js/playerStats.mjs",
+        "pixijs": "./lib/pixi.min.mjs"
+      }
+    }
+  </script>
+
+  <script type="module" src="js/index.mjs"></script>
+</head>
+
+<body>
+  
+  <div id="homeMenu">
+    <h1 id="gameName">Pixel Fortress</h1>
+
+    <div id="gameLogo">
+      <img src="assets/base_512_pixelated.png" alt="Game Logo" width="48" height="48">
+    </div>
+
+    <div id="mainMenuButtons" class="menu-options">
+      <button id="playButton" class="menu-button" data-i18n="menu.play">Play</button>
+      <button id="mapEditorButton" class="menu-button" data-i18n="menu.mapEditor">Map Editor</button>
+      <button id="options" class="menu-button" data-i18n="menu.options">Options</button>
+      <button id="about" class="menu-button" data-i18n="menu.about">About</button>
+    </div>
+
+    <div id="playOptionsButtons" class="menu-options">
+      <button id="campaignButton" class="menu-button" data-i18n="menu.campaign">Campaign</button>
+      <button id="skirmishButton" class="menu-button" data-i18n="menu.skirmish">Skirmish</button>
+      <button id="backButton" class="menu-button cancelButton" data-i18n="menu.back">Back</button>
+    </div>
+    <button id="audioToggleButton" class="menu-button cancelButton" data-i18n="menu.unmuteAudio">🎵 Unmute Audio</button>
+    <button id="fullscreenToggleButton" class="menu-button" data-i18n="menu.fullscreen">🖥️ Fullscreen</button>
+  </div>
+
+  
+  <!-- Map Editor -->
+  <div id="mapEditorSection">
+    <div id="mapEditorToolbar">
+      <button id="mapEditorBack" class="editor-btn editor-btn-back" data-i18n="mapEditor.back">← Back</button>
+      <span class="editor-toolbar-title" data-i18n="mapEditor.title">Map Editor</span>
+      <div class="editor-toolbar-sep"></div>
+      <div id="mapEditorSizeButtons">
+        <!-- Size buttons added dynamically by mapEditor.mjs -->
+      </div>
+      <div id="mapEditorCustomSize">
+        <input type="number" id="mapEditorWidthInput" class="editor-size-input" min="20" max="400" value="120" title="Width in tiles">
+        <span class="editor-size-sep">×</span>
+        <input type="number" id="mapEditorHeightInput" class="editor-size-input" min="20" max="400" value="60" title="Height in tiles">
+        <button id="mapEditorApplySize" class="editor-size-btn" data-i18n="mapEditor.apply">Apply</button>
+      </div>
+      <div class="editor-toolbar-sep"></div>
+      <button id="mapEditorNew" class="editor-btn" data-i18n="mapEditor.new">New Map</button>
+      <button id="mapEditorGenerate" class="editor-btn" data-i18n="mapEditor.generate">Generate</button>
+      <button id="mapEditorLoad" class="editor-btn" data-i18n="mapEditor.load">Load</button>
+      <button id="mapEditorExport" class="editor-btn editor-btn-primary" data-i18n="mapEditor.export">Export</button>
+      <input type="file" id="mapEditorFileInput" accept=".json" style="display:none">
+    </div>
+    <div id="mapEditorMain">
+      <div id="mapEditorPalette">
+        <h3 data-i18n="mapEditor.palette">Palette</h3>
+        <!-- Palette items added dynamically by mapEditor.mjs -->
+      </div>
+      <canvas id="mapEditorCanvas"></canvas>
+    </div>
+  </div>
+
+  <canvas id="canvas" width="100" height="100"></canvas>
+
+  <!-- Game HUD: top bar -->
+  <div id="game-top-bar">
+    <div id="resources-display">
+      <div class="resource-item" data-resource="wood">
+        <img src="assets/buildings/wood.png" alt="wood">
+        <span class="resource-value" id="res-wood">0</span>
+      </div>
+      <div class="resource-item" data-resource="stone">
+        <img src="assets/buildings/rock.png" alt="stone">
+        <span class="resource-value" id="res-stone">0</span>
+      </div>
+      <div class="resource-item" data-resource="gold">
+        <img src="assets/buildings/gold-ore.png" alt="gold">
+        <span class="resource-value" id="res-gold">0</span>
+      </div>
+      <div class="resource-item" data-resource="water">
+        <img src="assets/buildings/droplet.png" alt="water">
+        <span class="resource-value" id="res-water">0</span>
+      </div>
+      <div class="resource-item" data-resource="money">
+        <img src="assets/buildings/coin.png" alt="money">
+        <span class="resource-value" id="res-money">0</span>
+      </div>
+      <div class="resource-item" data-resource="population">
+        <img src="assets/buildings/busts-in-silhouette.png" alt="population">
+        <span class="resource-value" id="res-population">0</span>
+      </div>
+    </div>
+    <button id="game-menu-btn">☰</button>
+  </div>
+
+  <!-- Campaign: narrative dialog (Pokemon-style, above bottom bar) -->
+  <div id="narrative-box">
+    <button id="narrative-close" title="Dismiss">×</button>
+    <span id="narrative-text"></span>
+  </div>
+
+  <!-- Game HUD: bottom bar -->
+  <div id="game-bottom-bar">
+    <div id="building-slots-panel"></div>
+    <div id="building-info-panel"></div>
+  </div>
+
+  <!-- Custom tooltip shown over slots on hover -->
+  <div id="hud-tooltip"></div>
+
+  <canvas id="minimap-canvas"></canvas>
+
+  <!-- Campaign: objectives panel below minimap -->
+  <div id="objectives-panel">
+    <div id="objectives-header"></div>
+    <div id="objectives-list"></div>
+  </div>
+
+  <!-- Campaign: phase banner overlay -->
+  <div id="phase-banner">
+    <span id="phase-banner-text"></span>
+  </div>
+
+  <div id="progressBar">
+    <label data-i18n="menu.loadingAssets">Loading game assets...</label>
+    <progress></progress>
+  </div>
+</body>
+
+</html>
+
+
+
+<!-- In-game menu modal -->
+<div id="gameMenuSection" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 data-i18n="gameMenu.title">Game Menu</h2>
+      <span class="close">&times;</span>
+    </div>
+    <div class="modal-body">
+      <!-- Map info section -->
+      <div id="mapInfoSection" class="map-info-section">
+        <h3 data-i18n="gameMenu.mapInformation">Map Information</h3>
+        <div class="map-info-content">
+          <div class="map-info-row">
+            <span class="map-info-label" data-i18n="gameMenu.seed">Seed:</span>
+            <span class="map-info-value" id="currentMapSeed">-</span>
+          </div>
+          <div class="map-info-row">
+            <span class="map-info-label" data-i18n="gameMenu.size">Size:</span>
+            <span class="map-info-value" id="currentMapSize">-</span>
+          </div>
+        </div>
+        <button id="exportMapButton" class="menu-button export-button" data-i18n="gameMenu.exportMap">
+          Export Map
+        </button>
+      </div>
+
+      <div class="menu-options">
+        <button id="resumeGame" class="menu-button" data-i18n="gameMenu.resumeGame">Resume Game</button>
+        <button id="openOptionsFromGame" class="menu-button" data-i18n="gameMenu.options">Options</button>
+        <button id="resetMap" class="menu-button" data-i18n="gameMenu.resetMap">Reset Map</button>
+        <button id="quitToHome" class="menu-button" data-i18n="gameMenu.quitToHome">Quit to Home</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Generic Modal for Game Over, etc. -->
+<div id="genericModalSection" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="genericModalTitle"></h2>
+      <span class="close" id="genericModalCloseButton">&times;</span>
+    </div>
+    <div class="modal-body">
+      <p id="genericModalMessage"></p>
+    </div>
+    <div class="modal-footer">
+      <button id="modalCloseButton" class="footerButton cancelButton">Close</button>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+<!-- Skirmish Setup section modal -->
+<div id="skirmishSetupSection" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 data-i18n="skirmish.title">Skirmish Setup</h2>
+      <span class="close">&times;</span>
+    </div>
+    <div class="modal-body">
+      <div class="skirmish-columns">
+
+        <!-- LEFT COLUMN: Map parameters -->
+        <div class="skirmish-col skirmish-col-left">
+          <!-- Tab Navigation -->
+          <div class="tab-navigation">
+            <button class="tab-button active" data-tab="predefinedMap" data-i18n="skirmish.predefinedMaps">Predefined Maps</button>
+            <button class="tab-button" data-tab="randomMap" data-i18n="skirmish.randomMap">Random Map</button>
+          </div>
+
+          <!-- Random Map Tab Content -->
+          <div id="randomMapTab" class="tab-content">
+            <div class="option-group">
+              <h3 data-i18n="skirmish.mapSize">Map Size</h3>
+              <div class="option-controls" id="mapSizeButtons">
+                <!-- Map size buttons dynamically generated from CONSTANTS -->
+              </div>
+            </div>
+
+            <div class="option-group">
+              <h3 data-i18n="skirmish.mapSeed">Map Seed (Optional)</h3>
+              <div class="option-controls seed-controls">
+                <div class="seed-input-row">
+                  <input type="number" id="mapSeedInput" data-i18n-placeholder="skirmish.seedPlaceholder" placeholder="Enter a seed number">
+                  <button class="option-btn" id="randomSeedButton" data-i18n="skirmish.randomSeed">Random Seed</button>
+                </div>
+                <p class="input-hint" data-i18n="skirmish.seedHint">Leave empty for random generation</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Predefined Maps Tab Content -->
+          <div id="predefinedMapTab" class="tab-content active">
+            <div class="option-group maps-list-group">
+              <h3 data-i18n="skirmish.availableMaps">Available Maps</h3>
+              <div id="predefinedMapsList">
+                <!-- Maps will be dynamically loaded here -->
+              </div>
+            </div>
+            <!-- Hidden inputs kept for JS compatibility -->
+            <input type="hidden" id="mapIdInput">
+            <button id="clearMapIdButton" hidden></button>
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Battle parameters -->
+        <div class="skirmish-col skirmish-col-right">
+          <div class="option-group">
+            <h3 data-i18n="skirmish.gameMode">Game Mode</h3>
+            <div class="option-controls">
+              <button class="option-btn selected" data-game-mode="classic">Classic</button>
+              <button class="option-btn" data-game-mode="one-shot">One Shot</button>
+              <button class="option-btn" data-game-mode="turbo-gathering">Turbo Gathering</button>
+              <button class="option-btn" data-game-mode="tower-defense" disabled title="Coming soon!">Tower Defense</button>
+            </div>
+            <p id="gameModeDescription" class="mode-description" data-i18n="skirmish.modes.classicDesc">
+              Standard gameplay with balanced combat and gathering.
+            </p>
+          </div>
+
+          <div class="option-group">
+            <h3 data-i18n="skirmish.aiOpponents">AI Opponents</h3>
+            <div class="option-controls">
+              <button class="option-btn selected" data-ai-count="1">1</button>
+              <button class="option-btn" data-ai-count="2" disabled>2</button>
+              <button class="option-btn" data-ai-count="3" disabled>3</button>
+            </div>
+          </div>
+
+          <div class="option-group">
+            <h3 data-i18n="skirmish.playerColor">Player Color</h3>
+            <div class="option-controls color-picker-controls">
+              <canvas id="hueWheelCanvas" width="80" height="80"></canvas>
+              <div id="colorSwatches"></div>
+            </div>
+          </div>
+
+          <div class="option-group">
+            <h3 data-i18n="skirmish.difficultyLabel">Difficulty</h3>
+            <div class="option-controls">
+              <button class="option-btn selected" data-difficulty="easy" data-i18n="skirmish.difficulty.easy">Easy</button>
+              <button class="option-btn" data-difficulty="medium" data-i18n="skirmish.difficulty.medium">Medium</button>
+              <button class="option-btn" data-difficulty="hard" data-i18n="skirmish.difficulty.hard">Hard</button>
+            </div>
+          </div>
+
+          <div class="option-group">
+            <h3 data-i18n="skirmish.gameSpeed">Game Speed</h3>
+            <div class="option-controls">
+              <button class="option-btn" data-game-speed="normal" data-i18n="skirmish.speed.normal">Normal</button>
+              <button class="option-btn" data-game-speed="accelerated" data-i18n="skirmish.speed.accelerated">Accelerated</button>
+              <button class="option-btn" data-game-speed="very_fast" data-i18n="skirmish.speed.veryFast">Very Fast</button>
+            </div>
+          </div>
+
+          <div class="option-group">
+            <div class="option-controls">
+              <label class="toggle-label">
+                <input type="checkbox" id="skirmishFogToggle" checked>
+                <span class="toggle-text" data-i18n="skirmish.fogOfWar">Enable Fog of War</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button id="startSkirmishGame" class="footerButton actionButton" data-i18n="skirmish.startGame">Start Game</button>
+      <button id="closeSkirmishSetup" class="footerButton cancelButton" data-i18n="skirmish.cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Campaign Setup section modal -->
+<div id="campaignSetupSection" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 data-i18n="campaign.title">Campaign</h2>
+      <span class="close" id="closeCampaignSetup">&times;</span>
+    </div>
+    <div class="modal-body">
+      <div id="campaignLevelsList" class="scenarii-grid">
+        <!-- Level cards dynamically generated by menu.mjs -->
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button id="closeCampaignSetupBtn" class="footerButton cancelButton" data-i18n="skirmish.cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Options section modal that appears when "Options" is clicked -->
+<div id="optionsSection" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 data-i18n="options.title">Game Options</h2>
+      <span class="close">&times;</span>
+    </div>
+    <div class="modal-body">
+      
+      <div class="option-group">
+        <div class="option-controls">
+          <label class="toggle-label">
+            <input type="checkbox" id="debugToggle">
+            <span class="toggle-text" data-i18n="options.showFps">Show FPS and Debug Info (Shortcut: D)</span>
+          </label>
+        </div>
+      </div>
+      
+      <div class="option-group">
+        <div class="option-controls">
+          <label class="toggle-label">
+            <input type="checkbox" id="healthBarsToggle" checked>
+            <span class="toggle-text" data-i18n="options.showHealthBars">Show Health Bars (Shortcut: H)</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="option-group">
+        <div class="option-controls">
+          <label class="toggle-label">
+            <input type="checkbox" id="extraParticlesToggle" checked>
+            <span class="toggle-text" data-i18n="options.extraParticles">Extra Particle Effects</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="option-group">
+        <div class="option-controls">
+          <label class="toggle-label">
+            <input type="checkbox" id="fullscreenToggle">
+            <span class="toggle-text" data-i18n="options.fullscreenMode">Fullscreen Mode</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="option-group">
+        <div class="option-controls">
+          <label class="toggle-label">
+            <input type="checkbox" id="antialiasingToggle">
+            <span class="toggle-text"><span data-i18n="options.highQualityRendering">High Quality Rendering</span> <span id="antialiasingStatus"></span></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="option-group">
+        <div class="inline-control">
+          <h3 data-i18n="options.fpsCap">FPS Cap</h3>
+          <select id="fpsCapSelect">
+            <option value="0" data-i18n="options.fpsMonitorRefreshRate">Monitor Refresh Rate</option>
+            <option value="30">30 FPS</option>
+            <option value="40">40 FPS</option>
+            <option value="50">50 FPS</option>
+            <option value="60">60 FPS</option>
+            <option value="120">120 FPS</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="option-group">
+        <h3><img src="assets/icons/sound-on-solid.svg" alt="Sound Effects" class="option-heading-icon"> <span data-i18n="options.sfxVolume">Sound Effects Volume</span></h3>
+        <div class="option-controls">
+          <input type="range" id="sfxVolumeSlider" min="0" max="1" step="0.1" value="0.8">
+        </div>
+      </div>
+
+      <div class="option-group">
+        <h3><img src="assets/icons/music-solid.svg" alt="Music" class="option-heading-icon"> <span data-i18n="options.musicVolume">Music Volume</span></h3>
+        <div class="option-controls">
+          <input type="range" id="musicVolumeSlider" min="0" max="1" step="0.1" value="0.5">
+        </div>
+      </div>
+
+      <div class="option-group">
+        <div class="inline-control">
+          <h3 data-i18n="options.language">Language</h3>
+          <select id="languageSelect">
+            <option value="en">English</option>
+            <option value="fr">Français</option>
+            <option value="de">Deutsch</option>
+            <option value="es">Español</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button id="saveOptions" class="footerButton actionButton" data-i18n="options.save">Save</button>
+      <button id="closeOptions" class="footerButton cancelButton" data-i18n="options.cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- About section modal that appears when "About" is clicked -->
+<div id="aboutSection" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 data-i18n="about.title">About</h2>
+      <span class="close">&times;</span>
+    </div>
+    <div class="modal-body">
+      <div class="game-description">
+        <p data-i18n="about.description">Pixel Fortress combines strategic base-building with automated warfare. Design your fortress, establish resource production, and deploy self-directed units that explore, gather, and battle autonomously. Strategic depth without the micro-management.</p>
+        <p><strong data-i18n="about.genre">Genre:</strong> <span data-i18n="about.genreText">Base Building • Automated Strategy • Auto-battler • Pixel Art</span></p>
+      </div>
+      
+      <div class="version-info">
+        <p>v0.0.1</p>
+      </div>
+      
+      <div class="github-links">
+        <div class="link-container">
+          <a href="https://github.com/dorianbayart/pixel-fortress" target="_blank" rel="noopener noreferrer">
+            <img src="assets/icons/github.svg" alt="GitHub Logo" class="github-logo">
+            <span data-i18n="about.gameRepository">Game Repository</span>
+          </a>
+        </div>
+        <div class="link-container">
+          <a href="https://github.com/dorianbayart" target="_blank" rel="noopener noreferrer">
+            <img src="assets/icons/github.svg" alt="GitHub Logo" class="github-logo">
+            <span data-i18n="about.developerProfile">Developer Profile</span>
+          </a>
+        </div>
+        <div class="link-container">
+          <a href="https://ko-fi.com/0xdba" target="_blank" rel="noopener noreferrer">
+            <img src="assets/icons/kofi_symbol.png" alt="Ko-fi Logo" class="kofi-logo">
+            <span data-i18n="about.supportKofi">Support on Ko-fi</span>
+          </a>
+        </div>
+      </div>
+      
+      <div class="credits">
+        <h3 data-i18n="about.credits">Credits</h3>
+        <p data-i18n="about.creditsDeveloper">Developed by Dorian Bayart</p>
+        <p data-i18n="about.creditsAssets">Pixel art assets from various open source collections</p>
+        <p data-i18n="about.creditsBuiltWith">Built with PixiJS, HTML5 and JavaScript</p>
+      </div>
+      
+      <div class="license">
+        <h3 data-i18n="about.license">License</h3>
+        <p><span data-i18n="about.licenseText">This project is licensed under the</span> <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener noreferrer">GNU General Public License v3.0 or later (GPL-3.0-or-later)</a>.</p>
+        <p data-i18n="about.licenseText2">100% open source. Free to use, study, share, and improve.</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button id="closeAbout" class="footerButton cancelButton" data-i18n="about.close">Close</button>
+    </div>
+  </div>
+</div>

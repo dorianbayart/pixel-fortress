@@ -1,0 +1,86 @@
+{
+  "name": "pixel-fortress",
+  "version": "0.0.5-unstable",
+  "description": "Strategic base-building with automated warfare. Design your fortress, establish resource production, and deploy self-directed units that explore, gather, and battle autonomously.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "update-manifest-version": "node scripts/update-manifest-version.js",
+    "build-landing": "node scripts/build-landing.js",
+    "build-release-notes": "node scripts/build-release-notes.js",
+    "build-sitemap": "node scripts/build-sitemap.js",
+    "test": "node tests/run-all.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dorianbayart/pixel-fortress.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dorianbayart/pixel-fortress/blob/main/KNOWN_BUGS.md"
+  },
+  "homepage": "https://dorianbayart.github.io/pixel-fortress/",
+  "keywords": [
+    "pixel fortress",
+    "base building",
+    "automated strategy",
+    "auto-battler",
+    "resource management",
+    "pixel art",
+    "2D strategy",
+    "HTML5 game",
+    "JavaScript",
+    "canvas",
+    "web game",
+    "browser game",
+    "pixijs",
+    "open source",
+    "achievements",
+    "procedural generation",
+    "AI opponent",
+    "autonomous units",
+    "strategic gameplay",
+    "casual strategy",
+    "idle strategy",
+    "automated warfare",
+    "exploration",
+    "fog of war",
+    "pathfinding"
+  ],
+  "author": "Dorian Bayart (https://github.com/dorianbayart)",
+  "license": "GPL-3.0-or-later",
+  "build": {
+    "appId": "com.dorianbayart.pixelfortress",
+    "productName": "Pixel Fortress",
+    "icon": "assets/base_512_pixelated.png",
+    "files": [
+      "**/*",
+      "!node_modules",
+      "!package-lock.json",
+      "!npm-debug.log",
+      "!dist"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "mac": {
+      "target": "dmg",
+      "identity": "Apple Distribution: Your Company Name (XXXXXXXXXX)",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  },
+  "devDependencies": {
+    "@electron/notarize": "^3.1.0",
+    "electron": "^38.4.0",
+    "electron-builder": "^26.0.12"
+  }
+}

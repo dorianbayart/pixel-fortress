@@ -1,0 +1,335 @@
+{
+  "menu": {
+    "play": "Jouer",
+    "mapEditor": "Éditeur de carte",
+    "options": "Options",
+    "about": "À propos",
+    "back": "Retour",
+    "campaign": "Campagne",
+    "skirmish": "Escarmouche",
+    "unmuteAudio": "🎵 Activer l'Audio",
+    "muteAudio": "🎵 Couper l'Audio",
+    "fullscreen": "🖥️ Plein écran",
+    "windowed": "🖥️ Fenêtré",
+    "loadingAssets": "Chargement des ressources...",
+    "welcome": "Bienvenue",
+    "to": "dans"
+  },
+  "skirmish": {
+    "title": "Configuration de la partie",
+    "predefinedMaps": "Cartes prédéfinies",
+    "randomMap": "Carte aléatoire",
+    "availableMaps": "Cartes disponibles",
+    "mapSize": "Taille de la carte",
+    "mapSeed": "Graine de carte (Optionnel)",
+    "seedPlaceholder": "Entrez un nombre",
+    "randomSeed": "Graine aléatoire",
+    "seedHint": "Laisser vide pour une génération aléatoire",
+    "gameMode": "Mode de jeu",
+    "aiOpponents": "Adversaires IA",
+    "playerColor": "Couleur du joueur",
+    "difficultyLabel": "Difficulté",
+    "gameSpeed": "Vitesse de jeu",
+    "fogOfWar": "Activer le brouillard de guerre",
+    "startGame": "Lancer la partie",
+    "cancel": "Annuler",
+    "you": "Vous",
+    "ai": "IA",
+    "noMapsAvailable": "Aucune carte prédéfinie disponible",
+    "loadingMaps": "Chargement...",
+    "errorLoadingMaps": "Erreur lors du chargement des cartes",
+    "modes": {
+      "classic": "Classic",
+      "classicDesc": "Gameplay standard avec combat et collecte équilibrés.",
+      "oneShot": "One Shot",
+      "oneShotDesc": "Chaque unité et bâtiment n'a qu'un seul point de vie. Tout dégât est fatal.",
+      "turboGathering": "Turbo Gathering",
+      "turboGatheringDesc": "Tous les collecteurs de ressources travaillent à vitesse accrue.",
+      "towerDefense": "Tower Defense",
+      "towerDefenseDesc": "Défendez votre forteresse contre des vagues d'ennemis. Bientôt disponible !"
+    },
+    "difficulty": {
+      "easy": "Facile",
+      "medium": "Moyen",
+      "hard": "Difficile"
+    },
+    "speed": {
+      "normal": "Normal",
+      "accelerated": "Accéléré",
+      "veryFast": "Très rapide"
+    }
+  },
+  "options": {
+    "title": "Options du jeu",
+    "showFps": "Afficher FPS et infos de débogage (Raccourci : D)",
+    "showHealthBars": "Afficher les barres de vie (Raccourci : H)",
+    "fullscreenMode": "Mode plein écran",
+    "highQualityRendering": "Rendu haute qualité",
+    "fpsCap": "Limite FPS",
+    "fpsMonitorRefreshRate": "Fréquence du moniteur",
+    "sfxVolume": "Volume des effets sonores",
+    "musicVolume": "Volume de la musique",
+    "language": "Langue",
+    "extraParticles": "Effets de particules supplémentaires",
+    "save": "Enregistrer",
+    "cancel": "Annuler"
+  },
+  "about": {
+    "title": "À propos",
+    "description": "Pixel Fortress combine la construction stratégique de base avec la guerre automatisée. Concevez votre forteresse, établissez la production de ressources et déployez des unités autonomes qui explorent, collectent et combattent.",
+    "genre": "Genre",
+    "genreText": "Construction de base • Stratégie automatisée • Auto-battler • Pixel Art",
+    "gameRepository": "Dépôt du jeu",
+    "developerProfile": "Profil du développeur",
+    "credits": "Crédits",
+    "creditsDeveloper": "Développé par Dorian Bayart",
+    "creditsAssets": "Assets pixel art provenant de collections open source",
+    "creditsBuiltWith": "Construit avec PixiJS, HTML5 et JavaScript",
+    "license": "Licence",
+    "licenseText": "Ce projet est sous licence GNU General Public License v3.0 ou ultérieure (GPL-3.0-or-later).",
+    "licenseText2": "100% open source. Libre d'utilisation, d'étude, de partage et d'amélioration.",
+    "supportKofi": "Soutenir sur Ko-fi",
+    "close": "Fermer"
+  },
+  "gameMenu": {
+    "title": "Menu du jeu",
+    "mapInformation": "Informations de la carte",
+    "seed": "Graine :",
+    "size": "Taille :",
+    "exportMap": "Exporter la carte",
+    "resumeGame": "Reprendre",
+    "options": "Options",
+    "resetMap": "Réinitialiser",
+    "quitToHome": "Quitter vers l'accueil"
+  },
+  "game": {
+    "gameOver": "Partie terminée",
+    "gameOverMsg": "Votre bâtiment principal a été détruit !",
+    "win": "Victoire !",
+    "winMsg": "Vous avez détruit le bâtiment principal de votre adversaire ! Félicitations !"
+  },
+  "campaign": {
+    "title": "Campagne",
+    "objectives": "Objectifs",
+    "levelComplete": "Mission accomplie !",
+    "levelCompleteMsg": "Tous les objectifs sont remplis. Bien joué, commandant.",
+    "missionFailed": "Mission échouée",
+    "missionFailedMsg": "Votre Tente a été détruite. Redémarrage de la mission...",
+    "allCompleted": "Toutes les missions accomplies ! Vous êtes un vrai commandant.",
+    "lockedLevel": "Terminez le niveau précédent pour déverrouiller"
+  },
+  "campaigns": {
+    "tutorial01": {
+      "description": "Apprenez à récolter des ressources dans Pixel Fortress — construisez des Cabanes de bûcheron, des Carrières, des Puits et des Mines d'or pour alimenter votre économie.",
+      "phase1": {
+        "banner": "Phase 1 — Récolte de bois",
+        "goals": {
+          "lumberjack1": { "title": "Construire une Cabane de bûcheron", "desc": "Placez une Cabane de bûcheron près des arbres. Plus le chemin vers les arbres est court, plus votre Paysan récolte vite." },
+          "lumberjack2": { "title": "Construire une 2e Cabane de bûcheron", "desc": "Construisez une deuxième Cabane de bûcheron. Votre Tente formera un autre Paysan pour l'occuper." },
+          "lumberjack3": { "title": "Construire une 3e Cabane de bûcheron", "desc": "Construisez une troisième Cabane de bûcheron pour maximiser vos revenus de bois." }
+        },
+        "narratives": {
+          "n1": "Bienvenue dans Pixel Fortress, Commandant !\n\nVoici votre Tente — votre base. Elle forme des paysans et fait tourner votre économie.\n\nPour récolter du bois, construisez une Cabane de bûcheron près de la forêt. Plus le chemin vers les arbres est court, plus votre Paysan travaillera vite. Sélectionnez la Cabane de bûcheron dans la barre du bas et placez-la !",
+          "n2": "Bien joué ! Votre Tente va maintenant former un Paysan et l'envoyer travailler à cette Cabane de bûcheron.\n\nLes Paysans rejoignent automatiquement leur bâtiment — pas besoin de les gérer. Regardez-en apparaître un !",
+          "n3": "Votre premier Paysan est en route ! Il va se diriger vers la Cabane de bûcheron, abattre des arbres proches, puis rapporter le bois pour le stocker.\n\nSurveillez votre compteur de bois dans la barre du haut — il va bientôt augmenter...",
+          "n4": "Premier bois récolté ! Vous pouvez voir toutes vos ressources dans la barre du haut à tout moment.\n\nConstruisez encore 2 Cabanes de bûcheron — chacune forme un nouveau Paysan et augmente vos revenus !",
+          "n5": "Bonne progression ! Plus qu'une seule Cabane de bûcheron à construire.\n\nPlacez-la près des arbres pour que votre Paysan ait un trajet court."
+        }
+      },
+      "phase2": {
+        "banner": "Phase 2 — Extraction de pierre",
+        "goals": {
+          "quarry1": { "title": "Construire une Carrière", "desc": "Placez une Carrière sur des cases rocheuses pour extraire de la pierre. Un nouveau Paysan sera formé." },
+          "quarry2": { "title": "Construire une 2e Carrière", "desc": "Construisez une deuxième Carrière pour doubler votre production de pierre." }
+        },
+        "narratives": {
+          "n1": "Le bois afflue — beau travail ! Il vous faut maintenant de la pierre.\n\nConstruisez une Carrière sur des cases rocheuses — repérez les zones grises sur la carte. Un Paysan y extraira la pierre et la rapportera à votre Tente pour la stocker.",
+          "n2": "La Carrière est opérationnelle ! Un Paysan s'y dirige déjà pour commencer l'extraction.\n\nContrairement au bois, la pierre est rapportée directement à la Tente — placer votre Carrière près de la Tente accélère donc les choses. Surveillez votre compteur de pierre dans la barre du haut...",
+          "n3": "La pierre arrive ! Construisez une deuxième Carrière pour doubler votre production et compléter cette phase."
+        }
+      },
+      "phase3": {
+        "banner": "Phase 3 — Eau & Or",
+        "goals": {
+          "well": { "title": "Construire un Puits", "desc": "Placez un Puits à côté de cases d'eau pour collecter de l'eau." },
+          "goldMine": { "title": "Construire une Mine d'or", "desc": "Placez une Mine d'or sur des cases de minerai d'or pour extraire l'or précieux." }
+        },
+        "narratives": {
+          "n1": "Deux ressources assurées, deux à venir !\n\nCommencez par construire un Puits pour récolter de l'eau. Placez-le à côté des cases d'eau — repérez les zones bleues sur la carte. Plus le Puits est proche de votre Tente, plus votre Paysan peut revenir stocker l'eau rapidement.",
+          "n2": "Votre Puits pompe de l'eau fraîche !\n\nTrouvez maintenant les cases de minerai d'or sur la carte — elles ont un reflet jaune chatoyant. Construisez une Mine d'or directement sur une case d'or. Tout comme la Carrière, votre Paysan extraira l'or et retournera à la Tente pour le stocker.",
+          "n3": "Les quatre ressources sont désormais récoltées : bois, pierre, eau et or !\n\nUne économie solide est le fondement de toute grande forteresse. Regardez vos stocks croître dans la barre du haut."
+        }
+      },
+      "phase4": {
+        "banner": "Phase 4 — Améliorations",
+        "goals": {
+          "lumberjack": { "title": "Améliorer une Cabane de bûcheron", "desc": "Sélectionnez une Cabane de bûcheron et améliorez-la au niveau 2 pour accueillir plus d'ouvriers." },
+          "quarry": { "title": "Améliorer une Carrière", "desc": "Améliorez une Carrière au niveau 2 pour une extraction de pierre plus rapide." },
+          "well": { "title": "Améliorer le Puits", "desc": "Améliorez le Puits au niveau 2 pour accueillir plus d'ouvriers." },
+          "goldMine": { "title": "Améliorer la Mine d'or", "desc": "Améliorez la Mine d'or au niveau 2 pour une extraction d'or plus rapide." }
+        },
+        "narratives": {
+          "n1": "Remarquable, Commandant ! Les quatre ressources sont opérationnelles.\n\nLes bâtiments peuvent être améliorés pour gagner en efficacité. Cliquez sur un bâtiment pour le sélectionner — le panneau du bas affichera ses statistiques et un bouton Améliorer.\n\nAméliorer une Cabane de bûcheron ou un Puits permet à davantage de Paysans d'y travailler. Améliorer une Carrière ou une Mine d'or accélère la récolte de vos Paysans.",
+          "n2": "Première amélioration effectuée ! Continuez — améliorez les quatre bâtiments de ressources au niveau 2 pour terminer le tutoriel.\n\nCabane de bûcheron et Puits : plus d'ouvriers. Carrière et Mine d'or : récolte plus rapide.",
+          "n3": "À mi-chemin ! Une économie bien améliorée vous permettra de former des soldats et de construire des tours dans les prochaines missions.\n\nAméliorez les bâtiments restants pour terminer.",
+          "n4": "Plus qu'une seule amélioration !\n\nUne fois votre économie pleinement opérationnelle, le combat vous attend — soldats, archers, tours et batailles dans la prochaine mission !"
+        }
+      }
+    }
+  },
+  "ui": {
+    "life": "Vie",
+    "producing": "Production",
+    "workers": "Ouvriers",
+    "costs": "Coûts",
+    "sell": "Vendre",
+    "atk": "Atq",
+    "spd": "Vit",
+    "range": "Portée",
+    "tiles": "cases",
+    "selling": "Vente de {resource} pour {price} pièces.",
+    "random": "Aléatoire",
+    "level": "Niveau",
+    "lifeUpgrade": "Vie +{amount}",
+    "maxWorkersUpgrade": "Ouvriers max +{amount}",
+    "atkUpgrade": "Dégâts +{amount}",
+    "rangeUpgrade": "Portée +{amount} cases",
+    "productionSpeedUpgrade": "Vitesse prod. +{amount}%",
+    "cooldownUpgrade": "Vitesse d'attaque +{amount}%",
+    "specialize": "Spécialiser",
+    "close": "Fermer",
+    "placed": "{name} placé !",
+    "cannotAfford": "Pas assez de ressources pour {name} (Besoin de {costs})",
+    "selectedForPlacement": "{name} sélectionné pour placement",
+    "healthBarsOn": "Barres de vie activées",
+    "healthBarsOff": "Barres de vie désactivées",
+    "resettingMap": "Réinitialisation de la carte...",
+    "returningToMenu": "Retour au menu principal...",
+    "mapExported": "Carte exportée : {filename}",
+    "errorExportingMap": "Erreur lors de l'exportation",
+    "specializedInto": "Spécialisé en {name} !",
+    "cannotAffordSpec": "Pas assez pour la spécialisation (Besoin de {costs})",
+    "noMoreUpgrades": "Aucune amélioration disponible.",
+    "upgradedToLevel": "{name} amélioré au Niveau {level} !",
+    "cannotAffordUpgrade": "Pas assez pour l'amélioration (Besoin de {costs})",
+    "towerSpecialized": "Tour spécialisée en {name} !"
+  },
+  "buildings": {
+    "tent": {
+      "name": "Tente",
+      "description": "Produit des paysans",
+      "details": "Du travail, encore du travail !"
+    },
+    "lumberjack": {
+      "name": "Cabane de bûcheron",
+      "description": "Récolte du bois des arbres proches",
+      "details": "À placer près des arbres."
+    },
+    "goldMine": {
+      "name": "Mine d'or",
+      "description": "Extrait de l'or",
+      "details": "Doit être placé sur du minerai d'or."
+    },
+    "quarry": {
+      "name": "Carrière",
+      "description": "Extrait de la pierre",
+      "details": "Doit être placé sur de la roche."
+    },
+    "well": {
+      "name": "Puits",
+      "description": "Produit de l'eau",
+      "details": "Doit être placé près de l'eau."
+    },
+    "arcana": {
+      "name": "Arcanes",
+      "description": "Entraîne des mages",
+      "details": "Unité à distance, lance des boules de feu à longue portée."
+    },
+    "archery": {
+      "name": "Archerie",
+      "description": "Entraîne des archers",
+      "details": "Unité à distance, bonne portée et dégâts modérés."
+    },
+    "barracks": {
+      "name": "Caserne",
+      "description": "Entraîne des soldats",
+      "details": "Entraîne des unités d'infanterie."
+    },
+    "armory": {
+      "name": "Armurerie",
+      "description": "Entraîne de l'infanterie lourde",
+      "details": "Entraîne des unités plus robustes."
+    },
+    "citadel": {
+      "name": "Citadelle",
+      "description": "Entraîne des guerriers d'élite",
+      "details": "Entraîne des unités de combat d'élite."
+    },
+    "market": {
+      "name": "Marché",
+      "description": "Vend des ressources contre de l'argent",
+      "details": "Convertit les ressources en argent."
+    },
+    "tower": {
+      "name": "Tour",
+      "description": "Tour défensive",
+      "details": "Attaque les ennemis proches."
+    },
+    "bulletTower": {
+      "name": "Perceur",
+      "description": "Équilibrée - attaque, vitesse et portée moyennes"
+    },
+    "rapidTower": {
+      "name": "Rafale",
+      "description": "Attaques rapides, courte portée, dégâts réduits"
+    },
+    "sniperTower": {
+      "name": "Tirlong",
+      "description": "Lente mais très puissante à très longue portée"
+    }
+  },
+  "mapEditor": {
+    "title": "Éditeur de carte",
+    "back": "← Retour",
+    "new": "Nouvelle carte",
+    "generate": "Générer",
+    "load": "Charger",
+    "export": "Exporter",
+    "palette": "Palette",
+    "terrain": "Terrain",
+    "newMapConfirm": "Créer une nouvelle carte ? Les modifications non sauvegardées seront perdues.",
+    "generateConfirm": "Générer un terrain procédural ? Toutes les modifications actuelles seront effacées.",
+    "backConfirm": "Retourner au menu ? Les modifications non sauvegardées seront perdues.",
+    "confirmOk": "OK",
+    "confirmCancel": "Annuler",
+    "apply": "Appliquer",
+    "startPositions": "Positions de départ",
+    "p1Start": "Départ J1",
+    "ai1": "IA 1",
+    "ai2": "IA 2",
+    "ai3": "IA 3",
+    "buildings": "Bâtiments",
+    "erase": "Effacer",
+    "exportNamePrompt": "Nom de la carte :",
+    "owner": {
+      "p1": "J1",
+      "ai1": "IA1",
+      "ai2": "IA2",
+      "ai3": "IA3"
+    },
+    "size": {
+      "small": "Petit",
+      "medium": "Moyen",
+      "large": "Grand",
+      "huge": "Géant"
+    },
+    "tiles": {
+      "grass": "Herbe",
+      "sand": "Sable",
+      "water": "Eau",
+      "tree": "Arbre",
+      "rock": "Rocher",
+      "gold": "Or"
+    }
+  }
+}

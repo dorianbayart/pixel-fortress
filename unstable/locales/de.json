@@ -1,0 +1,335 @@
+{
+  "menu": {
+    "play": "Spielen",
+    "mapEditor": "Karteneditor",
+    "options": "Optionen",
+    "about": "Über das Spiel",
+    "back": "Zurück",
+    "campaign": "Kampagne",
+    "skirmish": "Gefecht",
+    "unmuteAudio": "🎵 Audio einschalten",
+    "muteAudio": "🎵 Audio ausschalten",
+    "fullscreen": "🖥️ Vollbild",
+    "windowed": "🖥️ Fenstermodus",
+    "loadingAssets": "Lade Spielressourcen...",
+    "welcome": "Willkommen",
+    "to": "bei"
+  },
+  "skirmish": {
+    "title": "Gefecht-Einstellungen",
+    "predefinedMaps": "Vordefinierte Karten",
+    "randomMap": "Zufallskarte",
+    "availableMaps": "Verfügbare Karten",
+    "mapSize": "Kartengröße",
+    "mapSeed": "Karten-Seed (Optional)",
+    "seedPlaceholder": "Seed-Nummer eingeben",
+    "randomSeed": "Zufälligen Seed",
+    "seedHint": "Leer lassen für zufällige Generierung",
+    "gameMode": "Spielmodus",
+    "aiOpponents": "KI-Gegner",
+    "playerColor": "Spielerfarbe",
+    "difficultyLabel": "Schwierigkeit",
+    "gameSpeed": "Spielgeschwindigkeit",
+    "fogOfWar": "Kriegsnebel aktivieren",
+    "startGame": "Spiel starten",
+    "cancel": "Abbrechen",
+    "you": "Sie",
+    "ai": "KI",
+    "noMapsAvailable": "Keine vordefinierten Karten verfügbar",
+    "loadingMaps": "Laden...",
+    "errorLoadingMaps": "Fehler beim Laden der Karten",
+    "modes": {
+      "classic": "Klassisch",
+      "classicDesc": "Standard-Gameplay mit ausgewogenem Kampf und Sammeln.",
+      "oneShot": "One Shot",
+      "oneShotDesc": "Jede Einheit und jedes Gebäude hat genau einen Lebenspunkt. Jeder Schaden ist tödlich.",
+      "turboGathering": "Turbo Gathering",
+      "turboGatheringDesc": "Alle Ressourcensammler arbeiten mit deutlich erhöhter Geschwindigkeit.",
+      "towerDefense": "Tower Defense",
+      "towerDefenseDesc": "Verteidige deine Festung gegen Gegnerwellen. Bald verfügbar!"
+    },
+    "difficulty": {
+      "easy": "Leicht",
+      "medium": "Mittel",
+      "hard": "Schwer"
+    },
+    "speed": {
+      "normal": "Normal",
+      "accelerated": "Beschleunigt",
+      "veryFast": "Sehr schnell"
+    }
+  },
+  "options": {
+    "title": "Spieloptionen",
+    "showFps": "FPS und Debug-Info anzeigen (Tastenkürzel: D)",
+    "showHealthBars": "Lebensbalken anzeigen (Tastenkürzel: H)",
+    "fullscreenMode": "Vollbildmodus",
+    "highQualityRendering": "Hochqualitätsrendering",
+    "fpsCap": "FPS-Begrenzung",
+    "fpsMonitorRefreshRate": "Monitor-Bildwiederholrate",
+    "sfxVolume": "Soundeffekt-Lautstärke",
+    "musicVolume": "Musik-Lautstärke",
+    "language": "Sprache",
+    "extraParticles": "Zusätzliche Partikeleffekte",
+    "save": "Speichern",
+    "cancel": "Abbrechen"
+  },
+  "about": {
+    "title": "Über das Spiel",
+    "description": "Pixel Fortress kombiniert strategischen Festungsbau mit automatischer Kriegsführung. Entwerfe deine Festung, etabliere Ressourcenproduktion und setze selbstgesteuerte Einheiten ein.",
+    "genre": "Genre",
+    "genreText": "Basisbau • Automatisierte Strategie • Auto-Battler • Pixel Art",
+    "gameRepository": "Spiel-Repository",
+    "developerProfile": "Entwickler-Profil",
+    "credits": "Credits",
+    "creditsDeveloper": "Entwickelt von Dorian Bayart",
+    "creditsAssets": "Pixel-Art-Assets aus verschiedenen Open-Source-Sammlungen",
+    "creditsBuiltWith": "Erstellt mit PixiJS, HTML5 und JavaScript",
+    "license": "Lizenz",
+    "licenseText": "Dieses Projekt steht unter der GNU General Public License v3.0 oder neuer (GPL-3.0-or-later).",
+    "licenseText2": "100% Open Source. Frei zu verwenden, zu studieren, zu teilen und zu verbessern.",
+    "supportKofi": "Unterstützen auf Ko-fi",
+    "close": "Schließen"
+  },
+  "gameMenu": {
+    "title": "Spielmenü",
+    "mapInformation": "Karteninformationen",
+    "seed": "Seed:",
+    "size": "Größe:",
+    "exportMap": "Karte exportieren",
+    "resumeGame": "Weiterspielen",
+    "options": "Optionen",
+    "resetMap": "Karte zurücksetzen",
+    "quitToHome": "Zum Hauptmenü"
+  },
+  "game": {
+    "gameOver": "Spiel vorbei",
+    "gameOverMsg": "Ihr Hauptgebäude wurde zerstört!",
+    "win": "Sie haben gewonnen!",
+    "winMsg": "Sie haben das Hauptgebäude Ihres Gegners zerstört! Glückwunsch!"
+  },
+  "campaign": {
+    "title": "Kampagne",
+    "objectives": "Ziele",
+    "levelComplete": "Mission abgeschlossen!",
+    "levelCompleteMsg": "Alle Ziele erfüllt. Gut gemacht, Kommandant.",
+    "missionFailed": "Mission fehlgeschlagen",
+    "missionFailedMsg": "Ihr Zelt wurde zerstört. Mission wird neu gestartet...",
+    "allCompleted": "Alle Missionen abgeschlossen! Sie sind ein echter Kommandant.",
+    "lockedLevel": "Schließen Sie das vorherige Level ab, um es freizuschalten"
+  },
+  "campaigns": {
+    "tutorial01": {
+      "description": "Lerne das Ressourcensammeln in Pixel Fortress — baue Holzhütten, Steinbrüche, Brunnen und Goldminen, um deine Wirtschaft anzukurbeln.",
+      "phase1": {
+        "banner": "Phase 1 — Holzgewinnung",
+        "goals": {
+          "lumberjack1": { "title": "Holzhütte bauen", "desc": "Platziere eine Holzhütte in der Nähe von Bäumen. Je kürzer der Weg zum Wald, desto schneller sammelt dein Bauer." },
+          "lumberjack2": { "title": "2. Holzhütte bauen", "desc": "Baue eine zweite Holzhütte. Dein Zelt bildet einen weiteren Bauern aus, der dort arbeitet." },
+          "lumberjack3": { "title": "3. Holzhütte bauen", "desc": "Baue eine dritte Holzhütte, um dein Holzeinkommen zu maximieren." }
+        },
+        "narratives": {
+          "n1": "Willkommen bei Pixel Fortress, Kommandant!\n\nDas ist dein Zelt — deine Heimatbasis. Es bildet Arbeiter aus und hält deine Wirtschaft am Laufen.\n\nUm Holz zu sammeln, baue eine Holzhütte in der Nähe des Waldes. Je kürzer der Weg zu den Bäumen, desto schneller arbeitet dein Bauer. Wähle die Holzhütte aus der unteren Leiste aus und platziere sie!",
+          "n2": "Gut gemacht! Dein Zelt bildet nun einen Bauern aus und schickt ihn zur Holzhütte.\n\nBauern gehen automatisch zu ihrem zugewiesenen Gebäude — du musst sie nicht verwalten. Schau, wie einer erscheint!",
+          "n3": "Dein erster Bauer ist unterwegs! Er geht zur Holzhütte, fällt nahe Bäume und bringt das Holz zurück zum Lagern.\n\nBeobachte deinen Holzzähler in der oberen Leiste — er wächst bald...",
+          "n4": "Erstes Holz gesichert! Du kannst alle deine Ressourcen jederzeit in der oberen Leiste sehen.\n\nBaue noch 2 Holzhütten — jede bildet einen neuen Bauern aus und steigert dein Einkommen!",
+          "n5": "Guter Fortschritt! Noch eine Holzhütte fehlt.\n\nPlatziere sie nah an Bäumen, damit dein Bauer kurze Wege hat."
+        }
+      },
+      "phase2": {
+        "banner": "Phase 2 — Steingewinnung",
+        "goals": {
+          "quarry1": { "title": "Steinbruch bauen", "desc": "Platziere einen Steinbruch auf Felskacheln, um Stein abzubauen. Ein neuer Bauer wird ausgebildet." },
+          "quarry2": { "title": "2. Steinbruch bauen", "desc": "Baue einen zweiten Steinbruch, um deine Steinproduktion zu verdoppeln." }
+        },
+        "narratives": {
+          "n1": "Das Holz fließt — gute Arbeit! Nun brauchst du Stein.\n\nBaue einen Steinbruch auf Felskacheln — achte auf die grauen Felsgebiete auf der Karte. Ein Bauer baut dort Stein ab und bringt ihn zu deinem Zelt zurück.",
+          "n2": "Der Steinbruch ist in Betrieb! Ein Bauer macht sich bereits auf den Weg.\n\nAnders als Holz wird Stein direkt zum Zelt getragen — ein Steinbruch in Zeltnähe beschleunigt also alles. Beobachte deinen Steinzähler in der oberen Leiste...",
+          "n3": "Stein kommt rein! Baue noch einen Steinbruch, um deine Produktion zu verdoppeln und diese Phase abzuschließen."
+        }
+      },
+      "phase3": {
+        "banner": "Phase 3 — Wasser & Gold",
+        "goals": {
+          "well": { "title": "Brunnen bauen", "desc": "Platziere einen Brunnen neben Wasserkacheln, um Wasser zu sammeln." },
+          "goldMine": { "title": "Goldmine bauen", "desc": "Platziere eine Goldmine auf Golderzkacheln, um wertvolles Gold abzubauen." }
+        },
+        "narratives": {
+          "n1": "Zwei Ressourcen gesichert, zwei weitere folgen!\n\nBaue zuerst einen Brunnen für Wasser. Platziere ihn neben Wasserkacheln — achte auf die blauen Bereiche auf der Karte. Je näher der Brunnen am Zelt ist, desto schneller kann dein Bauer das Wasser bringen.",
+          "n2": "Dein Brunnen fördert frisches Wasser!\n\nFinde jetzt die Golderzkacheln auf der Karte — sie haben einen gelblichen Schimmer. Baue eine Goldmine direkt auf einer Goldkachel. Genau wie beim Steinbruch bringt dein Bauer das Gold zurück zum Zelt.",
+          "n3": "Alle vier Ressourcen werden nun gesammelt: Holz, Stein, Wasser und Gold!\n\nEine starke Wirtschaft ist das Fundament jeder großen Festung. Beobachte, wie deine Vorräte in der oberen Leiste wachsen."
+        }
+      },
+      "phase4": {
+        "banner": "Phase 4 — Aufwertungen",
+        "goals": {
+          "lumberjack": { "title": "Holzhütte aufwerten", "desc": "Wähle eine Holzhütte aus und werte sie auf Stufe 2 auf, um mehr Arbeiter zu erlauben." },
+          "quarry": { "title": "Steinbruch aufwerten", "desc": "Werte einen Steinbruch auf Stufe 2 auf, um Stein schneller abzubauen." },
+          "well": { "title": "Brunnen aufwerten", "desc": "Werte den Brunnen auf Stufe 2 auf, um mehr Arbeiter zu erlauben." },
+          "goldMine": { "title": "Goldmine aufwerten", "desc": "Werte die Goldmine auf Stufe 2 auf, um Gold schneller abzubauen." }
+        },
+        "narratives": {
+          "n1": "Hervorragend, Kommandant! Alle vier Ressourcen laufen.\n\nGebäude können aufgewertet werden, um effizienter zu werden. Klicke ein Gebäude an, um es auszuwählen — das untere Panel zeigt seine Werte und einen Aufwerten-Button.\n\nEine Holzhütte oder einen Brunnen aufzuwerten erlaubt mehr Bauern. Einen Steinbruch oder eine Goldmine aufzuwerten lässt deine Bauern schneller sammeln.",
+          "n2": "Erste Aufwertung fertig! Weiter so — werte alle vier Ressourcengebäude auf Stufe 2 auf, um das Tutorial abzuschließen.\n\nHolzhütte und Brunnen: mehr Arbeiter. Steinbruch und Goldmine: schnelleres Sammeln.",
+          "n3": "Auf halbem Weg! Eine gut aufgewertete Wirtschaft lässt dich in zukünftigen Missionen Soldaten ausbilden und Türme bauen.\n\nWerte die restlichen Gebäude auf, um fertig zu werden.",
+          "n4": "Noch eine letzte Aufwertung!\n\nSobald deine Wirtschaft voll läuft, wartet der Kampf — Soldaten, Bogenschützen, Türme und Schlachten in der nächsten Mission!"
+        }
+      }
+    }
+  },
+  "ui": {
+    "life": "Leben",
+    "producing": "Produktion",
+    "workers": "Arbeiter",
+    "costs": "Kosten",
+    "sell": "Verkauf",
+    "atk": "Ang",
+    "spd": "Gsch",
+    "range": "Reichweite",
+    "tiles": "Felder",
+    "selling": "Verkaufe {resource} für {price} Geld.",
+    "random": "Zufällig",
+    "level": "Level",
+    "lifeUpgrade": "Leben +{amount}",
+    "maxWorkersUpgrade": "Max Arbeiter +{amount}",
+    "atkUpgrade": "Schaden +{amount}",
+    "rangeUpgrade": "Reichweite +{amount} Felder",
+    "productionSpeedUpgrade": "Prod.-Geschw. +{amount}%",
+    "cooldownUpgrade": "Angriffsgeschw. +{amount}%",
+    "specialize": "Spezialisieren",
+    "close": "Schließen",
+    "placed": "{name} platziert!",
+    "cannotAfford": "{name} nicht leistbar (Benötigt {costs})",
+    "selectedForPlacement": "{name} zur Platzierung ausgewählt",
+    "healthBarsOn": "Lebensbalken aktiviert",
+    "healthBarsOff": "Lebensbalken deaktiviert",
+    "resettingMap": "Karte wird zurückgesetzt...",
+    "returningToMenu": "Zurück zum Hauptmenü...",
+    "mapExported": "Karte exportiert: {filename}",
+    "errorExportingMap": "Fehler beim Exportieren",
+    "specializedInto": "Spezialisiert auf {name}!",
+    "cannotAffordSpec": "Nicht genug für Spezialisierung (Benötigt {costs})",
+    "noMoreUpgrades": "Keine weiteren Upgrades verfügbar.",
+    "upgradedToLevel": "{name} auf Level {level} aufgerüstet!",
+    "cannotAffordUpgrade": "Nicht genug für Upgrade (Benötigt {costs})",
+    "towerSpecialized": "Turm auf {name} spezialisiert!"
+  },
+  "buildings": {
+    "tent": {
+      "name": "Zelt",
+      "description": "Produziert Bauern",
+      "details": "Arbeit, Arbeit!"
+    },
+    "lumberjack": {
+      "name": "Holzhütte",
+      "description": "Erntet Holz von nahen Bäumen",
+      "details": "Sollte neben Bäumen platziert werden."
+    },
+    "goldMine": {
+      "name": "Goldmine",
+      "description": "Baut Gold ab",
+      "details": "Muss auf Golderz platziert werden."
+    },
+    "quarry": {
+      "name": "Steinbruch",
+      "description": "Gewinnt Stein",
+      "details": "Muss auf Fels platziert werden."
+    },
+    "well": {
+      "name": "Brunnen",
+      "description": "Produziert Wasser",
+      "details": "Muss neben Wasser platziert werden."
+    },
+    "arcana": {
+      "name": "Arkanum",
+      "description": "Trainiert Magier",
+      "details": "Fernkampfeinheit, schießt Feuerbälle auf große Distanz."
+    },
+    "archery": {
+      "name": "Bogenschießstand",
+      "description": "Trainiert Bogenschützen",
+      "details": "Fernkampfeinheit mit guter Reichweite und moderatem Schaden."
+    },
+    "barracks": {
+      "name": "Kaserne",
+      "description": "Trainiert Soldaten",
+      "details": "Trainiert Infanterieeinheiten."
+    },
+    "armory": {
+      "name": "Rüstkammer",
+      "description": "Trainiert schwere Infanterie",
+      "details": "Trainiert stärkere Einheiten."
+    },
+    "citadel": {
+      "name": "Zitadelle",
+      "description": "Trainiert Elite-Krieger",
+      "details": "Trainiert Elite-Kampfeinheiten."
+    },
+    "market": {
+      "name": "Markt",
+      "description": "Verkauft Ressourcen gegen Geld",
+      "details": "Wandelt Ressourcen in Geld um."
+    },
+    "tower": {
+      "name": "Turm",
+      "description": "Verteidigungsturm",
+      "details": "Greift nahe Feinde an."
+    },
+    "bulletTower": {
+      "name": "Schuss",
+      "description": "Ausgewogen - mittlerer Angriff, Geschwindigkeit und Reichweite"
+    },
+    "rapidTower": {
+      "name": "Salve",
+      "description": "Schnelle Angriffe, kurze Reichweite, geringerer Schaden"
+    },
+    "sniperTower": {
+      "name": "Fernschuss",
+      "description": "Langsam aber trifft hart auf sehr lange Reichweite"
+    }
+  },
+  "mapEditor": {
+    "title": "Karteneditor",
+    "back": "← Zurück",
+    "new": "Neue Karte",
+    "generate": "Generieren",
+    "load": "Laden",
+    "export": "Exportieren",
+    "palette": "Palette",
+    "terrain": "Gelände",
+    "newMapConfirm": "Neue Karte erstellen? Nicht gespeicherte Änderungen gehen verloren.",
+    "generateConfirm": "Prozedurales Terrain generieren? Alle aktuellen Änderungen werden gelöscht.",
+    "backConfirm": "Zurück zum Menü? Nicht gespeicherte Änderungen gehen verloren.",
+    "confirmOk": "OK",
+    "confirmCancel": "Abbrechen",
+    "apply": "Anwenden",
+    "startPositions": "Startpositionen",
+    "p1Start": "Spieler 1 Start",
+    "ai1": "KI 1",
+    "ai2": "KI 2",
+    "ai3": "KI 3",
+    "buildings": "Gebäude",
+    "erase": "Löschen",
+    "exportNamePrompt": "Kartenname eingeben:",
+    "owner": {
+      "p1": "S1",
+      "ai1": "KI1",
+      "ai2": "KI2",
+      "ai3": "KI3"
+    },
+    "size": {
+      "small": "Klein",
+      "medium": "Mittel",
+      "large": "Groß",
+      "huge": "Riesig"
+    },
+    "tiles": {
+      "grass": "Gras",
+      "sand": "Sand",
+      "water": "Wasser",
+      "tree": "Baum",
+      "rock": "Fels",
+      "gold": "Gold"
+    }
+  }
+}

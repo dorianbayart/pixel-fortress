@@ -1,0 +1,76 @@
+{
+    "interesting_seeds": [
+        {
+            "name": "Roads",
+            "seed": 574
+        },
+        {
+            "name": "Paths",
+            "seed": 734
+        },
+        {
+            "name": "Complex",
+            "seed": 830
+        },
+        {
+            "name": "Bottlenecks",
+            "seed": 1360,
+            "size": "medium"
+        },
+        {
+            "name": "Bases",
+            "seed": 859,
+            "size": "medium"
+        }
+
+
+    ],
+    "valid_seeds": [],
+    "predefined_maps": [
+        {
+            "id": "custom_4698963",
+            "name": "Map Seed 4698963",
+            "type": "custom",
+            "data_file": "maps/custom_4698963.json",
+            "difficulty": "easy",
+            "size": "large",
+            "description": "Exported large map from Pixel Fortress"
+        },
+        {
+            "id": "landscapes_232871831",
+            "name": "Landscapes",
+            "type": "seed",
+            "seed": 232871831,
+            "difficulty": "easy",
+            "size": "medium",
+            "description": "Explorable landscapes"
+        },
+        {
+            "id": "roads_574",
+            "name": "Roads",
+            "type": "seed",
+            "seed": 574,
+            "difficulty": "easy",
+            "size": "huge",
+            "description": "A map with natural road-like paths"
+        },
+        {
+            "id": "paths_734",
+            "name": "Paths",
+            "type": "seed",
+            "seed": 734,
+            "difficulty": "hard",
+            "size": "huge",
+            "description": "Interconnected pathways across the terrain"
+        },
+        {
+            "id": "long_path_859",
+            "name": "Long Path",
+            "type": "seed",
+            "seed": 859,
+            "difficulty": "hard",
+            "size": "huge",
+            "description": "A long path leads to a dead end"
+        }
+    ]
+}

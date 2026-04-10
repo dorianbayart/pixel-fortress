@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://dorianbayart.github.io/pixel-fortress/sitemap.xml

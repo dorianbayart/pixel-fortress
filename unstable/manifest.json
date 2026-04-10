@@ -1,0 +1,73 @@
+{
+  "background_color": "#114611",
+  "categories": [
+    "games",
+    "strategy",
+    "tower-defense",
+    "pixel-art",
+    "2d"
+  ],
+  "description": "Strategic base-building with automated warfare. Design your fortress, establish resource production, and deploy self-directed units that explore, gather, and battle autonomously.",
+  "display": "standalone",
+  "icons": [
+    {
+      "sizes": "16x16",
+      "src": "assets/base_16.png",
+      "type": "image/png"
+    },
+    {
+      "sizes": "512x512",
+      "src": "assets/base_512_pixelated.png",
+      "type": "image/png"
+    }
+  ],
+  "name": "Pixel Fortress",
+  "screenshots": [
+    {
+      "form_factor": "wide",
+      "label": "Strategic base building and unit pathfinding gameplay",
+      "sizes": "1920x1080",
+      "src": "assets/screenshots/InGame_Screenshot_01_building-placement-paths.png",
+      "type": "image/png"
+    },
+    {
+      "form_factor": "wide",
+      "label": "Huge procedurally generated map exploration with large bases and resource management",
+      "sizes": "1920x1080",
+      "src": "assets/screenshots/InGame_Screenshot_02_big-maps.png",
+      "type": "image/png"
+    },
+    {
+      "form_factor": "wide",
+      "label": "Epic battles with numerous units engaging in automated combat",
+      "sizes": "1920x1080",
+      "src": "assets/screenshots/InGame_Screenshot_03_lots-of-units-going-battle.png",
+      "type": "image/png"
+    },
+    {
+      "form_factor": "narrow",
+      "label": "Title banner - Portrait view",
+      "sizes": "1000x1800",
+      "src": "assets/logo_portrait.svg",
+      "type": "image/svg+xml"
+    },
+    {
+      "form_factor": "wide",
+      "label": "Title banner - Wide view",
+      "sizes": "1000x300",
+      "src": "assets/logo_banner.svg",
+      "type": "image/svg+xml"
+    },
+    {
+      "label": "2D pixelated sprite",
+      "sizes": "512x512",
+      "src": "assets/base_512_pixelated.png",
+      "type": "image/png"
+    }
+  ],
+  "short_name": "Pixel Fortress",
+  "start_url": "play.html",
+  "theme_color": "#228b22",
+  "version": "x.x.x-latest",
+  "version_name": "x.x.x-latest"
+}

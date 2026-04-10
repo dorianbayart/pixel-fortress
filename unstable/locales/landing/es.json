@@ -1,0 +1,183 @@
+{
+  "lang": "es",
+  "meta": {
+    "title": "Pixel Fortress - Auto-Battler de Código Abierto | Juega Gratis",
+    "description": "Construcción estratégica de bases con guerra automatizada. Diseña tu fortaleza, establece la producción de recursos y despliega unidades autónomas. 100% código abierto, gratis en el navegador.",
+    "ogTitle": "Pixel Fortress - Auto-Battler de Código Abierto",
+    "ogDescription": "Construye con inteligencia. Deja que luchen. Construcción estratégica con guerra automatizada.",
+    "twitterTitle": "Pixel Fortress - Auto-Battler de Código Abierto",
+    "twitterDescription": "Construye con inteligencia. Deja que luchen. Construcción estratégica con guerra automatizada."
+  },
+  "nav": {
+    "features": "Características",
+    "pricing": "Precios",
+    "opensource": "Código Abierto",
+    "releaseNotes": "Notas de versión",
+    "github": "GitHub",
+    "playNow": "Jugar"
+  },
+  "hero": {
+    "tagline": "Construye con inteligencia. Deja que luchen.",
+    "subtitle": "Auto-Battler 100% de Código Abierto",
+    "genre": "Construcción de base • Estrategia automatizada • Pixel Art",
+    "ctaPrimary": "Jugar gratis ahora",
+    "ctaSecondary": "Lista de deseos en Steam (pronto)",
+    "note": "Sin descarga • Juega en el navegador • Código fuente completo GPL v3",
+    "githubStar": "⭐ Star en GitHub",
+    "kofiSupport": "☕ Apoyar en Ko-fi",
+    "releaseNotes": "¿Qué hay de nuevo? Ver las notas de versión →"
+  },
+  "preview": {
+    "heading": "Estrategia sin lo tedioso",
+    "intro": "Diseña tu fortaleza. Deja que tus unidades hagan el resto.",
+    "caption1": "Construcción estratégica de base y búsqueda de rutas para unidades",
+    "caption2": "Exploración de enormes mapas generados proceduralmente con grandes bases y gestión de recursos",
+    "caption3": "Batalla épica con numerosas unidades en combate automatizado",
+    "alt1": "Construcción estratégica de base y búsqueda de rutas para unidades",
+    "alt2": "Exploración de enormes mapas generados proceduralmente con grandes bases y gestión de recursos",
+    "alt3": "Batalla épica con numerosas unidades en combate automatizado"
+  },
+  "features": {
+    "heading": "Características del juego",
+    "f1title": "Construcción estratégica de bases",
+    "f1desc": "Construye aserraderos, minas y cuarteles. Gestiona recursos y expande tu fortaleza.",
+    "f2title": "Combate totalmente automatizado",
+    "f2desc": "Desplega tus unidades y déjalas luchar. Cero micro-gestión.",
+    "f3title": "Múltiples modos de juego",
+    "f3desc": "Clásico, One Shot y Turbo Gathering para diferentes estilos de juego.",
+    "f4title": "Adversarios IA",
+    "f4desc": "Combate contra hasta 3 adversarios IA con dificultad ajustable (Fácil, Normal, Difícil).",
+    "f5title": "Miles de millones de mapas únicos",
+    "f5desc": "Mapas infinitos generados proceduralmente en 4 tamaños.",
+    "f6title": "Exploración dinámica",
+    "f6desc": "Las unidades exploran automáticamente. La colocación de edificios determina los descubrimientos.",
+    "f7title": "Tipos de unidades especializadas",
+    "f7desc": "Leñadores, mineros, soldados, arqueros, magos — cada uno con habilidades únicas.",
+    "f8title": "Torres defensivas",
+    "f8desc": "Torres de puntería automática que derriban enemigos. Controla puntos clave.",
+    "f9title": "Especialización de edificios",
+    "f9desc": "Mejora edificios a variantes especializadas. Moldea tu estrategia.",
+    "f10title": "Mundo animado",
+    "f10desc": "Entornos totalmente animados con efectos visuales dinámicos."
+  },
+  "pricing": {
+    "heading": "Elige tu versión",
+    "free": {
+      "name": "Versión gratuita",
+      "price": "0 €",
+      "subtitle": "Para siempre",
+      "feature1": "✅ Jugabilidad auto-battler completa",
+      "feature2": "✅ Juega en navegador o escritorio",
+      "feature3": "✅ Un jugador contra IA",
+      "feature4": "✅ Diferentes modos de juego para diferentes desafíos",
+      "feature5": "✅ 3 niveles de dificultad",
+      "feature6": "✅ Generación procedural de mapas (de pequeño a gigante)",
+      "feature7": "✅ Mapas predefinidos seleccionados",
+      "feature8": "✅ Todas las unidades, edificios y mejoras",
+      "feature9": "✅ Editor de mapas — crea y exporta tus propios mapas",
+      "feature10": "✅ Código fuente completo (GPL v3)",
+      "feature11": "⚠️ Solo guardado local (apps de escritorio)",
+      "cta": "Jugar gratis ahora"
+    },
+    "premium": {
+      "badge": "Previsto",
+      "name": "Steam Premium",
+      "price": "Próximamente",
+      "subtitle": "Compra única (previsto ~4,99 €)",
+      "feature1": "✅ Todo lo de la versión gratuita",
+      "feature2": "🌟 Modo campaña completo",
+      "feature3": "🌟 Numerosos mapas adicionales",
+      "feature4": "🌟 Modos de juego exclusivos",
+      "feature5": "🌟 Steam Workshop — comparte y descubre mapas de la comunidad",
+      "feature6": "🌟 Logros de Steam",
+      "feature7": "🌟 Guardado en la nube",
+      "feature8": "🌟 Apoyar al desarrollador",
+      "cta": "Más información sobre el lanzamiento en Steam"
+    },
+    "note": "💡 Todo el código fuente es abierto. La versión Steam está en desarrollo y ofrecerá contenido exclusivo e integración Steam, ayudando a financiar el desarrollo futuro. Aún sin fecha de lanzamiento — ¡estén atentos!"
+  },
+  "opensource": {
+    "heading": "100% Código Abierto",
+    "intro": "Cada línea de código es pública bajo la Licencia GPL v3. Aprende de él, contribuye o crea tu propia versión.",
+    "card1title": "📖 Código transparente",
+    "card1desc": "Toda la lógica del juego, funciones premium y sistemas son visibles en GitHub. Nada está oculto.",
+    "card2title": "🤝 Impulsado por la comunidad",
+    "card2desc": "¡Contribuciones bienvenidas! Añade funciones, corrige errores, crea mapas o mejora la documentación.",
+    "card3title": "🎓 Educativo",
+    "card3desc": "Aprende desarrollo de juegos estudiando una implementación completa de auto-battler en JavaScript puro con PixiJS.",
+    "card4title": "🔓 Libertad",
+    "card4desc": "GPL v3 garantiza que las obras derivadas permanezcan abiertas. Haz fork, modifica y comparte libremente.",
+    "githubStar": "⭐ Star en GitHub",
+    "readLicense": "Leer licencia",
+    "steamHeading": "¡Versión Steam próximamente!",
+    "steamP1": "El juego se está preparando para su lanzamiento en Steam (sin fecha anunciada). Estará disponible para Windows y Linux.",
+    "steamFeaturesTitle": "Funciones Steam previstas:",
+    "steamF1title": "Contenido exclusivo",
+    "steamF1desc": "Numerosos mapas exclusivos, campañas completas, modos de juego únicos y más.",
+    "steamF2title": "Guardado en la nube",
+    "steamF2desc": "Integración con la API de Steam para progresión persistente en todos tus dispositivos",
+    "steamF3title": "Logros",
+    "steamF3desc": "Sigue tus logros",
+    "steamF4title": "Comodidad",
+    "steamF4desc": "Instalación con un clic, actualizaciones automáticas, posible soporte para Steam Workshop",
+    "steamP2": "Y por último, pero no menos importante: ¡la versión Steam apoya al creador! Tu compra financia directamente nuevas funciones y contenido.",
+    "kofiSupport": "☕ Apoyar en Ko-fi"
+  },
+  "platforms": {
+    "heading": "Juega en cualquier lugar",
+    "web": {
+      "title": "Navegador web",
+      "desc": "Juega al instante, sin descargas. Funciona en cualquier navegador moderno.",
+      "tag": "Gratis"
+    },
+    "steam": {
+      "title": "Steam",
+      "desc": "Campaña completa, mapas exclusivos, guardado en la nube y logros.",
+      "tag": "Próximamente"
+    },
+    "github": {
+      "title": "GitHub",
+      "desc": "Ver código fuente, contribuir o crear tu propia versión de escritorio.",
+      "tag": "Código Abierto"
+    },
+    "desktop": {
+      "title": "Versiones de escritorio",
+      "desc": "Versiones autónomas gratuitas para Windows y Linux.",
+      "tag": "Gratis"
+    }
+  },
+  "faq": {
+    "heading": "Preguntas frecuentes",
+    "q1": "¿El juego es realmente gratuito?",
+    "a1": "La versión gratuita es 100% gratis, para siempre. Sin anuncios. Sin pay-to-win. Toda la jugabilidad principal, mapas aleatorios ilimitados, diferentes modos de juego. Juega en el navegador o en escritorio. La versión Steam Premium añade más mapas, modos de juego exclusivos, guardado en la nube y logros.",
+    "q2": "¿Cuál es la diferencia entre la versión gratuita y la de Steam?",
+    "a2": "La versión gratuita incluye el juego completo con una selección de mapas predefinidos y guardado local en apps de escritorio. La versión Steam prevista añadirá guardado en la nube, logros de Steam, extenso contenido premium adicional (mapas, modos de juego, campaña) y ayudará a financiar el desarrollo continuo.",
+    "q3": "¿Puedo compilar yo mismo la versión \"premium\"?",
+    "a3": "¡Técnicamente sí! El código es 100% público. Sin embargo, no tendrás funciones de Steam como guardado en la nube y logros sin la API de Steam. La mayoría de los jugadores prefieren la comodidad de Steam.",
+    "q4": "¿Cómo puedo contribuir al proyecto?",
+    "a4": "Haz fork del repositorio en GitHub, realiza tus cambios y envía un pull request. Consulta CONTRIBUTING.md para las pautas. ¡Las contribuciones a todas las funciones (incluidas las premium) son bienvenidas!",
+    "q5": "¿Se añadirá nuevo contenido?",
+    "a5": "¡Sí! El juego está en desarrollo activo. La versión gratuita recibe actualizaciones principales, correcciones de errores y nuevas funciones. Cuando se lance, la versión Steam incluirá extenso contenido premium adicional: campañas, mapas exclusivos, modos de juego y actualizaciones continuas."
+  },
+  "footer": {
+    "tagline": "Auto-Battler 100% de Código Abierto",
+    "license": "Licenciado bajo GPL v3",
+    "quickLinks": "Enlaces rápidos",
+    "playNow": "Jugar",
+    "unstableVersion": "Versión de vista previa",
+    "github": "GitHub",
+    "releaseNotes": "Notas de versión",
+    "downloads": "Descargas",
+    "licenseLink": "Licencia",
+    "resources": "Recursos",
+    "documentation": "Documentación",
+    "contribute": "Contribuir",
+    "credits": "Créditos",
+    "reportBug": "Reportar error",
+    "community": "Comunidad",
+    "discussions": "Discusiones",
+    "developer": "Desarrollador",
+    "copyright": "© 2026 Dorian Bayart. Licenciado bajo GNU GPL v3.",
+    "kofiSupport": "☕ Apoyar en Ko-fi"
+  }
+}

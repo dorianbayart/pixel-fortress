@@ -1,0 +1,37 @@
+name: Build Release Notes
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'RELEASE_NOTES.md'
+      - 'release-notes.template.html'
+      - 'scripts/build-release-notes.js'
+      - 'package.json'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build release notes page
+        run: node scripts/build-release-notes.js
+
+      - name: Commit generated page
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add release-notes.html
+          git diff --cached --quiet || git commit -m "chore: rebuild release notes page [skip ci]"
+          git push

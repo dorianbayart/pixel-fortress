@@ -1,0 +1,189 @@
+name: Electron Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      is_prerelease: ${{ steps.version.outputs.is_prerelease }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get version info
+        id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if [[ "$VERSION" == *"-"* ]]; then
+            echo "is_prerelease=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_prerelease=false" >> $GITHUB_OUTPUT
+          fi
+
+  build-windows:
+    needs: check
+    if: needs.check.outputs.is_prerelease == 'false'
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set dynamic version in manifest.json
+      run: npm run update-manifest-version
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Build Electron app for Windows
+      run: npm run build
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload Windows artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: PixelFortress-Windows
+        path: dist/*.exe
+
+  build-macos:
+    needs: check
+    if: needs.check.outputs.is_prerelease == 'false'
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set dynamic version in manifest.json
+      run: npm run update-manifest-version
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Build Electron app for macOS
+      run: npm run build
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload macOS artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: PixelFortress-macOS
+        path: dist/*.dmg
+
+  build-linux:
+    needs: check
+    if: needs.check.outputs.is_prerelease == 'false'
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set dynamic version in manifest.json
+      run: npm run update-manifest-version
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Build Electron app for Linux
+      run: npm run build
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload Linux artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: PixelFortress-Linux
+        path: dist/*.AppImage
+
+  release:
+    runs-on: ubuntu-latest
+    needs: [check, build-windows, build-macos, build-linux]
+    if: needs.check.outputs.is_prerelease == 'false' && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Download all build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+
+    - name: List downloaded artifacts (for debugging)
+      run: ls -R artifacts
+
+    - name: Get package version and Prepare Release Notes
+      id: get_version
+      run: |
+        VERSION=$(node -p "require('./package.json').version")
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        sed -i "s/{{version}}/$VERSION/g" RELEASE_NOTES.md
+
+    - name: Check for existing release
+      id: check_release
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        set +e
+        gh release view v${{ steps.get_version.outputs.version }} > /dev/null 2>&1
+        if [ $? -eq 0 ]; then
+          echo "exists=true" >> $GITHUB_OUTPUT
+        else
+          echo "exists=false" >> $GITHUB_OUTPUT
+        fi
+        set -e
+
+    - name: Delete existing release if found
+      if: steps.check_release.outputs.exists == 'true'
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh release delete v${{ steps.get_version.outputs.version }} --yes
+
+    - name: Delete existing Git tag if found
+      if: steps.check_release.outputs.exists == 'true'
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        git push origin --delete v${{ steps.get_version.outputs.version }} || true
+
+    - name: Wait for tag deletion to propagate
+      if: steps.check_release.outputs.exists == 'true'
+      run: sleep 5
+
+    - name: Upload artifacts to Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          artifacts/PixelFortress-Windows/*.exe
+          artifacts/PixelFortress-macOS/*.dmg
+          artifacts/PixelFortress-Linux/*.AppImage
+        token: ${{ secrets.GITHUB_TOKEN }}
+        tag_name: v${{ steps.get_version.outputs.version }}
+        body_path: RELEASE_NOTES.md
+        draft: false

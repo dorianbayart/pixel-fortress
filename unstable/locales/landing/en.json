@@ -1,0 +1,183 @@
+{
+  "lang": "en",
+  "meta": {
+    "title": "Pixel Fortress - Open Source Auto-Battler | Play for Free",
+    "description": "Strategic base-building with automated warfare. Design your fortress, establish resource production, and deploy self-directed units. 100% open source, free to play in browser.",
+    "ogTitle": "Pixel Fortress - Open Source Auto-Battler",
+    "ogDescription": "Build smart. Let them fight. Strategic base-building with automated warfare.",
+    "twitterTitle": "Pixel Fortress - Open Source Auto-Battler",
+    "twitterDescription": "Build smart. Let them fight. Strategic base-building with automated warfare."
+  },
+  "nav": {
+    "features": "Features",
+    "pricing": "Pricing",
+    "opensource": "Open Source",
+    "releaseNotes": "Release Notes",
+    "github": "GitHub",
+    "playNow": "Play Now"
+  },
+  "hero": {
+    "tagline": "Build Smart. Let Them Fight.",
+    "subtitle": "100% Open Source Auto-Battler",
+    "genre": "Base Building • Automated Strategy • Pixel Art",
+    "ctaPrimary": "Play for Free Now",
+    "ctaSecondary": "Wishlist on Steam (Soon)",
+    "note": "No download required • Play in browser • Full GPL v3 source code",
+    "githubStar": "⭐ Star on GitHub",
+    "kofiSupport": "☕ Support on Ko-fi",
+    "releaseNotes": "What's new? View the latest release notes →"
+  },
+  "preview": {
+    "heading": "Strategy Without the Grind",
+    "intro": "Design your fortress. Watch your units do the rest.",
+    "caption1": "Strategic base building and unit pathfinding gameplay",
+    "caption2": "Huge procedurally generated map exploration with large bases and resource management",
+    "caption3": "Epic battle with numerous units engaging in automated combat",
+    "alt1": "Strategic base building and unit pathfinding gameplay",
+    "alt2": "Huge procedurally generated map exploration with large bases and resource management",
+    "alt3": "Epic battle with numerous units engaging in automated combat"
+  },
+  "features": {
+    "heading": "Game Features",
+    "f1title": "Strategic Base Building",
+    "f1desc": "Construct lumber mills, mines, and barracks. Manage resources and expand your fortress.",
+    "f2title": "Fully Automated Combat",
+    "f2desc": "Deploy units and let them fight. Zero micromanagement required.",
+    "f3title": "Multiple Game Modes",
+    "f3desc": "Classic, One Shot, and Turbo Gatherer modes for different playstyles.",
+    "f4title": "AI Opponents",
+    "f4desc": "Battle against up to 3 AI opponents with adjustable difficulty (Easy, Normal, Hard).",
+    "f5title": "Billions of Unique Maps",
+    "f5desc": "Infinite procedurally generated maps across 4 sizes.",
+    "f6title": "Dynamic Exploration",
+    "f6desc": "Units auto-explore. Building placement determines discovery order.",
+    "f7title": "Specialized Unit Types",
+    "f7desc": "Lumberjacks, miners, soldiers, archers, mages — each with unique skills.",
+    "f8title": "Defensive Towers",
+    "f8desc": "Auto-targeting towers that shoot down enemies. Hold chokepoints and defend.",
+    "f9title": "Building Specialization",
+    "f9desc": "Upgrade buildings into specialized variants. Shape your strategy.",
+    "f10title": "Animated World",
+    "f10desc": "Fully animated environments with dynamic visual effects."
+  },
+  "pricing": {
+    "heading": "Choose Your Version",
+    "free": {
+      "name": "Free Version",
+      "price": "$0",
+      "subtitle": "Forever",
+      "feature1": "✅ Core gameplay",
+      "feature2": "✅ Play in browser or desktop",
+      "feature3": "✅ Single-player vs AI",
+      "feature4": "✅ Different game modes for different challenges",
+      "feature5": "✅ 3 difficulty levels",
+      "feature6": "✅ Procedural map generation (from small to huge)",
+      "feature7": "✅ Selected predefined maps",
+      "feature8": "✅ All units, buildings, upgrades",
+      "feature9": "✅ Map editor — create and export your own maps",
+      "feature10": "✅ Full source code (GPL v3)",
+      "feature11": "⚠️ Local save progression only (desktop apps)",
+      "cta": "Play for Free Now"
+    },
+    "premium": {
+      "badge": "Planned",
+      "name": "Steam Premium",
+      "price": "Coming Soon",
+      "subtitle": "One-time purchase (planned ~$4.99)",
+      "feature1": "✅ Everything in Free version",
+      "feature2": "🌟 Full campaign mode",
+      "feature3": "🌟 Extensive additional maps",
+      "feature4": "🌟 Exclusive game modes",
+      "feature5": "🌟 Steam Workshop — share and discover community maps",
+      "feature6": "🌟 Steam achievements",
+      "feature7": "🌟 Cloud save progression",
+      "feature8": "🌟 Support the developer",
+      "cta": "Learn More About Steam Release"
+    },
+    "note": "💡 The entire codebase is open source. Steam version is in development and will provide exclusive content, Steam integration, and helps fund future development of the game. No release date yet - stay tuned!"
+  },
+  "opensource": {
+    "heading": "100% Open Source",
+    "intro": "Every line of code is public under the GPL v3 License. Learn from it, contribute to it, or build your own version.",
+    "card1title": "📖 Transparent Code",
+    "card1desc": "All game logic, premium features, and systems are visible on GitHub. Nothing is hidden.",
+    "card2title": "🤝 Community Driven",
+    "card2desc": "Contributions welcome! Add features, fix bugs, create maps, or improve documentation.",
+    "card3title": "🎓 Educational",
+    "card3desc": "Learn game development by studying a complete auto-battler implementation in vanilla JavaScript with PixiJS.",
+    "card4title": "🔓 Freedom",
+    "card4desc": "GPL v3 ensures derivative works remain open. Fork, modify, and share freely.",
+    "githubStar": "⭐ Star on GitHub",
+    "readLicense": "Read License",
+    "steamHeading": "Steam Version Coming Soon!",
+    "steamP1": "The game is being prepared for Steam release (no date announced yet). It will be available on Windows and Linux.",
+    "steamFeaturesTitle": "Planned Steam features:",
+    "steamF1title": "Exclusive content",
+    "steamF1desc": "Numerous exclusive maps, full campaigns, unique game modes, and more!",
+    "steamF2title": "Cloud Saves",
+    "steamF2desc": "Steam API integration for persistent progression across devices",
+    "steamF3title": "Achievements",
+    "steamF3desc": "Track your accomplishments",
+    "steamF4title": "Convenience",
+    "steamF4desc": "One-click install, auto-updates, potential Steam Workshop support",
+    "steamP2": "And last but not least: the Steam version supports the creator! Your purchase directly funds new features and content.",
+    "kofiSupport": "☕ Support on Ko-fi"
+  },
+  "platforms": {
+    "heading": "Play Anywhere",
+    "web": {
+      "title": "Web Browser",
+      "desc": "Play instantly, no download required. Works on any modern browser.",
+      "tag": "Free"
+    },
+    "steam": {
+      "title": "Steam",
+      "desc": "Full campaign, exclusive maps, cloud saves, and achievements.",
+      "tag": "Coming Soon"
+    },
+    "github": {
+      "title": "GitHub",
+      "desc": "View source code, contribute, or build your own desktop version.",
+      "tag": "Open Source"
+    },
+    "desktop": {
+      "title": "Desktop Builds",
+      "desc": "Free standalone builds for Windows and Linux.",
+      "tag": "Free"
+    }
+  },
+  "faq": {
+    "heading": "Frequently Asked Questions",
+    "q1": "Is the game really free?",
+    "a1": "The free version is 100% free, forever. No ads. No pay-to-win. All core gameplay, unlimited random maps, different game modes. Play in browser or on desktop. The Premium Steam version adds extra maps, exclusive game modes, cloud saves, and achievements.",
+    "q2": "What's the difference between free and Steam versions?",
+    "a2": "The free version includes the complete game with a selection of predefined maps and local saves on desktop apps. The planned Steam version will add cloud saves across devices, Steam achievements, extensive additional premium content (maps, game modes, campaign), and will help sustain ongoing development of the game.",
+    "q3": "Can I compile the \"premium\" version myself?",
+    "a3": "Technically yes! The code is 100% public. However, you won't get Steam features like cloud saves and achievements without the Steam API. Most players prefer the convenience of Steam.",
+    "q4": "How do I contribute to the project?",
+    "a4": "Fork the repository on GitHub, make your changes, and submit a pull request. See CONTRIBUTING.md for guidelines. Contributions to all features (including premium) are welcome!",
+    "q5": "Will new content be added?",
+    "a5": "Yes! The game is actively developed. The free version receives core updates, bug fixes, and new features. When released, the Steam version will include extensive additional premium content including campaigns, exclusive maps, game modes, and continuous updates."
+  },
+  "footer": {
+    "tagline": "100% Open Source Auto-Battler",
+    "license": "Licensed under GPL v3",
+    "quickLinks": "Quick Links",
+    "playNow": "Play Now",
+    "unstableVersion": "Try What's Next",
+    "github": "GitHub",
+    "releaseNotes": "Release Notes",
+    "downloads": "Downloads",
+    "licenseLink": "License",
+    "resources": "Resources",
+    "documentation": "Documentation",
+    "contribute": "Contribute",
+    "credits": "Credits",
+    "reportBug": "Report Bug",
+    "community": "Community",
+    "discussions": "Discussions",
+    "developer": "Developer",
+    "copyright": "© 2026 Dorian Bayart. Licensed under GNU GPL v3.",
+    "kofiSupport": "☕ Support on Ko-fi"
+  }
+}

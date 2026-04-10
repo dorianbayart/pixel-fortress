@@ -1,0 +1,854 @@
+export { Player, PlayerType }
+
+'use strict'
+
+import { Building } from 'building'
+import CONSTANTS from 'constants'
+import gameState, { EventSystem } from 'state'
+import { getMapDimensions } from 'dimensions'
+import { isPositionVisible, isPositionExplored } from 'fogOfWar'
+import { Archer, EliteWarrior, GoldMiner, HeavyInfantry, LumberjackWorker, Mage, Peon, PeonSoldier, QuarryMiner, Soldier, WaterCarrier, WorkerUnit } from 'unit'
+import { searchPath } from 'pathfinding'
+import { distance } from 'utils'
+
+const TERRAIN_TYPES = CONSTANTS.TERRAIN.TYPES
+
+/**
+ * Convert an HSL hue (0–360) to a 0xRRGGBB hex integer.
+ * Saturation is fixed at 70 %, lightness at 50 % for vivid player colours.
+ */
+function hueToHex(hue) {
+  const s = 0.7, l = 0.5
+  const c = (1 - Math.abs(2 * l - 1)) * s
+  const x = c * (1 - Math.abs((hue / 60) % 2 - 1))
+  const m = l - c / 2
+  let r, g, b
+  if      (hue < 60)  { r = c; g = x; b = 0 }
+  else if (hue < 120) { r = x; g = c; b = 0 }
+  else if (hue < 180) { r = 0; g = c; b = x }
+  else if (hue < 240) { r = 0; g = x; b = c }
+  else if (hue < 300) { r = x; g = 0; b = c }
+  else                { r = c; g = 0; b = x }
+  return (Math.round((r + m) * 255) << 16)
+       | (Math.round((g + m) * 255) << 8)
+       |  Math.round((b + m) * 255)
+}
+
+const PlayerType = {
+  HUMAN: 'human',
+  AI: 'ai'
+}
+
+class Player {
+  constructor(type = PlayerType.HUMAN, difficulty = 'medium') {
+
+    this.type = type
+
+    // Assign a unique player colour by evenly distributing hues around the wheel.
+    // Human gets the chosen base hue; each AI is offset by 360/(aiCount+1) steps.
+    const colorIndex = this.isHuman() ? 0 : 1 + gameState.aiPlayers.length
+    const aiCount = gameState.settings?.aiCount ?? 1
+    const baseHue = gameState.settings?.playerHue ?? 180
+    const hueStep = 360 / (aiCount + 1)
+    this.color = hueToHex((baseHue + colorIndex * hueStep) % 360)
+
+    this.units = []
+    this.buildings = []
+    this._cachedEnemies = null
+    this._lastEnemyCacheUpdateTime = 0
+    this._enemyCacheInterval = 1500 // 1.5 seconds
+    this._cachedExploredBorderTiles = null
+    this._lastExploredBorderTilesUpdateTime = 0
+    this._exploredBorderTilesInterval = 2500 // 2.5 seconds
+    this._cachedVisibleEnemies = null
+    this._lastVisibleEnemiesCacheTime = 0
+
+    this.resources = {
+      wood: 15 + (Building.TYPES.TENT.costs.wood || 0),
+      stone: 5 + (Building.TYPES.TENT.costs.stone || 0),
+      water: 5 + (Building.TYPES.TENT.costs.water || 0),
+      gold: 0 + (Building.TYPES.TENT.costs.gold || 0),
+      money: 0 + (Building.TYPES.TENT.costs.money || 0),
+      population: 0
+    }
+
+    // Track how many of each building type has been built
+    this.buildingsBuiltCount = {}
+    for (const type in Building.TYPES) {
+      this.buildingsBuiltCount[Building.TYPES[type].name] = 0
+    }
+
+    // Track first tent placement so it is marked as non-specializable
+    this.initialTentPlaced = false
+
+    if(this.isHuman()) {
+      gameState.humanPlayer = this
+
+      // Dev mode: Set starting resources for testing
+      if (CONSTANTS.DEV_MODE.isEnabled()) {
+        this.resources.wood = CONSTANTS.DEV_MODE.STARTING_RESOURCES
+        this.resources.stone = CONSTANTS.DEV_MODE.STARTING_RESOURCES
+        this.resources.water = CONSTANTS.DEV_MODE.STARTING_RESOURCES
+        this.resources.gold = CONSTANTS.DEV_MODE.STARTING_RESOURCES
+        this.resources.money = CONSTANTS.DEV_MODE.STARTING_RESOURCES
+      }
+    } else {
+      gameState.addAiPlayer(this)
+      this.difficulty = difficulty
+      this.aiBuildingTimer = 0
+
+      console.log(gameState)
+
+      // Set cooldowns based on difficulty
+      const difficultySettings = {
+        'easy': { cooldown: 25000 }, // 25 seconds
+        'medium': { cooldown: 9500 }, // 9.5 seconds
+        'hard': { cooldown: 5000 }    // 5 seconds
+      }
+      this.aiBuildingCooldown = difficultySettings[this.difficulty].cooldown
+
+      // Pre-calculate resource tile locations for AI
+      this.goldTiles = []
+      this.rockTiles = []
+      setTimeout(async () => {
+        if(gameState.gameStatus === 'menu') return
+        const { width: MAP_WIDTH, height: MAP_HEIGHT } = getMapDimensions()
+        for (let x = 0; x < MAP_WIDTH; x++) {
+          for (let y = 0; y < MAP_HEIGHT; y++) {
+            const tile = gameState.map[x][y]
+            if (tile.type === TERRAIN_TYPES.GOLD.type) {
+              this.goldTiles.push({ x, y })
+            }
+            if (tile.type === TERRAIN_TYPES.ROCK.type) {
+              this.rockTiles.push({ x, y })
+            }
+          }
+        }
+      }, 2500)
+    }
+
+    this.events = new EventSystem()
+  }
+
+  clear() {
+    if (this.units) {
+      this.units.forEach(unit => {
+        unit.destroy()
+      })
+      this.units = []
+    }
+    if (this.buildings) {
+      this.buildings.forEach(building => {
+        building.destroy()
+      })
+      this.buildings = []
+    }
+
+    if (this.events) {
+      this.events.removeAllListeners()
+    }
+  }
+
+  getUnits() {
+    return this.units
+  }
+
+  getBuildings() {
+    return this.buildings
+  }
+
+  getTents() {
+    return this.buildings.filter(building => building.type === Building.TYPES.TENT)
+  }
+
+  /** @deprecated Use `player.color` (hex integer) directly. */
+  getColor() {
+    return this.color
+  }
+
+  isHuman() {
+    return this.type === PlayerType.HUMAN
+  }
+
+  getEnemies() {
+    if (this._cachedEnemies && (performance.now() - this._lastEnemyCacheUpdateTime < this._enemyCacheInterval)) {
+      return this._cachedEnemies
+    }
+
+    const enemies = this.isHuman() ? 
+      [
+        ...gameState.aiPlayers.flatMap(ai => ai.getUnits()),
+        ...gameState.aiPlayers.flatMap(ai => ai.getBuildings())
+      ] : [
+        ...gameState.humanPlayer.getUnits(),
+        ...gameState.humanPlayer.getBuildings()
+      ]
+    this._cachedEnemies = enemies
+    this._lastEnemyCacheUpdateTime = performance.now()
+    return enemies
+  }
+
+  getExploredBorderTiles() {
+    if (this._cachedExploredBorderTiles && (performance.now() - this._lastExploredBorderTilesUpdateTime < this._exploredBorderTilesInterval)) {
+      return this._cachedExploredBorderTiles
+    }
+
+    const { width: MAP_WIDTH, height: MAP_HEIGHT } = getMapDimensions()
+    const borderTiles = []
+    const uniqueBorderTiles = new Set()
+
+    for (let x = 0; x < MAP_WIDTH; x++) {
+      for (let y = 0; y < MAP_HEIGHT; y++) {
+        const tile = gameState.map[x]?.[y]
+        // Check if it's a walkable tile (use this player's explored grid)
+        if (isPositionExplored(x, y, this) && tile && (tile.type === TERRAIN_TYPES.GRASS.type || tile.type === TERRAIN_TYPES.SAND.type || tile.type === TERRAIN_TYPES.DEPLETED_TREE.type)) {
+          const tileKey = `${x},${y}`
+          // Check neighbors
+          for (let dx = -1; dx <= 1; dx++) {
+            if(uniqueBorderTiles.has(tileKey)) continue
+            for (let dy = -1; dy <= 1; dy++) {
+              if (dx === 0 && dy === 0) continue // Skip self
+              if(uniqueBorderTiles.has(tileKey)) continue
+
+              const nx = x + dx
+              const ny = y + dy
+
+              // Check bounds, and if neighbor is unexplored (use this player's explored grid)
+              if (nx >= 0 && nx < MAP_WIDTH && ny >= 0 && ny < MAP_HEIGHT && !isPositionExplored(nx, ny, this)) {
+                if (!uniqueBorderTiles.has(tileKey)) {
+                  uniqueBorderTiles.add(tileKey)
+                  borderTiles.push({ x: x, y: y })
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    this._cachedExploredBorderTiles = borderTiles
+    this._lastExploredBorderTilesUpdateTime = performance.now()
+    return borderTiles
+  }
+
+  getVisibleEnemies() {
+    const now = performance.now()
+    if (this._cachedVisibleEnemies && (now - this._lastVisibleEnemiesCacheTime < CONSTANTS.FOG_OF_WAR.UPDATE_INTERVAL)) {
+      return this._cachedVisibleEnemies
+    }
+    const result = this.getEnemies().filter(enemy => {
+      const x = enemy.currentNode?.x !== undefined ? enemy.currentNode.x : enemy.x
+      const y = enemy.currentNode?.y !== undefined ? enemy.currentNode.y : enemy.y
+      // Use this player's visibility grid
+      return isPositionVisible(x, y, this)
+    })
+    this._cachedVisibleEnemies = result
+    this._lastVisibleEnemiesCacheTime = now
+    return result
+  }
+
+  getResources() {
+    // Calculate current population based on units
+    this.resources.population = this.units.length
+    return { ...this.resources }
+  }
+
+  updateResources(updates) {
+    const oldResources = { ...this.resources }
+    this.resources = { ...this.resources, ...updates }
+    this.events.emit('resources-changed', this.resources, oldResources)
+    for (const [type, newVal] of Object.entries(updates)) {
+      const oldVal = oldResources[type] ?? 0
+      const diff = newVal - oldVal
+      if (diff < 0) {
+        gameState.events.emit('resource-spent', { type, amount: -diff, player: this })
+      } else if (diff > 0 && type !== 'money') {
+        gameState.events.emit('resource-gathered', { type, amount: diff, player: this })
+      }
+    }
+  }
+
+  // Add wood, subtract wood, etc.
+  addResource(type, amount) {
+    if (this.resources[type] !== undefined) {
+      this.resources[type] += amount
+      this.events.emit('resources-changed', this.resources)
+      if (amount > 0 && type !== 'money') {
+        gameState.events.emit('resource-gathered', { type, amount, player: this })
+      } else if (amount < 0) {
+        gameState.events.emit('resource-spent', { type, amount: -amount, player: this })
+      }
+    }
+  }
+
+  /**
+   * Check if the player can afford a building
+   * @param {object} buildingType - The building type object
+   * @returns {boolean} - True if the player can afford it, false otherwise
+   */
+  canAffordBuilding(buildingType) {
+    const resources = this.getResources()
+    const costs = this.getBuildingCost(buildingType)
+    for (const [resource, cost] of Object.entries(costs)) {
+      if (!resources[resource] || resources[resource] < cost) {
+        return false
+      }
+    }
+    return true
+  }
+
+  /**
+   * Check if the player can afford a building upgrade
+   * @param {Building} building - The building instance to check for upgrade affordability
+   * @returns {boolean} - True if the player can afford the upgrade, false otherwise
+   */
+  canAffordUpgrade(building) {
+    const resources = this.getResources()
+    const upgradeCosts = building.getUpgradeCosts()
+
+    if (!upgradeCosts) return false // No upgrades available
+
+    for (const [resource, cost] of Object.entries(upgradeCosts)) {
+      if (!resources[resource] || resources[resource] < cost) {
+        return false
+      }
+    }
+    return true
+  }
+
+  /**
+   * Find a suitable placement for a new building
+   * @param {object} buildingType - The building type object
+   * @returns {Promise<object|null>} - An object with x, y coordinates or null if no placement found
+   */
+  async findBuildingPlacement(buildingType) {
+    const { width: MAP_WIDTH, height: MAP_HEIGHT } = getMapDimensions()
+    const tents = this.getTents()
+
+    if (tents.length === 0) return null // No base to build from
+
+    // Helper to check if a tile is occupied
+    const isOccupied = (x, y) => {
+      const tile = gameState.map[x][y]
+      return tile.building || this.getUnits().some(unit => unit.x === x && unit.y === y) || this.getEnemies().some(enemy => enemy.x === x && enemy.y === y)
+    }
+
+    // Helper to check for water adjacency for Well
+    const isAdjacentToWater = (x, y) => {
+      for (let dx = -1; dx <= 1; dx++) {
+        for (let dy = -1; dy <= 1; dy++) {
+          if (dx === 0 && dy === 0) continue
+          const nx = x + dx
+          const ny = y + dy
+          if (nx >= 0 && nx < MAP_WIDTH && ny >= 0 && ny < MAP_HEIGHT && gameState.map[nx][ny].type === TERRAIN_TYPES.WATER.type) {
+            return true
+          }
+        }
+      }
+      return false
+    }
+
+    // Helper to count nearby trees for Lumberjack
+    const countNearbyTrees = (x, y, radius) => {
+      let count = 0
+      for (let dx = -radius; dx <= radius; dx++) {
+        for (let dy = -radius; dy <= radius; dy++) {
+          const nx = (x + dx) | 0
+          const ny = (y + dy) | 0
+          if (nx >= 0 && nx < MAP_WIDTH && ny >= 0 && ny < MAP_HEIGHT && gameState.map[nx][ny].type === TERRAIN_TYPES.TREE.type) {
+            count++
+          }
+        }
+      }
+      return count
+    }
+
+    let potentialPlacements = []
+    const searchRadius = MAP_WIDTH / 2 * 0.80 | 0; // Define a search radius around tents
+
+    // Specific search logic based on building type
+    switch (buildingType) {
+      case Building.TYPES.LUMBERJACK:
+        for (const tent of tents) {
+          const startX = Math.max(0, tent.x - searchRadius);
+          const endX = Math.min(MAP_WIDTH - 1, tent.x + searchRadius);
+          const startY = 0;
+          const endY = Math.min(MAP_HEIGHT - 1, 2 * searchRadius);
+
+          for (let x = startX; x <= endX; x++) {
+            for (let y = startY; y <= endY; y++) {
+              const tile = gameState.map[x][y];
+              if (isOccupied(x, y)) continue;
+              if ((tile.type === TERRAIN_TYPES.GRASS.type || tile.type === TERRAIN_TYPES.SAND.type) && countNearbyTrees(x, y, 3) >= 3 && !this.getBuildings().some(b => distance({ x, y }, b) < 3)) {
+                potentialPlacements.push({ x, y });
+              }
+            }
+          }
+        }
+        break;
+
+      case Building.TYPES.QUARRY:
+        for (const { x, y } of this.rockTiles) {
+          if (!isOccupied(x, y)) {
+            potentialPlacements.push({ x, y });
+          }
+        }
+        break;
+
+      case Building.TYPES.WELL:
+        for (const tent of tents) {
+          const startX = Math.max(0, tent.x - searchRadius);
+          const endX = Math.min(MAP_WIDTH - 1, tent.x + searchRadius);
+          const startY = 0;
+          const endY = Math.min(MAP_HEIGHT - 1, 2 * searchRadius);
+
+          for (let x = startX; x <= endX; x++) {
+            for (let y = startY; y <= endY; y++) {
+              const tile = gameState.map[x][y];
+              if (isOccupied(x, y)) continue;
+              if ((tile.type === TERRAIN_TYPES.GRASS.type || tile.type === TERRAIN_TYPES.SAND.type) && isAdjacentToWater(x, y) && !this.getBuildings().some(b => distance({ x, y }, b) < 2)) {
+                potentialPlacements.push({ x, y });
+              }
+            }
+          }
+        }
+        break;
+
+      case Building.TYPES.GOLD_MINE:
+        for (const { x, y } of this.goldTiles) {
+          if (!isOccupied(x, y)) {
+            potentialPlacements.push({ x, y });
+          }
+        }
+        break;
+
+      default: // For TENT, BARRACKS, ARMORY, CITADEL (general buildings)
+        for (const tent of tents) {
+          const startX = Math.max(0, tent.x - searchRadius);
+          const endX = Math.min(MAP_WIDTH - 1, tent.x + searchRadius);
+          const startY = 0;
+          const endY = Math.min(MAP_HEIGHT - 1, 2 * searchRadius);
+
+          for (let x = startX; x <= endX; x++) {
+            for (let y = startY; y <= endY; y++) {
+              const tile = gameState.map[x][y];
+              if (isOccupied(x, y)) continue;
+              if ((tile.type === TERRAIN_TYPES.GRASS.type || tile.type === TERRAIN_TYPES.SAND.type) && !this.getBuildings().some(b => distance({ x, y }, b) < 3)) {
+                potentialPlacements.push({ x, y });
+              }
+            }
+          }
+        }
+        break;
+    }
+
+    // Sort potential placements by Euclidean distance to the nearest tent
+    potentialPlacements.sort((a, b) => {
+      let distA = Infinity
+      for (const tent of tents) {
+        distA = Math.min(distA, distance(a, tent))
+      }
+      let distB = Infinity
+      for (const tent of tents) {
+        distB = Math.min(distB, distance(b, tent))
+      }
+      return distA - distB
+    })
+
+    // For resource buildings, check path for a limited number of closest candidates
+    if ([Building.TYPES.LUMBERJACK, Building.TYPES.QUARRY, Building.TYPES.WELL, Building.TYPES.GOLD_MINE].includes(buildingType)) {
+      const candidatesToCheck = potentialPlacements.slice(0, 5); // Check up to 5 closest candidates
+
+      // Check all combinations concurrently
+      const pathChecks = []
+      for (const placement of candidatesToCheck) {
+        for (const tent of tents) {
+          pathChecks.push(
+            searchPath(tent.x, tent.y, placement.x, placement.y)
+              .then(path => ({ placement, path }))
+          )
+        }
+      }
+
+      // Wait for all path checks
+      const results = await Promise.all(pathChecks)
+
+      // Return first placement with a valid path
+      for (const { placement, path } of results) {
+        if (path) {
+          return placement
+        }
+      }
+    } else {
+      // For general buildings, return the closest valid placement without pathfinding
+      if (potentialPlacements.length > 0) {
+        const length = Math.min(5, potentialPlacements.length)
+        return potentialPlacements[Math.floor(Math.random()*length)]
+      }
+    }
+
+    return null
+  }
+
+  /**
+   * AI logic to decide the next building type to construct based on difficulty.
+   * Combat buildings (Barracks, Archery, etc.) are no longer built directly;
+   * instead the AI builds Tents and then calls decideSpecialization() to convert them.
+   * @returns {object|null} - The building type object or null if no building is decided.
+   */
+  async decideNextBuildingType() {
+    const buildings = this.getBuildings()
+    const lumberjacks = buildings.filter(b => b.type === Building.TYPES.LUMBERJACK).length
+    const quarries = buildings.filter(b => b.type === Building.TYPES.QUARRY).length
+    const wells = buildings.filter(b => b.type === Building.TYPES.WELL).length
+    const goldMines = buildings.filter(b => b.type === Building.TYPES.GOLD_MINE).length
+    const markets = buildings.filter(b => b.type === Building.TYPES.MARKET).length
+    const tents = buildings.filter(b => b.type === Building.TYPES.TENT).length
+
+    // Combat capacity: all specialized combat buildings + unspecialized Tents (potential slots)
+    const combatCapacity = buildings.filter(b =>
+      b.type === Building.TYPES.BARRACKS ||
+      b.type === Building.TYPES.ARCHERY ||
+      b.type === Building.TYPES.ARCANA ||
+      b.type === Building.TYPES.ARMORY ||
+      b.type === Building.TYPES.CITADEL ||
+      (b.type === Building.TYPES.TENT && b.canSpecialize)
+    ).length
+
+    // Helper to check if AI can afford and if a building type is needed
+    const canBuild = (buildingType, currentCount, targetCount) => {
+      return currentCount < targetCount && this.canAffordBuilding(buildingType)
+    }
+    // Helper to build a combat Tent (for later specialization)
+    const canBuildCombatTent = (targetCapacity) => {
+      return combatCapacity < targetCapacity && this.canAffordBuilding(Building.TYPES.TENT)
+    }
+
+    switch (this.difficulty) {
+      case 'easy':
+        // Simple, sequential priorities
+        if (canBuild(Building.TYPES.LUMBERJACK, lumberjacks, 2) && this.findBuildingPlacement(Building.TYPES.LUMBERJACK)) return Building.TYPES.LUMBERJACK
+        if (canBuild(Building.TYPES.QUARRY, quarries, 1) && this.findBuildingPlacement(Building.TYPES.QUARRY)) return Building.TYPES.QUARRY
+        if (canBuild(Building.TYPES.WELL, wells, 1) && this.findBuildingPlacement(Building.TYPES.WELL)) return Building.TYPES.WELL
+        if (canBuild(Building.TYPES.GOLD_MINE, goldMines, 1) && this.findBuildingPlacement(Building.TYPES.GOLD_MINE)) return Building.TYPES.GOLD_MINE
+        if (canBuild(Building.TYPES.LUMBERJACK, lumberjacks, 3) && this.findBuildingPlacement(Building.TYPES.LUMBERJACK)) return Building.TYPES.LUMBERJACK
+        if (canBuild(Building.TYPES.QUARRY, quarries, 2) && this.findBuildingPlacement(Building.TYPES.QUARRY)) return Building.TYPES.QUARRY
+        if (canBuild(Building.TYPES.WELL, wells, 2) && this.findBuildingPlacement(Building.TYPES.WELL)) return Building.TYPES.WELL
+        if (canBuildCombatTent(1) && this.findBuildingPlacement(Building.TYPES.TENT)) return Building.TYPES.TENT
+        if (canBuild(Building.TYPES.GOLD_MINE, goldMines, 3) && this.findBuildingPlacement(Building.TYPES.GOLD_MINE)) return Building.TYPES.GOLD_MINE
+        if (canBuild(Building.TYPES.LUMBERJACK, lumberjacks, 5) && this.findBuildingPlacement(Building.TYPES.LUMBERJACK)) return Building.TYPES.LUMBERJACK
+        if (canBuild(Building.TYPES.QUARRY, quarries, 4) && this.findBuildingPlacement(Building.TYPES.QUARRY)) return Building.TYPES.QUARRY
+        if (canBuild(Building.TYPES.MARKET, markets, 2) && this.findBuildingPlacement(Building.TYPES.MARKET)) return Building.TYPES.MARKET
+        if (canBuildCombatTent(3) && this.findBuildingPlacement(Building.TYPES.TENT)) return Building.TYPES.TENT
+        if (canBuild(Building.TYPES.WELL, wells, 4) && this.findBuildingPlacement(Building.TYPES.WELL)) return Building.TYPES.WELL
+        // Keep building, basic growth
+        if (canBuild(Building.TYPES.LUMBERJACK, lumberjacks, 8) && this.findBuildingPlacement(Building.TYPES.LUMBERJACK)) return Building.TYPES.LUMBERJACK
+        if (canBuild(Building.TYPES.QUARRY, quarries, 7) && this.findBuildingPlacement(Building.TYPES.QUARRY)) return Building.TYPES.QUARRY
+        if (canBuild(Building.TYPES.WELL, wells, 6) && this.findBuildingPlacement(Building.TYPES.WELL)) return Building.TYPES.WELL
+        if (canBuild(Building.TYPES.GOLD_MINE, goldMines, this.goldTiles/4) && this.findBuildingPlacement(Building.TYPES.GOLD_MINE)) return Building.TYPES.GOLD_MINE
+        if (canBuild(Building.TYPES.MARKET, markets, 4) && this.findBuildingPlacement(Building.TYPES.MARKET)) return Building.TYPES.MARKET
+        if (canBuildCombatTent(8) && this.findBuildingPlacement(Building.TYPES.TENT)) return Building.TYPES.TENT
+        if (canBuild(Building.TYPES.TENT, tents, 5) && this.findBuildingPlacement(Building.TYPES.TENT)) return Building.TYPES.TENT
+        break
+
+      case 'medium':
+        // First, gather resources
+        if (canBuild(Building.TYPES.LUMBERJACK, lumberjacks, 3) && this.findBuildingPlacement(Building.TYPES.LUMBERJACK)) return Building.TYPES.LUMBERJACK
+        if (canBuild(Building.TYPES.QUARRY, quarries, 3) && this.findBuildingPlacement(Building.TYPES.QUARRY)) return Building.TYPES.QUARRY
+        if (canBuild(Building.TYPES.WELL, wells, 2) && this.findBuildingPlacement(Building.TYPES.WELL)) return Building.TYPES.WELL
+        if (canBuild(Building.TYPES.GOLD_MINE, goldMines, 2) && this.findBuildingPlacement(Building.TYPES.GOLD_MINE)) return Building.TYPES.GOLD_MINE
+        // Early combat Tent
+        if (canBuildCombatTent(1) && this.findBuildingPlacement(Building.TYPES.TENT)) return Building.TYPES.TENT
+        // Then grow
+        if (canBuild(Building.TYPES.MARKET, markets, 5) && this.findBuildingPlacement(Building.TYPES.MARKET)) return Building.TYPES.MARKET
+        if (canBuild(Building.TYPES.LUMBERJACK, lumberjacks, 10) && this.findBuildingPlacement(Building.TYPES.LUMBERJACK)) return Building.TYPES.LUMBERJACK
+        if (canBuild(Building.TYPES.QUARRY, quarries, 10) && this.findBuildingPlacement(Building.TYPES.QUARRY)) return Building.TYPES.QUARRY
+        if (canBuild(Building.TYPES.WELL, wells, 6) && this.findBuildingPlacement(Building.TYPES.WELL)) return Building.TYPES.WELL
+        if (canBuild(Building.TYPES.GOLD_MINE, goldMines, this.goldTiles.length/2) && this.findBuildingPlacement(Building.TYPES.GOLD_MINE)) return Building.TYPES.GOLD_MINE
+        if (canBuildCombatTent(12) && this.findBuildingPlacement(Building.TYPES.TENT)) return Building.TYPES.TENT
+        if (canBuild(Building.TYPES.TENT, tents, 10) && this.findBuildingPlacement(Building.TYPES.TENT)) return Building.TYPES.TENT
+        break
+
+      case 'hard':
+        // More aggressive resources gathering
+        if (canBuild(Building.TYPES.LUMBERJACK, lumberjacks, 5) && this.findBuildingPlacement(Building.TYPES.LUMBERJACK)) return Building.TYPES.LUMBERJACK
+        if (canBuild(Building.TYPES.QUARRY, quarries, 4) && this.findBuildingPlacement(Building.TYPES.QUARRY)) return Building.TYPES.QUARRY
+        if (canBuild(Building.TYPES.WELL, wells, 3) && this.findBuildingPlacement(Building.TYPES.WELL)) return Building.TYPES.WELL
+        if (canBuild(Building.TYPES.GOLD_MINE, goldMines, 3) && this.findBuildingPlacement(Building.TYPES.GOLD_MINE)) return Building.TYPES.GOLD_MINE
+        if (canBuild(Building.TYPES.MARKET, markets, 2) && this.findBuildingPlacement(Building.TYPES.MARKET)) return Building.TYPES.MARKET
+        // Build-up with unlimited combat Tents
+        if (canBuild(Building.TYPES.LUMBERJACK, lumberjacks, 12) && this.findBuildingPlacement(Building.TYPES.LUMBERJACK)) return Building.TYPES.LUMBERJACK
+        if (canBuild(Building.TYPES.QUARRY, quarries, 12) && this.findBuildingPlacement(Building.TYPES.QUARRY)) return Building.TYPES.QUARRY
+        if (canBuild(Building.TYPES.WELL, wells, 12) && this.findBuildingPlacement(Building.TYPES.WELL)) return Building.TYPES.WELL
+        if (canBuild(Building.TYPES.GOLD_MINE, goldMines, this.goldTiles.length) && this.findBuildingPlacement(Building.TYPES.GOLD_MINE)) return Building.TYPES.GOLD_MINE
+        if (canBuild(Building.TYPES.MARKET, markets, 5) && this.findBuildingPlacement(Building.TYPES.MARKET)) return Building.TYPES.MARKET
+        if (canBuild(Building.TYPES.TENT, tents, 8) && this.findBuildingPlacement(Building.TYPES.TENT)) return Building.TYPES.TENT
+        // Default: keep building combat Tents indefinitely
+        if (this.canAffordBuilding(Building.TYPES.TENT) && this.findBuildingPlacement(Building.TYPES.TENT)) return Building.TYPES.TENT
+        break
+    }
+
+    return null // No building to construct at this time
+  }
+
+  /**
+   * AI logic to specialize existing Tents and Barracks based on difficulty.
+   * Called each AI tick before decideNextBuildingType.
+   * @returns {boolean} True if a specialization was performed.
+   */
+  decideSpecialization() {
+    const buildings = this.getBuildings()
+
+    const specializableTents = buildings.filter(b =>
+      b.type === Building.TYPES.TENT && b.canSpecialize
+    )
+    const specializableBarracks = buildings.filter(b =>
+      b.type === Building.TYPES.BARRACKS && b.canSpecialize
+    )
+
+    const archeries = buildings.filter(b => b.type === Building.TYPES.ARCHERY).length
+    const arcanas = buildings.filter(b => b.type === Building.TYPES.ARCANA).length
+    const armories = buildings.filter(b => b.type === Building.TYPES.ARMORY).length
+    const citadels = buildings.filter(b => b.type === Building.TYPES.CITADEL).length
+
+    const trySpec = (building, typeName) => building.handleSpecialization(typeName)
+
+    switch (this.difficulty) {
+      case 'easy':
+        // Specialize all available Tents into Barracks only
+        if (specializableTents.length > 0)
+          return trySpec(specializableTents[0], 'BARRACKS')
+        break
+
+      case 'medium':
+        // Diversify: 1 Archery, 1 Arcana, rest Barracks; Barracks → Armory/Citadel alternately
+        if (specializableTents.length > 0) {
+          if (archeries < 1 && trySpec(specializableTents[0], 'ARCHERY')) return true
+          if (arcanas < 1 && trySpec(specializableTents[0], 'ARCANA')) return true
+          if (trySpec(specializableTents[0], 'BARRACKS')) return true
+        }
+        if (specializableBarracks.length > 0) {
+          if (armories <= citadels && trySpec(specializableBarracks[0], 'ARMORY')) return true
+          if (trySpec(specializableBarracks[0], 'CITADEL')) return true
+        }
+        break
+
+      case 'hard':
+        // Aggressive: specialize everything as fast as possible
+        if (specializableTents.length > 0) {
+          if (archeries < 2 && trySpec(specializableTents[0], 'ARCHERY')) return true
+          if (arcanas < 2 && trySpec(specializableTents[0], 'ARCANA')) return true
+          if (trySpec(specializableTents[0], 'BARRACKS')) return true
+        }
+        if (specializableBarracks.length > 0) {
+          if (armories <= citadels && trySpec(specializableBarracks[0], 'ARMORY')) return true
+          if (trySpec(specializableBarracks[0], 'CITADEL')) return true
+        }
+        break
+    }
+    return false
+  }
+
+  async update(delay) {
+    // Update all buildings
+    for (let i = 0; i < this.getBuildings().length; i++) {
+      this.buildings[i].update(delay)
+    }
+    
+    // Update all units
+    this.getUnits().map(async unit => {
+      unit.update(delay)
+
+      if(unit instanceof WorkerUnit && unit.timeSinceLastTask > 75 && unit.task === 'idle') {
+        // inactive Peons are converted to PeonSoldier
+        this.addPeonSoldier(unit.currentNode.x, unit.currentNode.y)
+        unit.life = 0
+      }
+    })
+
+    this.getUnits().forEach(unit => {
+      if (unit.life <= 0) {
+        gameState.events.emit('unit-killed', { unit, owner: this })
+      }
+    })
+    this.units = this.getUnits().filter(unit => unit.life > 0)
+    this.buildings = this.getBuildings().filter(building => building.life > 0)
+
+    // AI building logic (skipped in campaign until enable_normal_ai script action fires)
+    if (!this.isHuman() && !(gameState.settings.gameMode === 'campaign' && !gameState.campaignNormalAiEnabled)) {
+      this.aiBuildingTimer += delay
+      if (this.aiBuildingTimer >= this.aiBuildingCooldown) {
+        this.aiBuildingTimer -= this.aiBuildingCooldown
+
+        // First try to specialize an existing Tent or Barracks
+        const specialized = this.decideSpecialization()
+
+        if (!specialized) {
+          // Otherwise build a new building
+          const buildingType = await this.decideNextBuildingType()
+
+          if (buildingType) {
+            const placement = await this.findBuildingPlacement(buildingType)
+            if (placement?.x && placement?.y) {
+              const building = this.addBuilding(placement.x, placement.y, buildingType)
+
+              if(building.type === Building.TYPES.MARKET) { // Sell a random resource
+                building.setSellingResource(building.getValidSellingResources()[Math.random() * building.getValidSellingResources().length | 0])
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Get the current cost of a building, adjusted by how many have been built.
+   * @param {object} buildingType - The building type object.
+   * @returns {object} - An object containing the adjusted costs.
+   */
+  getBuildingCost(buildingType) {
+    const baseCosts = buildingType.costs
+    const builtCount = this.buildingsBuiltCount[buildingType.name] || 0
+    const adjustedCosts = {}
+
+    for (const [resource, cost] of Object.entries(baseCosts)) {
+      // Increase cost by 25% for each building of the same type already built
+      adjustedCosts[resource] = cost * (1 + builtCount * 0.25) | 0
+    }
+    return adjustedCosts
+  }
+
+  addBuilding(x, y, buildingType) {
+    // Deduct resources
+    const currentCosts = this.getBuildingCost(buildingType)
+    const resources = this.getResources()
+    for (const [resource, cost] of Object.entries(currentCosts)) {
+      resources[resource] -= cost
+    }
+    this.updateResources(resources)
+
+    // Increment the count for this building type
+    if(buildingType.name === 'Tent' && this.buildingsBuiltCount[buildingType.name] === 0) {
+      this.buildingsBuiltCount[buildingType.name] = -1 // First Tent is not counted
+    }
+    this.buildingsBuiltCount[buildingType.name] = (this.buildingsBuiltCount[buildingType.name] || 0) + 1
+
+    // Create building
+    const building = Building.create(buildingType, x, y, this.color, this)
+
+    // Mark the very first Tent as the initial tent (cannot specialize)
+    if (buildingType === Building.TYPES.TENT && !this.initialTentPlaced) {
+      this.initialTentPlaced = true
+      building.isInitialTent = true
+    }
+
+    gameState.events.emit('building-built', { building, player: this })
+    return building
+  }
+
+  addWorker(x, y) {
+    const unit = new Peon(x, y, this)
+    this.units.push(unit)
+    gameState.events.emit('unit-produced', { unit, player: this })
+    return unit
+  }
+
+  addLumberjackWorker(x, y, assignedBuilding) {
+    const worker = new LumberjackWorker(x, y, this)
+
+    if (assignedBuilding) {
+      // Assign the worker to the building
+      worker.assignedBuilding = assignedBuilding
+      assignedBuilding.assignedWorkers.push(worker)
+    }
+
+    this.units.push(worker)
+    gameState.events.emit('unit-produced', { unit: worker, player: this })
+    return worker
+  }
+
+  addQuarryMiner(x, y, assignedBuilding) {
+    const miner = new QuarryMiner(x, y, this)
+
+    if (assignedBuilding) {
+      // Assign the miner to the building
+      miner.assignedBuilding = assignedBuilding
+      assignedBuilding.assignedWorkers.push(miner)
+    }
+
+    this.units.push(miner)
+    gameState.events.emit('unit-produced', { unit: miner, player: this })
+    return miner
+  }
+
+  addWaterCarrier(x, y, assignedBuilding) {
+    const carrier = new WaterCarrier(x, y, this)
+
+    if (assignedBuilding) {
+      // Assign the worker to the building
+      carrier.assignedBuilding = assignedBuilding
+      assignedBuilding.assignedWorkers.push(carrier)
+    }
+
+    this.units.push(carrier)
+    gameState.events.emit('unit-produced', { unit: carrier, player: this })
+    return carrier
+  }
+
+  addGoldMiner(x, y, assignedBuilding) {
+    const miner = new GoldMiner(x, y, this)
+
+    if (assignedBuilding) {
+      // Assign the miner to the building
+      miner.assignedBuilding = assignedBuilding
+      assignedBuilding.assignedWorkers.push(miner)
+    }
+
+    this.units.push(miner)
+    gameState.events.emit('unit-produced', { unit: miner, player: this })
+    return miner
+  }
+
+  addPeonSoldier(x, y) {
+    const unit = new PeonSoldier(x, y, this)
+    this.units.push(unit)
+    gameState.events.emit('unit-produced', { unit, player: this })
+    return unit
+  }
+
+  addMage(x, y) {
+    const unit = new Mage(x, y, this)
+    this.units.push(unit)
+    gameState.events.emit('unit-produced', { unit, player: this })
+    return unit
+  }
+
+  addArcher(x, y) {
+    const unit = new Archer(x, y, this)
+    this.units.push(unit)
+    gameState.events.emit('unit-produced', { unit, player: this })
+    return unit
+  }
+
+  addSoldier(x, y) {
+    const unit = new Soldier(x, y, this)
+    this.units.push(unit)
+    gameState.events.emit('unit-produced', { unit, player: this })
+    return unit
+  }
+
+  addHeavyInfantry(x, y) {
+    const unit = new HeavyInfantry(x, y, this)
+    this.units.push(unit)
+    gameState.events.emit('unit-produced', { unit, player: this })
+    return unit
+  }
+
+  addEliteWarrior(x, y) {
+    const unit = new EliteWarrior(x, y, this)
+    this.units.push(unit)
+    gameState.events.emit('unit-produced', { unit, player: this })
+    return unit
+  }
+}

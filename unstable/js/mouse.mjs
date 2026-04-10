@@ -1,0 +1,685 @@
+export { Mouse }
+
+'use strict'
+
+import * as PIXI from 'pixijs'
+import CONSTANTS from 'constants'
+import { getCanvasDimensions, getMapDimensions, getTileSize } from 'dimensions'
+import { drawBack } from 'globals'
+import { app, updateZoom } from 'renderer'
+import { loadAndSplitImage } from 'sprites'
+import gameState from 'state'
+
+const ZOOM = CONSTANTS.ZOOM.CAMERA
+
+class Mouse {
+  constructor(xPixels = 0, yPixels = 0) {
+    this.xPixels = xPixels
+    this.yPixels = yPixels
+    this.x = null
+    this.y = null
+    this.worldX = 0 // World coordinates (accounting for zoom/pan)
+    this.worldY = 0
+    this.canvas = null
+    this.isDragging = false
+    this.isPinching = false
+    this.clicked = false
+    this.dragStartX = 0
+    this.dragStartY = 0
+    this.lastX = 0
+    this.lastY = 0
+    this.prevDistance = 0 // distance between fingers
+    this.scale = null,
+    this.sprite = null
+    this.zoomChanged = false
+
+    // Keyboard movement speed
+    this.keyboardMoveSpeed = 1500 // pixels per second
+
+    // Key tracking
+    this.keysPressed = {
+      ArrowUp: false,
+      ArrowDown: false,
+      ArrowLeft: false,
+      ArrowRight: false
+    }
+
+    // Mouse drag physics
+    this.dragVelocity = { x: 0, y: 0 }
+    this.previousDragPosition = { x: 0, y: 0 }
+    this.dragTime = 0
+    this.isDraggingMomentum = false
+
+    // Pending drag delta (accumulated across pointermove events, applied once per game loop frame)
+    this._pendingDragDX = 0
+    this._pendingDragDY = 0
+
+    // Movement physics for smooth transitions
+    this.velocity = { x: 0, y: 0 }
+    this.maxVelocity = this.keyboardMoveSpeed // Maximum velocity
+    this.acceleration = 2.5 // Acceleration per frame
+    this.friction = 0.85 // Deceleration factor
+
+    // Store view transformation for zoom calculation
+    this.viewTransform = {
+      scale: null,
+      x: 0,
+      y: 0
+    }
+
+    // Track if initial position has been set
+    this.initialPositionSet = false
+  }
+
+  /**
+   * Initialize UI components
+   * Sets up the game interface including:
+   * - Mouse cursor
+   * - Debug statistics display
+   * - Event listeners for UI interactions
+   * - Top and bottom UI bars
+   * - Building selection interface
+   * 
+   * @param {Object} mouseInstance - Mouse controller instance
+   */
+  async initMouse(canvas) {
+    this.canvas = canvas
+
+    // Load cursor sprite
+    this.sprite = await PIXI.Assets.load('assets/ui/crosshair.png')
+
+    // Update keyboard event handling for continuous movement
+    window.addEventListener('keydown', (e) => {
+      if (this.keysPressed.hasOwnProperty(e.key)) {
+        this.keysPressed[e.key] = true
+        e.preventDefault()
+      }
+    })
+    
+    window.addEventListener('keyup', (e) => {
+      if (this.keysPressed.hasOwnProperty(e.key)) {
+        this.keysPressed[e.key] = false
+      }
+    })
+
+    // Use this method to update mouse position from event handlers
+    this.updatePosition = (clientX, clientY) => {
+      if (!this._canvasRect || this._rectUpdateNeeded) {
+        this._canvasRect = app.canvas.getBoundingClientRect()
+        this._rectUpdateNeeded = false
+      }
+
+      // Screen coordinates
+      this.xPixels = (clientX - this._canvasRect.left)
+      this.yPixels = (clientY - this._canvasRect.top)
+
+      // Only calculate world coordinates when needed (not for every cursor update)
+      if (this._needWorldCoords) {
+        // Convert to normalized coordinates (0-1 across canvas)
+        const normalizedX = this.xPixels / this._canvasRect.width
+        const normalizedY = this.yPixels / this._canvasRect.height
+        
+        // Convert to world coordinates based on current view
+        this.worldX = ((normalizedX * app.renderer.width / (this.viewTransform.scale || 1)) + this.viewTransform.x)
+        this.worldY = ((normalizedY * app.renderer.height / (this.viewTransform.scale || 1)) + this.viewTransform.y)
+        
+        // Convert to grid coordinates
+        this.x = (this.worldX / getTileSize()) | 0
+        this.y = (this.worldY / getTileSize()) | 0
+
+        this._needWorldCoords = false
+      }
+    }
+  
+    const distanceBetweenTouches = (touch1, touch2) => {
+      const dx = touch1.clientX - touch2.clientX
+      const dy = touch1.clientY - touch2.clientY
+      return Math.sqrt(dx * dx + dy * dy)
+    }
+
+    // Setup event listeners for Pixi.js view
+    const pixiView = app.canvas;
+    
+    pixiView.addEventListener('pointerdown', (e) => {
+      if (e.button === 0) { // Primary button
+        this.isDragging = true
+        this.dragStartX = e.clientX
+        this.dragStartY = e.clientY
+        this._needWorldCoords = true
+        this.updatePosition(e.clientX, e.clientY)
+
+        // Reset drag velocity when starting a new drag
+        this.dragVelocity = { x: 0, y: 0 }
+        this.previousDragPosition = { x: e.clientX, y: e.clientY }
+        this.dragTime = performance.now()
+        this.isDraggingMomentum = false
+
+        // Sync lastX/lastY and reset pending delta
+        this.lastX = e.clientX
+        this.lastY = e.clientY
+        this._pendingDragDX = 0
+        this._pendingDragDY = 0
+      }
+    })
+
+    pixiView.addEventListener('pointerup', (e) => {
+      if (e.button === 0) { // Primary button
+        // If barely moved, treat as a click
+        const dx = Math.abs(e.clientX - this.dragStartX)
+        const dy = Math.abs(e.clientY - this.dragStartY)
+        if (dx < 5 && dy < 5) {
+            this.clicked = true
+
+            // Handle building selection
+            const tile = gameState.map[this.x][this.y]
+            const clickedBuilding = tile?.building
+
+            if (clickedBuilding?.owner.type === 'human') {
+                // If another building was selected, unselect it
+                if (gameState.selectedBuilding && gameState.selectedBuilding !== clickedBuilding) {
+                    gameState.selectedBuilding.selected = false
+                }
+                // Toggle selection of the clicked building
+                clickedBuilding.selected = !clickedBuilding.selected
+                gameState.selectedBuilding = clickedBuilding.selected ? clickedBuilding : null
+            } else if (gameState.selectedBuilding) {
+                // If no building was clicked, unselect the current one
+                gameState.selectedBuilding.selected = false
+                gameState.selectedBuilding = null
+            }
+        } else {
+          // Enable momentum scrolling if we were dragging with significant velocity
+          const dragSpeed = Math.sqrt(this.dragVelocity.x * this.dragVelocity.x + this.dragVelocity.y * this.dragVelocity.y)
+          
+          if (dragSpeed > 1) {
+            this.isDraggingMomentum = true
+          }
+        }
+          
+        this.isDragging = false
+        this._needWorldCoords = true
+        this.updatePosition(e.clientX, e.clientY)
+      }
+    })
+
+    pixiView.addEventListener('wheel', (e) => {
+      e.preventDefault()
+      
+      // Update position first
+      this._needWorldCoords = true
+      this.updatePosition(e.clientX, e.clientY)
+      
+      // Calculate zoom direction
+      const zoomDirection = e.deltaY < 0 ? 1 : -1
+      const zoomFactor = ZOOM.FACTOR * zoomDirection
+      
+      // Get map dimensions
+      const { width: mapWidth, height: mapHeight } = getMapDimensions()
+      const mapPixelWidth = mapWidth * getTileSize()
+      const mapPixelHeight = mapHeight * getTileSize()
+      
+      // Calculate min zoom based on map width and/or height (to prevent zooming out too much)
+      const minZoom = Math.max(ZOOM.MIN, app.renderer.width / mapPixelWidth, app.renderer.height / mapPixelHeight)
+      
+      // Calculate new scale
+      const newScale = Math.max(
+        minZoom, 
+        Math.min((ZOOM.initial || 1) + 1, this.viewTransform.scale * (1 + zoomFactor))
+      )
+      
+      // If scale changed, update transforms
+      if (newScale !== this.viewTransform.scale) {
+        // Store mouse world position before zoom
+        const mouseWorldX = this.worldX
+        const mouseWorldY = this.worldY
+        
+        // Calculate scale ratio
+        const scaleRatio = newScale / this.viewTransform.scale
+        
+        // Calculate new offsets to keep mouse position fixed
+        this.viewTransform.scale = newScale
+
+        // Adjust view transform to keep the mouse position fixed in world space
+        this.viewTransform.x = mouseWorldX - ((mouseWorldX - this.viewTransform.x) / scaleRatio)
+        this.viewTransform.y = mouseWorldY - ((mouseWorldY - this.viewTransform.y) / scaleRatio)
+        
+        // Apply boundary constraints after zoom
+        this.applyBoundaryConstraints()
+
+        // Set flag for renderer to update
+        this.zoomChanged = true
+      }
+
+    })
+
+    // Mouse move event
+    pixiView.addEventListener('pointermove', (e) => {
+      // Handle dragging (panning the view)
+      if (this.isDragging) {
+        const now = performance.now()
+        const dt = now - this.dragTime
+
+        // Calculate velocity from movement
+        if (dt > 0) {
+          this.dragVelocity.x = (e.clientX - this.previousDragPosition.x) / dt * 16 // Scale to roughly match 60fps
+          this.dragVelocity.y = (e.clientY - this.previousDragPosition.y) / dt * 16
+
+          // Store current position and time for next frame
+          this.previousDragPosition = { x: e.clientX, y: e.clientY }
+          this.dragTime = now
+        }
+
+        // Accumulate drag delta — applied once per game loop frame to prevent event flooding
+        this._pendingDragDX += (e.clientX - this.lastX)
+        this._pendingDragDY += (e.clientY - this.lastY)
+
+        this._needWorldCoords = true
+      }
+      
+      // Store current position for next move event
+      this.lastX = e.clientX
+      this.lastY = e.clientY
+      
+      // Update mouse position
+      this._needWorldCoords = true
+      this.updatePosition(e.clientX, e.clientY)
+    })
+
+    // Touch start event
+    pixiView.addEventListener('touchstart', (e) => {
+      e.preventDefault()
+
+      // Get position of touch
+      const touchX = e.touches[0].clientX
+      const touchY = e.touches[0].clientY
+
+      if (e.touches.length === 1) { // Single finger touch
+        this.isDragging = true
+        this.dragStartX = e.touches[0].clientX
+        this.dragStartY = e.touches[0].clientY
+        this.lastX = e.touches[0].clientX
+        this.lastY = e.touches[0].clientY
+        this._needWorldCoords = true
+        this.updatePosition(e.touches[0].clientX, e.touches[0].clientY)
+      } else if (e.touches.length === 2) { // Two fingers (pinch)
+        this.isPinching = true
+        this.isDragging = false
+        this.prevDistance = distanceBetweenTouches(e.touches[0], e.touches[1])
+        
+        // Calculate pinch center
+        const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2
+        const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2
+        this._needWorldCoords = true
+        this.updatePosition(centerX, centerY)
+      }
+    })
+
+    // Touch move event
+    pixiView.addEventListener('touchmove', (e) => {
+      e.preventDefault()
+
+      if (e.touches.length === 1 && this.isDragging) { // Single finger move
+        // Calculate drag distance
+        const dx = (e.touches[0].clientX - this.lastX) / this.viewTransform.scale
+        const dy = (e.touches[0].clientY - this.lastY) / this.viewTransform.scale
+        
+        // Update view offset
+        this.viewTransform.x -= dx
+        this.viewTransform.y -= dy
+        
+        // Apply boundary constraints
+        this.applyBoundaryConstraints()
+
+        // Store current position
+        this.lastX = e.touches[0].clientX
+        this.lastY = e.touches[0].clientY
+        
+        // Update mouse position and flag changes
+        this._needWorldCoords = true
+        this.updatePosition(e.touches[0].clientX, e.touches[0].clientY)
+        this.zoomChanged = true
+      } else if (e.touches.length === 2 && this.isPinching) { // Pinch zoom
+        // Calculate new distance between touches
+        const currentDistance = distanceBetweenTouches(e.touches[0], e.touches[1])
+        const scaleChange = currentDistance / this.prevDistance
+        this.prevDistance = currentDistance
+        
+        // Calculate pinch center
+        const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2
+        const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2
+        this._needWorldCoords = true
+        this.updatePosition(centerX, centerY)
+        
+        // Store world position before zoom
+        const pinchWorldX = this.worldX
+        const pinchWorldY = this.worldY
+
+        // Get map dimensions
+        const { width: mapWidth, height: mapHeight } = getMapDimensions()
+        const mapPixelWidth = mapWidth * getTileSize()
+        const mapPixelHeight = mapHeight * getTileSize()
+        
+        // Calculate min zoom based on map width and/or height (to prevent zooming out too much)
+        const minZoom = Math.max(ZOOM.MIN, app.renderer.width / mapPixelWidth, app.renderer.height / mapPixelHeight)
+      
+        // Calculate new scale
+        const newScale = Math.max(
+          minZoom,
+          Math.min(this._calculateInitialZoom(), this.viewTransform.scale * scaleChange)
+        )
+        
+        // Calculate scale ratio
+        const scaleRatio = newScale / this.viewTransform.scale
+
+        // Apply new scale
+        this.viewTransform.scale = newScale
+        
+        // Adjust view transform like we do for mouse wheel zoom
+        this.viewTransform.x = pinchWorldX - ((pinchWorldX - this.viewTransform.x) / scaleRatio)
+        this.viewTransform.y = pinchWorldY - ((pinchWorldY - this.viewTransform.y) / scaleRatio)
+        
+        // Apply boundary constraints
+        this.applyBoundaryConstraints()
+
+        // Flag that zoom changed
+        this.zoomChanged = true
+      }
+    })
+
+    // Touch end event
+    pixiView.addEventListener('touchend', (e) => {
+      e.preventDefault()
+      
+      if (e.touches.length < 2) {
+        this.isPinching = false
+      }
+      
+      if (e.touches.length === 0) {
+        // If touching a UI element
+        if (e.changedTouches.length > 0) {
+          const touchX = e.changedTouches[0].clientX
+          const touchY = e.changedTouches[0].clientY
+
+          const dx = Math.abs(touchX - this.dragStartX)
+          const dy = Math.abs(touchY - this.dragStartY)
+
+          // If barely moved, treat as a click
+          if (dx < 10 && dy < 10) {
+            this.clicked = true
+            this._needWorldCoords = true
+            this.updatePosition(touchX, touchY)
+          }
+        }
+        this.isDragging = false
+      }
+    })
+
+    // Right-click: cancel current action + prevent context menu
+    pixiView.addEventListener('contextmenu', (e) => {
+      e.preventDefault()
+      this.rightClicked = true
+    })
+  }
+
+  applyKeyboardMovement(deltaTime) {
+    // Skip if game is not in playing state
+    if (gameState.gameStatus !== 'playing') return false
+
+    // Fixed movement speed in pixels per second
+    const moveSpeed = this.maxVelocity * deltaTime / 1000
+    let moveX = 0
+    let moveY = 0
+
+    if (this.keysPressed.ArrowUp) moveY -= moveSpeed
+    if (this.keysPressed.ArrowDown) moveY += moveSpeed
+    if (this.keysPressed.ArrowLeft) moveX -= moveSpeed
+    if (this.keysPressed.ArrowRight) moveX += moveSpeed
+
+    // No movement needed
+    if (moveX === 0 && moveY === 0) return false
+
+    // Apply movement directly
+    this.viewTransform.x += moveX / this.viewTransform.scale
+    this.viewTransform.y += moveY / this.viewTransform.scale
+
+    // Apply boundary constraints
+    this.applyBoundaryConstraints()
+    updateZoom()
+    drawBack()
+
+    return true
+  }
+
+  // OLD COMPLEX VERSION - REPLACED WITH SIMPLE VERSION ABOVE
+  _applyKeyboardMovement_OLD(deltaTime) {
+
+    // Acceleration in pixels per second squared (convert frame-based to time-based)
+    const accelerationPerSecond = this.acceleration * 60  // 2.5 * 60 = 150 px/s²
+
+    // Calculate acceleration based on pressed keys
+    let accelX = 0
+    let accelY = 0
+    const timeScaleFactor = deltaTime / 16 // Normalize for 60 FPS
+    
+    if (this.keysPressed.ArrowUp) accelY -= this.acceleration * timeScaleFactor
+    if (this.keysPressed.ArrowDown) accelY += this.acceleration * timeScaleFactor
+    if (this.keysPressed.ArrowLeft) accelX -= this.acceleration * timeScaleFactor
+    if (this.keysPressed.ArrowRight) accelX += this.acceleration * timeScaleFactor
+    
+    // Normalize diagonal acceleration
+    if (accelX !== 0 && accelY !== 0) {
+        const factor = 1 / Math.sqrt(2)
+        accelX *= factor
+        accelY *= factor
+    }
+    
+    // Apply acceleration to velocity
+    this.velocity.x += accelX
+    this.velocity.y += accelY
+    
+    // Apply friction when no keys are pressed in that axis
+    if (accelX === 0) this.velocity.x *= this.friction
+    if (accelY === 0) this.velocity.y *= this.friction
+    
+    // Clamp velocity to maximum
+    const velocityMagnitude = Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y)
+    if (velocityMagnitude > this.maxVelocity) {
+        const scaleFactor = this.maxVelocity / velocityMagnitude
+        this.velocity.x *= scaleFactor
+        this.velocity.y *= scaleFactor
+    }
+    
+    // Stop tiny movements (to prevent endless drift)
+    if (Math.abs(this.velocity.x) < 0.01) this.velocity.x = 0
+    if (Math.abs(this.velocity.y) < 0.01) this.velocity.y = 0
+    
+    // No movement needed if velocity is effectively zero
+    if (this.velocity.x === 0 && this.velocity.y === 0) return false
+    
+    // Apply velocity to position, adjusting for zoom level
+    this.viewTransform.x += this.velocity.x / this.viewTransform.scale
+    this.viewTransform.y += this.velocity.y / this.viewTransform.scale
+    
+    // Apply boundary constraints
+    this.applyBoundaryConstraints()
+
+    updateZoom()
+    drawBack()
+    
+    // Movement was applied
+    return true
+  }
+
+  applyMouseDrag() {
+    if (this._pendingDragDX === 0 && this._pendingDragDY === 0) return false
+
+    this.viewTransform.x -= this._pendingDragDX / this.viewTransform.scale
+    this.viewTransform.y -= this._pendingDragDY / this.viewTransform.scale
+
+    this._pendingDragDX = 0
+    this._pendingDragDY = 0
+
+    this.applyBoundaryConstraints()
+    updateZoom()
+    drawBack()
+
+    return true
+  }
+
+  applyDragMomentum(deltaTime) {
+    if (!this.isDraggingMomentum) return false
+
+    // Skip if game is not in playing state
+    if (gameState.gameStatus !== 'playing') {
+        this.isDraggingMomentum = false
+        return false
+    }
+    
+    // Apply friction to slow down momentum
+    this.dragVelocity.x *= this.friction
+    this.dragVelocity.y *= this.friction
+    
+    // Stop momentum if velocity is very small
+    if (Math.abs(this.dragVelocity.x) < 0.1 && Math.abs(this.dragVelocity.y) < 0.1) {
+        this.isDraggingMomentum = false
+        return false
+    }
+    
+    // Apply velocity
+    const dx = this.dragVelocity.x * (deltaTime / 16) / this.viewTransform.scale
+    const dy = this.dragVelocity.y * (deltaTime / 16) / this.viewTransform.scale
+    
+    this.viewTransform.x -= dx
+    this.viewTransform.y -= dy
+    
+    // Apply boundary constraints
+    this.applyBoundaryConstraints()
+
+    updateZoom()
+    drawBack()
+    
+    return true
+  }
+
+  /**
+   * Set the initial Zoom level
+   * @returns {number} The initial zoom level
+   */
+  setInitialZoom() {
+    // Update initial zoom value for reference
+    ZOOM.initial = this._calculateInitialZoom()
+    
+    return ZOOM.initial;
+  }
+
+  /**
+   * Calculate the initial zoom level based on map size and canvas dimensions
+   * This sets an appropriate zoom so that a reasonable portion of the map is visible
+   * @returns {number} The calculated initial zoom value
+   */
+  _calculateInitialZoom() {
+    // Set max tiles to display
+    const mapPixelWidth = ZOOM.TILES * getTileSize()
+    const mapPixelHeight = ZOOM.TILES * getTileSize()
+    
+    // Get canvas dimensions
+    const canvasWidth = app.renderer.width
+    const canvasHeight = app.renderer.height
+    
+    // Calculate zoom
+    const zoomForPortion = Math.min(canvasWidth / mapPixelWidth, canvasHeight / mapPixelHeight)
+    
+    // Ensure zoom is within reasonable bounds
+    return Math.min(Math.max(zoomForPortion, ZOOM.MIN), ZOOM.MAX)
+  }
+
+  /**
+   * Apply constraints to keep the map within view bounds
+   * This prevents the user from scrolling beyond the edges of the map
+   * Centers the map when zoomed out enough to see the entire width/height
+   */
+  applyBoundaryConstraints() {
+    const { width, height } = getMapDimensions()
+    const mapWidth = width * getTileSize()
+    const mapHeight = height * getTileSize()
+    const viewWidth = app.renderer.width / this.viewTransform.scale
+    const viewHeight = app.renderer.height / this.viewTransform.scale
+
+    // If zoomed out enough to see entire map width, center it
+    if (viewWidth >= mapWidth) {
+      this.viewTransform.x = (mapWidth - viewWidth) / 2
+    } else {
+      // Otherwise, prevent scrolling past map edges
+      this.viewTransform.x = Math.max(
+        0, 
+        Math.min(this.viewTransform.x, mapWidth - viewWidth)
+      )
+    }
+    
+    // If zoomed out enough to see entire map height, center it
+    if (viewHeight >= mapHeight) {
+      this.viewTransform.y = (mapHeight - viewHeight) / 2
+    } else {
+      // Otherwise, prevent scrolling past map edges
+      this.viewTransform.y = Math.max(
+        0,
+        Math.min(this.viewTransform.y, mapHeight - viewHeight)
+      )
+    }
+  }
+  
+  /**
+   * Set the initial camera position centered on the human player's tent
+   */
+  setInitialCameraPosition() {
+    if (this.initialPositionSet || !app.renderer) return
+
+    // Now calculate initial zoom based on map and canvas size
+    const initialZoom = this.setInitialZoom()
+    this.scale = initialZoom
+    this.viewTransform.scale = initialZoom
+
+    // Get map dimensions in pixels
+    const mapWidth = getMapDimensions().width * getTileSize()
+    const mapHeight = getMapDimensions().height * getTileSize()
+    const tileSize = getTileSize()
+
+    // Calculate visible view dimensions in world space at current scale
+    const viewWidth = app.renderer.width / this.viewTransform.scale
+    const viewHeight = app.renderer.height / this.viewTransform.scale
+
+    // Get human player's tent position
+    const humanTents = gameState.humanPlayer?.getTents()
+    if (humanTents && humanTents.length > 0) {
+      const tent = humanTents[0]
+      const tentWorldX = tent.x * tileSize
+      const tentWorldY = tent.y * tileSize
+
+      // Center the view on the tent position
+      this.viewTransform.x = (tentWorldX - viewWidth / 2) | 0
+      this.viewTransform.y = (tentWorldY - viewHeight / 2) | 0
+
+      console.log(`Initial camera centered on tent at (${tent.x}, ${tent.y})`)
+    } else {
+      // Fallback to center bottom if no tent found (shouldn't happen)
+      this.viewTransform.x = (mapWidth - viewWidth) / 2 | 0
+      this.viewTransform.y = mapHeight - viewHeight | 0
+
+      console.warn('No tent found, using fallback camera position')
+    }
+
+    // Apply constraints to ensure valid position
+    this.applyBoundaryConstraints()
+
+    // Mark as set and trigger redraw
+    this.initialPositionSet = true
+    this.zoomChanged = true
+  }
+  
+  /*
+  * Helper to get current view transform for renderer
+  */
+  getViewTransform() {
+    return { ...this.viewTransform };
+  }
+}

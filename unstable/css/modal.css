@@ -1,0 +1,1001 @@
+
+
+.scenarii-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.scenarii-item {
+  border: 2px solid var(--font-color);
+  border-radius: 0;
+  padding: 15px;
+  background-color: rgba(34, 139, 34, 0.3);
+  text-align: center;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+.scenarii-item:hover {
+  background-color: rgba(34, 139, 34, 0.7);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.8);
+  filter: brightness(1.2);
+}
+
+.scenarii-item:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.8);
+  filter: brightness(0.9);
+}
+
+.scenarii-item h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: var(--font-color);
+}
+
+.scenarii-item-locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.scenarii-item-locked:hover {
+  transform: none;
+  background-color: rgba(34, 139, 34, 0.3);
+  filter: none;
+  box-shadow: none;
+}
+
+.scenarii-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.scenarii-item-title {
+  font-weight: bold;
+  color: var(--font-color);
+  font-size: 14px;
+}
+
+.scenarii-item-difficulty {
+  font-size: 11px;
+  color: rgba(255, 215, 0, 0.8);
+  text-transform: capitalize;
+}
+
+.scenarii-item-description {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.75);
+  text-align: left;
+  line-height: 1.4;
+}
+
+.play-button {
+  background-color: forestgreen;
+  color: var(--font-color);
+  border: 2px solid var(--font-color);
+  border-radius: 0;
+  padding: 5px 15px;
+  cursor: pointer;
+  font-family: var(--font-base);
+  margin-top: 10px;
+  transition: all 0.2s ease-in-out;
+}
+
+.play-button:hover {
+  background-color: rgba(34, 139, 34, 0.7);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.8);
+  filter: brightness(1.2);
+}
+
+.play-button:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.8);
+  filter: brightness(0.9);
+}
+
+
+
+
+
+
+/* Modal styles */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 100;
+  left: 0;
+  top: 0;
+  width: 100dvw;
+  height: 100dvh;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.7);
+  opacity: 0;
+  transition: opacity 0.4s ease-in-out, visibility 0.4s ease-in-out;
+  visibility: hidden; /* Hidden by default */
+  font-size: max(1.75dvh, 13px);
+}
+
+.modal.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-content {
+  background-color: #114611;
+  background: linear-gradient(0deg, #114611, #228b22);
+  margin: calc(5dvh - 2px) auto;
+  border: 2px solid var(--font-color);
+  border-radius: 0;
+  width: min(90dvw, 640px);
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.8);
+  color: var(--font-color);
+  font-family: var(--font-base);
+  padding: 0;
+  max-height: 90dvh;
+  image-rendering: pixelated;
+  display: flex;
+  flex-flow: column;
+  transform: translateY(-50px); /* Start slightly above */
+  transition: transform 0.4s ease-in-out;
+}
+
+.modal.show .modal-content {
+  transform: translateY(0); /* Slide into place */
+}
+
+.modal-header {
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--font-color);
+  position: sticky;
+  text-align: center;
+  top: 0;
+  z-index: 1;
+  background-color: forestgreen;
+}
+
+.modal-header h2 {
+  margin: 0;
+  text-shadow: 0 0 5px forestgreen, 0 0 10px forestgreen;
+}
+
+.close {
+  color: var(--font-color);
+  float: right;
+  font-size: 28px;
+  height: 28px;
+  width: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  right: 20px;
+  top: 10px;
+}
+
+.close:hover,
+.close:focus {
+  color: white;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.modal-body {
+  padding: 20px;
+  line-height: 1.4;
+  font-family: system-ui, Roboto, 'Helvetica Neue', sans-serif;
+  font-weight: 175;
+  overflow-y: auto;
+}
+
+.modal-body h3 {
+  font-weight: 225;
+}
+
+.modal-footer {
+  padding: 15px;
+  border-top: 1px solid var(--font-color);
+  text-align: center;
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+}
+
+/* GitHub links styling */
+.github-links {
+  margin: 20px 0;
+  display: flex;
+  justify-content: space-evenly;
+  gap: 8px;
+}
+
+.github-links h3 {
+  margin-bottom: 10px;
+  text-shadow: 0 0 5px forestgreen;
+}
+
+.link-container {
+  flex: 1;
+}
+
+.link-container a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--font-color);
+  text-decoration: none;
+  padding: 10px 8px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  transition: background-color 0.3s;
+  height: 100%;
+  box-sizing: border-box;
+  text-align: center;
+  gap: 8px;
+}
+
+@media (max-width: 520px) {
+  .github-links {
+    flex-direction: column;
+  }
+
+  .link-container a {
+    justify-content: flex-start;
+  }
+}
+
+.link-container a:hover {
+  background-color: rgba(0, 0, 0, 0.4);
+  text-decoration: underline;
+}
+
+.github-logo {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  filter: invert(83%) sepia(53%) saturate(765%) hue-rotate(359deg) brightness(103%) contrast(105%);
+}
+
+.kofi-logo {
+  height: 20px;
+  flex-shrink: 0;
+  image-rendering: pixelated;
+  filter: sepia(100%) saturate(800%);
+}
+
+/* Game description styling */
+.game-description {
+  margin: 10px 0;
+  font-size: 1.1em;
+}
+
+/* Credits styling */
+.credits, .license {
+  margin: 20px 0;
+}
+
+.credits h3, .license h3 {
+  margin-bottom: 10px;
+  text-shadow: 0 0 5px forestgreen;
+}
+
+.credits p, .license p {
+  margin: 5px 0;
+}
+
+.version-info {
+  font-style: italic;
+  opacity: 0.8;
+  text-align: right;
+}
+
+/* License link styling */
+.license a {
+  color: var(--font-color);
+  text-decoration: underline;
+}
+
+
+.option-group {
+  margin-bottom: 20px;
+}
+
+.option-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.option-btn {
+  background-color: rgba(34, 139, 34, 0.3);
+  border: 2px solid var(--font-color);
+  color: var(--font-color);
+  padding: 8px 16px;
+  border-radius: 0;
+  cursor: pointer;
+  /* font-family: var(--font-base); */
+  transition: background-color 0.1s, box-shadow 0.1s, filter 0.1s;
+}
+
+.option-btn:disabled, .menu-button:disabled {
+  background-color: lightslategrey;
+  cursor: not-allowed;
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+.option-btn:hover {
+  background-color: rgba(34, 139, 34, 0.7);
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.7);
+  filter: brightness(1.15);
+}
+
+.option-btn:active {
+  box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.7);
+  filter: brightness(0.95);
+  transform: translate(1px, 1px);
+}
+
+.option-btn.selected {
+  background-color: forestgreen;
+  outline: 2px solid #ffd700;
+  outline-offset: 1px;
+  filter: brightness(1.2);
+}
+
+input {
+  flex: 1;
+  padding: 8px;
+  /* font-family: var(--font-base); */
+  font-size: .75rem;
+  background: rgba(34, 139, 34, 0.2);
+  border: 2px solid #ffd700;
+  border-radius: 0;
+  color: var(--font-color);
+  text-align: center;
+  user-select: auto;
+  -webkit-user-select: auto;
+  cursor: text;
+}
+
+/* Color swatches */
+.color-picker-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-left: 12%;
+}
+
+#colorSwatches {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+#hueWheelCanvas {
+  width: 92px;
+  height: 92px;
+  cursor: pointer;
+  flex-shrink: 0;
+  touch-action: none;
+  image-rendering: pixelated;
+}
+
+.color-swatch-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.color-swatch {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #ffd700;
+  border-radius: 0;
+  image-rendering: pixelated;
+}
+
+.color-swatch-label {
+  font-size: 0.75em;
+  opacity: 0.9;
+  text-align: center;
+}
+
+/* Custom pixel checkbox */
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle-label input[type='checkbox'] {
+  appearance: none;
+  -webkit-appearance: none;
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  background: rgba(34, 139, 34, 0.2);
+  border: 2px solid #ffd700;
+  border-radius: 0;
+  cursor: pointer;
+  position: relative;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
+
+.toggle-label input[type='checkbox']:checked::after {
+  content: '';
+  display: block;
+  width: 10px;
+  height: 10px;
+  background: #ffd700;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  image-rendering: pixelated;
+}
+
+.footerButton {
+  width: 100%;
+  padding: 8px 16px;
+  background-color: forestgreen;
+  color: var(--font-color);
+  border: 2px solid var(--font-color);
+  border-radius: 0;
+  cursor: pointer;
+  font-family: var(--font-base);
+  transition: background-color 0.1s, box-shadow 0.1s, filter 0.1s;
+}
+
+.footerButton:hover {
+  background-color: rgba(34, 139, 34, 0.7);
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.7);
+  filter: brightness(1.15);
+}
+
+.footerButton:active {
+  box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.7);
+  filter: brightness(0.95);
+  transform: translate(1px, 1px);
+}
+
+.cancelButton {
+  background-color: #333;
+}
+
+.cancelButton:hover {
+  background-color: rgba(51, 51, 51, 0.7);
+  box-shadow: 0 4px 10px rgba(51, 51, 51, 0.8), 0 0 15px var(--font-color);
+}
+
+.cancelButton:active {
+  background-color: rgba(51, 51, 51, 0.9);
+}
+
+/** In-game menu */
+#gameMenuSection .menu-button {
+  margin: 15px auto;
+  width: 80%;
+  max-width: 285px;
+  display: block;
+}
+
+#resumeGame {
+  background-color: forestgreen;
+}
+
+#quitToHome {
+  background-color: rgba(139, 0, 0, 0.7);
+}
+
+/** Map info section */
+.map-info-section {
+  background-color: rgba(0, 0, 0, 0.3);
+  border: 2px solid rgba(255, 215, 0, 0.7);
+  border-radius: 0;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.map-info-section h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 1.2em;
+  text-align: center;
+  color: var(--font-color);
+  text-shadow: 0 0 5px forestgreen;
+}
+
+.map-info-content {
+  margin-bottom: 15px;
+}
+
+.map-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.map-info-row:last-child {
+  border-bottom: none;
+}
+
+.map-info-label {
+  font-weight: 600;
+  color: rgba(255, 215, 0, 0.9);
+}
+
+.map-info-value {
+  font-family: monospace;
+  color: var(--font-color);
+  font-weight: 500;
+  background-color: rgba(0, 0, 0, 0.3);
+  padding: 4px 8px;
+  border-radius: 0;
+}
+
+.export-button {
+  width: 100%;
+  background-color: rgba(34, 139, 34, 0.5);
+  border: 1px solid var(--font-color);
+}
+
+.export-button:hover {
+  background-color: rgba(34, 139, 34, 0.8);
+}
+
+/* Campaign modal — centered, medium width */
+#campaignSetupSection {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+#campaignSetupSection.show {
+  display: flex;
+}
+
+#campaignSetupSection .modal-content {
+  margin: 0;
+  width: min(90dvw, 560px);
+  max-height: 85dvh;
+}
+
+#campaignSetupSection .modal-body {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+/* Campaign levels — full width single column list */
+#campaignLevelsList.scenarii-grid {
+  grid-template-columns: 1fr;
+}
+
+.campaign-success-banner {
+  text-align: center;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  background-color: rgba(255, 215, 0, 0.15);
+  border: 2px solid rgba(255, 215, 0, 0.6);
+  color: rgba(255, 215, 0, 0.95);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.scenarii-item-check {
+  color: limegreen;
+  font-size: 16px;
+  margin-right: 6px;
+}
+
+/* Skirmish modal — wider to accommodate two columns, fills viewport height */
+#skirmishSetupSection .modal-content {
+  width: min(95dvw, 1240px);
+  height: 90dvh;
+}
+
+/* Modal body fills remaining space between header and footer, no self-scroll */
+#skirmishSetupSection .modal-body {
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Two-column layout inside the skirmish modal body */
+.skirmish-columns {
+  display: flex;
+  gap: 0;
+  flex: 1;
+  min-height: 0;
+}
+
+.skirmish-col {
+  min-width: 0;
+  min-height: 0;
+}
+
+.skirmish-col-left {
+  flex: 0 0 45%;
+  border-right: 2px solid rgba(255, 215, 0, 0.5);
+  padding-right: 20px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.skirmish-col-right {
+  flex: 1;
+  padding-left: 20px;
+  overflow-y: auto;
+}
+
+@media (max-width: 600px) {
+  #skirmishSetupSection .modal-body {
+    overflow-y: auto;
+  }
+
+  .skirmish-columns {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .skirmish-col-left {
+    flex: none;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+    padding-right: 0;
+    padding-bottom: 20px;
+  }
+
+  #predefinedMapsList {
+    max-height: 300px;
+  }
+
+  .skirmish-col-right {
+    padding-left: 0;
+    padding-top: 20px;
+    overflow-y: visible;
+  }
+}
+
+/* Seed input row */
+.seed-controls {
+  flex-direction: column;
+  gap: 10px;
+}
+
+.seed-input-row {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.seed-input-row .option-btn {
+  flex: 0 0 auto;
+  min-width: 120px;
+}
+
+.input-hint {
+  font-size: 0.85em;
+  opacity: 0.8;
+  margin: 5px 0 0 0;
+  text-align: center;
+}
+
+/* Game mode description */
+.mode-description {
+  font-size: 0.9em;
+  opacity: 0.85;
+  margin: 10px 0 0 0;
+  text-align: center;
+  min-height: 2.5em;
+}
+
+/* Maps list grid */
+.maps-list-group {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  margin-bottom: 0;
+}
+
+.maps-list-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.maps-list-empty {
+  opacity: 0.7;
+  text-align: center;
+}
+
+.maps-list-error {
+  color: #dc143c;
+  text-align: center;
+}
+
+/* Predefined map item */
+.predefined-map-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(34, 139, 34, 0.2);
+  border: 2px solid rgba(255, 215, 0, 0.5);
+  border-radius: 0;
+  cursor: pointer;
+  transition: background 0.1s, box-shadow 0.1s;
+}
+
+.predefined-map-item:hover {
+  background: rgba(34, 139, 34, 0.4);
+  border-color: #ffd700;
+}
+
+.predefined-map-item.selected {
+  border-color: #ffd700;
+  outline: 2px solid #ffd700;
+  outline-offset: 1px;
+}
+
+.map-item-preview {
+  flex-shrink: 0;
+}
+
+.map-preview-canvas {
+  display: block;
+  width: 80px;
+  height: 80px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 2px solid rgba(255, 215, 0, 0.6);
+  border-radius: 0;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.map-item-info {
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.map-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  margin-bottom: 6px;
+}
+
+.map-item-name {
+  margin: 0;
+  font-size: 1.1em;
+}
+
+.map-item-description {
+  margin: 4px 0;
+  font-size: 0.9em;
+  opacity: 0.85;
+}
+
+.map-item-tags {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 0.85em;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.map-item-id {
+  opacity: 0.7;
+  font-family: monospace;
+  font-size: 0.8em;
+}
+
+/* Map badges */
+.map-badge {
+  padding: 2px 6px;
+  border-radius: 0;
+  font-size: 0.85em;
+}
+
+.map-badge--difficulty {
+  padding: 2px 8px;
+  font-weight: bold;
+  outline: 1px solid rgba(0, 0, 0, 0.5);
+}
+
+.map-badge--easy {
+  background: #228b22;
+}
+
+.map-badge--medium {
+  background: #ffa500;
+}
+
+.map-badge--hard {
+  background: #dc143c;
+}
+
+.map-badge--size {
+  background: rgba(255, 215, 0, 0.3);
+  border: 1px solid rgba(255, 215, 0, 0.5);
+}
+
+.map-badge--type {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* Predefined map tab fills the left column height */
+#predefinedMapTab {
+  display: none;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+#predefinedMapTab.active {
+  display: flex;
+}
+
+#predefinedMapsList {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+/* Tab navigation styles */
+.tab-navigation {
+  display: flex;
+  gap: 0;
+  margin-bottom: 20px;
+  border-bottom: 2px solid var(--font-color);
+}
+
+.tab-button {
+  flex: 1;
+  padding: 12px 16px;
+  background-color: rgba(34, 139, 34, 0.2);
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--font-color);
+  font-family: var(--font-base);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.1s;
+  opacity: 0.7;
+}
+
+.tab-button:hover {
+  background-color: rgba(34, 139, 34, 0.4);
+  opacity: 0.9;
+}
+
+.tab-button.active {
+  background-color: rgba(34, 139, 34, 0.5);
+  border-bottom-color: #ffd700;
+  opacity: 1;
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* Inline control layout (label + control on same line) */
+.inline-control {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.inline-control h3 {
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.inline-control select {
+  flex: 1;
+  max-width: 250px;
+  padding: 8px;
+  font-size: 14px;
+  background: rgba(34, 139, 34, 0.2);
+  color: var(--font-color);
+  border: 2px solid #ffd700;
+  border-radius: 0;
+  cursor: pointer;
+  font-family: var(--font-base);
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.inline-control select:focus {
+  outline: 2px solid #ffd700;
+  outline-offset: 1px;
+}
+
+.inline-control select option {
+  background: #114611;
+  color: var(--font-color);
+}
+
+/* Volume sliders */
+input[type='range'] {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  height: 8px;
+  background: rgba(34, 139, 34, 0.3);
+  border: 2px solid #ffd700;
+  border-radius: 0;
+  outline: none;
+  cursor: pointer;
+}
+
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 20px;
+  background: #ffd700;
+  border: 2px solid #114611;
+  border-radius: 0;
+  cursor: pointer;
+  image-rendering: pixelated;
+}
+
+input[type='range']::-moz-range-thumb {
+  width: 16px;
+  height: 20px;
+  background: #ffd700;
+  border: 2px solid #114611;
+  border-radius: 0;
+  cursor: pointer;
+}
+
+/* Initial hidden states */
+#playOptionsButtons {
+  display: none;
+}
+
+#audioToggleButton {
+  display: none;
+}
+
+/* Options modal specifics */
+#antialiasingStatus {
+  opacity: 0.7;
+  font-size: 0.9em;
+}
+
+.option-heading-icon {
+  width: 1.1em;
+  height: 1.1em;
+  vertical-align: middle;
+  margin-right: 0.4em;
+  filter: invert(1);
+}

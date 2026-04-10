@@ -1,0 +1,152 @@
+export {
+  musicManager,
+  playBuildingSound,
+  playClickSound,
+  playCloseSound,
+  playConfirmSound,
+  playHoverSound,
+  playMenuMusic,
+  toggleMute,
+  isMuted
+}
+
+'use strict'
+
+import CONSTANTS from 'constants'
+import gameState from 'state'
+
+const NOT_ALLOWED_ERROR = CONSTANTS.AUDIO.NOT_ALLOWED_ERROR
+let isMuted = false
+
+/* Sounds */
+// const hoverSound = new Audio('assets/sounds/menu_hover.wav')
+const clickSound = new Audio('assets/sounds/button_fx_mid_002_02_cc0_avr.wav')
+const closeSound = new Audio('assets/sounds/button_fx_mid_002_01_cc0_avr.wav')
+const confirmSound = new Audio('assets/sounds/confirm_style_2_001.ogg')
+const buildingSound = new Audio('assets/sounds/Chest Close 2.ogg')
+
+/* Ambient */
+const forestDayAmbient = new Audio('assets/sounds/Forest Day.ogg')
+
+/* Music */
+const sonatina_letsadventure_3ToArms = new Audio('assets/music/sonatina_letsadventure_3ToArms.ogg')
+
+// Initialize volumes from gameState
+clickSound.volume = gameState.sfxVolume
+closeSound.volume = gameState.sfxVolume
+confirmSound.volume = gameState.sfxVolume
+buildingSound.volume = gameState.sfxVolume
+forestDayAmbient.volume = gameState.sfxVolume
+forestDayAmbient.loop = true
+sonatina_letsadventure_3ToArms.volume = gameState.musicVolume
+sonatina_letsadventure_3ToArms.loop = true
+sonatina_letsadventure_3ToArms.autoplay = true
+
+// Subscribe to volume changes
+gameState.events.on('sfx-volume-changed', (volume) => {
+  clickSound.volume = volume
+  closeSound.volume = volume
+  confirmSound.volume = volume
+  buildingSound.volume = volume
+  forestDayAmbient.volume = volume
+})
+
+gameState.events.on('music-volume-changed', (volume) => {
+  sonatina_letsadventure_3ToArms.volume = volume
+})
+
+/* Sounds */
+const playHoverSound = async () => {
+  if (hoverSound.paused) {
+    hoverSound.play()
+  } else if (confirmSound.currentTime > .75) {
+    hoverSound.currentTime = 0
+  }
+}
+
+const playClickSound = async () => {
+  if (clickSound.paused) {
+    clickSound.play()
+  } else if (confirmSound.currentTime > .75) {
+    clickSound.currentTime = 0
+  }
+}
+
+const playCloseSound = async () => {
+  if (closeSound.paused) {
+    closeSound.play()
+  } else if (confirmSound.currentTime > .75) {
+    closeSound.currentTime = 0
+  }
+}
+
+const playConfirmSound = async () => {
+  if (confirmSound.paused) {
+    confirmSound.play()
+  } else if (confirmSound.currentTime > .75) {
+    confirmSound.currentTime = 0
+  }
+}
+
+const playBuildingSound = async () => {
+  if (buildingSound.paused) {
+    buildingSound.play()
+  } else if (buildingSound.currentTime > .75) {
+    buildingSound.currentTime = 0
+  }
+}
+
+/* Music */
+const musicManager = async () => {
+  playMenuMusic(gameState.gameStatus)
+
+  gameState.events.on('game-status-changed', async (status) => {
+    playMenuMusic(status)
+    playAmbientSounds(status)
+  })
+}
+
+const playAmbientSounds = async (status) => {
+  if (isMuted) return
+
+  if (status === 'playing') {
+    if (forestDayAmbient.paused) {
+      forestDayAmbient.currentTime = 0
+      forestDayAmbient.play()
+    }
+  } else {
+    forestDayAmbient.pause()
+  }
+}
+
+const playMenuMusic = async (status) => {
+  if (isMuted) return
+
+  if (status === 'menu') {
+    if (sonatina_letsadventure_3ToArms.paused) {
+      sonatina_letsadventure_3ToArms.currentTime = 0
+      let playStatus
+      try { // Try to play music
+        playStatus = await sonatina_letsadventure_3ToArms.play()
+      } catch(e) { // play() was not authorized
+        if(!playStatus || playStatus?.includes(NOT_ALLOWED_ERROR)) {
+          isMuted = true
+        }
+      }
+    }
+  } else {
+    sonatina_letsadventure_3ToArms.pause()
+  }
+}
+
+const toggleMute = async () => {
+  isMuted = !isMuted
+  if (isMuted) {
+    sonatina_letsadventure_3ToArms.pause()
+    forestDayAmbient.pause()
+  } else {
+    playMenuMusic(gameState.gameStatus)
+    playAmbientSounds(gameState.gameStatus)
+  }
+}
+

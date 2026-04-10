@@ -1,0 +1,335 @@
+{
+  "menu": {
+    "play": "Jugar",
+    "mapEditor": "Editor de mapas",
+    "options": "Opciones",
+    "about": "Acerca de",
+    "back": "Atrás",
+    "campaign": "Campaña",
+    "skirmish": "Escaramuza",
+    "unmuteAudio": "🎵 Activar Audio",
+    "muteAudio": "🎵 Silenciar Audio",
+    "fullscreen": "🖥️ Pantalla completa",
+    "windowed": "🖥️ Ventana",
+    "loadingAssets": "Cargando recursos del juego...",
+    "welcome": "Bienvenido",
+    "to": "a"
+  },
+  "skirmish": {
+    "title": "Configuración de escaramuza",
+    "predefinedMaps": "Mapas predefinidos",
+    "randomMap": "Mapa aleatorio",
+    "availableMaps": "Mapas disponibles",
+    "mapSize": "Tamaño del mapa",
+    "mapSeed": "Semilla del mapa (Opcional)",
+    "seedPlaceholder": "Ingresa un número semilla",
+    "randomSeed": "Semilla aleatoria",
+    "seedHint": "Dejar vacío para generación aleatoria",
+    "gameMode": "Modo de juego",
+    "aiOpponents": "Oponentes IA",
+    "playerColor": "Color del jugador",
+    "difficultyLabel": "Dificultad",
+    "gameSpeed": "Velocidad de juego",
+    "fogOfWar": "Activar niebla de guerra",
+    "startGame": "Iniciar partida",
+    "cancel": "Cancelar",
+    "you": "Tú",
+    "ai": "IA",
+    "noMapsAvailable": "No hay mapas predefinidos disponibles",
+    "loadingMaps": "Cargando...",
+    "errorLoadingMaps": "Error al cargar los mapas",
+    "modes": {
+      "classic": "Classic",
+      "classicDesc": "Jugabilidad estándar con combate y recolección equilibrados.",
+      "oneShot": "One Shot",
+      "oneShotDesc": "Cada unidad y edificio tiene exactamente un punto de vida. Cualquier daño es fatal.",
+      "turboGathering": "Turbo Gathering",
+      "turboGatheringDesc": "Todos los recolectores de recursos trabajan a velocidad significativamente aumentada.",
+      "towerDefense": "Tower Defense",
+      "towerDefenseDesc": "Defiende tu fortaleza contra oleadas de enemigos. ¡Próximamente!"
+    },
+    "difficulty": {
+      "easy": "Fácil",
+      "medium": "Medio",
+      "hard": "Difícil"
+    },
+    "speed": {
+      "normal": "Normal",
+      "accelerated": "Acelerado",
+      "veryFast": "Muy rápido"
+    }
+  },
+  "options": {
+    "title": "Opciones del juego",
+    "showFps": "Mostrar FPS e info de depuración (Atajo: D)",
+    "showHealthBars": "Mostrar barras de salud (Atajo: H)",
+    "fullscreenMode": "Modo pantalla completa",
+    "highQualityRendering": "Renderizado de alta calidad",
+    "fpsCap": "Límite de FPS",
+    "fpsMonitorRefreshRate": "Frecuencia del monitor",
+    "sfxVolume": "Volumen de efectos de sonido",
+    "musicVolume": "Volumen de música",
+    "language": "Idioma",
+    "extraParticles": "Efectos de partículas adicionales",
+    "save": "Guardar",
+    "cancel": "Cancelar"
+  },
+  "about": {
+    "title": "Acerca de",
+    "description": "Pixel Fortress combina la construcción estratégica de bases con la guerra automatizada. Diseña tu fortaleza, establece la producción de recursos y despliega unidades autónomas.",
+    "genre": "Género",
+    "genreText": "Construcción de bases • Estrategia automatizada • Auto-battler • Pixel Art",
+    "gameRepository": "Repositorio del juego",
+    "developerProfile": "Perfil del desarrollador",
+    "credits": "Créditos",
+    "creditsDeveloper": "Desarrollado por Dorian Bayart",
+    "creditsAssets": "Assets de pixel art de varias colecciones de código abierto",
+    "creditsBuiltWith": "Construido con PixiJS, HTML5 y JavaScript",
+    "license": "Licencia",
+    "licenseText": "Este proyecto está licenciado bajo la Licencia Pública General GNU v3.0 o posterior (GPL-3.0-or-later).",
+    "licenseText2": "100% código abierto. Libre de usar, estudiar, compartir y mejorar.",
+    "supportKofi": "Apoyar en Ko-fi",
+    "close": "Cerrar"
+  },
+  "gameMenu": {
+    "title": "Menú del juego",
+    "mapInformation": "Información del mapa",
+    "seed": "Semilla:",
+    "size": "Tamaño:",
+    "exportMap": "Exportar mapa",
+    "resumeGame": "Continuar",
+    "options": "Opciones",
+    "resetMap": "Reiniciar mapa",
+    "quitToHome": "Volver al inicio"
+  },
+  "game": {
+    "gameOver": "Fin del juego",
+    "gameOverMsg": "¡Tu edificio principal ha sido destruido!",
+    "win": "¡Has ganado!",
+    "winMsg": "¡Has destruido el edificio principal de tu oponente! ¡Felicitaciones!"
+  },
+  "campaign": {
+    "title": "Campaña",
+    "objectives": "Objetivos",
+    "levelComplete": "¡Misión completada!",
+    "levelCompleteMsg": "Todos los objetivos cumplidos. Bien hecho, comandante.",
+    "missionFailed": "Misión fallida",
+    "missionFailedMsg": "Tu Tienda ha sido destruida. Reiniciando misión...",
+    "allCompleted": "¡Todas las misiones cumplidas! Eres un verdadero comandante.",
+    "lockedLevel": "Completa el nivel anterior para desbloquear"
+  },
+  "campaigns": {
+    "tutorial01": {
+      "description": "Aprende a recolectar recursos en Pixel Fortress — construye Cabañas de Madera, Canteras, Pozos y Minas de Oro para impulsar tu economía.",
+      "phase1": {
+        "banner": "Fase 1 — Recolección de madera",
+        "goals": {
+          "lumberjack1": { "title": "Construir una Cabaña del Leñador", "desc": "Coloca una Cabaña del Leñador cerca de los árboles. Cuanto más cerca del bosque, más rápido recolectará tu Peón." },
+          "lumberjack2": { "title": "Construir una 2ª Cabaña del Leñador", "desc": "Construye una segunda Cabaña del Leñador. Tu Tienda formará otro Peón para trabajar allí." },
+          "lumberjack3": { "title": "Construir una 3ª Cabaña del Leñador", "desc": "Construye una tercera Cabaña del Leñador para maximizar tus ingresos de madera." }
+        },
+        "narratives": {
+          "n1": "¡Bienvenido a Pixel Fortress, Comandante!\n\nEsta es tu Tienda — tu base. Forma trabajadores y mantiene tu economía funcionando.\n\nPara recolectar madera, construye una Cabaña del Leñador cerca del bosque. Cuanto más corto sea el camino a los árboles, más rápido trabajará tu Peón. ¡Selecciona la Cabaña del Leñador en la barra inferior y colócala!",
+          "n2": "¡Bien hecho! Tu Tienda ahora formará un Peón y lo enviará a trabajar en esa Cabaña del Leñador.\n\nLos Peones caminan automáticamente a su edificio asignado — no necesitas gestionarlos. ¡Observa cómo aparece uno!",
+          "n3": "¡Tu primer Peón está en camino! Irá a la Cabaña del Leñador, talará árboles cercanos y traerá la madera de vuelta para almacenarla.\n\nObserva tu contador de madera en la barra superior — crecerá pronto...",
+          "n4": "¡Primera madera conseguida! Puedes ver todos tus recursos en la barra superior en cualquier momento.\n\n¡Construye 2 Cabañas de Madera más — cada una forma un nuevo Peón y aumenta tus ingresos!",
+          "n5": "¡Buen progreso! Solo falta una Cabaña del Leñador más.\n\nColócala cerca de los árboles para que tu Peón tenga un camino corto."
+        }
+      },
+      "phase2": {
+        "banner": "Fase 2 — Extracción de piedra",
+        "goals": {
+          "quarry1": { "title": "Construir una Cantera", "desc": "Coloca una Cantera en casillas rocosas para extraer piedra. Se formará un nuevo Peón." },
+          "quarry2": { "title": "Construir una 2ª Cantera", "desc": "Construye una segunda Cantera para duplicar tu producción de piedra." }
+        },
+        "narratives": {
+          "n1": "La madera fluye — ¡buen trabajo! Ahora necesitas piedra.\n\nConstruye una Cantera en casillas rocosas — busca las zonas grises en el mapa. Un Peón extraerá piedra allí y la llevará de vuelta a tu Tienda para almacenarla.",
+          "n2": "¡La Cantera está operativa! Un Peón ya se dirige allí para empezar a extraer.\n\nA diferencia de la madera, la piedra se lleva directamente a la Tienda — colocar tu Cantera cerca de la Tienda acelera las cosas. Observa tu contador de piedra en la barra superior...",
+          "n3": "¡La piedra está llegando! Construye una Cantera más para duplicar tu producción y completar esta fase."
+        }
+      },
+      "phase3": {
+        "banner": "Fase 3 — Agua & Oro",
+        "goals": {
+          "well": { "title": "Construir un Pozo", "desc": "Coloca un Pozo junto a casillas de agua para recolectar agua." },
+          "goldMine": { "title": "Construir una Mina de Oro", "desc": "Coloca una Mina de Oro en casillas de mineral de oro para extraer oro precioso." }
+        },
+        "narratives": {
+          "n1": "¡Dos recursos asegurados, dos más por venir!\n\nPrimero, construye un Pozo para recolectar agua. Colócalo junto a casillas de agua — busca las zonas azules en el mapa. Cuanto más cerca esté el Pozo de tu Tienda, más rápido podrá tu Peón volver a almacenar el agua.",
+          "n2": "¡Tu Pozo está extrayendo agua fresca!\n\nAhora encuentra las casillas de mineral de oro en el mapa — tienen un tinte amarillento. Construye una Mina de Oro directamente en una casilla de oro. Al igual que la Cantera, tu Peón extraerá el oro y regresará a la Tienda para almacenarlo.",
+          "n3": "¡Los cuatro recursos se están recolectando ahora: madera, piedra, agua y oro!\n\nUna economía sólida es el fundamento de cualquier gran fortaleza. Observa cómo crecen tus reservas en la barra superior."
+        }
+      },
+      "phase4": {
+        "banner": "Fase 4 — Mejoras",
+        "goals": {
+          "lumberjack": { "title": "Mejorar una Cabaña del Leñador", "desc": "Selecciona una Cabaña del Leñador y mejórala al nivel 2 para más trabajadores." },
+          "quarry": { "title": "Mejorar una Cantera", "desc": "Mejora una Cantera al nivel 2 para una extracción de piedra más rápida." },
+          "well": { "title": "Mejorar el Pozo", "desc": "Mejora el Pozo al nivel 2 para permitir más trabajadores." },
+          "goldMine": { "title": "Mejorar la Mina de Oro", "desc": "Mejora la Mina de Oro al nivel 2 para una extracción de oro más rápida." }
+        },
+        "narratives": {
+          "n1": "¡Sobresaliente, Comandante! Los cuatro recursos están en línea.\n\nLos edificios pueden mejorarse para ser más eficientes. Haz clic en cualquier edificio para seleccionarlo — el panel inferior mostrará sus estadísticas y un botón de Mejora.\n\nMejorar una Cabaña del Leñador o un Pozo permite que más Peones trabajen allí. Mejorar una Cantera o una Mina de Oro hace que tus Peones recolecten más rápido.",
+          "n2": "¡Primera mejora completada! Sigue adelante — mejora los cuatro edificios de recursos al nivel 2 para completar el tutorial.\n\nCabaña del Leñador y Pozo: más trabajadores. Cantera y Mina de Oro: recolección más rápida.",
+          "n3": "¡A mitad de camino! Una economía bien mejorada te permitirá entrenar soldados y construir torres en futuras misiones.\n\nMejora los edificios restantes para terminar.",
+          "n4": "¡Una última mejora!\n\nUna vez que tu economía esté completamente operativa, ¡el combate te espera — soldados, arqueros, torres y batallas en la próxima misión!"
+        }
+      }
+    }
+  },
+  "ui": {
+    "life": "Vida",
+    "producing": "Produciendo",
+    "workers": "Trabajadores",
+    "costs": "Costos",
+    "sell": "Vender",
+    "atk": "Atq",
+    "spd": "Vel",
+    "range": "Alcance",
+    "tiles": "casillas",
+    "selling": "Vendiendo {resource} por {price} monedas.",
+    "random": "Aleatorio",
+    "level": "Nivel",
+    "lifeUpgrade": "Vida +{amount}",
+    "maxWorkersUpgrade": "Trab. máx +{amount}",
+    "atkUpgrade": "Daño +{amount}",
+    "rangeUpgrade": "Alcance +{amount} casillas",
+    "productionSpeedUpgrade": "Vel. prod. +{amount}%",
+    "cooldownUpgrade": "Vel. de ataque +{amount}%",
+    "specialize": "Especializar",
+    "close": "Cerrar",
+    "placed": "¡{name} colocado!",
+    "cannotAfford": "No puedes permitirte {name} (Necesitas {costs})",
+    "selectedForPlacement": "{name} seleccionado para colocar",
+    "healthBarsOn": "Barras de vida activadas",
+    "healthBarsOff": "Barras de vida desactivadas",
+    "resettingMap": "Reiniciando mapa...",
+    "returningToMenu": "Volviendo al menú principal...",
+    "mapExported": "Mapa exportado: {filename}",
+    "errorExportingMap": "Error al exportar el mapa",
+    "specializedInto": "¡Especializado en {name}!",
+    "cannotAffordSpec": "No puedes permitirte la especialización (Necesitas {costs})",
+    "noMoreUpgrades": "No hay más mejoras disponibles.",
+    "upgradedToLevel": "¡{name} mejorado al Nivel {level}!",
+    "cannotAffordUpgrade": "No puedes permitirte la mejora (Necesitas {costs})",
+    "towerSpecialized": "¡Torre especializada en {name}!"
+  },
+  "buildings": {
+    "tent": {
+      "name": "Tienda",
+      "description": "Produce peones",
+      "details": "¡Trabajo, trabajo!"
+    },
+    "lumberjack": {
+      "name": "Cabaña del Leñador",
+      "description": "Cosecha madera de árboles cercanos",
+      "details": "Debe colocarse junto a árboles."
+    },
+    "goldMine": {
+      "name": "Mina de oro",
+      "description": "Extrae oro",
+      "details": "Debe colocarse sobre mineral de oro."
+    },
+    "quarry": {
+      "name": "Cantera",
+      "description": "Extrae piedra",
+      "details": "Debe colocarse sobre roca."
+    },
+    "well": {
+      "name": "Pozo",
+      "description": "Produce agua",
+      "details": "Debe colocarse junto al agua."
+    },
+    "arcana": {
+      "name": "Arcanos",
+      "description": "Entrena magos",
+      "details": "Unidad a distancia, lanza bolas de fuego a largo alcance."
+    },
+    "archery": {
+      "name": "Arquería",
+      "description": "Entrena arqueros",
+      "details": "Unidad a distancia, buen alcance y daño moderado."
+    },
+    "barracks": {
+      "name": "Cuartel",
+      "description": "Entrena soldados",
+      "details": "Entrena unidades de infantería."
+    },
+    "armory": {
+      "name": "Armería",
+      "description": "Entrena infantería pesada",
+      "details": "Entrena unidades más resistentes."
+    },
+    "citadel": {
+      "name": "Ciudadela",
+      "description": "Entrena guerreros de élite",
+      "details": "Entrena unidades de combate de élite."
+    },
+    "market": {
+      "name": "Mercado",
+      "description": "Vende recursos por dinero",
+      "details": "Convierte recursos en dinero."
+    },
+    "tower": {
+      "name": "Torre",
+      "description": "Torre defensiva",
+      "details": "Ataca a los enemigos cercanos."
+    },
+    "bulletTower": {
+      "name": "Proyectil",
+      "description": "Equilibrada - ataque, velocidad y alcance medios"
+    },
+    "rapidTower": {
+      "name": "Ráfaga",
+      "description": "Ataques rápidos, corto alcance, menor daño"
+    },
+    "sniperTower": {
+      "name": "Lejano",
+      "description": "Lenta pero muy poderosa a muy largo alcance"
+    }
+  },
+  "mapEditor": {
+    "title": "Editor de mapas",
+    "back": "← Atrás",
+    "new": "Nuevo mapa",
+    "generate": "Generar",
+    "load": "Cargar",
+    "export": "Exportar",
+    "palette": "Paleta",
+    "terrain": "Terreno",
+    "newMapConfirm": "¿Crear un nuevo mapa? Los cambios no guardados se perderán.",
+    "generateConfirm": "¿Generar un terreno de forma procedural? Se borrarán todos los cambios actuales.",
+    "backConfirm": "¿Volver al menú? Los cambios no guardados se perderán.",
+    "confirmOk": "OK",
+    "confirmCancel": "Cancelar",
+    "apply": "Aplicar",
+    "startPositions": "Posiciones iniciales",
+    "p1Start": "Inicio J1",
+    "ai1": "IA 1",
+    "ai2": "IA 2",
+    "ai3": "IA 3",
+    "buildings": "Edificios",
+    "erase": "Borrar",
+    "exportNamePrompt": "Nombre del mapa:",
+    "owner": {
+      "p1": "J1",
+      "ai1": "IA1",
+      "ai2": "IA2",
+      "ai3": "IA3"
+    },
+    "size": {
+      "small": "Pequeño",
+      "medium": "Mediano",
+      "large": "Grande",
+      "huge": "Enorme"
+    },
+    "tiles": {
+      "grass": "Hierba",
+      "sand": "Arena",
+      "water": "Agua",
+      "tree": "Árbol",
+      "rock": "Roca",
+      "gold": "Oro"
+    }
+  }
+}

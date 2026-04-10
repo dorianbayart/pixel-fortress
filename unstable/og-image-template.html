@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pixel Fortress - Open Graph Image Template</title>
+  <style>
+    /* Font Face */
+    @font-face {
+      font-family: 'Jacquarda Bastarda 9';
+      src: url('assets/fonts/Jacquarda-Bastarda-9.woff2') format('woff2');
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    /* Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    /* OG Image Container - Exact dimensions 1200x630px */
+    .og-image {
+      width: 1200px;
+      height: 630px;
+      position: relative;
+      background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 30%, #1a6b1a 70%, #228b22 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* Background Pattern */
+    .og-image::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(255, 215, 0, 0.02) 2px,
+        rgba(255, 215, 0, 0.02) 4px
+      );
+      pointer-events: none;
+    }
+
+    /* Content Container */
+    .og-content {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 40px;
+    }
+
+    /* Logo */
+    .og-logo {
+      width: 200px;
+      height: 200px;
+      margin: 0 auto 30px;
+      filter: drop-shadow(0 0 40px rgba(255, 215, 0, 0.8));
+      image-rendering: pixelated;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: crisp-edges;
+    }
+
+    /* Title */
+    .og-title {
+      font-family: 'Jacquarda Bastarda 9', fantasy, serif;
+      font-size: 72px;
+      color: #ffd700;
+      text-shadow:
+        0 0 20px rgba(255, 215, 0, 0.8),
+        0 0 40px rgba(255, 215, 0, 0.6),
+        0 4px 8px rgba(0, 0, 0, 0.5);
+      margin-bottom: 20px;
+      letter-spacing: 4px;
+      line-height: 1.2;
+    }
+
+    /* Tagline */
+    .og-tagline {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 42px;
+      color: #ffffff;
+      text-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.5),
+        0 0 20px rgba(255, 255, 255, 0.3);
+      margin-bottom: 25px;
+      font-weight: 300;
+      letter-spacing: 1px;
+    }
+
+    /* Subtitle */
+    .og-subtitle {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 32px;
+      color: #2db92d;
+      text-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.5),
+        0 0 15px rgba(45, 185, 45, 0.5);
+      font-weight: 500;
+      letter-spacing: 1px;
+    }
+
+    /* Corner Decoration (Optional) */
+    .og-corner {
+      position: absolute;
+      bottom: 20px;
+      right: 30px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 18px;
+      color: rgba(255, 215, 0, 0.6);
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Instructions (will not appear in screenshot area) */
+    .instructions {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.9);
+      color: #ffd700;
+      padding: 15px 30px;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 14px;
+      border: 2px solid #ffd700;
+      z-index: 1000;
+      text-align: center;
+    }
+
+    .instructions.hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- OG Image Container -->
+  <div class="og-image">
+    <div class="og-content">
+      <!-- Logo -->
+      <img src="assets/base_512_pixelated.png" alt="Pixel Fortress Logo" class="og-logo">
+
+      <!-- Title -->
+      <h1 class="og-title">Pixel Fortress</h1>
+
+      <!-- Tagline -->
+      <p class="og-tagline">Build Smart. Let Them Fight.</p>
+
+      <!-- Subtitle -->
+      <p class="og-subtitle">100% Open Source Auto-Battler</p>
+    </div>
+
+    <!-- Corner Badge -->
+    <div class="og-corner">dorianbayart.github.io/pixel-fortress</div>
+  </div>
+
+  <!-- Instructions (Click to hide before screenshot) -->
+  <div class="instructions" id="instructions" onclick="this.classList.add('hidden')">
+    <strong>📸 How to Create OG Image:</strong><br>
+    1. Click this message to hide it<br>
+    2. Press F11 for fullscreen (or Cmd+Shift+F on Mac)<br>
+    3. Take screenshot of the 1200x630px rectangle<br>
+    4. Save as: assets/og-image.png<br>
+    <br>
+    <em>Tip: Use browser zoom to fit perfectly on screen if needed</em>
+  </div>
+
+  <script>
+    // Hide instructions on any key press
+    document.addEventListener('keydown', function() {
+      document.getElementById('instructions').classList.add('hidden');
+    });
+
+    // Log dimensions for verification
+    console.log('OG Image Dimensions:',
+      document.querySelector('.og-image').offsetWidth,
+      'x',
+      document.querySelector('.og-image').offsetHeight
+    );
+  </script>
+</body>
+</html>

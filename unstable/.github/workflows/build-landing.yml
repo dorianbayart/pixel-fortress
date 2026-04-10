@@ -1,0 +1,37 @@
+name: Build Landing Pages
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'index.template.html'
+      - 'locales/landing/**'
+      - 'scripts/build-landing.js'
+      - 'package.json'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build localized landing pages
+        run: node scripts/build-landing.js
+
+      - name: Commit generated pages
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add index.html fr/index.html de/index.html es/index.html
+          git diff --cached --quiet || git commit -m "chore: rebuild localized landing pages [skip ci]"
+          git push
