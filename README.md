@@ -4,7 +4,9 @@
 
 **Pixel Fortress combines strategic base-building with automated warfare.** Design your fortress, establish resource production, and deploy self-directed units that explore, gather, and battle autonomously. Strategic depth without the micro-management.
 
-➡️ [Play live](https://dorianbayart.github.io/pixel-fortress/play.html)
+➡️ [Play live](https://dorianbayart.github.io/pixel-fortress/play.html) — stable release
+
+🧪 [Try the unstable next version](https://dorianbayart.github.io/pixel-fortress/unstable/play.html) — updated on every commit to `main`
 
 ## 🎯 Genre
 **Base Building • Automated Strategy • Resource Management • Auto-battler • Pixel Art**

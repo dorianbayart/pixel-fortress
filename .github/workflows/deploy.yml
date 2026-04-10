@@ -1,0 +1,93 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # required by build-sitemap.js (git log for lastmod dates)
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Get version info
+        id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          if [[ "$VERSION" == *"-"* ]]; then
+            echo "is_prerelease=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_prerelease=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check if gh-pages branch exists
+        id: gh_pages
+        run: |
+          if git ls-remote --heads origin gh-pages | grep -q gh-pages; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build HTML pages
+        run: |
+          node scripts/build-release-notes.js
+          node scripts/build-landing.js
+          node scripts/build-sitemap.js
+
+      - name: Clone or init gh-pages branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git clone --depth 1 --branch gh-pages \
+            "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
+            gh-pages-dir 2>/dev/null || \
+            (mkdir gh-pages-dir && cd gh-pages-dir && git init && git checkout -b gh-pages && \
+             git remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git")
+          touch gh-pages-dir/.nojekyll
+
+      - name: Deploy to /unstable/
+        run: |
+          rm -rf gh-pages-dir/unstable
+          rsync -a \
+            --exclude='.git' \
+            --exclude='gh-pages-dir' \
+            --exclude='node_modules' \
+            --exclude='dist' \
+            . gh-pages-dir/unstable/
+
+      - name: Deploy to root (stable release or first-time setup)
+        if: steps.version.outputs.is_prerelease == 'false' || steps.gh_pages.outputs.exists == 'false'
+        run: |
+          rsync -a \
+            --exclude='.git' \
+            --exclude='gh-pages-dir' \
+            --exclude='node_modules' \
+            --exclude='dist' \
+            --exclude='unstable' \
+            . gh-pages-dir/
+
+      - name: Commit and push to gh-pages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd gh-pages-dir
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet || \
+            git commit -m "deploy: v${{ steps.version.outputs.version }} (${{ github.sha }})"
+          git push origin gh-pages

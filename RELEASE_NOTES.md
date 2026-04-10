@@ -2,6 +2,24 @@
 
 ## Version {{version}}
 
+### Try the Next Version — May Be Unstable
+- **Online preview**: [https://dorianbayart.github.io/pixel-fortress/unstable/play.html](https://dorianbayart.github.io/pixel-fortress/unstable/play.html) — updated on every commit to `main`
+
+### New Features
+- **Work in progress** — New features will be listed here as development progresses
+
+### Gameplay
+
+### Visuals
+
+### Performance
+
+### Bug Fixes
+
+---
+
+## Version 0.0.4
+
 ### New Features
 - **Campaign & Tutorial**: The Campaign menu is now active — dive into the first Tutorial mission to learn the ropes before facing the enemy
 - **Towers are here!** Build defensive towers that automatically detect and shoot down approaching enemies — fortify your base and hold the line

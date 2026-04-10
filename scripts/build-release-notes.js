@@ -143,14 +143,17 @@ function parseMarkdown(md) {
 
   // ─── Build Table of Contents ────────────────────────────────────────────────
 
+  const firstStableIndex = versions.findIndex(v => !v.title.includes('-'))
+  const latestStableIndex = firstStableIndex === -1 ? 0 : firstStableIndex
+
   const tocItems = versions.map((v, i) => {
     const id = makeVersionId(v.title, i)
     const label = escapeHtml(v.title)
     return `<li><a href="#${id}">${label}</a></li>`
   })
 
-  // Prepend a "Latest" shortcut that always points to the first version
-  const latestId = makeVersionId(versions[0].title, 0)
+  // Prepend a "Latest" shortcut pointing to the latest stable version
+  const latestId = makeVersionId(versions[latestStableIndex].title, latestStableIndex)
   tocItems.unshift(`<li><a href="#${latestId}" class="rn-toc-latest">⭐ Latest</a></li>`)
 
   let html = `<nav class="rn-toc" aria-label="Version index">
@@ -164,12 +167,15 @@ function parseMarkdown(md) {
 
   versions.forEach((version, i) => {
     const id = makeVersionId(version.title, i)
-    const isLatest = i === 0
+    const isPreRelease = version.title.includes('-')
+    const isLatest = i === latestStableIndex
 
     html += `<div class="rn-version" id="${id}">\n`
     html += `  <div class="rn-version-header">\n`
-    
-    if (isLatest) {
+
+    if (isPreRelease) {
+      html += `    <span class="rn-version-badge dev">In Development</span>\n`
+    } else if (isLatest) {
       html += `    <span class="rn-version-badge latest">Latest</span>\n`
     }
     html += `    <h2 class="rn-version-title">${escapeHtml(version.title)}</h2>\n`
