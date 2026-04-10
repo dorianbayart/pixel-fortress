@@ -69,7 +69,19 @@ jobs:
             --exclude='dist' \
             . gh-pages-dir/unstable/
 
-      - name: Deploy to root (stable release or first-time setup)
+      - name: Deploy landing/static pages to root (always)
+        run: |
+          rsync -a \
+            index.html fr/index.html de/index.html es/index.html \
+            release-notes.html sitemap.xml robots.txt manifest.json \
+            gh-pages-dir/
+          rsync -a fr/ gh-pages-dir/fr/
+          rsync -a de/ gh-pages-dir/de/
+          rsync -a es/ gh-pages-dir/es/
+          cp css/landing.css gh-pages-dir/css/landing.css
+          cp css/release-notes.css gh-pages-dir/css/release-notes.css
+
+      - name: Deploy game files to root (stable release or first-time setup)
         if: steps.version.outputs.is_prerelease == 'false' || steps.gh_pages.outputs.exists == 'false'
         run: |
           rsync -a \
@@ -78,6 +90,14 @@ jobs:
             --exclude='node_modules' \
             --exclude='dist' \
             --exclude='unstable' \
+            --exclude='index.html' \
+            --exclude='fr/' \
+            --exclude='de/' \
+            --exclude='es/' \
+            --exclude='release-notes.html' \
+            --exclude='sitemap.xml' \
+            --exclude='robots.txt' \
+            --exclude='manifest.json' \
             . gh-pages-dir/
 
       - name: Commit and push to gh-pages
