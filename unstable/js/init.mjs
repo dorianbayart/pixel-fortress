@@ -204,6 +204,21 @@ async function initializeGame() {
       gameState.map = null
       gameState.clearHumanPlayer()
       gameState.clearAiPlayers()
+
+      // If returning from a campaign, clear campaign-specific state so it
+      // does not bleed into a subsequent skirmish (e.g. campaign custom map
+      // being reloaded, causing the AI to have no tent → instant win).
+      if (gameState.campaignLevelId) {
+        gameState.customMapId = null
+        gameState.campaignLevelId = null
+        gameState.pendingCampaignConfig = null
+        gameState.campaignAllowedBuildings = null
+        gameState.campaignRestrictSpecialization = false
+        gameState.campaignTentProductionEnabled = true
+        gameState.campaignMaxPeons = null
+        gameState.campaignPeonsMatchBuilding = null
+        gameState.campaignNormalAiEnabled = false
+      }
     }
 
   })
