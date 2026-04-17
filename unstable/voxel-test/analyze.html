@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sprite Analyzer</title>
+  <style>
+    body { background: #0d0d18; color: #ccc; font-family: monospace; padding: 20px; }
+    h1 { font-size: 13px; color: #6ab; letter-spacing: 2px; margin-bottom: 16px; }
+    .controls { display: flex; gap: 16px; align-items: center; margin-bottom: 24px; flex-wrap: wrap; }
+    .controls label { font-size: 9px; color: #456; letter-spacing: 1px; }
+    select { background: #0a0a1a; color: #bbd; border: 1px solid #2a304a; border-radius: 3px; padding: 4px 8px; font-size: 11px; font-family: monospace; cursor: pointer; }
+    #err { color: #f88; font-size: 11px; margin-bottom: 12px; display: none; }
+
+    /* --- Direction grid --- */
+    .dir-grid { display: flex; flex-wrap: wrap; gap: 24px; margin-bottom: 32px; }
+    .dir-card {
+      background: rgba(6,6,16,.9); border: 1px solid #1a2030;
+      border-radius: 6px; padding: 10px; text-align: center;
+    }
+    .dir-card h3 { font-size: 10px; color: #6ab; letter-spacing: 2px; margin-bottom: 6px; }
+    .dir-card canvas { display: block; image-rendering: pixelated; margin: 0 auto 6px; border: 1px solid #1a2030; }
+    .dir-card .stat { font-size: 9px; color: #456; line-height: 1.8; text-align: left; }
+    .dir-card .stat b { color: #789; }
+
+    /* --- Silhouette comparison --- */
+    .sil-section { margin-top: 24px; }
+    .sil-section h2 { font-size: 11px; color: #6ab; letter-spacing: 2px; margin-bottom: 12px; }
+    .sil-row { display: flex; gap: 16px; flex-wrap: wrap; }
+    .sil-box { text-align: center; }
+    .sil-box label { display: block; font-size: 9px; color: #456; margin-bottom: 4px; }
+
+    /* --- Row-width plot --- */
+    .row-plot { background: #07070f; border: 1px solid #1a2030; display: block; }
+
+    .note { font-size: 10px; color: #567; line-height: 1.8; margin-top: 24px; padding: 12px; background: rgba(6,6,16,.8); border: 1px solid #1a2030; border-radius: 4px; max-width: 700px; }
+    .note b { color: #8ab; }
+  </style>
+</head>
+<body>
+<h1>SPRITE DIRECTION ANALYZER</h1>
+
+<div class="controls">
+  <div><label>UNIT</label><br><select id="unitSel"></select></div>
+  <div><label>ANIM</label><br><select id="animSel"></select></div>
+  <div><label>FRAME</label><br><select id="frameSel"></select></div>
+</div>
+<div id="err"></div>
+<div id="output"></div>
+
+<script>
+const DIRS   = ['s','se','e','ne','n','nw','w','sw']
+const SPR    = 32
+const ZOOM   = 6   // px per pixel for sprite preview
+const BARW   = 6   // px per pixel for row-width bars
+
+const offscreen = document.createElement('canvas')
+const ctx2d     = offscreen.getContext('2d', { willReadFrequently: true })
+const blobCache = new Map()
+
+async function fetchBlob(src) {
+  if (!blobCache.has(src)) {
+    const r = await fetch(src)
+    if (!r.ok) throw new Error(`HTTP ${r.status}: ${src}`)
+    blobCache.set(src, await r.blob())
+  }
+  return blobCache.get(src)
+}
+async function getPixels(src, sx, sy) {
+  const bmp = await createImageBitmap(await fetchBlob(src), sx, sy, SPR, SPR)
+  offscreen.width = SPR; offscreen.height = SPR
+  ctx2d.clearRect(0,0,SPR,SPR); ctx2d.drawImage(bmp,0,0); bmp.close()
+  return ctx2d.getImageData(0,0,SPR,SPR).data
+}
+
+let desc = {}
+
+async function analyze() {
+  const unitName  = document.getElementById('unitSel').value
+  const animName  = document.getElementById('animSel').value
+  const frameKey  = document.getElementById('frameSel').value
+  const unit      = desc[unitName]
+  if (!unit || !unit[animName] || !unit[animName][frameKey]) return
+
+  const src       = unit.relativeToRoot.replace('./', '../')
+  const frameData = unit[animName][frameKey]
+  const out       = document.getElementById('output')
+  out.innerHTML   = ''
+
+  // ── Load all available directions ──────────────────────────────────────────
+  const dirData = {}
+  for (const dir of DIRS) {
+    const info = frameData[dir]
+    if (!info) continue
+    dirData[dir] = { info, pixels: await getPixels(src, info.x * SPR, info.y * SPR) }
+  }
+
+  // ── Per-direction cards ────────────────────────────────────────────────────
+  const grid = document.createElement('div')
+  grid.className = 'dir-grid'
+
+  for (const dir of DIRS) {
+    const d = dirData[dir]
+    if (!d) continue
+    const px = d.pixels
+
+    // Silhouette stats
+    let minX=SPR, maxX=-1, minY=SPR, maxY=-1, opaqueCount=0
+    const rowWidths = []   // per row: opaque pixel count
+    const rowClusters = [] // per row: array of {mn,mx}
+    for (let y=0; y<SPR; y++) {
+      let clusters=[], cs=-1, cnt=0
+      for (let x=0; x<=SPR; x++) {
+        const op = x<SPR && px[(y*SPR+x)*4+3]>=8
+        if (op) {
+          cnt++; opaqueCount++
+          if (x<minX) minX=x; if (x>maxX) maxX=x
+          if (y<minY) minY=y; if (y>maxY) maxY=y
+          if (cs<0) cs=x
+        } else if (cs>=0) { clusters.push({mn:cs,mx:x-1}); cs=-1 }
+      }
+      rowWidths.push(cnt)
+      rowClusters.push(clusters)
+    }
+
+    // ── Sprite canvas (zoomed) ───────────────────────────────────────────────
+    const cv = document.createElement('canvas')
+    cv.width = SPR*ZOOM; cv.height = SPR*ZOOM
+    const c = cv.getContext('2d')
+    // Checkerboard
+    for (let y=0; y<SPR; y++) for (let x=0; x<SPR; x++) {
+      c.fillStyle = ((Math.floor(x/4)+Math.floor(y/4))%2) ? '#141420' : '#111118'
+      c.fillRect(x*ZOOM, y*ZOOM, ZOOM, ZOOM)
+    }
+    // Pixels
+    for (let y=0; y<SPR; y++) for (let x=0; x<SPR; x++) {
+      const i=(y*SPR+x)*4, a=px[i+3]
+      if (a>=8) {
+        c.fillStyle=`rgba(${px[i]},${px[i+1]},${px[i+2]},${a/255})`
+        c.fillRect(x*ZOOM, y*ZOOM, ZOOM, ZOOM)
+      }
+    }
+    // Bounding box
+    if (maxX>=0) {
+      c.strokeStyle='rgba(90,180,255,0.4)'; c.lineWidth=1
+      c.strokeRect(minX*ZOOM, minY*ZOOM, (maxX-minX+1)*ZOOM, (maxY-minY+1)*ZOOM)
+    }
+    // Grid lines every 4px
+    c.strokeStyle='rgba(255,255,255,0.04)'; c.lineWidth=1
+    for (let i=4; i<SPR; i+=4) {
+      c.beginPath(); c.moveTo(i*ZOOM,0); c.lineTo(i*ZOOM,SPR*ZOOM); c.stroke()
+      c.beginPath(); c.moveTo(0,i*ZOOM); c.lineTo(SPR*ZOOM,i*ZOOM); c.stroke()
+    }
+
+    // ── Row-width bar chart ──────────────────────────────────────────────────
+    const bv = document.createElement('canvas')
+    bv.width = 32*BARW; bv.height = SPR*ZOOM
+    const bc = bv.getContext('2d')
+    bc.fillStyle='#07070f'; bc.fillRect(0,0,bv.width,bv.height)
+    for (let y=0; y<SPR; y++) {
+      const w = rowWidths[y]
+      if (!w) continue
+      const hue = 180 + w*4
+      bc.fillStyle = `hsl(${hue},70%,45%)`
+      bc.fillRect(0, y*ZOOM, w*BARW, ZOOM-1)
+      // Show clusters as segments
+      for (const cl of rowClusters[y]) {
+        bc.strokeStyle = 'rgba(255,255,255,0.3)'
+        bc.lineWidth = 1
+        bc.strokeRect(cl.mn*BARW, y*ZOOM, (cl.mx-cl.mn+1)*BARW, ZOOM-1)
+      }
+    }
+    // Width ruler
+    bc.fillStyle='rgba(90,180,255,0.15)'
+    bc.fillRect(0, 0, 12*BARW, SPR*ZOOM)
+
+    // ── Stats ────────────────────────────────────────────────────────────────
+    const bboxW = maxX>=0 ? maxX-minX+1 : 0
+    const bboxH = maxY>=0 ? maxY-minY+1 : 0
+    const clusters0 = rowClusters.filter(c=>c.length>1).length
+
+    const card = document.createElement('div')
+    card.className = 'dir-card'
+    card.innerHTML = `<h3>${dir.toUpperCase()} (sheet col ${d.info.x}, row ${d.info.y})</h3>`
+    card.appendChild(cv)
+    card.appendChild(bv)
+    const stat = document.createElement('div')
+    stat.className = 'stat'
+    stat.innerHTML = [
+      `bbox x: <b>${minX}–${maxX}</b> (${bboxW}px wide)`,
+      `bbox y: <b>${minY}–${maxY}</b> (${bboxH}px tall)`,
+      `opaque pixels: <b>${opaqueCount}</b>`,
+      `rows with 2+ clusters: <b>${clusters0}</b>`,
+    ].join('<br>')
+    card.appendChild(stat)
+    grid.appendChild(card)
+  }
+  out.appendChild(grid)
+
+  // ── Silhouette overlay: south vs east ─────────────────────────────────────
+  if (dirData.s && dirData.e) {
+    const sec = document.createElement('div')
+    sec.className = 'sil-section'
+    sec.innerHTML = '<h2>SILHOUETTE COMPARISON — S vs E vs N vs W</h2>'
+
+    const ov = document.createElement('canvas')
+    ov.width = SPR*ZOOM; ov.height = SPR*ZOOM
+    const oc = ov.getContext('2d')
+    oc.fillStyle='#07070f'; oc.fillRect(0,0,ov.width,ov.height)
+
+    const colorMap = { s:'rgba(255,100,100,0.7)', e:'rgba(100,200,255,0.7)', n:'rgba(100,255,150,0.5)', w:'rgba(255,200,50,0.5)' }
+    for (const [dir, color] of Object.entries(colorMap)) {
+      const d = dirData[dir]; if (!d) continue
+      for (let y=0; y<SPR; y++) for (let x=0; x<SPR; x++) {
+        if (d.pixels[(y*SPR+x)*4+3]>=8) {
+          oc.fillStyle=color; oc.fillRect(x*ZOOM, y*ZOOM, ZOOM, ZOOM)
+        }
+      }
+    }
+    // Legend
+    oc.font='bold 10px monospace'
+    let lx=4, ly=12
+    for (const [dir, color] of Object.entries(colorMap)) {
+      oc.fillStyle=color; oc.fillText(dir.toUpperCase(), lx, ly); lx+=22
+    }
+
+    const ovBox = document.createElement('div'); ovBox.className='sil-box'
+    ovBox.innerHTML='<label>S=red · E=blue · N=green · W=yellow (overlap = mixed)</label>'
+    ovBox.appendChild(ov)
+
+    // Column-depth plot: for each column x, how tall is the opaque region per direction?
+    const dp = document.createElement('canvas')
+    dp.width = SPR*ZOOM; dp.height = SPR*ZOOM
+    const dc = dp.getContext('2d')
+    dc.fillStyle='#07070f'; dc.fillRect(0,0,dp.width,dp.height)
+    const colColors = { s:[255,100,100], e:[100,200,255], n:[100,255,150], w:[255,200,50] }
+    const colOffset = { s:0, e:1, n:2, w:3 }
+    for (const [dir, rgb] of Object.entries(colColors)) {
+      const d = dirData[dir]; if (!d) continue
+      for (let x=0; x<SPR; x++) {
+        let mn=SPR, mx=-1
+        for (let y=0; y<SPR; y++) if (d.pixels[(y*SPR+x)*4+3]>=8) { if(y<mn)mn=y; if(y>mx)mx=y }
+        if (mx<0) continue
+        const h = mx-mn+1
+        dc.fillStyle=`rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.6)`
+        dc.fillRect(x*ZOOM, (SPR-h)*ZOOM, ZOOM-1, h*ZOOM)
+      }
+    }
+    dc.font='10px monospace'; dc.fillStyle='rgba(90,180,255,0.4)'
+    dc.fillText('col height per dir', 4, 14)
+
+    const dpBox = document.createElement('div'); dpBox.className='sil-box'
+    dpBox.innerHTML='<label>Column height (S/E/N/W) — same colors</label>'
+    dpBox.appendChild(dp)
+
+    const row = document.createElement('div'); row.className='sil-row'
+    row.appendChild(ovBox); row.appendChild(dpBox)
+    sec.appendChild(row)
+    out.appendChild(sec)
+  }
+
+  // ── Cluster analysis note ─────────────────────────────────────────────────
+  const note = document.createElement('div')
+  note.className = 'note'
+  note.innerHTML = [
+    '<b>How to read this:</b>',
+    '• Sprite cards: actual sprite frame at 6× zoom. Right panel = row-width bar chart.',
+    '  Blue shaded area = first 12px width for reference.',
+    '• Bar chart: width of opaque region per row. White boxes = individual clusters.',
+    '  Rows with 2 clusters = two separate limbs (legs, arms).',
+    '• Silhouette overlay: S=red, E=blue, N=green, W=yellow.',
+    '  If all overlap perfectly → sprites are identical rotations (same top-down camera).',
+    '  If they differ → each direction is a genuine different view.',
+    '• Column height chart: how tall the opaque region is per column per direction.',
+  ].join('<br>')
+  out.appendChild(note)
+}
+
+// ── UI init ──────────────────────────────────────────────────────────────────
+async function init() {
+  document.getElementById('err').style.display = 'none'
+  const r = await fetch('../assets/unitsSpritesDescription.json')
+  desc = await r.json()
+
+  const uSel = document.getElementById('unitSel')
+  for (const n of Object.keys(desc)) {
+    const o=document.createElement('option'); o.value=n; o.textContent=n; uSel.appendChild(o)
+  }
+
+  const rebuildAnim = uName => {
+    const aSel=document.getElementById('animSel'); aSel.innerHTML=''
+    const anims=Object.keys(desc[uName]).filter(k=>!['sprite','relativeToRoot','mask'].includes(k))
+    for (const a of anims) { const o=document.createElement('option');o.value=a;o.textContent=a;aSel.appendChild(o) }
+    rebuildFrame(uName, aSel.value)
+  }
+  const rebuildFrame = (uName, aName) => {
+    const fSel=document.getElementById('frameSel'); fSel.innerHTML=''
+    const frames=Object.keys(desc[uName]?.[aName] || {})
+    for (const f of frames) { const o=document.createElement('option');o.value=f;o.textContent=f;fSel.appendChild(o) }
+  }
+
+  uSel.addEventListener('change', () => { rebuildAnim(uSel.value); analyze() })
+  document.getElementById('animSel').addEventListener('change', () => { rebuildFrame(uSel.value, document.getElementById('animSel').value); analyze() })
+  document.getElementById('frameSel').addEventListener('change', analyze)
+
+  rebuildAnim(uSel.value)
+  await analyze()
+}
+
+init().catch(e => {
+  const el = document.getElementById('err')
+  el.textContent = '⚠ ' + e.message + ' — run: python3 -m http.server 8000'
+  el.style.display = 'block'
+})
+</script>
+</body>
+</html>

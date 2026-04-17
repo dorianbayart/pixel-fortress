@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Pixel Fortress — Voxel Carving Steps</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0d0d18; color: #ccc; font-family: monospace; overflow: hidden; }
+    canvas { display: block; }
+    #ui {
+      position: absolute; top: 12px; left: 12px;
+      background: rgba(6,6,16,.93); border: 1px solid #2a304a;
+      padding: 14px; border-radius: 8px; width: 240px;
+    }
+    h2 { font-size: 11px; color: #6ab; letter-spacing: 2px; margin-bottom: 10px; }
+    .sec { margin-bottom: 8px; }
+    .sec label { display: block; font-size: 9px; color: #456; letter-spacing: 1px; margin-bottom: 3px; }
+    select { width: 100%; background: #0a0a1a; color: #bbd; border: 1px solid #2a304a; border-radius: 3px; padding: 4px; font-size: 11px; font-family: monospace; }
+    .row { display: flex; align-items: center; gap: 8px; }
+    .row input[type=range] { flex: 1; accent-color: #5af; cursor: pointer; }
+    .val { font-size: 10px; color: #789; min-width: 28px; text-align: right; }
+    .btns { display: flex; gap: 5px; flex-wrap: wrap; }
+    button {
+      flex: 1; padding: 5px 5px; font-size: 10px; font-family: monospace;
+      background: #0a0a1a; color: #9ad; border: 1px solid #2a304a;
+      border-radius: 3px; cursor: pointer;
+    }
+    button:hover { background: #14142a; }
+    button.on { background: #162240; border-color: #4af; color: #7cf; }
+    #bar { width: 100%; height: 2px; background: #1a2030; border-radius: 2px; margin-top: 8px; overflow: hidden; }
+    #fill { height: 100%; background: #5af; width: 0; transition: width .15s; }
+    #status { font-size: 10px; color: #6ab; margin-top: 6px; min-height: 14px; }
+    #err { font-size: 10px; color: #f88; margin-top: 4px; display: none; }
+    #hint {
+      position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
+      background: rgba(6,6,16,.8); padding: 4px 14px; border-radius: 14px;
+      font-size: 10px; color: #345; pointer-events: none;
+    }
+    #legend {
+      position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%);
+      background: rgba(6,6,16,.8); padding: 4px 14px; border-radius: 14px;
+      font-size: 9px; color: #456; pointer-events: none; white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+<div id="ui">
+  <h2>CARVING STEPS VIEWER</h2>
+
+  <div class="sec">
+    <label>UNIT</label>
+    <select id="unitSel"></select>
+  </div>
+  <div class="sec">
+    <label>ANIMATION</label>
+    <select id="animSel"></select>
+  </div>
+  <div class="sec">
+    <label>FRAME</label>
+    <select id="frameSel"></select>
+  </div>
+  <div class="sec">
+    <label>ELEVATION ANGLE (°)</label>
+    <div class="row">
+      <input type="range" id="elevR" min="5" max="75" step="1" value="13">
+      <span class="val" id="elevV">13°</span>
+    </div>
+  </div>
+  <div class="sec">
+    <label>ROUND FILL THRESHOLD</label>
+    <div class="row">
+      <input type="range" id="rfR" min="0.8" max="1.5" step="0.05" value="1.2">
+      <span class="val" id="rfV">1.20</span>
+    </div>
+  </div>
+  <div class="sec">
+    <label>ROUND ASPECT LIMIT</label>
+    <div class="row">
+      <input type="range" id="raR" min="1.0" max="3.0" step="0.1" value="2.0">
+      <span class="val" id="raV">2.0</span>
+    </div>
+  </div>
+  <div class="btns">
+    <button id="btnRot" onclick="toggleRot()">↻ Rotate</button>
+    <button onclick="resetCam()">Cam ⟳</button>
+  </div>
+  <div id="bar"><div id="fill"></div></div>
+  <div id="status">Loading…</div>
+  <div id="err"></div>
+</div>
+
+<div id="legend">← more views carved — each step adds one direction →</div>
+<div id="hint">Drag · Scroll · Right-drag to pan</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from 'three'
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+import { reconstructSteps } from './reconstruct.mjs'
+
+// ── Scene ─────────────────────────────────────────────────────────────────────
+const scene = new THREE.Scene()
+scene.background = new THREE.Color(0x0d0d18)
+
+const camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 0.1, 1200)
+camera.position.set(0, 50, 220)
+
+const renderer = new THREE.WebGLRenderer({ antialias: true })
+renderer.setSize(innerWidth, innerHeight)
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2))
+renderer.shadowMap.enabled = true
+renderer.shadowMap.type = THREE.PCFSoftShadowMap
+document.body.appendChild(renderer.domElement)
+
+const ctrl = new OrbitControls(camera, renderer.domElement)
+ctrl.target.set(0, 14, 0)
+ctrl.enableDamping = true; ctrl.dampingFactor = 0.06
+ctrl.minDistance = 20; ctrl.maxDistance = 1000
+
+// Lights
+scene.add(new THREE.AmbientLight(0xffffff, 0.7))
+const sun = new THREE.DirectionalLight(0xfff5e8, 1.8)
+sun.position.set(30, 60, 30); sun.castShadow = true
+sun.shadow.mapSize.set(2048, 2048)
+sun.shadow.camera.left = sun.shadow.camera.bottom = -300
+sun.shadow.camera.right = sun.shadow.camera.top = 300
+sun.shadow.camera.near = 1; sun.shadow.camera.far = 600
+scene.add(sun)
+const fillL = new THREE.DirectionalLight(0x2030aa, 0.35)
+fillL.position.set(-20, 10, -30)
+scene.add(fillL)
+
+const gnd = new THREE.Mesh(new THREE.PlaneGeometry(1200, 800), new THREE.MeshLambertMaterial({ color: 0x09090e }))
+gnd.rotation.x = -Math.PI/2; gnd.position.y = -0.5; gnd.receiveShadow = true; scene.add(gnd)
+scene.add(new THREE.GridHelper(1200, 120, 0x111122, 0x0d0d1a))
+
+const SPR = 32
+const STEP_SPACING = 44
+
+// ── Mesh builder ──────────────────────────────────────────────────────────────
+function buildMesh(voxels, posX) {
+  if (!voxels.length) return null
+  const cx = (SPR - 1) / 2
+  let mnZ = Infinity, mxZ = -Infinity
+  for (const v of voxels) { mnZ = Math.min(mnZ, v.z); mxZ = Math.max(mxZ, v.z) }
+  const cz = (mnZ + mxZ) / 2
+
+  const map = new Map()
+  for (const v of voxels) {
+    const k = `${v.r},${v.g},${v.b}`
+    if (!map.has(k)) map.set(k, { r: v.r, g: v.g, b: v.b, pos: [] })
+    map.get(k).pos.push(v.x - cx, v.y, v.z - cz)
+  }
+
+  const group = new THREE.Group()
+  const geo = new THREE.BoxGeometry(1, 1, 1)
+  const m4  = new THREE.Matrix4()
+  for (const c of map.values()) {
+    const cnt  = c.pos.length / 3
+    const mesh = new THREE.InstancedMesh(geo, new THREE.MeshLambertMaterial({
+      color: new THREE.Color(c.r/255, c.g/255, c.b/255)
+    }), cnt)
+    mesh.castShadow = true; mesh.receiveShadow = true
+    for (let i = 0; i < cnt; i++) {
+      m4.setPosition(c.pos[i*3] + posX, c.pos[i*3+1], c.pos[i*3+2])
+      mesh.setMatrixAt(i, m4)
+    }
+    mesh.instanceMatrix.needsUpdate = true
+    group.add(mesh)
+  }
+  scene.add(group)
+  return group
+}
+
+function makeLabel(text, posX, stepIdx, totalSteps) {
+  const cv = document.createElement('canvas')
+  cv.width = 256; cv.height = 56
+  const c = cv.getContext('2d')
+  // Step number
+  c.fillStyle = stepIdx === totalSteps - 1 ? '#ffa040' : '#5af'
+  c.font = 'bold 13px monospace'
+  c.textAlign = 'center'
+  c.fillText(`[${stepIdx + 1}/${totalSteps}]`, 128, 18)
+  // Label
+  c.fillStyle = stepIdx === totalSteps - 1 ? '#ffa040' : '#6ab'
+  c.font = 'bold 16px monospace'
+  c.fillText(text, 128, 40)
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: new THREE.CanvasTexture(cv), transparent: true, depthTest: false
+  }))
+  sp.position.set(posX, -5, 0); sp.scale.set(18, 4, 1)
+  scene.add(sp)
+  return sp
+}
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let desc = {}
+let elevDeg = 13
+let maxFront = 0
+let roundFill = 1.2
+let roundAspect = 2.0
+let autoRotate = false
+let loadGen = 0
+const sceneObjects = []  // { group, label }
+
+function clearScene() {
+  for (const { group, label } of sceneObjects) {
+    if (group) {
+      group.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose() })
+      scene.remove(group)
+    }
+    if (label) scene.remove(label)
+  }
+  sceneObjects.length = 0
+}
+
+const setStatus   = s => document.getElementById('status').textContent = s
+const setProgress = p => document.getElementById('fill').style.width = `${p * 100}%`
+
+async function loadSteps() {
+  const gen = ++loadGen
+  clearScene()
+  document.getElementById('err').style.display = 'none'
+
+  const unitName  = document.getElementById('unitSel').value
+  const animName  = document.getElementById('animSel').value
+  const frameKey  = document.getElementById('frameSel').value
+  const unit = desc[unitName]
+  if (!unit || !unit[animName] || !unit[animName][frameKey]) return
+
+  const src = unit.relativeToRoot.replace('./', '../')
+
+  setStatus('Computing carving steps…')
+  setProgress(0)
+
+  let steps
+  try {
+    steps = await reconstructSteps(src, unit[animName][frameKey], elevDeg, maxFront, roundAspect, roundFill)
+  } catch(e) {
+    document.getElementById('err').textContent = '⚠ ' + e.message
+    document.getElementById('err').style.display = 'block'
+    setStatus('Error'); return
+  }
+  if (gen !== loadGen) return
+
+  // Center the whole row
+  const totalWidth = (steps.length - 1) * STEP_SPACING
+  const startX = -totalWidth / 2
+
+  for (let i = 0; i < steps.length; i++) {
+    if (gen !== loadGen) return
+    const posX = startX + i * STEP_SPACING
+    const group = buildMesh(steps[i].voxels, posX)
+    const label = makeLabel(steps[i].label, posX, i, steps.length)
+    sceneObjects.push({ group, label })
+    setProgress((i + 1) / steps.length)
+    setStatus(`Step ${i + 1}/${steps.length}: ${steps[i].label} — ${steps[i].voxels.length} voxels`)
+    await new Promise(r => setTimeout(r, 0))  // yield to browser between steps
+  }
+
+  // Reposition camera to see all steps
+  const span = totalWidth + STEP_SPACING
+  ctrl.target.set(0, 14, 0)
+  camera.position.set(0, 50 + span * 0.1, 120 + span * 0.55)
+  ctrl.update()
+
+  setStatus(`Done — ${steps.length} steps, final: ${steps.at(-1)?.voxels.length ?? 0} voxels`)
+}
+
+// ── Controls ──────────────────────────────────────────────────────────────────
+window.toggleRot = () => {
+  autoRotate = !autoRotate; ctrl.autoRotate = autoRotate
+  document.getElementById('btnRot').classList.toggle('on', autoRotate)
+}
+window.resetCam = () => {
+  camera.position.set(0, 50, 220); ctrl.target.set(0, 14, 0); ctrl.update()
+}
+
+const slider = (id, vid, digits, cb, suffix = '') => {
+  const el = document.getElementById(id)
+  el.addEventListener('input', () => {
+    cb(parseFloat(el.value))
+    document.getElementById(vid).textContent = parseFloat(el.value).toFixed(digits) + suffix
+  })
+}
+slider('elevR', 'elevV', 0, v => { elevDeg    = v; loadSteps() }, '°')
+slider('rfR',   'rfV',  2, v => { roundFill   = v; loadSteps() })
+slider('raR',   'raV',  1, v => { roundAspect = v; loadSteps() })
+
+// ── Render loop ───────────────────────────────────────────────────────────────
+ctrl.autoRotateSpeed = 0.8
+function animate() {
+  requestAnimationFrame(animate)
+  ctrl.update()
+  renderer.render(scene, camera)
+}
+animate()
+
+window.addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix()
+  renderer.setSize(innerWidth, innerHeight)
+})
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+async function init() {
+  const resp = await fetch('../assets/unitsSpritesDescription.json')
+  desc = await resp.json()
+
+  const uSel = document.getElementById('unitSel')
+  for (const name of Object.keys(desc)) {
+    const o = document.createElement('option'); o.value = name
+    o.textContent = name.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+    uSel.appendChild(o)
+  }
+
+  const rebuildAnim = uName => {
+    const aSel = document.getElementById('animSel'); aSel.innerHTML = ''
+    const anims = Object.keys(desc[uName]).filter(k => !['sprite','relativeToRoot','mask'].includes(k))
+    for (const a of anims) { const o = document.createElement('option'); o.value = a; o.textContent = a; aSel.appendChild(o) }
+    rebuildFrame(uName, aSel.value)
+  }
+  const rebuildFrame = (uName, aName) => {
+    const fSel = document.getElementById('frameSel'); fSel.innerHTML = ''
+    const frames = Object.keys(desc[uName]?.[aName] || {})
+    for (const f of frames) { const o = document.createElement('option'); o.value = f; o.textContent = f; fSel.appendChild(o) }
+  }
+
+  uSel.addEventListener('change', () => { rebuildAnim(uSel.value); loadSteps() })
+  document.getElementById('animSel').addEventListener('change', () => {
+    rebuildFrame(uSel.value, document.getElementById('animSel').value); loadSteps()
+  })
+  document.getElementById('frameSel').addEventListener('change', loadSteps)
+
+  rebuildAnim(uSel.value)
+  await loadSteps()
+}
+
+init().catch(e => {
+  document.getElementById('err').textContent = '⚠ ' + e.message + ' — run: python3 -m http.server 8000'
+  document.getElementById('err').style.display = 'block'
+  setStatus('Error')
+})
+</script>
+</body>
+</html>

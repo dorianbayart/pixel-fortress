@@ -1,0 +1,569 @@
+// Pixel Fortress — Voxel Reconstruction via Space Carving
+//
+// Each unit has 8 directional sprites (S, SE, E, NE, N, NW, W, SW).
+// We treat each sprite as a silhouette projection from a specific camera angle
+// and use space carving to find the 3D voxel volume consistent with all views.
+//
+// Coordinate system:
+//   X: 0=west, W-1=east
+//   Y: 0=bottom, H-1=top
+//   Z: 0=south (front), D-1=north (back)
+//
+// Each view has:
+//   - A ray direction (which axis the carving rays travel along)
+//   - A sprite_x ↔ world axis mapping (with optional mirror)
+//   - A depth formula for screen_y = world_y + depth * TAN30
+
+const SPR = 32
+
+// ── Pixel utilities ───────────────────────────────────────────────────────────
+
+const offscreen = document.createElement('canvas')
+const ctx2d     = offscreen.getContext('2d', { willReadFrequently: true })
+const blobCache = new Map()
+
+async function fetchBlob(src) {
+  if (!blobCache.has(src)) {
+    const r = await fetch(src)
+    if (!r.ok) throw new Error(`HTTP ${r.status}: ${src}`)
+    blobCache.set(src, await r.blob())
+  }
+  return blobCache.get(src)
+}
+
+export async function getPixels(src, sx, sy, sw, sh) {
+  const bmp = await createImageBitmap(await fetchBlob(src), sx, sy, sw, sh)
+  offscreen.width = sw; offscreen.height = sh
+  ctx2d.clearRect(0, 0, sw, sh); ctx2d.drawImage(bmp, 0, 0); bmp.close()
+  return ctx2d.getImageData(0, 0, sw, sh).data
+}
+
+const alpha = (buf, x, y, W) => buf[(y * W + x) * 4 + 3]
+const color = (buf, x, y, W) => {
+  const i = (y * W + x) * 4
+  return [buf[i], buf[i + 1], buf[i + 2]]
+}
+
+// A pixel is an outline artifact if it is (nearly) black AND adjacent to a transparent pixel.
+// Per README: "Black pixels adjacent to a transparent pixel are outline/border pixels
+// and should be ignored during reconstruction."
+function isOutline(buf, x, y, W, H) {
+  const a = alpha(buf, x, y, W)
+  if (a < 8) return false                            // transparent pixel itself → not outline
+  const i = (y * W + x) * 4
+  if (buf[i] > 40 || buf[i + 1] > 40 || buf[i + 2] > 40) return false  // not black
+  const n4 = [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]]
+  return n4.some(([nx, ny]) =>
+    nx < 0 || nx >= W || ny < 0 || ny >= H || alpha(buf, nx, ny, W) < 8
+  )
+}
+
+// Returns true if a pixel should be treated as empty (for carving purposes).
+function isEmpty(buf, x, y, W, H) {
+  return alpha(buf, x, y, W) < 8 || isOutline(buf, x, y, W, H)
+}
+
+// ── Grid helpers ──────────────────────────────────────────────────────────────
+
+function makeGrid(W, H, D) {
+  const grid  = new Uint8Array(W * H * D).fill(1)
+  const idx   = (x, y, z) => z * H * W + y * W + x
+  const get   = (x, y, z) => (x >= 0 && x < W && y >= 0 && y < H && z >= 0 && z < D) ? grid[idx(x, y, z)] : 0
+  const carve = (x, y, z) => { if (x >= 0 && x < W && y >= 0 && y < H && z >= 0 && z < D) grid[idx(x, y, z)] = 0 }
+  return { grid, idx, get, carve }
+}
+
+// ── Space carving — one function per view group ───────────────────────────────
+//
+// Screen space convention (all views, same isometric camera elevation ~30°):
+//   screen_y_from_bottom = world_y + (depth_into_scene) * TAN30
+//
+// "Depth into scene" depends on which direction is "away" from the camera:
+//   S view  (camera at +Z, ray→ -Z): depth = z              (z increases away)
+//   N view  (camera at -Z, ray→ +Z): depth = D-1-z          (z=D-1 closest)
+//   E view  (camera at +X, ray→ -X): depth = W-1-x          (x=W-1 closest)
+//   W view  (camera at -X, ray→ +X): depth = x              (x=0 closest... wait: W cam at -∞,
+//                                     x=0 is near W cam, going east = increasing depth → depth=x)
+//   SE  (camera at +X-Z, ray→ NW): depth = (z - x + W-1)   (combined XZ, no √2 needed in voxels)
+//   SW  (camera at -X-Z, ray→ NE): depth = (z + x)
+//   NE  (camera at +X+Z, ray→ SW): depth = (W-1-x + D-1-z)
+//   NW  (camera at -X+Z, ray→ SE): depth = (x + D-1-z)
+//
+// Screen X mapping (derived from camera right-hand direction, camera up = +Y):
+//   S: right=west → sprite_x=0=east → world_x = W-1-sprite_x    (MIRROR)
+//   N: right=east → sprite_x=0=west → world_x = sprite_x        (no mirror)
+//   E: right=south → sprite_x=0=north → world_z = D-1-sprite_x  (MIRROR)
+//   W: right=north → sprite_x=0=south → world_z = sprite_x      (no mirror)
+//   SE/SW/NE/NW: diagonal views, sprite_x maps to conserved coordinate along ray
+
+// Carve Z-columns (S and N views)
+function carveZCols(V, { carve }, W, H, D, mirrorX, depthFn, tanElev) {
+  for (let sy = 0; sy < H; sy++) {
+    const baseY = H - 1 - sy
+    for (let sx = 0; sx < W; sx++) {
+      if (!isEmpty(V, sx, sy, W, H)) continue
+      const wx = mirrorX ? W - 1 - sx : sx
+      for (let z = 0; z < D; z++) {
+        const wy = Math.round(baseY - depthFn(z) * tanElev)
+        carve(wx, wy, z)
+      }
+    }
+  }
+}
+
+// Carve X-columns (E and W views): sprite_x → world_z, ray along X
+function carveXCols(V, { carve }, W, H, D, mirrorZ, depthFn, tanElev) {
+  for (let sy = 0; sy < H; sy++) {
+    const baseY = H - 1 - sy
+    for (let sx = 0; sx < W; sx++) {
+      if (!isEmpty(V, sx, sy, W, H)) continue
+      const wz = mirrorZ ? D - 1 - sx : sx
+      for (let x = 0; x < W; x++) {
+        const wy = Math.round(baseY - depthFn(x) * tanElev)
+        carve(x, wy, wz)
+      }
+    }
+  }
+}
+
+// Carve diagonal rays in XZ plane (SE/SW/NE/NW views).
+//
+// perpCoordType: 'sum' means perpendicular = x+z (SE and NW rays), conserved along (-1,+1) or (+1,-1)
+//               'diff' means perpendicular = x-z (SW and NE rays), conserved along (+1,+1) or (-1,-1)
+// spriteXToPerpFn: maps sprite_x → the perpendicular world coordinate value
+// depthFn: maps (x, z) → depth_into_scene
+function carveDiagRays(V, { carve }, W, H, D, spriteXToPerpFn, perpCoordType, depthFn, tanElev) {
+  for (let sy = 0; sy < H; sy++) {
+    const baseY = H - 1 - sy
+    for (let sx = 0; sx < W; sx++) {
+      if (!isEmpty(V, sx, sy, W, H)) continue
+      const targetPerp = spriteXToPerpFn(sx)
+
+      // Enumerate only (x, z) pairs that satisfy perpCoord(x,z) === targetPerp directly.
+      // For 'sum': x+z = C → z = C-x; iterate x from max(0, C-D+1) to min(W-1, C).
+      // For 'diff': x-z = C → z = x-C; iterate x from max(0, C) to min(W-1, C+D-1).
+      if (perpCoordType === 'sum') {
+        const C = targetPerp
+        const xMin = Math.max(0, C - (D - 1))
+        const xMax = Math.min(W - 1, C)
+        for (let x = xMin; x <= xMax; x++) {
+          const z = C - x
+          if (z < 0 || z >= D) continue
+          const depth = depthFn(x, z)
+          if (depth < 0) continue
+          const wy = Math.round(baseY - depth * tanElev)
+          carve(x, wy, z)
+        }
+      } else {  // 'diff': x - z = C
+        const C = targetPerp
+        const xMin = Math.max(0, C)
+        const xMax = Math.min(W - 1, C + D - 1)
+        for (let x = xMin; x <= xMax; x++) {
+          const z = x - C
+          if (z < 0 || z >= D) continue
+          const depth = depthFn(x, z)
+          if (depth < 0) continue
+          const wy = Math.round(baseY - depth * tanElev)
+          carve(x, wy, z)
+        }
+      }
+    }
+  }
+}
+
+// ── Shared coloring helper ────────────────────────────────────────────────────
+// Walks the current grid state and returns colored surface voxels.
+// Called both by reconstruct() and by reconstructSteps() at each intermediate step.
+
+function colorVoxels(g, V, W, H, D, tanElev) {
+  const clampW = v => Math.min(W - 1, Math.max(0, Math.round(v)))
+  const clampH = v => Math.min(H - 1, Math.max(0, Math.round(v)))
+
+  const sample = (buf, spriteX, spriteY) => {
+    if (!buf) return null
+    const sx = clampW(spriteX), sy = clampH(spriteY)
+    if (alpha(buf, sx, sy, W) < 8 || isOutline(buf, sx, sy, W, H)) return null
+    return color(buf, sx, sy, W)
+  }
+
+  const voxels = []
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      for (let z = 0; z < D; z++) {
+        if (!g.get(x, y, z)) continue
+
+        const fF  = !g.get(x, y, z - 1)
+        const fB  = !g.get(x, y, z + 1)
+        const fR  = !g.get(x + 1, y, z)
+        const fL  = !g.get(x - 1, y, z)
+        const fT  = !g.get(x, y + 1, z)
+        const fBo = !g.get(x, y - 1, z)
+
+        if (!fF && !fB && !fR && !fL && !fT && !fBo) continue
+
+        const syS = H - 1 - y - z * tanElev
+        const syN = H - 1 - y - (D - 1 - z) * tanElev
+        const syE = H - 1 - y - (W - 1 - x) * tanElev
+        const syW = H - 1 - y - x * tanElev
+
+        let r = 0, gg = 0, b = 0, n = 0
+        const add = (c, w) => {
+          if (!c) return
+          if (c[0] + c[1] + c[2] < 12) return
+          r += c[0] * w; gg += c[1] * w; b += c[2] * w; n += w
+        }
+
+        if (fF)           add(sample(V.s, W - 1 - x, syS), 3)
+        if (fB && V.n)    add(sample(V.n, x, syN), 3)
+        if (fR && V.e)    add(sample(V.e, D - 1 - z, syE), 2)
+        if (fL && V.w)    add(sample(V.w, z, syW), 2)
+        if (fT || fBo) {
+          add(sample(V.s, W - 1 - x, syS), 0.5)
+          if (V.n) add(sample(V.n, x, syN), 0.5)
+        }
+        if (!n) {
+          add(sample(V.s, W - 1 - x, syS), 1)
+          if (V.n) add(sample(V.n, x, syN), 1)
+          if (V.e) add(sample(V.e, D - 1 - z, syE), 1)
+          if (V.w) add(sample(V.w, z, syW), 1)
+        }
+        if (!n) continue
+
+        r = Math.round(r / n); gg = Math.round(gg / n); b = Math.round(b / n)
+        if (r + gg + b < 18) { r = 10; gg = 10; b = 10 }
+        voxels.push({ x, y, z, r, g: gg, b })
+      }
+    }
+  }
+
+  if (voxels.length) {
+    const yMin = voxels.reduce((m, v) => Math.min(m, v.y), Infinity)
+    for (const v of voxels) v.y -= yMin
+  }
+  return voxels
+}
+
+// ── Foreground Z-depth clipping ───────────────────────────────────────────────
+//
+// WHY THE AXE CREATES A DEEP SLAB:
+// The axe pixel at (sx_axe, sy_axe) in the S sprite is opaque → S carving keeps
+// z=0..31 alive at world_x = W-1-sx_axe.  The N sprite shows the body's back at
+// the same world_x, so N also keeps those z values alive.  Result: a 32-voxel
+// deep slab through the whole model — the axe appears "centered in depth"
+// (z=0..31, centred at z≈16) regardless of where it actually is in 3D.
+//
+// FIX — connected-component foreground detection:
+// In the S sprite, the axe is usually a small disconnected pixel blob, separate
+// from the main body.  We find these isolated components (< 20 % of the largest)
+// and clip their z-depth to maxFront voxels so they appear as thin foreground
+// objects rather than deep slabs.
+//
+// We apply this only to the S view (the primary source of axe slabs).
+// maxFront = 0 → disabled.
+
+function findForegroundPixels(buf, W, H) {
+  const visited = new Uint8Array(W * H)
+  const components = []
+
+  for (let sy = 0; sy < H; sy++) {
+    for (let sx = 0; sx < W; sx++) {
+      const i = sy * W + sx
+      if (isEmpty(buf, sx, sy, W, H) || visited[i]) continue
+
+      const comp = [i]
+      visited[i] = 1
+      let head = 0
+      while (head < comp.length) {
+        const ci = comp[head++]
+        const cx = ci % W, cy = Math.floor(ci / W)
+        for (const [nx, ny] of [[cx-1,cy],[cx+1,cy],[cx,cy-1],[cx,cy+1]]) {
+          if (nx < 0 || nx >= W || ny < 0 || ny >= H) continue
+          const ni = ny * W + nx
+          if (isEmpty(buf, nx, ny, W, H) || visited[ni]) continue
+          visited[ni] = 1
+          comp.push(ni)
+        }
+      }
+      components.push(comp)
+    }
+  }
+
+  if (!components.length) return new Set()
+  const maxSize = Math.max(...components.map(c => c.length))
+  const threshold = maxSize * 0.2   // < 20 % of body = foreground object
+
+  const fg = new Set()
+  for (const comp of components) {
+    if (comp.length < threshold) {
+      for (const i of comp) fg.add(i)
+    }
+  }
+  return fg
+}
+
+function clipForegroundDepth(buf, g, W, H, D, mirrorX, tanElev, maxFront) {
+  if (maxFront <= 0) return
+
+  const fg = findForegroundPixels(buf, W, H)
+  if (!fg.size) return
+
+  for (let sy = 0; sy < H; sy++) {
+    const baseY = H - 1 - sy
+    for (let sx = 0; sx < W; sx++) {
+      if (!fg.has(sy * W + sx)) continue
+
+      const wx = mirrorX ? W - 1 - sx : sx
+      for (let z = maxFront; z < D; z++) {
+        const wy = Math.round(baseY - z * tanElev)
+        g.carve(wx, wy, z)
+      }
+    }
+  }
+}
+
+// ── Phantom-Y carving ─────────────────────────────────────────────────────────
+//
+// ROOT CAUSE OF THE "CENTERED SLAB" BUG:
+// At low elevation (13°), each carving view has a blind corner region at the
+// opposite extreme of the grid that its rays never reach.  For example, the E
+// view carves along X; at a pixel (sx_E, sy_E=0) the implied world_y is
+//   wy = H-1 - (W-1-x)*tanElev
+// For x=12, wy = 28 — so the top 3 rows (y=29..31) at z=4 are never carved
+// by E, even though the E sprite is transparent there.  Similar shadows exist
+// for all views.  The result: spurious voxels survive at extreme (y,z) corners
+// like (world_x=12, y=31, z=4..10).  These are connected to the real arm
+// voxels so cleanupGrid keeps them, inflating the arm slab from z≈11..20
+// (correct) to z≈4..27 (full-depth slab → "centered" appearance).
+//
+// FIX: after carving, any voxel at world_y > (H-1-minSY) - z*tanElev is
+// guaranteed to be a phantom — even the topmost opaque sprite pixel (minSY)
+// can only generate a voxel at that y formula.  Carve everything above it.
+
+function carvePhantomY(buf, g, W, H, D, tanElev) {
+  // Find the topmost (smallest sy) opaque, non-outline pixel in the S sprite.
+  let minSY = H
+  outer: for (let sy = 0; sy < H; sy++) {
+    for (let sx = 0; sx < W; sx++) {
+      if (!isEmpty(buf, sx, sy, W, H)) { minSY = sy; break outer }
+    }
+  }
+  if (minSY >= H) return
+
+  for (let z = 0; z < D; z++) {
+    const maxWY = Math.floor(H - 1 - minSY - z * tanElev)
+    for (let x = 0; x < W; x++) {
+      for (let y = maxWY + 1; y < H; y++) {
+        g.carve(x, y, z)
+      }
+    }
+  }
+}
+
+// ── Ellipse erosion post-processing ──────────────────────────────────────────
+//
+// Space carving from 8 views produces a CIRCUMSCRIBED OCTAGON at each Y-level:
+// the 8 half-space constraints (S/N limit X, E/W limit Z, diagonals limit X±Z)
+// define an octagon whose sides are tangent to the true circle — so corners stick
+// out ~8% beyond the circle radius (corner distance ≈ 1.082r vs circle radius r).
+//
+// This pass converts near-octagonal cross-sections to inscribed ellipses, giving
+// rounder tops for helmets and hats.  It is skipped for cross-sections that are:
+//   - too thin  (extX or extZ < 3)           → arm/leg columns, no rounding needed
+//   - too elongated  (aspect ratio > 2)       → body, arms extending sideways
+//   - too rectangular  (fillRatio > 1.2)      → body slabs, weapon Z-slabs
+//
+// fillRatio = layer.length / (π·rx·rz):
+//   circumscribed octagon ≈ 1.054 → apply erosion
+//   square bounding box   ≈ 1.273 → skip (rectangular body)
+
+function applyRoundness(g, W, H, D, roundAspect = 2.0, roundFill = 1.2) {
+  if (roundFill <= 0) return  // disabled
+
+  for (let y = 0; y < H; y++) {
+    const layer = []
+    for (let x = 0; x < W; x++)
+      for (let z = 0; z < D; z++)
+        if (g.get(x, y, z)) layer.push([x, z])
+
+    if (layer.length < 5) continue
+
+    let minX = W, maxX = -1, minZ = D, maxZ = -1
+    for (const [x, z] of layer) {
+      if (x < minX) minX = x; if (x > maxX) maxX = x
+      if (z < minZ) minZ = z; if (z > maxZ) maxZ = z
+    }
+    const extX = maxX - minX
+    const extZ = maxZ - minZ
+
+    if (extX < 3 || extZ < 3) continue  // too thin
+
+    const aspectRatio = Math.max(extX, extZ) / Math.min(extX, extZ)
+    if (aspectRatio > roundAspect) continue  // too elongated → skip
+
+    const cx = (minX + maxX) / 2
+    const cz = (minZ + maxZ) / 2
+    const rx = extX / 2
+    const rz = extZ / 2
+    const fillRatio = layer.length / (Math.PI * rx * rz)
+    if (fillRatio > roundFill) continue  // too rectangular → skip
+
+    for (const [x, z] of layer) {
+      const dx = (x - cx) / rx
+      const dz = (z - cz) / rz
+      if (dx * dx + dz * dz > 1.0) g.carve(x, y, z)
+    }
+  }
+}
+
+// ── Shared cleanup helper ─────────────────────────────────────────────────────
+// Removes isolated voxel groups smaller than 5% of the largest component.
+
+function cleanupGrid(g, W, H, D) {
+  const visited = new Uint8Array(W * H * D)
+  const components = []
+  for (let i = 0; i < W * H * D; i++) {
+    if (!g.grid[i] || visited[i]) continue
+    const comp = [], stack = [i]
+    visited[i] = 1
+    while (stack.length) {
+      const ci = stack.pop()
+      comp.push(ci)
+      const xi = ci % W, yi = Math.floor(ci / W) % H, zi = Math.floor(ci / (W * H))
+      for (const [nx, ny, nz] of [[xi+1,yi,zi],[xi-1,yi,zi],[xi,yi+1,zi],[xi,yi-1,zi],[xi,yi,zi+1],[xi,yi,zi-1]]) {
+        if (nx < 0 || nx >= W || ny < 0 || ny >= H || nz < 0 || nz >= D) continue
+        const ni = g.idx(nx, ny, nz)
+        if (!g.grid[ni] || visited[ni]) continue
+        visited[ni] = 1; stack.push(ni)
+      }
+    }
+    components.push(comp)
+  }
+  if (components.length > 1) {
+    const maxSize = Math.max(...components.map(c => c.length))
+    const threshold = maxSize * 0.05
+    for (const comp of components)
+      if (comp.length < threshold) for (const ci of comp) g.grid[ci] = 0
+  }
+}
+
+// ── Main reconstruct function ─────────────────────────────────────────────────
+
+// elevDeg: camera elevation angle in degrees (e.g. 30 for classic isometric).
+// Higher values = steeper top-down view; lower = more horizontal.
+export async function reconstruct(src, frameData, elevDeg = 13, maxFront = 0, roundAspect = 2.0, roundFill = 1.2) {
+  const W = SPR, H = SPR, D = SPR
+  const tanElev = Math.tan(elevDeg * Math.PI / 180)
+
+  // Load pixel data for each available direction
+  const V = {}
+  for (const dir of ['s', 'n', 'e', 'w', 'se', 'ne', 'sw', 'nw']) {
+    const info = frameData[dir]
+    if (!info) continue
+    V[dir] = await getPixels(src, info.x * W, info.y * H, W, H)
+  }
+  if (!V.s) return []
+
+  const g = makeGrid(W, H, D)
+
+  // ── S view: camera south (+Z), rays go north (+Z), right=west ────────────
+  //   world_x = W-1-sx (MIRROR), depth = z (increases going north = away from S camera)
+  if (V.s) carveZCols(V.s, g, W, H, D, true, z => z, tanElev)
+
+  // ── N view: camera north (-Z), rays go south (-Z), right=east ────────────
+  //   world_x = sx (no mirror), depth = D-1-z (z=D-1 is closest to N camera)
+  if (V.n) carveZCols(V.n, g, W, H, D, false, z => D - 1 - z, tanElev)
+
+  // ── E view: camera east (+X), rays go west (-X), right=south ─────────────
+  //   world_z = D-1-sx (MIRROR: sprite_x=0=north), depth = W-1-x (x=W-1 closest to E cam)
+  if (V.e) carveXCols(V.e, g, W, H, D, true, x => W - 1 - x, tanElev)
+
+  // ── W view: camera west (-X), rays go east (+X), right=north ─────────────
+  //   world_z = sx (no mirror: sprite_x=0=south), depth = x (x=0 closest to W cam, deeper=east)
+  if (V.w) carveXCols(V.w, g, W, H, D, false, x => x, tanElev)
+
+  // ── SE view: camera at +X-Z, rays go NW (-X+Z) ───────────────────────────
+  //   Along NW ray: x+z = const. Camera right = SW → sprite_x=0 is NE side (large x+z).
+  //   sprite_x → x+z = (W+D-2) - 2*sx.  depth = (z - x + W-1) * 0.5
+  if (V.se) carveDiagRays(V.se, g, W, H, D,
+    sx => (W + D - 2) - 2 * sx,    // sprite_x=0 → NE (max x+z)
+    'sum',
+    (x, z) => (z - x + (W - 1)) * 0.5,
+    tanElev
+  )
+
+  // ── SW view: camera at -X-Z, rays go NE (+X+Z) ───────────────────────────
+  //   Along NE ray: x-z = const. Camera right = NW → sprite_x=0 is SE side (large x-z).
+  //   sprite_x → x-z = (W-1) - 2*sx.  depth = (x + z) * 0.5
+  if (V.sw) carveDiagRays(V.sw, g, W, H, D,
+    sx => (W - 1) - 2 * sx,        // sprite_x=0 → SE (max x-z)
+    'diff',
+    (x, z) => (x + z) * 0.5,
+    tanElev
+  )
+
+  // ── NE view: camera at +X+Z, rays go SW (-X-Z) ───────────────────────────
+  //   Along SW ray: x-z = const. Camera right = SE → sprite_x=0 is NW side (min x-z).
+  //   sprite_x → x-z = -(D-1) + 2*sx.  depth = ((W-1-x) + (D-1-z)) * 0.5
+  if (V.ne) carveDiagRays(V.ne, g, W, H, D,
+    sx => -(D - 1) + 2 * sx,       // sprite_x=0 → NW (min x-z)
+    'diff',
+    (x, z) => ((W - 1 - x) + (D - 1 - z)) * 0.5,
+    tanElev
+  )
+
+  // ── NW view: camera at -X+Z, rays go SE (+X-Z) ───────────────────────────
+  //   Along SE ray: x+z = const. Camera right = NE → sprite_x=0 is SW side (min x+z).
+  //   sprite_x → x+z = 2*sx.  depth = (x + D-1-z) * 0.5
+  if (V.nw) carveDiagRays(V.nw, g, W, H, D,
+    sx => 2 * sx,                   // sprite_x=0 → SW (min x+z)
+    'sum',
+    (x, z) => (x + (D - 1 - z)) * 0.5,
+    tanElev
+  )
+
+  // ── Phantom-Y carve + foreground depth clip + cleanup + roundness + coloring ─
+  if (V.s) carvePhantomY(V.s, g, W, H, D, tanElev)
+  if (V.s) clipForegroundDepth(V.s, g, W, H, D, true, tanElev, maxFront)
+  cleanupGrid(g, W, H, D)
+  applyRoundness(g, W, H, D, roundAspect, roundFill)
+  return colorVoxels(g, V, W, H, D, tanElev)
+}
+
+// ── Step-by-step reconstruct — returns one snapshot per carving stage ─────────
+//
+// Each entry: { label: string, voxels: [{x,y,z,r,g,b}] }
+// Useful for diagnosing which view introduces deformation or carves away weapons.
+
+export async function reconstructSteps(src, frameData, elevDeg = 13, maxFront = 0, roundAspect = 2.0, roundFill = 1.2) {
+  const W = SPR, H = SPR, D = SPR
+  const tanElev = Math.tan(elevDeg * Math.PI / 180)
+
+  const V = {}
+  for (const dir of ['s', 'n', 'e', 'w', 'se', 'ne', 'sw', 'nw']) {
+    const info = frameData[dir]
+    if (!info) continue
+    V[dir] = await getPixels(src, info.x * W, info.y * H, W, H)
+  }
+  if (!V.s) return []
+
+  const g = makeGrid(W, H, D)
+  const steps = []
+  const snap = label => steps.push({ label, voxels: colorVoxels(g, V, W, H, D, tanElev) })
+
+  carveZCols(V.s, g, W, H, D, true,  z => z,       tanElev); snap('+S')
+  if (V.n)  { carveZCols(V.n,  g, W, H, D, false, z => D-1-z,  tanElev); snap('+N') }
+  if (V.e)  { carveXCols(V.e,  g, W, H, D, true,  x => W-1-x,  tanElev); snap('+E') }
+  if (V.w)  { carveXCols(V.w,  g, W, H, D, false, x => x,       tanElev); snap('+W') }
+  if (V.se) { carveDiagRays(V.se, g, W, H, D, sx => (W+D-2)-2*sx, 'sum',  (x,z) => (z-x+(W-1))*0.5,         tanElev); snap('+SE') }
+  if (V.sw) { carveDiagRays(V.sw, g, W, H, D, sx => (W-1)-2*sx,   'diff', (x,z) => (x+z)*0.5,                tanElev); snap('+SW') }
+  if (V.ne) { carveDiagRays(V.ne, g, W, H, D, sx => -(D-1)+2*sx,  'diff', (x,z) => ((W-1-x)+(D-1-z))*0.5,   tanElev); snap('+NE') }
+  if (V.nw) { carveDiagRays(V.nw, g, W, H, D, sx => 2*sx,         'sum',  (x,z) => (x+(D-1-z))*0.5,          tanElev); snap('+NW') }
+
+  if (V.s) carvePhantomY(V.s, g, W, H, D, tanElev)
+  if (V.s) clipForegroundDepth(V.s, g, W, H, D, true, tanElev, maxFront)
+  cleanupGrid(g, W, H, D)
+  applyRoundness(g, W, H, D, roundAspect, roundFill)
+  snap('Final')
+
+  return steps
+}
