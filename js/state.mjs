@@ -72,6 +72,7 @@ class GameState {
     this._map = null
     this.customMapId = null // Custom map identifier (e.g., "custom_4698963")
     this.customMapData = null // Custom map metadata
+    this.goldTiles = []     // Pre-computed list of {x, y} for GOLD tiles — used by renderer for sparkle effects
 
     // Campaign state (set by campaign.mjs; defaults ensure no skirmish behavior change)
     this.campaignLevelId = null           // e.g. '01_tutorial' — null in skirmish
