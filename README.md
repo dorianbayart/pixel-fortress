@@ -35,6 +35,7 @@
 * **Building Specialization:** Upgrade buildings along branching paths to unlock specialized variants tailored to your strategy
 * **Game Modes:** Classic, speedier gameplay, fast gathering units, and more variants (planned)
 * **Campaign Mode:** Story-driven missions (planned)
+* **Privacy-friendly Analytics:** Cookie-free game session tracking via self-hosted [Umami](https://umami.is/) — no consent banner needed
 
 ## 🎮 Game Modes
 

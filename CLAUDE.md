@@ -86,6 +86,18 @@ When making changes, refer to these core files to understand the game's architec
 - **`js/globals.mjs`**: Global variables and references.
 - **`js/dimensions.mjs`**: Screen and map dimension calculations.
 
+### Analytics
+- **`js/analytics.mjs`**: Game session analytics module. Hooks into `gameState.events` non-invasively. Sends data to Umami via `window.umami?.track()`. Exports `ANALYTICS_CONFIG` for toggling individual tracking categories and `initAnalytics()` called once from `js/index.mjs`.
+
+Tracked events:
+- `game-started` — map size/seed, difficulty, game mode, campaign level, fog of war, language
+- `game-ended` — outcome (win/loss/quit), play time, building count, kill/loss counts, full build-order sequence
+- `buildingOrder` in `game-ended` is a JSON string of `[{type, t}, {type, upLvlTo, t}, ...]` entries covering placements, upgrades (numeric `upLvlTo`) and specializations (string `upLvlTo`) — intended for future AI training
+
+**Umami instance:** self-hosted at `https://pixelfortress-analytics.0xdba.dev` (Docker on OVH, `/opt/docker-compose/umami/`).
+**Database note:** the `event_data.string_value` column has been migrated from `VARCHAR(500)` to `TEXT` to accommodate long `buildingOrder` payloads.
+**Opt-out (dev):** run `localStorage.setItem('umami.disabled', 1)` in the browser console to suppress tracking on a given device.
+
 ## File Structure Overview
 
 ```
