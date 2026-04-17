@@ -216,6 +216,7 @@ self.onmessage = (event) => {
     currentMapDimensions = mapDimensions
   } else if (type === 'UPDATE_MAP') {
     currentGameStateMap = map
+    clearPathCache()
   } else if (type === 'CLEAR_CACHE') {
     clearPathCache()
     self.postMessage({ type: 'CACHE_CLEARED', id })
