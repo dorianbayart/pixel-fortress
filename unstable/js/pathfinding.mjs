@@ -216,16 +216,21 @@ async function updateMapInWorker() {
     allUnits.push(...aiPlayer.getUnits())
   })
 
-  // Add weight for each unit on a tile (2 per unit)
+  // Add weight for each unit on a tile (10 per unit at current position, 5 at next position)
+  const mapWidth = mapData.length
+  const mapHeight = mapData[0].length
   allUnits.forEach(unit => {
-    const x = unit.currentNode?.x !== undefined ? unit.currentNode.x : unit.x
-    const y = unit.currentNode?.y !== undefined ? unit.currentNode.y : unit.y
+    const cx = unit.currentNode?.x
+    const cy = unit.currentNode?.y
+    if (cx !== undefined && cx >= 0 && cx < mapWidth && cy >= 0 && cy < mapHeight) {
+      mapData[cx][cy].weight += 10
+    }
 
-    // Ensure coordinates are valid
-    if (x !== undefined && y !== undefined &&
-        x >= 0 && x < mapData.length &&
-        y >= 0 && y < mapData[0].length) {
-      mapData[x][y].weight += 8
+    const nx = unit.nextNode?.x
+    const ny = unit.nextNode?.y
+    if (nx !== undefined && nx >= 0 && nx < mapWidth && ny >= 0 && ny < mapHeight &&
+        (nx !== cx || ny !== cy)) {
+      mapData[nx][ny].weight += 5
     }
   })
 

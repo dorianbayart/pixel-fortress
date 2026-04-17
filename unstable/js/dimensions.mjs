@@ -64,7 +64,8 @@ const updateDimensions = async () => {
 
     const isPlaying = gameState.gameStatus === 'playing' || gameState.gameStatus === 'paused'
     const topH = isPlaying ? CONSTANTS.UI.TOP_BAR_HEIGHT : 0
-    const bottomH = isPlaying ? CONSTANTS.UI.BOTTOM_BAR_HEIGHT : 0
+    const isMobile = window.innerWidth <= 600 || window.innerHeight <= 600
+    const bottomH = isPlaying ? (isMobile ? CONSTANTS.UI.BOTTOM_BAR_HEIGHT_MOBILE : CONSTANTS.UI.BOTTOM_BAR_HEIGHT) : 0
 
     // Store canvas dimensions in pixels
     canvasWidth = window.innerWidth

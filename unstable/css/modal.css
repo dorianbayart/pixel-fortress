@@ -651,7 +651,7 @@ input {
   overflow-y: auto;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 600px), (max-height: 600px) {
   #skirmishSetupSection .modal-body {
     overflow-y: auto;
   }

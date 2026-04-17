@@ -876,6 +876,37 @@ function renderWorldObjects(map, viewport) {
 }
 
 /**
+ * Emit gold sparkle particles on visible gold tiles.
+ * Iterates the precomputed gameState.goldTiles list and viewport-culls each,
+ * avoiding the per-frame scan of every tile in the viewport.
+ * Gold tiles never change type (gold is not depleted), so the list is stable
+ * after map generation.
+ * @param {number} SPRITE_SIZE - Size of a tile in pixels
+ */
+function emitGoldSparkles(SPRITE_SIZE) {
+  const goldTiles = gameState.goldTiles
+  if (!goldTiles || goldTiles.length === 0) return
+
+  const halfTileSize = SPRITE_SIZE / 2
+  const fog = gameState.settings.fogOfWar
+  const sX = viewport.startX, sY = viewport.startY
+  const eX = viewport.endX,   eY = viewport.endY
+
+  for (let i = 0; i < goldTiles.length; i++) {
+    const { x, y } = goldTiles[i]
+    if (x < sX || x >= eX || y < sY || y >= eY) continue
+    if (fog && !isPositionExplored(x, y)) continue
+    if (Math.random() > 0.945) {
+      createParticleEmitter(ParticleEffect.GOLD_SPARKLE, {
+        x: x * SPRITE_SIZE + halfTileSize,
+        y: y * SPRITE_SIZE + halfTileSize,
+        duration: 1000
+      })
+    }
+  }
+}
+
+/**
  * Draw the background terrain
  * @param {Array} map - Game map
  */
@@ -900,28 +931,8 @@ function drawBackground(map) {
     renderStats.tilesRendered = width * height
     renderStats.backgroundSpritesVisible = 1 // Just the bitmap sprite
 
-    // Gold sparkle effects still need to be rendered
-    const goldType = TERRAIN_TYPES.GOLD.type
-    const halfTileSize = SPRITE_SIZE / 2
-    const startX = viewport.startX || 0
-    const startY = viewport.startY || 0
-    const endX = viewport.endX || width
-    const endY = viewport.endY || height
-
-    for (let x = startX; x < endX; x++) {
-      for (let y = startY; y < endY; y++) {
-        if (gameState.settings.fogOfWar && !isPositionExplored(x, y)) continue
-
-        // Add special effect on Gold tiles
-        if (map[x][y].type === goldType && Math.random() > 0.945) {
-          createParticleEmitter(ParticleEffect.GOLD_SPARKLE, {
-            x: x * SPRITE_SIZE + halfTileSize,
-            y: y * SPRITE_SIZE + halfTileSize,
-            duration: 1000
-          })
-        }
-      }
-    }
+    // Gold sparkle effects — iterate precomputed goldTiles instead of scanning viewport
+    emitGoldSparkles(SPRITE_SIZE)
 
     backDrawn()
     return
@@ -946,8 +957,6 @@ function drawBackground(map) {
 
   // Pre-calculate values outside inner loop for performance
   const currentWaterFrame = getCurrentWaterFrame()
-  const goldType = TERRAIN_TYPES.GOLD.type
-  const halfTileSize = SPRITE_SIZE / 2
 
   // Draw all map tiles
   for (let x = startX; x < endX; x++) {
@@ -1066,17 +1075,11 @@ function drawBackground(map) {
             }
           }
       }
-
-      // Add special effect on Gold tiles (per-tile random check)
-      if (map[x][y].type === goldType && Math.random() > 0.945) {
-        createParticleEmitter(ParticleEffect.GOLD_SPARKLE, {
-          x: x * SPRITE_SIZE + halfTileSize,
-          y: y * SPRITE_SIZE + halfTileSize,
-          duration: 1000
-        })
-      }
     }
   }
+
+  // Gold sparkle effects — iterate precomputed goldTiles instead of scanning viewport
+  emitGoldSparkles(SPRITE_SIZE)
 
   // Update visible sprite counts
   renderStats.backgroundSpritesVisible = visibleBackgroundSprites.size

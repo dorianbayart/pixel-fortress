@@ -228,6 +228,8 @@ const assignSpritesOnMap = async () => {
   const { width: MAP_WIDTH, height: MAP_HEIGHT, maxWeight: MAX_WEIGHT } = getMapDimensions()
   const SPRITE_SIZE = getTileSize()
 
+  gameState.goldTiles = []
+
   for (let x = 0; x < MAP_WIDTH; x++) {
     for (let y = 0; y < MAP_HEIGHT; y++) {
       const terrainType = TERRAIN_TYPES[gameState.map[x][y].type]
@@ -264,6 +266,7 @@ const assignSpritesOnMap = async () => {
           app.renderer.render(goldSprite, { renderTexture: goldRenderTexture })
           gameState.map[x][y].sprite = goldRenderTexture
           gameState.map[x][y].back = sprites[`tile_${grassSpriteX}_${grassSpriteY}`]
+          gameState.goldTiles.push({ x, y })
           break
 
         case TERRAIN_TYPES.SAND.type:
