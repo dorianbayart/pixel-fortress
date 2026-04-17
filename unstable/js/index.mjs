@@ -20,9 +20,11 @@
 
 import { handleWindowResize, initializeGame } from 'init'
 import { setupViewportHandling } from 'viewport'
+import { initAnalytics } from 'analytics'
 
 // Initialize on load
 window.addEventListener('load', initializeGame)
+initAnalytics()
 
 // Set up window event handlers
 window.addEventListener('rotate', handleWindowResize)

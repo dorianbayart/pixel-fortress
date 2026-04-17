@@ -6,7 +6,7 @@
 - **Online preview**: [https://dorianbayart.github.io/pixel-fortress/unstable/play.html](https://dorianbayart.github.io/pixel-fortress/unstable/play.html) — updated on every commit to `main`
 
 ### New Features
-- **Work in progress** — New features will be listed here as development progresses
+- **Analytics:** Cookie-free, privacy-friendly game session tracking via self-hosted Umami — no consent banner required
 
 ### Gameplay
 
