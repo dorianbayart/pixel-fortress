@@ -3,7 +3,7 @@ export { handleWindowResize, initializeGame }
 'use strict'
 
 import { isMuted, musicManager, toggleMute } from 'audio'
-import { initCampaign } from 'campaign'
+import { initCampaign, resetCampaign } from 'campaign'
 import { getTileSize, initMapDimensions } from 'dimensions'
 import { initFogOfWar } from 'fogOfWar'
 import { gameLoop, initGame } from 'game'
@@ -12,6 +12,7 @@ import { initMapEditor } from 'map-editor'
 import { initHomeMenu } from 'menu'
 import { initLevelStats, loadGameStats } from 'playerStats'
 import { app, containers, initCanvases, resizeCanvases } from 'renderer'
+import { resetNarratives } from 'narrative'
 import { loadSprites } from 'sprites'
 import gameState from 'state'
 import { initUI, showDebugMessage } from 'ui'
@@ -132,6 +133,9 @@ async function initializeGame() {
 
     
     if (status === 'initialize') {
+      // Close the narrative box immediately so it doesn't linger during loading
+      resetNarratives()
+
       // Small delay before reinitialization
       setTimeout(async () => {
         
@@ -205,19 +209,13 @@ async function initializeGame() {
       gameState.clearHumanPlayer()
       gameState.clearAiPlayers()
 
-      // If returning from a campaign, clear campaign-specific state so it
-      // does not bleed into a subsequent skirmish (e.g. campaign custom map
-      // being reloaded, causing the AI to have no tent → instant win).
+      // If returning from a campaign, reset all campaign state (narrative,
+      // objectives, flags) so nothing bleeds into a subsequent skirmish.
       if (gameState.campaignLevelId) {
+        resetCampaign()
         gameState.customMapId = null
         gameState.campaignLevelId = null
         gameState.pendingCampaignConfig = null
-        gameState.campaignAllowedBuildings = null
-        gameState.campaignRestrictSpecialization = false
-        gameState.campaignTentProductionEnabled = true
-        gameState.campaignMaxPeons = null
-        gameState.campaignPeonsMatchBuilding = null
-        gameState.campaignNormalAiEnabled = false
       }
     }
 
