@@ -450,6 +450,7 @@ body.playing-mode #minimap-container {
   display: inline-block;
   transform: rotate(45deg);
   line-height: 1;
+  font-size: 1.25rem;
   pointer-events: none;
   transition: transform .5s ease-in-out;
 }
@@ -526,10 +527,11 @@ body.minimap-minimized #objectives-panel {
 }
 
 .objectives-toggle-btn {
+  display: contents;
   background: none;
   border: none;
   color: #FFD700;
-  font-size: 14px;
+  font-size: 1.15rem;
   cursor: pointer;
   padding: 0 2px;
   line-height: 1;
