@@ -105,7 +105,7 @@ body.playing-mode {
 
 body.playing-mode #canvas {
   top: 32px;
-  height: calc(100dvh - 32px - 80px);
+  height: calc(100dvh - 32px - 72px);
 }
 
 #stats {
@@ -270,4 +270,10 @@ body.playing-mode #canvas {
   font-size: x-large;
   color: var(--font-color);
   text-shadow: 0 0 5px forestgreen, 0 0 10px forestgreen, 0 0 15px forestgreen, 0 0 20px forestgreen, 0 0 25px forestgreen;
+}
+
+@media (max-width: 600px), (max-height: 600px) {
+  body.playing-mode #canvas {
+    height: calc(100dvh - 32px - 56px);
+  }
 }

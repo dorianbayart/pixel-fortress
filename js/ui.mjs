@@ -163,6 +163,7 @@ function renderBuildingSlots() {
 
     btn.addEventListener('click', (e) => {
       e.stopPropagation()
+      hideTooltip()
       handleBuildingSelect(i)
       addButtonSparkles(e)
     })

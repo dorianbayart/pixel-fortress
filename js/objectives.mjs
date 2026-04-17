@@ -23,6 +23,8 @@ import { t } from 'i18n'
 let _goals = []          // GoalState[]
 let _waveUnits = new Map() // waveTag → Set<Unit>
 let _unsubscribers = []
+let _objectivesMinimized = false
+let _headerClickHandler = null
 
 // Callback invoked when all goals in the current phase are complete
 let _onPhaseComplete = null
@@ -95,10 +97,36 @@ function renderObjectivesPanel() {
 
   if (_goals.length === 0) {
     panel.classList.remove('visible')
+    _objectivesMinimized = false
     return
   }
 
-  if (header) header.textContent = 'Objectives'
+  // Rebuild header with title + minimize/expand button
+  if (header) {
+    if (_headerClickHandler) header.removeEventListener('click', _headerClickHandler)
+    header.innerHTML = ''
+
+    const titleEl = document.createElement('span')
+    titleEl.textContent = t('campaign.objectives')
+    header.appendChild(titleEl)
+
+    const toggleBtn = document.createElement('button')
+    toggleBtn.className = 'objectives-toggle-btn'
+    toggleBtn.textContent = _objectivesMinimized ? '⇓' : '⇑'
+    toggleBtn.tabIndex = -1 // header handles the interaction
+    header.appendChild(toggleBtn)
+
+    // Click anywhere on header toggles minimized state
+    _headerClickHandler = () => {
+      _objectivesMinimized = !_objectivesMinimized
+      panel.classList.toggle('minimized', _objectivesMinimized)
+      toggleBtn.textContent = _objectivesMinimized ? '⇓' : '⇑'
+    }
+    header.addEventListener('click', _headerClickHandler)
+  }
+
+  // Apply current minimized state
+  panel.classList.toggle('minimized', _objectivesMinimized)
 
   list.innerHTML = ''
   _goals.forEach(goal => {

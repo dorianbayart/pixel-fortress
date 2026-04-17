@@ -18,6 +18,8 @@ let ctx = null
 let offscreenCanvas = null
 let offCtx = null
 let lastContentUpdate = 0
+let _minimapToggleHandler = null
+let _minimapContainerHandler = null
 
 function hexToRgba(hex, alpha = 1) {
   const r = (hex >> 16) & 0xff
@@ -47,6 +49,35 @@ function initMinimap() {
   offCtx.scale(dpr, dpr)
 
   lastContentUpdate = 0
+
+  // Toggle button (all devices) — stopPropagation prevents double-firing with container handler
+  const toggleBtn = document.getElementById('minimap-toggle')
+  if (toggleBtn) {
+    if (_minimapToggleHandler) toggleBtn.removeEventListener('click', _minimapToggleHandler)
+    _minimapToggleHandler = (e) => {
+      e.stopPropagation()
+      document.body.classList.toggle('minimap-minimized')
+    }
+    toggleBtn.addEventListener('click', _minimapToggleHandler)
+  }
+
+  // Mobile only: click anywhere on the minimap container to minimize/expand
+  const container = document.getElementById('minimap-container')
+  if (container) {
+    if (_minimapContainerHandler) container.removeEventListener('click', _minimapContainerHandler)
+    _minimapContainerHandler = () => {
+      if (window.matchMedia('(max-width: 600px), (max-height: 600px)').matches) {
+        document.body.classList.toggle('minimap-minimized')
+      }
+    }
+    container.addEventListener('click', _minimapContainerHandler)
+  }
+
+  // Default to minimized on mobile
+  if (window.matchMedia('(max-width: 600px), (max-height: 600px)').matches) {
+    document.body.classList.add('minimap-minimized')
+  }
+
   console.log('Minimap initialized')
 }
 

@@ -4,7 +4,8 @@ export default {
     // ===== UI CONSTANTS =====
     UI: {
         TOP_BAR_HEIGHT: 32,
-        BOTTOM_BAR_HEIGHT: 80,
+        BOTTOM_BAR_HEIGHT: 72,
+        BOTTOM_BAR_HEIGHT_MOBILE: 56,
         FONTS: {
             PRIMARY: "system-ui, 'Open Sans', Arial, sans-serif",
             MONOSPACE: "monospace, 'Courier New', Courier",
@@ -30,7 +31,7 @@ export default {
         },
         // Mouse/Camera zoom (for viewport control)
         CAMERA: {
-            TILES: 16,
+            TILES: window.innerWidth <= 600 || window.innerHeight <= 600 ? 10 : 16,
             FACTOR: 0.05,
             MAX: 6,
             MIN: 1,
