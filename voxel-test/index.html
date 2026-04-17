@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Pixel Fortress — Voxel 3D Viewer</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #101018; color: #ccc; font-family: monospace; overflow: hidden; }
+    canvas { display: block; }
+    #ui {
+      position: absolute; top: 12px; left: 12px;
+      background: rgba(6,6,16,.93); border: 1px solid #2a304a;
+      padding: 14px; border-radius: 8px; width: 260px;
+    }
+    h2 { font-size: 11px; color: #6ab; letter-spacing: 2px; margin-bottom: 12px; }
+    .sec { margin-bottom: 9px; }
+    .sec label { display: block; font-size: 9px; color: #456; letter-spacing: 1px; margin-bottom: 3px; }
+    select { width: 100%; background: #0a0a1a; color: #bbd; border: 1px solid #2a304a; border-radius: 3px; padding: 5px; font-size: 11px; font-family: monospace; cursor: pointer; }
+    .row { display: flex; align-items: center; gap: 8px; }
+    .row input[type=range] { flex: 1; accent-color: #5af; cursor: pointer; }
+    .val { font-size: 10px; color: #789; min-width: 28px; text-align: right; }
+    .btns { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 2px; }
+    button {
+      flex: 1; min-width: 54px; padding: 5px 5px;
+      font-size: 10px; font-family: monospace;
+      background: #0a0a1a; color: #9ad; border: 1px solid #2a304a;
+      border-radius: 3px; cursor: pointer;
+    }
+    button:hover { background: #14142a; }
+    button.on { background: #162240; border-color: #4af; color: #7cf; }
+    #bar { width: 100%; height: 2px; background: #1a2030; border-radius: 2px; margin-top: 8px; overflow: hidden; }
+    #fill { height: 100%; background: #5af; width: 0; transition: width .15s; }
+    #status { font-size: 10px; color: #6ab; margin-top: 6px; min-height: 14px; }
+    #err { font-size: 10px; color: #f88; margin-top: 4px; display: none; line-height: 1.5; }
+    #stats { font-size: 9px; color: #456; margin-top: 6px; line-height: 1.8; border-top: 1px solid #1a2030; padding-top: 6px; }
+    #lbl {
+      position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+      background: rgba(6,6,16,.8); padding: 4px 14px; border-radius: 14px;
+      font-size: 10px; color: #6ab; pointer-events: none; white-space: nowrap;
+    }
+    #hint {
+      position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
+      background: rgba(6,6,16,.8); padding: 4px 14px; border-radius: 14px;
+      font-size: 10px; color: #345; pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+<div id="ui">
+  <h2>VOXEL 3D — UNIT VIEWER</h2>
+
+  <div class="sec">
+    <label>UNIT</label>
+    <select id="unitSel"></select>
+  </div>
+  <div class="sec">
+    <label>ANIMATION</label>
+    <select id="animSel"></select>
+  </div>
+  <div class="sec">
+    <label>FPS (animation speed)</label>
+    <div class="row">
+      <input type="range" id="fpsR" min="1" max="16" value="3">
+      <span class="val" id="fpsV">3</span>
+    </div>
+  </div>
+  <div class="sec">
+    <label>ELEVATION ANGLE (°)</label>
+    <div class="row">
+      <input type="range" id="elevR" min="5" max="75" step="1" value="13">
+      <span class="val" id="elevV">13°</span>
+    </div>
+  </div>
+  <div class="sec">
+    <label>ROUND FILL THRESHOLD (1.05=circle only · 1.27=also rect)</label>
+    <div class="row">
+      <input type="range" id="rfR" min="0.8" max="1.5" step="0.05" value="1.2">
+      <span class="val" id="rfV">1.20</span>
+    </div>
+  </div>
+  <div class="sec">
+    <label>ROUND ASPECT LIMIT (skip elongated cross-sections above)</label>
+    <div class="row">
+      <input type="range" id="raR" min="1.0" max="3.0" step="0.1" value="2.0">
+      <span class="val" id="raV">2.0</span>
+    </div>
+  </div>
+  <div class="sec">
+    <label>VOXEL GAP</label>
+    <div class="row">
+      <input type="range" id="gapR" min="0" max="0.4" step="0.02" value="0">
+      <span class="val" id="gapV">0.00</span>
+    </div>
+  </div>
+  <div class="btns">
+    <button id="btnPlay" class="on" onclick="togglePlay()">⏸ Pause</button>
+    <button id="btnRot" onclick="toggleRot()">↻ Rotate</button>
+    <button id="btnWire" onclick="toggleWire()">Wire</button>
+    <button onclick="resetCam()">Cam ⟳</button>
+  </div>
+  <div id="bar"><div id="fill"></div></div>
+  <div id="status"></div>
+  <div id="err"></div>
+  <div id="stats"></div>
+</div>
+
+<div id="lbl"></div>
+<div id="hint">Drag · Scroll · Right-drag to pan</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from 'three'
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+import { reconstruct } from './reconstruct.mjs'
+
+// ── Scene ─────────────────────────────────────────────────────────────────────
+const scene = new THREE.Scene()
+scene.background = new THREE.Color(0x0d0d18)
+
+const camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 0.1, 800)
+camera.position.set(0, 28, 65)
+
+const renderer = new THREE.WebGLRenderer({ antialias: true })
+renderer.setSize(innerWidth, innerHeight)
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2))
+renderer.shadowMap.enabled = true
+renderer.shadowMap.type = THREE.PCFSoftShadowMap
+document.body.appendChild(renderer.domElement)
+
+const ctrl = new OrbitControls(camera, renderer.domElement)
+ctrl.target.set(0, 14, 0)
+ctrl.enableDamping = true; ctrl.dampingFactor = 0.06
+
+// Lights
+scene.add(new THREE.AmbientLight(0xffffff, 0.7))
+const sun = new THREE.DirectionalLight(0xfff5e8, 1.8)
+sun.position.set(20, 40, 20)
+sun.castShadow = true
+sun.shadow.mapSize.set(1024, 1024)
+sun.shadow.camera.left = sun.shadow.camera.bottom = -50
+sun.shadow.camera.right = sun.shadow.camera.top = 50
+sun.shadow.camera.near = 1; sun.shadow.camera.far = 200
+scene.add(sun)
+const fillL = new THREE.DirectionalLight(0x2030aa, 0.35)
+fillL.position.set(-15, 10, -25)
+scene.add(fillL)
+
+const backL = new THREE.DirectionalLight(0x603020, 0.2)
+backL.position.set(0, -5, -30)
+scene.add(backL)
+
+// Ground
+const gnd = new THREE.Mesh(new THREE.PlaneGeometry(400,400), new THREE.MeshLambertMaterial({ color: 0x09090e }))
+gnd.rotation.x = -Math.PI/2; gnd.position.y = -0.5; gnd.receiveShadow = true; scene.add(gnd)
+scene.add(new THREE.GridHelper(120, 40, 0x111122, 0x0d0d1a))
+
+const SPR = 32
+
+// reconstruct() is imported from ./reconstruct.mjs (space carving with per-direction ray axes)
+
+// ── Mesh builder: one InstancedMesh per unique color ─────────────────────────
+function buildMesh(voxels) {
+  if (!voxels.length) return null
+  const vs = 1 - voxelGap
+
+  // Fixed center on the 32px sprite grid so all animation frames stay aligned
+  const cx = (SPR - 1) / 2  // = 15.5, constant regardless of which pixels are opaque
+  let mnZ=Infinity, mxZ=-Infinity
+  for (const v of voxels) {
+    mnZ=Math.min(mnZ,v.z); mxZ=Math.max(mxZ,v.z)
+  }
+  const cz=(mnZ+mxZ)/2
+
+  const map = new Map()
+  for (const v of voxels) {
+    const k=`${v.r},${v.g},${v.b}`
+    if (!map.has(k)) map.set(k, { r:v.r, g:v.g, b:v.b, pos:[] })
+    map.get(k).pos.push(v.x-cx, v.y, v.z-cz)
+  }
+
+  const group = new THREE.Group()
+  const geo   = new THREE.BoxGeometry(vs, vs, vs)
+  const m4    = new THREE.Matrix4()
+  for (const c of map.values()) {
+    const cnt  = c.pos.length/3
+    const mesh = new THREE.InstancedMesh(geo, new THREE.MeshLambertMaterial({
+      color: new THREE.Color(c.r/255, c.g/255, c.b/255)
+    }), cnt)
+    mesh.castShadow = true; mesh.receiveShadow = true
+    for (let i=0; i<cnt; i++) {
+      m4.setPosition(c.pos[i*3], c.pos[i*3+1], c.pos[i*3+2])
+      mesh.setMatrixAt(i, m4)
+    }
+    mesh.instanceMatrix.needsUpdate = true
+    group.add(mesh)
+  }
+  return group
+}
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let desc        = {}
+let voxelGap    = 0
+let elevDeg     = 13
+let maxFront    = 0
+let roundFill   = 1.2
+let roundAspect = 2.0
+let animFPS     = 3
+let isPlaying   = true
+let autoRotate  = false
+let wireframe   = false
+let currentAnim = ''
+let frameIdx    = 0
+let lastFrameTime = 0
+
+// frameGroups[animName] = [THREE.Group|null, ...]  (pre-built, toggled via .visible)
+const frameGroups = {}
+let loadGen = 0  // incremented on every loadUnit call; lets stale async builds self-cancel
+
+const setStatus   = s => document.getElementById('status').textContent = s
+const setProgress = p => document.getElementById('fill').style.width = `${p*100}%`
+
+function disposeAll() {
+  for (const gs of Object.values(frameGroups))
+    for (const g of gs) if (g) {
+      g.traverse(o => { if(o.geometry) o.geometry.dispose(); if(o.material) o.material.dispose() })
+      scene.remove(g)
+    }
+  for (const k in frameGroups) delete frameGroups[k]
+  frameIdx = 0
+}
+
+function showFrame(animName, fi) {
+  for (const gs of Object.values(frameGroups)) for (const g of gs) if (g) g.visible = false
+  const gs = frameGroups[animName]
+  if (!gs) return
+  const g = gs[fi % gs.length]
+  if (g) g.visible = true
+}
+
+async function loadUnit(unitName) {
+  const gen = ++loadGen  // capture this build's generation
+  disposeAll()
+  document.getElementById('err').style.display = 'none'
+  const unit = desc[unitName]
+  if (!unit) return
+
+  const src = unit.relativeToRoot.replace('./', '../')
+  const animNames = Object.keys(unit).filter(k => !['sprite','relativeToRoot','mask'].includes(k))
+
+  let total=0; for (const a of animNames) total+=Object.keys(unit[a]).length
+  let done=0
+
+  for (const animName of animNames) {
+    frameGroups[animName] = []
+    for (const fk of Object.keys(unit[animName])) {
+      setStatus(`Building ${unitName} / ${animName} / ${fk}…`)
+      try {
+        const voxels = await reconstruct(src, unit[animName][fk], elevDeg, maxFront, roundAspect, roundFill)
+        if (gen !== loadGen) return  // a newer loadUnit call started; abandon this build
+        const g = buildMesh(voxels)
+        if (g) { g.visible = false; scene.add(g) }
+        frameGroups[animName].push(g)
+      } catch(e) {
+        frameGroups[animName].push(null)
+        document.getElementById('err').textContent = '⚠ ' + e.message
+        document.getElementById('err').style.display = 'block'
+      }
+      done++; setProgress(done/total)
+    }
+  }
+
+  const summary = Object.entries(frameGroups).map(([a,gs]) => `${a}:${gs.length}f`).join(', ')
+  setStatus(`Ready — ${summary}`)
+  showFrame(currentAnim, 0)
+
+  const totalMeshes = Object.values(frameGroups).flat().filter(Boolean).length
+  document.getElementById('stats').innerHTML = [
+    `Unit: ${unitName}`,
+    `Anims: ${animNames.join(', ')}`,
+    `Frame meshes built: ${totalMeshes}`,
+    `Method: space carving (8 views)`,
+  ].join('<br>')
+}
+
+// ── UI ────────────────────────────────────────────────────────────────────────
+async function initUI() {
+  setStatus('Loading…')
+  const resp = await fetch('../assets/unitsSpritesDescription.json')
+  desc = await resp.json()
+
+  const uSel = document.getElementById('unitSel')
+  for (const name of Object.keys(desc)) {
+    const o = document.createElement('option')
+    o.value = name
+    o.textContent = name.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+    uSel.appendChild(o)
+  }
+
+  const rebuildAnimSel = (unitName) => {
+    const aSel = document.getElementById('animSel')
+    aSel.innerHTML = ''
+    const anims = Object.keys(desc[unitName]).filter(k => !['sprite','relativeToRoot','mask'].includes(k))
+    for (const a of anims) {
+      const o = document.createElement('option')
+      o.value = a; o.textContent = a
+      if (a === 'walk') o.selected = true
+      aSel.appendChild(o)
+    }
+    currentAnim = aSel.value
+  }
+
+  uSel.addEventListener('change', () => { rebuildAnimSel(uSel.value); loadUnit(uSel.value) })
+  document.getElementById('animSel').addEventListener('change', e => {
+    currentAnim = e.target.value; frameIdx = 0; showFrame(currentAnim, 0)
+  })
+
+  const slider = (id, vid, digits, cb, suffix = '') => {
+    const el = document.getElementById(id)
+    el.addEventListener('input', () => {
+      cb(parseFloat(el.value))
+      document.getElementById(vid).textContent = parseFloat(el.value).toFixed(digits) + suffix
+    })
+  }
+  slider('fpsR',  'fpsV',  0,  v => { animFPS    = v })
+  slider('elevR', 'elevV', 0,  v => { elevDeg    = v; loadUnit(uSel.value) }, '°')
+  slider('rfR',   'rfV',   2,  v => { roundFill   = v; loadUnit(uSel.value) })
+  slider('raR',   'raV',   1,  v => { roundAspect = v; loadUnit(uSel.value) })
+  slider('gapR',  'gapV',  2,  v => { voxelGap   = v; loadUnit(uSel.value) })
+  rebuildAnimSel(uSel.value)
+  await loadUnit(uSel.value)
+}
+
+window.togglePlay = () => {
+  isPlaying = !isPlaying
+  document.getElementById('btnPlay').textContent = isPlaying ? '⏸ Pause' : '▶ Play'
+  document.getElementById('btnPlay').classList.toggle('on', isPlaying)
+}
+window.toggleRot = () => {
+  autoRotate = !autoRotate; ctrl.autoRotate = autoRotate
+  document.getElementById('btnRot').classList.toggle('on', autoRotate)
+}
+window.toggleWire = () => {
+  wireframe = !wireframe
+  document.getElementById('btnWire').classList.toggle('on', wireframe)
+  for (const gs of Object.values(frameGroups)) for (const g of gs) if (g)
+    g.traverse(o => { if (o.material) o.material.wireframe = wireframe })
+}
+window.resetCam = () => {
+  camera.position.set(0, 28, 65); ctrl.target.set(0, 14, 0); ctrl.update()
+}
+
+// ── Render loop ───────────────────────────────────────────────────────────────
+ctrl.autoRotateSpeed = 2
+function animate(time) {
+  requestAnimationFrame(animate)
+  ctrl.update()
+
+  if (isPlaying && currentAnim && frameGroups[currentAnim]?.length > 1) {
+    const interval = 1000 / animFPS
+    if (time - lastFrameTime >= interval) {
+      showFrame(currentAnim, frameIdx)
+      frameIdx = (frameIdx + 1) % frameGroups[currentAnim].length
+      lastFrameTime = time
+    }
+  }
+  renderer.render(scene, camera)
+}
+animate(0)
+
+window.addEventListener('resize', () => {
+  camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix()
+  renderer.setSize(innerWidth, innerHeight)
+})
+
+initUI().catch(e => {
+  document.getElementById('err').textContent = '⚠ ' + e.message + ' — run: python3 -m http.server 8000'
+  document.getElementById('err').style.display = 'block'
+  setStatus('Error')
+})
+</script>
+</body>
+</html>

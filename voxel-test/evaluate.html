@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Pixel Fortress — Voxel Quality Evaluator</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0b0b16; color: #ccd; font-family: monospace; font-size: 12px; display: flex; height: 100vh; overflow: hidden; }
+
+    /* ── Left panel ── */
+    #sidebar {
+      width: 260px; min-width: 260px; background: #0d0d1e; border-right: 1px solid #1e2440;
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    #sidebar h2 { font-size: 10px; color: #5af; letter-spacing: 2px; padding: 12px 14px 8px; border-bottom: 1px solid #1a2030; }
+    #sidebar-inner { flex: 1; overflow-y: auto; padding: 10px 12px; }
+    .sec { margin-bottom: 10px; }
+    .sec > label { display: block; font-size: 9px; color: #445; letter-spacing: 1px; margin-bottom: 4px; text-transform: uppercase; }
+    select, input[type=text], input[type=number] {
+      width: 100%; background: #080810; color: #aac; border: 1px solid #1e2840; border-radius: 3px;
+      padding: 4px 6px; font-size: 11px; font-family: monospace;
+    }
+    select[multiple] { height: 90px; }
+    .row2 { display: flex; gap: 6px; }
+    .row2 > * { flex: 1; }
+    button {
+      width: 100%; padding: 7px; font-size: 11px; font-family: monospace;
+      background: #0e1428; color: #7cf; border: 1px solid #2a4080; border-radius: 4px; cursor: pointer;
+      margin-top: 4px;
+    }
+    button:hover { background: #162040; }
+    button:disabled { opacity: 0.4; cursor: default; }
+    #progWrap { margin-top: 10px; }
+    #progBar { width: 100%; height: 3px; background: #1a2030; border-radius: 2px; overflow: hidden; }
+    #progFill { height: 100%; background: #5af; width: 0; transition: width .1s; }
+    #progText { font-size: 9px; color: #5af; margin-top: 4px; min-height: 12px; }
+    #errBox { font-size: 10px; color: #f88; margin-top: 6px; display: none; white-space: pre-wrap; }
+    .hint { font-size: 9px; color: #334; margin-top: 4px; line-height: 1.4; }
+
+    /* ── Main area ── */
+    #main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+    /* ── Results table ── */
+    #tableWrap { flex: 1; overflow: auto; padding: 8px; }
+    #summary { font-size: 10px; color: #567; padding: 6px 8px; border-bottom: 1px solid #1a2030; background: #0c0c1a; }
+    table { border-collapse: collapse; width: 100%; font-size: 10px; }
+    thead th {
+      background: #0d1025; color: #5af; font-weight: normal; letter-spacing: 1px;
+      padding: 5px 8px; text-align: left; position: sticky; top: 0; z-index: 2;
+      cursor: pointer; user-select: none; white-space: nowrap; border-bottom: 1px solid #1e2840;
+    }
+    thead th:hover { color: #9df; }
+    thead th.sorted-asc::after  { content: ' ▲'; font-size: 8px; }
+    thead th.sorted-desc::after { content: ' ▼'; font-size: 8px; }
+    tbody tr { border-bottom: 1px solid #0e1020; cursor: pointer; }
+    tbody tr:hover { background: #111830; }
+    tbody tr.selected { background: #0f1f3a; }
+    tbody tr.best-row { background: #0a1f12; }
+    tbody tr.best-row:hover { background: #0e2616; }
+    td { padding: 4px 8px; white-space: nowrap; }
+    td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    td.score-high { color: #6f6; }
+    td.score-mid  { color: #fa6; }
+    td.score-low  { color: #f66; }
+    .rank-badge {
+      display: inline-block; background: #0d2030; color: #5af;
+      border-radius: 3px; padding: 1px 5px; font-size: 9px;
+    }
+    .rank-badge.gold   { background: #2a1f00; color: #ffc040; }
+    .rank-badge.silver { background: #1a1f20; color: #aabbc0; }
+    .rank-badge.bronze { background: #1a1000; color: #c07840; }
+
+    /* ── Comparison panel ── */
+    #comparePanel {
+      height: 0; overflow: hidden; transition: height .2s; background: #0b0b18;
+      border-top: 1px solid #1a2030;
+    }
+    #comparePanel.open { height: 320px; overflow-y: auto; }
+    #compareInner { padding: 10px 14px; }
+    #compareTitle { font-size: 10px; color: #5af; margin-bottom: 8px; }
+    .cmpRow { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; align-items: flex-start; }
+    .cmpDir { text-align: center; }
+    .cmpDir label { display: block; font-size: 8px; color: #456; margin-bottom: 2px; }
+    .cmpDir canvas { image-rendering: pixelated; border: 1px solid #1e2440; }
+    .iou-badge {
+      display: block; font-size: 8px; margin-top: 2px;
+      padding: 1px 4px; border-radius: 2px; background: #0a1020;
+    }
+    .iou-high { color: #6f6; } .iou-mid { color: #fa6; } .iou-low { color: #f66; }
+    #closeCompare { float: right; margin-top: -2px; padding: 2px 8px; width: auto; font-size: 9px; }
+  </style>
+</head>
+<body>
+
+<!-- ── Sidebar ─────────────────────────────────────────────────────────────── -->
+<div id="sidebar">
+  <h2>QUALITY EVALUATOR</h2>
+  <div id="sidebar-inner">
+
+    <div class="sec">
+      <label>Units (ctrl+click for multi)</label>
+      <select id="unitSel" multiple></select>
+    </div>
+
+    <div class="sec">
+      <label>Animation filter (comma-separated, blank = all)</label>
+      <input type="text" id="animFilter" placeholder="walk,idle,attack">
+    </div>
+
+    <div class="sec">
+      <label>Frames per animation</label>
+      <select id="frameCount">
+        <option value="1">First frame only</option>
+        <option value="2">First 2 frames</option>
+        <option value="3" selected>First 3 frames</option>
+        <option value="99">All frames</option>
+      </select>
+    </div>
+
+    <div class="sec">
+      <label>Elevation range (°)</label>
+      <div class="row2">
+        <div><label>Min</label><input type="number" id="elevMin" value="8" min="1" max="45"></div>
+        <div><label>Max</label><input type="number" id="elevMax" value="18" min="1" max="75"></div>
+        <div><label>Step</label><input type="number" id="elevStep" value="1" min="1" max="10"></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <label>maxFront values (comma-separated) — no measurable effect, keep 0</label>
+      <input type="text" id="mfVals" value="0">
+    </div>
+
+    <div class="sec">
+      <label>roundFill values — fill threshold (1.05=circle only, 1.27=also rect)</label>
+      <input type="text" id="rfVals" value="1.0, 1.1, 1.2, 1.3, 1.4">
+    </div>
+
+    <div class="sec">
+      <label>roundAspect values — max aspect ratio to apply rounding</label>
+      <input type="text" id="raVals" value="2.0">
+    </div>
+
+    <div class="sec">
+      <label>Score weight: silhouette vs color (0–1)</label>
+      <input type="number" id="wIoU" value="0.65" min="0" max="1" step="0.05">
+      <p class="hint">Combined = wIoU × IoU + (1−wIoU) × ColorSim</p>
+    </div>
+
+    <button id="runBtn">▶ Run Evaluation</button>
+    <button id="stopBtn" disabled>■ Stop</button>
+
+    <div id="progWrap">
+      <div id="progBar"><div id="progFill"></div></div>
+      <div id="progText">—</div>
+    </div>
+    <div id="errBox"></div>
+
+    <p class="hint" style="margin-top:14px">
+      Each row = one (elevDeg, maxFront, roundFill, roundAspect) combination.<br>
+      Scores averaged across all selected units / anims / frames / directions.<br>
+      Click a row to see visual diffs.
+    </p>
+    <p class="hint" style="margin-top:6px">
+      <b>IoU</b>: silhouette overlap (shape quality)<br>
+      <b>Color</b>: RGB similarity on shared pixels<br>
+      <b>↻</b>: click column header to sort
+    </p>
+  </div>
+</div>
+
+<!-- ── Main ───────────────────────────────────────────────────────────────── -->
+<div id="main">
+  <div id="summary">No results yet — configure and press Run.</div>
+
+  <div id="tableWrap">
+    <table>
+      <thead>
+        <tr>
+          <th data-col="rank">#</th>
+          <th data-col="elev">elevDeg</th>
+          <th data-col="mf">maxFront</th>
+          <th data-col="rf">rFill</th>
+          <th data-col="ra">rAspect</th>
+          <th data-col="iouS">S-IoU</th>
+          <th data-col="iouN">N-IoU</th>
+          <th data-col="iouE">E-IoU</th>
+          <th data-col="iouW">W-IoU</th>
+          <th data-col="iouDiag">Diag-IoU</th>
+          <th data-col="iouAvg">Avg-IoU</th>
+          <th data-col="color">Color</th>
+          <th data-col="combined">Combined</th>
+          <th data-col="units">Samples</th>
+        </tr>
+      </thead>
+      <tbody id="tBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Visual comparison panel -->
+  <div id="comparePanel">
+    <div id="compareInner">
+      <div id="compareTitle">
+        Click a table row to see visual diffs
+        <button id="closeCompare" onclick="closeCompare()">✕ close</button>
+      </div>
+      <div id="compareContent" class="cmpRow"></div>
+    </div>
+  </div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+import { reconstruct, getPixels } from './reconstruct.mjs'
+
+const SPR = 32
+const DIRS = ['s', 'n', 'e', 'w', 'se', 'sw', 'ne', 'nw']
+
+// ── Project voxels → 2D pixel array using the exact inverse of the carving projection ──
+
+function projectVoxels(voxels, dir, W, H, D, tanElev) {
+  const data = new Uint8ClampedArray(W * H * 4)  // all transparent
+
+  // Sort back-to-front (painter's algorithm: draw far voxels first)
+  let sorted
+  switch (dir) {
+    case 's':  sorted = [...voxels].sort((a, b) => b.z - a.z);                        break
+    case 'n':  sorted = [...voxels].sort((a, b) => a.z - b.z);                        break
+    case 'e':  sorted = [...voxels].sort((a, b) => a.x - b.x);                        break
+    case 'w':  sorted = [...voxels].sort((a, b) => b.x - a.x);                        break
+    case 'se': sorted = [...voxels].sort((a, b) => (b.z - b.x) - (a.z - a.x));        break
+    case 'sw': sorted = [...voxels].sort((a, b) => (b.x + b.z) - (a.x + a.z));        break
+    case 'ne': sorted = [...voxels].sort((a, b) => (a.x + a.z) - (b.x + b.z));        break
+    case 'nw': sorted = [...voxels].sort((a, b) => (b.x - b.z) - (a.x - a.z));        break
+    default:   return null
+  }
+
+  for (const v of sorted) {
+    let sx, sy
+    switch (dir) {
+      case 's':
+        sx = W - 1 - v.x
+        sy = Math.round(H - 1 - v.y - v.z * tanElev)
+        break
+      case 'n':
+        sx = v.x
+        sy = Math.round(H - 1 - v.y - (D - 1 - v.z) * tanElev)
+        break
+      case 'e':
+        sx = D - 1 - v.z
+        sy = Math.round(H - 1 - v.y - (W - 1 - v.x) * tanElev)
+        break
+      case 'w':
+        sx = v.z
+        sy = Math.round(H - 1 - v.y - v.x * tanElev)
+        break
+      case 'se':
+        sx = Math.round(((W + D - 2) - (v.x + v.z)) / 2)
+        sy = Math.round(H - 1 - v.y - (v.z - v.x + W - 1) * 0.5 * tanElev)
+        break
+      case 'sw':
+        sx = Math.round(((W - 1) - (v.x - v.z)) / 2)
+        sy = Math.round(H - 1 - v.y - (v.x + v.z) * 0.5 * tanElev)
+        break
+      case 'ne':
+        sx = Math.round((v.x - v.z + D - 1) / 2)
+        sy = Math.round(H - 1 - v.y - ((W - 1 - v.x) + (D - 1 - v.z)) * 0.5 * tanElev)
+        break
+      case 'nw':
+        sx = Math.round((v.x + v.z) / 2)
+        sy = Math.round(H - 1 - v.y - (v.x + D - 1 - v.z) * 0.5 * tanElev)
+        break
+    }
+    if (sx < 0 || sx >= W || sy < 0 || sy >= H) continue
+    const idx = (sy * W + sx) * 4
+    data[idx] = v.r; data[idx + 1] = v.g; data[idx + 2] = v.b; data[idx + 3] = 255
+  }
+  return data
+}
+
+// ── Align two silhouettes vertically by matching their lowest opaque row ──
+function alignVertically(rendered, original, W, H) {
+  const bottomRow = (pixels) => {
+    for (let sy = H - 1; sy >= 0; sy--) {
+      for (let sx = 0; sx < W; sx++) {
+        if (pixels[(sy * W + sx) * 4 + 3] > 128) return sy
+      }
+    }
+    return -1
+  }
+  const rBot = bottomRow(rendered), oBot = bottomRow(original)
+  if (rBot < 0 || oBot < 0) return rendered
+  const dy = oBot - rBot
+  if (dy === 0) return rendered
+
+  const shifted = new Uint8ClampedArray(W * H * 4)
+  for (let sy = 0; sy < H; sy++) {
+    const srcY = sy - dy
+    if (srcY < 0 || srcY >= H) continue
+    const srcOff = srcY * W * 4, dstOff = sy * W * 4
+    shifted.set(rendered.subarray(srcOff, srcOff + W * 4), dstOff)
+  }
+  return shifted
+}
+
+// ── Compare rendered projection vs original sprite pixels ──
+function compareImages(rendered, original, W, H) {
+  let intersection = 0, union = 0, colorDist = 0, colorN = 0
+  for (let i = 0; i < W * H; i++) {
+    const ri = i * 4
+    const rA = rendered[ri + 3] > 128
+    const oA = original[ri + 3] > 128
+    if (rA || oA) union++
+    if (rA && oA) {
+      intersection++
+      const dr = rendered[ri]     - original[ri]
+      const dg = rendered[ri + 1] - original[ri + 1]
+      const db = rendered[ri + 2] - original[ri + 2]
+      colorDist += Math.sqrt(dr * dr + dg * dg + db * db)
+      colorN++
+    }
+  }
+  const iou      = union  > 0 ? intersection / union  : 0
+  const colorSim = colorN > 0 ? 1 - colorDist / colorN / (255 * Math.SQRT2) : 0
+  return { iou, colorSim }
+}
+
+// ── Make a diff canvas (green=match, red=missing, blue=extra, grey=original) ──
+function makeDiffCanvas(rendered, original, W, H, scale = 5) {
+  const cv = document.createElement('canvas')
+  cv.width = W * scale; cv.height = H * scale
+  const ctx = cv.getContext('2d')
+  ctx.imageSmoothingEnabled = false
+
+  // Composite original sprite (dim) into the diff
+  const diff = new Uint8ClampedArray(W * H * 4)
+  for (let i = 0; i < W * H; i++) {
+    const ri = i * 4
+    const rA = rendered[ri + 3] > 128
+    const oA = original[ri + 3] > 128
+    if (rA && oA) {
+      // Match: show original color at full brightness
+      diff[ri] = original[ri]; diff[ri+1] = original[ri+1]; diff[ri+2] = original[ri+2]; diff[ri+3] = 220
+    } else if (oA && !rA) {
+      // Missing in rendered: red
+      diff[ri] = 200; diff[ri+1] = 40; diff[ri+2] = 40; diff[ri+3] = 200
+    } else if (rA && !oA) {
+      // Extra in rendered: blue
+      diff[ri] = 40; diff[ri+1] = 80; diff[ri+2] = 200; diff[ri+3] = 160
+    }
+  }
+  const tmp = document.createElement('canvas'); tmp.width = W; tmp.height = H
+  tmp.getContext('2d').putImageData(new ImageData(diff, W, H), 0, 0)
+  ctx.drawImage(tmp, 0, 0, W * scale, H * scale)
+  return cv
+}
+
+// ── Make a plain canvas from pixel data ──
+function makeCanvas(pixels, W, H, scale = 5) {
+  const cv = document.createElement('canvas')
+  cv.width = W * scale; cv.height = H * scale
+  const ctx = cv.getContext('2d')
+  ctx.imageSmoothingEnabled = false
+  const tmp = document.createElement('canvas'); tmp.width = W; tmp.height = H
+  tmp.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(pixels), W, H), 0, 0)
+  ctx.drawImage(tmp, 0, 0, W * scale, H * scale)
+  return cv
+}
+
+// ── Score cell CSS class ──
+function scoreClass(v) {
+  return v >= 0.70 ? 'score-high' : v >= 0.45 ? 'score-mid' : 'score-low'
+}
+
+// ── Main state ──
+let running = false
+let stopFlag = false
+let desc = {}
+let allResults = []
+let sortCol = 'combined', sortAsc = false
+let selectedRow = null
+
+// ── Table rendering ──
+function renderTable() {
+  const rows = [...allResults]
+  const dir = sortAsc ? 1 : -1
+  rows.sort((a, b) => {
+    const av = a[sortCol] ?? 0, bv = b[sortCol] ?? 0
+    return typeof av === 'number' ? (av - bv) * dir : String(av).localeCompare(String(bv)) * dir
+  })
+  // Assign rank after sort (rank by combined, highest = 1)
+  const byScore = [...allResults].sort((a, b) => b.combined - a.combined)
+  const rankMap = new Map(byScore.map((r, i) => [r.id, i + 1]))
+
+  const tbody = document.getElementById('tBody')
+  tbody.innerHTML = ''
+  for (const r of rows) {
+    const rank = rankMap.get(r.id)
+    const tr = document.createElement('tr')
+    if (rank === 1) tr.classList.add('best-row')
+    const badge = rank <= 3
+      ? `<span class="rank-badge ${rank===1?'gold':rank===2?'silver':'bronze'}">${rank}</span>`
+      : `<span class="rank-badge">${rank}</span>`
+    tr.innerHTML = `
+      <td>${badge}</td>
+      <td class="num">${r.elev}°</td>
+      <td class="num">${r.mf}</td>
+      <td class="num">${r.rf != null ? r.rf.toFixed(2) : '—'}</td>
+      <td class="num">${r.ra != null ? r.ra.toFixed(1) : '—'}</td>
+      <td class="num ${scoreClass(r.iouS)}">${fmt(r.iouS)}</td>
+      <td class="num ${scoreClass(r.iouN)}">${fmt(r.iouN)}</td>
+      <td class="num ${scoreClass(r.iouE)}">${fmt(r.iouE)}</td>
+      <td class="num ${scoreClass(r.iouW)}">${fmt(r.iouW)}</td>
+      <td class="num ${scoreClass(r.iouDiag)}">${fmt(r.iouDiag)}</td>
+      <td class="num ${scoreClass(r.iouAvg)}"><b>${fmt(r.iouAvg)}</b></td>
+      <td class="num ${scoreClass(r.color)}">${fmt(r.color)}</td>
+      <td class="num ${scoreClass(r.combined)}"><b>${fmt(r.combined)}</b></td>
+      <td class="num" style="color:#446">${r.units}</td>
+    `
+    tr.addEventListener('click', () => showComparison(r, tr))
+    tbody.appendChild(tr)
+  }
+
+  // Update summary
+  if (allResults.length) {
+    const best = byScore[0]
+    document.getElementById('summary').textContent =
+      `${allResults.length} parameter combos · Best: elev=${best.elev}° mf=${best.mf} rFill=${best.rf?.toFixed(2)} rAsp=${best.ra?.toFixed(1)} → Combined=${fmt(best.combined)} IoU=${fmt(best.iouAvg)} Color=${fmt(best.color)} · ${best.units} samples`
+  }
+}
+
+const fmt = v => (v == null ? '—' : v.toFixed(3))
+
+// ── Column sort ──
+document.querySelectorAll('thead th[data-col]').forEach(th => {
+  th.addEventListener('click', () => {
+    const col = th.dataset.col
+    if (sortCol === col) sortAsc = !sortAsc
+    else { sortCol = col; sortAsc = col === 'rank' || col === 'elev' || col === 'mf' }
+    document.querySelectorAll('thead th').forEach(t => t.classList.remove('sorted-asc', 'sorted-desc'))
+    th.classList.add(sortAsc ? 'sorted-asc' : 'sorted-desc')
+    renderTable()
+  })
+})
+
+// ── Visual comparison ──
+let comparisonCache = new Map()  // key → [{dir, origPixels, rendPixels}]
+
+async function showComparison(result, tr) {
+  if (selectedRow) selectedRow.classList.remove('selected')
+  selectedRow = tr; tr.classList.add('selected')
+
+  const panel = document.getElementById('comparePanel')
+  panel.classList.add('open')
+  const content = document.getElementById('compareContent')
+  content.innerHTML = '<span style="color:#456">Loading previews…</span>'
+  document.getElementById('compareTitle').firstChild.textContent =
+    `elev=${result.elev}° mf=${result.mf} rFill=${result.rf?.toFixed(2)} rAsp=${result.ra?.toFixed(1)} — diff (match/missing/extra) | ${result.previewUnit || '?'} / ${result.previewAnim || '?'} frame-${result.previewFrame || 0}`
+
+  const key = result.previewKey
+  let previews = comparisonCache.get(key)
+  if (!previews) {
+    content.innerHTML = '<span style="color:#456">Reconstructing for preview…</span>'
+    previews = await buildPreviews(result)
+    if (previews) comparisonCache.set(key, previews)
+  }
+
+  if (!previews) { content.innerHTML = '<span style="color:#f88">Could not build preview.</span>'; return }
+
+  content.innerHTML = ''
+  for (const { dir, origPixels, rendPixels } of previews) {
+    if (!origPixels) continue
+    const aligned = alignVertically(rendPixels, origPixels, SPR, SPR)
+    const { iou } = compareImages(aligned, origPixels, SPR, SPR)
+    const cls = iou >= 0.70 ? 'iou-high' : iou >= 0.45 ? 'iou-mid' : 'iou-low'
+
+    const wrap = document.createElement('div'); wrap.className = 'cmpDir'
+    const lbl = document.createElement('label')
+    lbl.textContent = dir.toUpperCase()
+
+    const origCv = makeCanvas(origPixels, SPR, SPR, 4)
+    origCv.title = 'Original sprite'
+
+    const diffCv = makeDiffCanvas(aligned, origPixels, SPR, SPR, 4)
+    diffCv.title = 'Diff (match/missing/extra)'
+
+    const span = document.createElement('span')
+    span.className = `iou-badge ${cls}`
+    span.textContent = `IoU ${iou.toFixed(3)}`
+
+    wrap.appendChild(lbl)
+    wrap.appendChild(origCv)
+    wrap.appendChild(document.createTextNode(' '))
+    wrap.appendChild(diffCv)
+    wrap.appendChild(span)
+    content.appendChild(wrap)
+  }
+}
+
+window.closeCompare = () => {
+  document.getElementById('comparePanel').classList.remove('open')
+  if (selectedRow) { selectedRow.classList.remove('selected'); selectedRow = null }
+}
+
+async function buildPreviews(result) {
+  const { elev, mf, previewUnit, previewAnim, previewFrame } = result
+  if (!previewUnit || !desc[previewUnit]) return null
+
+  const unitD = desc[previewUnit]
+  const animD = unitD[previewAnim]
+  if (!animD) return null
+  const frameKeys = Object.keys(animD)
+  const frameKey = frameKeys[previewFrame] || frameKeys[0]
+  const frameData = animD[frameKey]
+  if (!frameData) return null
+
+  const src = unitD.relativeToRoot.replace('./', '../')
+  const tanElev = Math.tan(elev * Math.PI / 180)
+  const voxels = await reconstruct(src, frameData, elev, mf, result.ra ?? 2.0, result.rf ?? 1.2)
+  const previews = []
+
+  for (const dir of DIRS) {
+    const fi = frameData[dir]
+    if (!fi) continue
+    const origPixels = await getPixels(src, fi.x * SPR, fi.y * SPR, SPR, SPR)
+    const rendPixels = projectVoxels(voxels, dir, SPR, SPR, SPR, tanElev)
+    previews.push({ dir, origPixels, rendPixels })
+  }
+  return previews
+}
+
+// ── Main evaluation loop ──
+async function runEvaluation() {
+  const unitSel = document.getElementById('unitSel')
+  const selectedUnits = [...unitSel.selectedOptions].map(o => o.value)
+  if (!selectedUnits.length) { showErr('Select at least one unit.'); return }
+
+  const animFilter = document.getElementById('animFilter').value.trim()
+  const animWL = animFilter ? animFilter.split(',').map(s => s.trim().toLowerCase()).filter(Boolean) : []
+  const maxFrames = parseInt(document.getElementById('frameCount').value)
+  const wIoU = parseFloat(document.getElementById('wIoU').value)
+
+  const elevMin  = parseFloat(document.getElementById('elevMin').value)
+  const elevMax  = parseFloat(document.getElementById('elevMax').value)
+  const elevStep = parseFloat(document.getElementById('elevStep').value)
+  const mfVals   = document.getElementById('mfVals').value.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n))
+  const rfVals   = document.getElementById('rfVals').value.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n))
+  const raVals   = document.getElementById('raVals').value.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n))
+
+  // Build param grid
+  const params = []
+  for (let e = elevMin; e <= elevMax + 1e-9; e += elevStep) {
+    const elev = Math.round(e * 10) / 10
+    for (const mf of mfVals)
+      for (const rf of rfVals)
+        for (const ra of raVals)
+          params.push({ elev, mf, rf, ra })
+  }
+  if (!params.length) { showErr('No parameter combinations — check elevation range.'); return }
+
+  // Build test cases
+  const testCases = []
+  const skipKeys = new Set(['sprite', 'relativeToRoot', 'mask'])
+  for (const unitName of selectedUnits) {
+    const unitD = desc[unitName]
+    if (!unitD) continue
+    for (const animName of Object.keys(unitD)) {
+      if (skipKeys.has(animName)) continue
+      if (animWL.length && !animWL.some(a => animName.toLowerCase().includes(a))) continue
+      const animD = unitD[animName]
+      const frameKeys = Object.keys(animD).slice(0, maxFrames)
+      for (const frameKey of frameKeys) {
+        const frameData = animD[frameKey]
+        if (!frameData || !frameData.s) continue
+        const src = unitD.relativeToRoot.replace('./', '../')
+        testCases.push({ unitName, animName, frameKey, frameData, src })
+      }
+    }
+  }
+  if (!testCases.length) { showErr('No test cases found — check unit/anim/frame selection.'); return }
+
+  allResults = []
+  comparisonCache.clear()
+  running = true; stopFlag = false
+  document.getElementById('runBtn').disabled = true
+  document.getElementById('stopBtn').disabled = false
+  document.getElementById('errBox').style.display = 'none'
+  document.getElementById('tBody').innerHTML = ''
+  document.getElementById('summary').textContent = `Running ${params.length} param combos × ${testCases.length} test cases…`
+
+  const total = params.length * testCases.length
+  let done = 0
+
+  // Pre-fetch pixels for all directions for all test cases (cache via getPixels)
+  setProgress(0, `Pre-loading sprite pixels for ${testCases.length} test cases…`)
+  for (const tc of testCases) {
+    tc.sprites = {}
+    for (const dir of DIRS) {
+      const fi = tc.frameData[dir]
+      if (!fi) continue
+      tc.sprites[dir] = await getPixels(tc.src, fi.x * SPR, fi.y * SPR, SPR, SPR)
+    }
+    await yield_()
+    if (stopFlag) break
+  }
+
+  let id = 0
+  for (const { elev, mf, rf, ra } of params) {
+    if (stopFlag) break
+    const tanElev = Math.tan(elev * Math.PI / 180)
+
+    // Per-direction accumulators
+    const acc = { s: [], n: [], e: [], w: [], diag: [], all: [], color: [] }
+
+    let previewUnit = null, previewAnim = null, previewFrame = 0, previewKey = null
+
+    for (let ti = 0; ti < testCases.length; ti++) {
+      if (stopFlag) break
+      const tc = testCases[ti]
+
+      setProgress(done / total, `elev=${elev}° rf=${rf} ra=${ra} | ${tc.unitName}/${tc.animName}/${tc.frameKey}`)
+
+      let voxels
+      try {
+        voxels = await reconstruct(tc.src, tc.frameData, elev, mf, ra, rf)
+      } catch (e) {
+        done++; continue
+      }
+
+      // Set preview from first test case of first unit
+      if (!previewUnit) {
+        previewUnit = tc.unitName; previewAnim = tc.animName
+        previewFrame = 0; previewKey = `${elev}_${mf}_${rf}_${ra}_${tc.unitName}_${tc.animName}_0`
+      }
+
+      // Compare each direction
+      for (const dir of DIRS) {
+        const origPx = tc.sprites[dir]
+        if (!origPx) continue
+
+        const rendPx = projectVoxels(voxels, dir, SPR, SPR, SPR, tanElev)
+        if (!rendPx) continue
+        const aligned = alignVertically(rendPx, origPx, SPR, SPR)
+        const { iou, colorSim } = compareImages(aligned, origPx, SPR, SPR)
+
+        const bucket = ['s','n','e','w'].includes(dir) ? dir : 'diag'
+        acc[bucket].push(iou)
+        acc.all.push(iou)
+        acc.color.push(colorSim)
+      }
+
+      done++
+      await yield_()
+    }
+
+    const mean = arr => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null
+
+    const iouS    = mean(acc.s)
+    const iouN    = mean(acc.n)
+    const iouE    = mean(acc.e)
+    const iouW    = mean(acc.w)
+    const iouDiag = mean(acc.diag)
+    const iouAvg  = mean(acc.all)
+    const color   = mean(acc.color)
+    const combined = iouAvg != null && color != null
+      ? wIoU * iouAvg + (1 - wIoU) * color : null
+
+    allResults.push({
+      id: id++, elev, mf, rf, ra,
+      iouS, iouN, iouE, iouW, iouDiag, iouAvg, color, combined,
+      units: acc.all.length,
+      previewUnit, previewAnim, previewFrame, previewKey
+    })
+
+    renderTable()
+    await yield_()
+  }
+
+  running = false
+  document.getElementById('runBtn').disabled = false
+  document.getElementById('stopBtn').disabled = true
+  setProgress(1, stopFlag ? 'Stopped.' : `Done — ${allResults.length} parameter combos evaluated.`)
+}
+
+function yield_() { return new Promise(r => setTimeout(r, 0)) }
+function setProgress(p, msg) {
+  document.getElementById('progFill').style.width = `${Math.round(p * 100)}%`
+  if (msg) document.getElementById('progText').textContent = msg
+}
+function showErr(msg) {
+  const el = document.getElementById('errBox')
+  el.textContent = '⚠ ' + msg; el.style.display = 'block'
+}
+
+// ── Init ──
+async function init() {
+  try {
+    const resp = await fetch('../assets/unitsSpritesDescription.json')
+    desc = await resp.json()
+  } catch (e) {
+    showErr('Could not load unitsSpritesDescription.json\nRun: python3 -m http.server 8000')
+    return
+  }
+
+  const sel = document.getElementById('unitSel')
+  const skipKeys = new Set(['sprite', 'relativeToRoot', 'mask'])
+  for (const name of Object.keys(desc)) {
+    const o = document.createElement('option')
+    o.value = name
+    o.textContent = name.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+    sel.appendChild(o)
+  }
+  // Select all by default
+  for (const o of sel.options) o.selected = true
+
+  document.getElementById('runBtn').addEventListener('click', runEvaluation)
+  document.getElementById('stopBtn').addEventListener('click', () => { stopFlag = true })
+}
+
+init()
+</script>
+</body>
+</html>
