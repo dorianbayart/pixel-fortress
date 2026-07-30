@@ -55,6 +55,7 @@ jobs:
       with:
         name: PixelFortress-Windows
         path: dist/*.exe
+        retention-days: 1
 
   build-macos:
     needs: check
@@ -86,6 +87,7 @@ jobs:
       with:
         name: PixelFortress-macOS
         path: dist/*.dmg
+        retention-days: 1
 
   build-linux:
     needs: check
@@ -117,6 +119,7 @@ jobs:
       with:
         name: PixelFortress-Linux
         path: dist/*.AppImage
+        retention-days: 1
 
   release:
     runs-on: ubuntu-latest
